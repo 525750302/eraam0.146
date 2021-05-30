@@ -70,8 +70,8 @@ FOR LCOUNT, 1, CHARANUM
 			NUM_NEWCOMER += 1
 			IF PLACE("自宅") == 0
 				;最初からいない人は挨拶フラグリセット
-				CFLAG:LCOUNT:挨拶した = 0
-				CFLAG:LCOUNT:挨拶された = 0
+				CFLAG:LCOUNT:打招呼した = 0
+				CFLAG:LCOUNT:打招呼された = 0
 			ENDIF
 		CASE 2
 			NUM_NEXT_NEWCOMER += 1
@@ -106,7 +106,7 @@ IF CFLAG:MASTER:入室までの所要時間 == 1
 		NUM_NEWCOMER = 0
 		NUM_NEXT_NEWCOMER = 0
 	;パートナーシャワー中？
-	ELSEIF CFLAG:シャワー中
+	ELSEIF CFLAG:淋浴中
 		FOR LCOUNT, 2, CHARANUM
 			SELECTCASE LCOUNT
 			CASE TARGET
@@ -161,7 +161,7 @@ FOR LCOUNT, 1, CHARANUM
 	SELECTCASE LCOUNT
 	CASE NEWCOMER:0, NEWCOMER:1, NEWCOMER:2
 		;初期化はここの一番下で行う
-		CFLAG:LCOUNT:入室挨拶中 = 1
+		CFLAG:LCOUNT:入室打招呼中 = 1
 	CASEELSE
 		SIF CFLAG:LCOUNT:入室までの所要時間 != 1
 			CONTINUE
@@ -170,18 +170,18 @@ FOR LCOUNT, 1, CHARANUM
 	SELECTCASE SAVESTR:現在位置
 	CASE "部室"
 		SELECTCASE SAVESTR:標語
-		CASE "喉の渇きに注意"
+		CASE "注意口渴"
 			SIF CFLAG:LCOUNT:睡眠
 				CONTINUE
-			CFLAG:LCOUNT:お茶 = 7 + RAND:3
-			BASE:LCOUNT:尿意 += 400 + TALENT:LCOUNT:小柄*200 - TALENT:LCOUNT:長身*100
+			CFLAG:LCOUNT:茶 = 7 + RAND:3
+			BASE:LCOUNT:尿意 += 400 + TALENT:LCOUNT:娇小*200 - TALENT:LCOUNT:高大*100
 		ENDSELECT
 	ENDSELECT
 NEXT
 
 ;イベント発生した人は0にする＆現在位置を現れた場所に変更
 FOR LCOUNT, 2, CHARANUM
-	IF CFLAG:LCOUNT:入室までの所要時間 == 1 || CFLAG:LCOUNT:入室挨拶中
+	IF CFLAG:LCOUNT:入室までの所要時間 == 1 || CFLAG:LCOUNT:入室打招呼中
 		CFLAG:LCOUNT:入室までの所要時間 = 0
 		SIF CFLAG:MASTER:入室までの所要時間 == 0
 			CALL MOVE_PLACE, SAVESTR:現在位置, LCOUNT
@@ -194,22 +194,22 @@ IF CFLAG:MASTER:入室までの所要時間 == 1
 	;パートナー寝てる？
 	IF CFLAG:睡眠
 		IF PLACE("自宅")
-			PRINTFORMW %CALLNAME:MASTER%が帰宅すると……先に戻っていたらしい%CALLNAME:TARGET%が寝息を立てていた。
+			PRINTFORMW %CALLNAME:MASTER%一回到家就发现……早就回来了的%CALLNAME:TARGET%已经睡着了。
 			;夜は他に同棲してる人が居ると寝ないので現状だと以下は発生しない
 			SELECTCASE CHARA_NUM("出現予定")
 			CASE IS >= 2
-				PRINTFORMW 他の人達も全員戻っているようだ。
+				PRINTFORMW 其他人也都已经回来了。
 			CASE 1
-				PRINTFORMW %CALLNAME:FIND_COND("出現予定")%も帰ってきているようだ。
+				PRINTFORMW %CALLNAME:FIND_COND("出現予定")%已经回来了。
 			ENDSELECT
 			;夜は全員最初からいる
 			CVARSET CFLAG, GETNUM(CFLAG, "入室までの所要時間")
 		ELSE
-			PRINTFORMW %CALLNAME:MASTER%が%TEXTS("現在位置")%に顔を出すと……先に来ていたらしい%CALLNAME:TARGET%が寝息を立てていた。
+			PRINTFORMW %CALLNAME:MASTER%一进到%TEXTS("現在位置")%里……就发现早就来了的%CALLNAME:TARGET%已经睡着了。
 		ENDIF
 	;パートナーシャワー中？
-	ELSEIF CFLAG:シャワー中
-		CALL EVENT_ACADEMY, "シャワー"
+	ELSEIF CFLAG:淋浴中
+		CALL EVENT_ACADEMY, "淋浴"
 
 	;パートナー以外も既にいる？
 	ELSEIF NUM_NEWCOMER
@@ -217,21 +217,21 @@ IF CFLAG:MASTER:入室までの所要時間 == 1
 		;同伴出勤
 		IF COND("同伴可能")
 			PRINTFORM と%CALLNAME:TARGET%
-			CALL SETFLAG_DAILY, "挨拶"
+			CALL SETFLAG_DAILY, "打招呼"
 			CALL SETFLAG_DAILY, "同伴者"
 		ENDIF
 
 		IF PLACE("自宅")
-			PRINTFORM が帰宅すると
+			PRINTFORM 一回到家
 		ELSE
-			PRINTFORM が%TEXTS("現在位置")%に顔を出すと
+			PRINTFORM 一进到%TEXTS("現在位置")%里
 		ENDIF
 
 		EVENT_NAME = 既に入室
 
 		IF PLACE("自宅")
 			IF RAND:(NUM_NEWCOMER + 1)
-				PRINTFORM 、遅れて戻った
+				PRINTFORM 、回来得晚了一点的
 				EVENT_NAME = ただいま
 
 				;帰ったばかりなのに帰宅後に格好になってる齟齬の修正
@@ -246,30 +246,30 @@ IF CFLAG:MASTER:入室までの所要時間 == 1
 					CALL SET_MEMO_DRESS, "帰宅時の格好", LCOUNT
 				NEXT
 			ELSE
-				PRINTFORM 、既に戻っていた
+				PRINTFORM 、已经回来了的
 			ENDIF
 		ELSE
-			PRINTFORM 、既に入室していた
+			PRINTFORM 、早就来了的
 		ENDIF
 		;同伴出勤
 		IF COND("同伴可能")
 			SELECTCASE NUM_NEWCOMER
 			CASE 1
-				PRINTFORMW %CALLNAME:(NEWCOMER:0)%が挨拶してきた。
+				PRINTFORMW %CALLNAME:(NEWCOMER:0)%打了个招呼。
 			CASE 2
-				PRINTFORMW %CALLNAME:(NEWCOMER:0)%と%CALLNAME:(NEWCOMER:1)%が挨拶してきた。
+				PRINTFORMW %CALLNAME:(NEWCOMER:0)%和%CALLNAME:(NEWCOMER:1)%打了个招呼。
 			CASEELSE
-				PRINTFORMW %CALLNAME:(NEWCOMER:0)%達が挨拶してきた。
+				PRINTFORMW %CALLNAME:(NEWCOMER:0)%们打了个招呼。
 			ENDSELECT
 			CALL KOJO_GREETINGS, EVENT_NAME, NEWCOMER:0, NEWCOMER:1, NEWCOMER:2
 		ELSE
 			SELECTCASE NUM_NEWCOMER
 			CASE 1
-				PRINTFORMW %CALLNAME:TARGET%と%CALLNAME:(NEWCOMER:0)%が挨拶してきた。
+				PRINTFORMW %CALLNAME:TARGET%和%CALLNAME:(NEWCOMER:0)%打了个招呼。
 			CASE 2
-				PRINTFORMW %CALLNAME:TARGET%達が挨拶してきた。
+				PRINTFORMW %CALLNAME:TARGET%们打了个招呼。
 			CASEELSE
-				PRINTFORMW %CALLNAME:TARGET%達が挨拶してきた。
+				PRINTFORMW %CALLNAME:TARGET%们打了个招呼。
 			ENDSELECT
 			CALL KOJO_GREETINGS, EVENT_NAME, TARGET, NEWCOMER:0, NEWCOMER:1, NEWCOMER:2
 		ENDIF
@@ -284,17 +284,17 @@ IF CFLAG:MASTER:入室までの所要時間 == 1
 			;同伴出勤
 			IF COND("同伴可能")
 				PRINTFORM と%CALLNAME:TARGET%
-				CALL SETFLAG_DAILY, "挨拶"
+				CALL SETFLAG_DAILY, "打招呼"
 				CALL SETFLAG_DAILY, "同伴者"
 			ENDIF
 
-			PRINTFORM が%TEXTS("現在位置")%に顔を出すと、
+			PRINTFORM 一进到%TEXTS("現在位置")%里、
 			;同伴出勤
 			IF COND("同伴可能")
-				PRINTFORMW 他には誰も居ない……一番乗りのようだ。
+				PRINTFORMW 谁都不在……自己好像是第一个到的様子。
 				CALL KOJO_GREETING, "一番乗り"
 			ELSE
-				PRINTFORMW %CALLNAME:TARGET%から声がかけられた。
+				PRINTFORMW %CALLNAME:TARGET%打了个招呼。
 				CALL KOJO_GREETING, "既に入室"
 			ENDIF
 
@@ -304,17 +304,17 @@ IF CFLAG:MASTER:入室までの所要時間 == 1
 			;一緒に行動
 			IF COND("同伴可能") && TALENT:相思相愛
 				IF PLACE("自宅")
-					PRINTFORMW は%CALLNAME:TARGET%と仲良く寄り添いながら家に戻りました。
+					PRINTFORMW 和%CALLNAME:TARGET%一起関系很好的径直回家了。
 				ELSE
-					PRINTFORMW は%CALLNAME:TARGET%と二人きりの部活動を始める事にしました。
+					PRINTFORMW 和%CALLNAME:TARGET%两个人一起開始了社团活动。
 				ENDIF
 			ELSE
 				EVENT_NAME = 既に入室
 				IF PLACE("自宅")
 					IF COND("同伴可能")
-						PRINTFORMW は%CALLNAME:TARGET%と一緒に家に戻った。
+						PRINTFORMW 和%CALLNAME:TARGET%一起回家了。
 					ELSEIF RAND:2
-						PRINTFORM が帰宅すると、遅れて戻った%CALLNAME:TARGET%から声がかけられた。
+						PRINTFORM 刚回到家、晚了一点也回来了的%CALLNAME:TARGET%打了个招呼。
 						EVENT_NAME = ただいま
 						;帰ったばかりなのに帰宅後に格好になってる齟齬の修正
 						FOR LCOUNT, 2, CHARANUM
@@ -328,10 +328,10 @@ IF CFLAG:MASTER:入室までの所要時間 == 1
 							CALL SET_MEMO_DRESS, "帰宅時の格好", LCOUNT
 						NEXT
 					ELSE
-						PRINTFORM が帰宅すると、既に戻っていた%CALLNAME:TARGET%から声がかけられた。
+						PRINTFORM 刚回到家、早就回来了的%CALLNAME:TARGET%打了个招呼。
 					ENDIF
 				ELSE
-					PRINTFORMW が%TEXTS("現在位置")%に顔を出すと、既に入室していた%CALLNAME:TARGET%から声がかけられた。
+					PRINTFORMW 一在%TEXTS("現在位置")%露面、早就在里面的%CALLNAME:TARGET%打了个招呼。
 				ENDIF
 				CALL KOJO_GREETING, EVENT_NAME
 			ENDIF
@@ -354,25 +354,25 @@ ELSEIF NUM_NEWCOMER == 1 && CFLAG:NEWCOMER:加入日 == 0
 	MEMO_LINECOUNT = LINECOUNT
 	CALL EVENT_PROFILE, "初訪問", NEWCOMER
 	IF LINECOUNT == MEMO_LINECOUNT
-		PRINTFORMW 初めて顔を出した%CALLNAME:NEWCOMER%が挨拶してきた。
-		CALL KOJO_GREETING, "入室挨拶", NEWCOMER
+		PRINTFORMW 向首次出现的%CALLNAME:NEWCOMER%打了招呼。
+		CALL KOJO_GREETING, "入室打招呼", NEWCOMER
 	ENDIF
 ;入室者がいる
 ELSEIF NUM_NEWCOMER
 	DRAWLINE
 
-	EVENT_NAME = 入室挨拶
+	EVENT_NAME = 入室打招呼
 
 	;部屋に既にいる部員の人数(あなたは除く)
-	NUM_INROOM = CHARA_NUM("入室挨拶時の室内人数")
+	NUM_INROOM = CHARA_NUM("入室打招呼時の室内人数")
 
 	IF PLACE("自宅")
 		EVENT_NAME = 居間に現れた
 	;イベント日でない事も簡易挨拶の条件
-	ELSEIF TEXTS("日付対応イベント") == ""
+	ELSEIF TEXTS("日期対応イベント") == ""
 		;既に部屋に人が居るなら簡易入室挨拶になる事も（部屋にいる他の人から、反応が返ってくる）
 		SIF NUM_INROOM && RAND:4 == 0
-			EVENT_NAME = 簡易入室挨拶
+			EVENT_NAME = 簡易入室打招呼
 	ENDIF
 
 	MEMO_LINECOUNT = LINECOUNT
@@ -380,23 +380,23 @@ ELSEIF NUM_NEWCOMER
 	SELECTCASE NUM_NEWCOMER
 	CASE 1
 		IF CFLAG:(NEWCOMER:0):呼び出された
-			PRINTFORMW ……呼び出された%CALLNAME:(NEWCOMER:0)%が挨拶しながら%SAVESTR:現在位置%に現れた。
+			PRINTFORMW ……呼び出された%CALLNAME:(NEWCOMER:0)%が打招呼しながら%SAVESTR:現在位置%に現れた。
 		ELSEIF PLACE("自宅")
-			PRINTFORMW %CALLNAME:(NEWCOMER:0)%が居間に\@ CMOVE("居間", NEWCOMER:0) ? 戻ってきた # 現れた \@。
+			PRINTFORMW %CALLNAME:(NEWCOMER:0)%\@ CMOVE("居間", NEWCOMER:0) ? 回到了居間 # 在居間出现了 \@。
 		ELSE
-			PRINTFORMW ……遅れて顔を出した%CALLNAME:(NEWCOMER:0)%が挨拶してきた。
+			PRINTFORMW ……迟了一点才露面的%CALLNAME:(NEWCOMER:0)%打了个招呼。
 		ENDIF
 	CASE 2
 		IF PLACE("自宅")
-			PRINTFORMW %CALLNAME:(NEWCOMER:0)%と%CALLNAME:(NEWCOMER:1)%が居間に\@ CMOVE("居間", NEWCOMER:0) ? 戻ってきた # 現れた \@。
+			PRINTFORMW %CALLNAME:(NEWCOMER:0)%和%CALLNAME:(NEWCOMER:1)%が居間に\@ CMOVE("居間", NEWCOMER:0) ? 回到了居間 # 在居間出现了 \@。
 		ELSE
-			PRINTFORMW ……遅れて顔を出した%CALLNAME:(NEWCOMER:0)%と%CALLNAME:(NEWCOMER:1)%が挨拶してきた。
+			PRINTFORMW ……迟了一点才露面的%CALLNAME:(NEWCOMER:0)%和%CALLNAME:(NEWCOMER:1)%打了个招呼。
 		ENDIF
 	CASEELSE
 		IF PLACE("自宅")
-			PRINTFORMW %CALLNAME:(NEWCOMER:0)%達が居間に\@ CMOVE("居間", NEWCOMER:0) ? 戻ってきた # 現れた \@。
+			PRINTFORMW %CALLNAME:(NEWCOMER:0)%達が居間に\@ CMOVE("居間", NEWCOMER:0) ? 回到了居間 # 在居間出现了 \@。
 		ELSE
-			PRINTFORMW ……遅れて顔を出した%CALLNAME:(NEWCOMER:0)%達が挨拶してきた。
+			PRINTFORMW ……迟了一点才露面的%CALLNAME:(NEWCOMER:0)%们打了个招呼。
 		ENDIF
 	ENDSELECT
 	CALL KOJO_GREETINGS, EVENT_NAME, NEWCOMER:0, NEWCOMER:1, NEWCOMER:2
@@ -406,13 +406,13 @@ ELSEIF NUM_NEWCOMER
 	;挨拶が短い時も発生させてみる
 	SELECTCASE LINECOUNT - MEMO_LINECOUNT
 	CASE IS <= 2
-		EVENT_NAME = 簡易入室挨拶
+		EVENT_NAME = 簡易入室打招呼
 	CASE 3
 		SIF RAND:2 == 0
-			EVENT_NAME = 簡易入室挨拶
+			EVENT_NAME = 簡易入室打招呼
 	ENDSELECT
 
-	IF EVENT_NAME == "簡易入室挨拶" && PLACE("自宅") == 0
+	IF EVENT_NAME == "簡易入室打招呼" && PLACE("自宅") == 0
 		NUM_CAN_REPLY = NUM_INROOM
 		;あいさつは３人まで
 		NUM_REPLY = 3
@@ -421,11 +421,11 @@ ELSEIF NUM_NEWCOMER
 		MEMO_LINECOUNT = LINECOUNT
 
 		FOR LCOUNT, 2, CHARANUM
-			SIF COND("入室挨拶中", LCOUNT) || COND("現在存在", LCOUNT) == 0
+			SIF COND("入室打招呼中", LCOUNT) || COND("現在存在", LCOUNT) == 0
 				CONTINUE
 			IF RAND:NUM_CAN_REPLY < NUM_REPLY
 				MEMO_LINECOUNT2 = LINECOUNT
-				CALL KOJO_GREETING, "挨拶返し", LCOUNT
+				CALL KOJO_GREETING, "打招呼返し", LCOUNT
 				SIF LINECOUNT != MEMO_LINECOUNT2
 					NUM_REPLY -= 1
 			ENDIF
@@ -443,26 +443,26 @@ ENDIF
 ;寝てる相手に悪戯してるなら足音をお知らせ
 IF CFLAG:睡眠 && NUM_NEXT_NEWCOMER
 	DRAWLINE
-	PRINTFORMW ……微かに足音がする。そろそろ誰か他の人が現れそうだ。
+	PRINTFORMW ……远远的传来了谁的脚步声。看様子有人快要接近这里了。
 	;汚した？
 	IF COND("着衣の乱れ")
-		PRINTFORMW %TEXTR("着衣の乱れを直して/手早く汚れを拭って/身嗜みを整えて")%証拠隠滅した%CALLNAME:MASTER%は、肩を優しく揺すって%CALLNAME:TARGET%を眠りから覚ました。
+		PRINTFORMW 在%TEXTR("把衣服整理好/快速清理了污迹/处理好现场情况")%销毁完证据的%CALLNAME:MASTER%的身旁、轻轻摇晃着肩膀的%CALLNAME:TARGET%从睡梦中慢慢醒来。
 	ELSEIF EXP_GAIN("睡眠悪戯経験") + EXP_GAIN("睡眠姦経験")
-		PRINTFORMW 十分楽しんだ%CALLNAME:MASTER%は、肩を優しく揺すって%CALLNAME:TARGET%を眠りから覚ました。
+		PRINTFORMW 已经充分享受完了的%CALLNAME:MASTER%的身旁、轻轻摇晃着肩膀的%CALLNAME:TARGET%从睡梦中慢慢醒来。
 	ELSE
-		PRINTFORMW %CALLNAME:MASTER%は肩を優しく揺すって%CALLNAME:TARGET%を眠りから覚ました。
+		PRINTFORMW %CALLNAME:MASTER%的身旁、轻轻摇晃着肩膀的%CALLNAME:TARGET%从睡梦中慢慢醒来。
 	ENDIF
 
-	CALL SETFLAG_DAILY, "起こす"
-	CALL KOJO_DAILYCOM, "起こす"
+	CALL SETFLAG_DAILY, "叫醒"
+	CALL KOJO_DAILYCOM, "叫醒"
 ;寝てる人が起きる（現状こっちルートは無し）
 ELSEIF CFLAG:睡眠 && NUM_NEWCOMER
 	PRINTL 
 	DRAWLINE
-	PRINTFORMW にわかにうるさくなったせいで%CALLNAME:TARGET%が目を覚ましました。
+	PRINTFORMW 因为声音太吵了、%CALLNAME:TARGET%从睡梦中慢慢醒来。
 
-	CALL SETFLAG_DAILY, "起こす"
-	CALL KOJO_DAILYCOM, "起こす"
+	CALL SETFLAG_DAILY, "叫醒"
+	CALL KOJO_DAILYCOM, "叫醒"
 ENDIF
 
 
@@ -470,5 +470,5 @@ CFLAG:MASTER:入室までの所要時間 = 0
 
 
 ;入室挨拶中のフラグ初期化
-CVARSET CFLAG, GETNUM(CFLAG, "入室挨拶中")
+CVARSET CFLAG, GETNUM(CFLAG, "入室打招呼中")
 

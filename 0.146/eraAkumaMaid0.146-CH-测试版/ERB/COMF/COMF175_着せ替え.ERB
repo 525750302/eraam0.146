@@ -6,13 +6,13 @@ CALL PRINT_TRAIN_NAME(SELECTCOM)
 ;実行できるかの判定
 ;-------------------------------------------------
 ;判定が要らない状態
-IF TEQUIP:押し倒し || TEQUIP:拘束
+IF TEQUIP:推倒 || TEQUIP:拘束
 
-ELSEIF CHECK_PANTIES("ずれ不可") == 0
+ELSEIF CHECK_PANTIES("不可移開") == 0
 	CALL SHOW_COM_ORDER_COM, 175
 
 	;実行できない
-	SIF TCVAR:やる気 == 0
+	SIF TCVAR:干劲 == 0
 		RETURN 0
 ENDIF
 ;-------------------------------------------------
@@ -23,7 +23,7 @@ CALL TRAIN_MESSAGE_B
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:前回コマンド = %STR:今回コマンド%
+STR:前回指令 = %STR:今回指令%
 
 RETURN 1
 
@@ -71,34 +71,34 @@ CALL CALC, "調教ソース", ARG
 
 
 @TRAIN_MESSAGE_COM175
-IF TEQUIP:押し倒し || ( (TEQUIP:拘束 || TEQUIP:室内露出プレイ || TEQUIP:野外プレイ) && (ABL:信頼 >= 4 || ABL:露出癖 >= 3) )
-	IF EQUIP:パンツ && EQUIP:ボディスーツ + EQUIP:アウター == 0 && CHECK_CLO("パンツ露出")
-		PRINTFORMW %CALLNAME:TARGET%はパンツを脱いだ…
+IF TEQUIP:推倒 || ( (TEQUIP:拘束 || TEQUIP:室内露出PLAY || TEQUIP:野外PLAY) && (ABL:信頼 >= 4 || ABL:露出癖 >= 3) )
+	IF EQUIP:胖次 && EQUIP:贴身制服 + EQUIP:外套 == 0 && CHECK_CLO("胖次露出")
+		PRINTFORMW %CALLNAME:TARGET%慢慢地脫下了內褲……
 		CALL SET_PANTIES, ""
-	ELSEIF CHECK_CLO("ハダカ") == 0
-		PRINTFORMW %CALLNAME:TARGET%は服を脱いで裸になった…
-		CALL SETFLAG, "ハダカにする", TARGET
+	ELSEIF CHECK_CLO("裸体") == 0
+		PRINTFORMW %CALLNAME:TARGET%慢慢地脫下衣服、將赤裸的嬌軀展示出來……
+		CALL SETFLAG, "扒成裸体", TARGET
 	ENDIF
-ELSEIF CHECK_PANTIES("ずれ不可")
+ELSEIF CHECK_PANTIES("不可移開")
 	SELECTCASE PANTIES(TARGET, "略")
-	CASE "前貼り"
-		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%の前貼りを剥がした…
+	CASE "前貼"
+		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%の前貼を剥がした…
 	CASE "貞操帯"
 		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%の貞操帯を外した…
 	CASEELSE
 		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%の%PANTIES(TARGET, "略")%を脱がした…
 	ENDSELECT
 	CALL SET_PANTIES, ""
-ELSEIF TEQUIP:拘束 || TEQUIP:室内露出プレイ || TEQUIP:野外プレイ
-	IF EQUIP:パンツ && EQUIP:ボディスーツ + EQUIP:アウター == 0 && CHECK_CLO("パンツ露出")
-		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%のパンツを手早く脱がせた…
+ELSEIF TEQUIP:拘束 || TEQUIP:室内露出PLAY || TEQUIP:野外PLAY
+	IF EQUIP:胖次 && EQUIP:贴身制服 + EQUIP:外套 == 0 && CHECK_CLO("胖次露出")
+		PRINTFORMW %CALLNAME:PLAYER%將%CALLNAME:TARGET%的內褲利索的脫下了……
 		CALL SET_PANTIES, ""
-	ELSEIF CHECK_CLO("ハダカ") == 0
-		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%の服を無理やり剥ぎ取り裸にした…
-		CALL SETFLAG, "ハダカにする", TARGET
+	ELSEIF CHECK_CLO("裸体") == 0
+		PRINTFORMW %CALLNAME:PLAYER%將%CALLNAME:TARGET%的衣服強硬的剝下、肆無忌憚的觀賞著赤裸的嬌軀……
+		CALL SETFLAG, "扒成裸体", TARGET
 	ENDIF
-ELSEIF TCVAR:やる気 == 0 && CHECK_CLO("アウター露出") && CHECK_CLO("Ｖ露出可") == 0
-	PRINTFORMW %CALLNAME:TARGET%は%OUTER(TARGET)%を脱いだ。
+ELSEIF TCVAR:干劲 == 0 && CHECK_CLO("外套露出") && CHECK_CLO("Ｖ露出可") == 0
+	PRINTFORMW %CALLNAME:TARGET%將%OUTER(TARGET)%脫下了。
 	CALL SET_OUTER, ""
 ELSE
 	CALL KISEKAE
@@ -121,14 +121,14 @@ IF ABL:露出癖
 	LOCALS = %LOCALS% + 露出癖LV{ABL:露出癖}({MIN(ABL:露出癖, 10) * 5})
 ENDIF
 ;恥じらい
-IF TALENT:恥じらい
+IF TALENT:害羞
 	LOCAL -= 10
-	LOCALS = %LOCALS% - 恥じらい(10)
+	LOCALS = %LOCALS% - 害羞(10)
 ENDIF
 ;恥薄い
-IF TALENT:恥薄い
+IF TALENT:不知羞恥
 	LOCAL += 5
-	LOCALS = %LOCALS% + 恥薄い(5)
+	LOCALS = %LOCALS% + 不知羞恥(5)
 ENDIF
 
 ;拘束中
@@ -137,15 +137,15 @@ IF TEQUIP:拘束
 	LOCALS = %LOCALS% + 拘束中(30)
 ENDIF
 ;ビデオ撮影
-IF TEQUIP:ビデオカメラ
+IF TEQUIP:攝像機
 	LOCAL -= 10
 	LOCALS = %LOCALS% - 撮影中(10)
 ENDIF
 ;野外or室内露出
-IF TEQUIP:野外プレイ
+IF TEQUIP:野外PLAY
 	LOCAL -= 10
-	LOCALS = %LOCALS% - 野外プレイ(10)
-ELSEIF TEQUIP:室内露出プレイ
+	LOCALS = %LOCALS% - 野外PLAY(10)
+ELSEIF TEQUIP:室内露出PLAY
 	LOCAL -= 10
 	LOCALS = %LOCALS% - 室内露出(10)
 ENDIF

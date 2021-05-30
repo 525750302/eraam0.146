@@ -16,8 +16,8 @@ SETBIT FLAG:状況判定, 13
 FOR LCOUNT, 0, 100
 	MEMO_BASE:LCOUNT = BASE:MASTER:LCOUNT
 NEXT
-SIF CONFIG("素質の固定と除外")
-	CALL SETFLAG, "素質の固定と除外の初期化"
+SIF CONFIG("素質的固定与除外")
+	CALL SETFLAG, "素質的固定与除外の初期化"
 
 MEMO_LINECOUNT = LINECOUNT
 
@@ -35,10 +35,10 @@ CASE 999
 	RETURN 0
 ;[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　[204]教師　[205]その他
 CASE 200 TO 205
-	IF TFLAG:フィルタ == CHOICE
-		TFLAG:フィルタ = 0
+	IF TFLAG:过滤器 == CHOICE
+		TFLAG:过滤器 = 0
 	ELSE
-		TFLAG:フィルタ = CHOICE
+		TFLAG:过滤器 = CHOICE
 	ENDIF
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	RESTART
@@ -56,7 +56,7 @@ CASE IS >= 1
 		[IF_DEBUG]
 			PRINTL 
 			PRINTFORML デバッグモードの特権で条件を無視して勧誘しますか？
-			CALL PRINT_SELECT, "はい/ズルはしない"
+			CALL PRINT_SELECT, "是/ズルはしない"
 			SIF RESULT == 0
 				STR:実行条件 = 
 		[ENDIF]
@@ -68,7 +68,7 @@ CASE IS >= 1
 	;紹介してもらえるか判定。そのキャラが既にいるかで判定する
 	IF FINDCHARA(NO, CHOICE) >= 0
 		SIF CFLAG:FINDCHARA(NO, CHOICE):初期仲間 == 0
-			PRINTW 既に勧誘済みのようですよ
+			PRINTW 已经勧誘过了呦
 		CLEARLINE LINECOUNT - MEMO_LINECOUNT
 		RESTART
 	ENDIF
@@ -112,16 +112,16 @@ TARGET = CHARANUM - 1
 
 ;式神などの特例
 IF COND("種族：式神")
-	PRINTFORMW ★力を失ったとはいえ元は鬼神か妖か。今は学園の%CSTR:学年%。その名も[%CSTR:肩書%]%NAME:TARGET%を式としました★
+	PRINTFORMW ★失去了力量的原鬼神or原妖。现在是学園的%CSTR:学年%。其名为[%CSTR:称号%]%NAME:TARGET%。现在进行了仪式★
 ELSEIF CSTR:学年 == "不法侵入"
-	PRINTFORM ★学園で見つけた不法侵入\@ COND("種族：悪魔") ? 悪魔 # 者 \@、
-	IF CSTR:関係 == "居候"
-		PRINTFORMW [%CSTR:肩書%]%NAME:TARGET%を家に連れ帰りました★
+	PRINTFORM ★在学園里发现的不法侵入\@ COND("種族：悪魔") ? 悪魔 # 者 \@、
+	IF CSTR:関係 == "借住"
+		PRINTFORMW 把[%CSTR:称号%]%NAME:TARGET%带回了家★
 	ELSE
-		PRINTFORMW [%CSTR:肩書%]%NAME:TARGET%を勧誘しました★
+		PRINTFORMW 勧誘了[%CSTR:称号%]%NAME:TARGET%★
 	ENDIF
 ELSE
-	PRINTFORMW ★学園の%CSTR:学年%、[%CSTR:肩書%]%NAME:TARGET%を勧誘しました★
+	PRINTFORMW ★勧誘了学園的%CSTR:学年%、[%CSTR:称号%]%NAME:TARGET%★
 ENDIF
 CALL SETFLAG, "合意", TARGET
 PRINTL 
@@ -136,17 +136,17 @@ MEMO_LINECOUNT = LINECOUNT
 ;出現条件の出力。特殊な場合以外は書かなくて良いです
 CALL EVENT_PROFILE, "出現条件"
 SIF COND("部室出現可能") && TFLAG:地の文スキップ == 0 && LINECOUNT == MEMO_LINECOUNT
-	CALL PRINT_STRW, @"%NAME:TARGET%は%CALLNAME:MASTER%の_黄色_%CSTR:関係%_として、(昼)の部室に顔を出してくれます。"
+	CALL PRINT_STRW, @"%NAME:TARGET%和%CALLNAME:MASTER%的関系为_黄色_%CSTR:関係%_。因此、会在(昼)的部室里露露面。"
 
 ;顔グラの設定
-IF CFLAG:顔グラ == 0 && CONFIG("顔グラＯＮ")
+IF CFLAG:颜绘 == 0 && CONFIG("颜绘ＯＮ")
 	DRAWLINE
-	PRINTFORML %NAME:TARGET%は顔グラが設定されていないようです。設定しますか？
-	CALL PRINT_SELECT, "設定する/しない"
+	PRINTFORML %NAME:TARGET%还没有設定头像。要設定吗？
+	CALL PRINT_SELECT, "設定/不設定"
 	IF RESULT == 0
 		CALL SIMULATE_MAIDFACE, TARGET
 	ELSE
-		PRINTFORMW 今後設定したくなった場合は、コンフィグからどうぞ。
+		PRINTFORMW 今後想要設定的时候、请在设置中调整。
 	ENDIF
 ENDIF
 
@@ -158,7 +158,7 @@ IF PLACE("部室")
 		MEMO_LINECOUNT = LINECOUNT
 		CALL EVENT_PROFILE, "初訪問"
 		IF TFLAG:地の文スキップ == 0 && LINECOUNT == MEMO_LINECOUNT
-			PRINTFORMW ……ということで%CALLNAME:TARGET%が部室に来てくれました。
+			PRINTFORMW ……总而言之现在%CALLNAME:TARGET%会到部室里来了。
 		ENDIF
 	ELSE
 		CFLAG:不在 = 1
@@ -178,31 +178,32 @@ ENDIF
 
 @SHOP_CHARA_SHOW
 DRAWLINE
-CALL PRINT_STRL, @"%CALLNAME:MASTER%に興味のある相手を部員として勧誘します。詳しくは各キャラの_緑_□ 特記事項 □_を見てください"
-CALL PRINT_STRL, "黄色_（魂の授受は性交が最も簡単なので、注釈ない限りは皆セックスフレンド扱いとなります）"
-CALL PRINT_STRL, "特技については名称をクリックする事で効果を確認できます"
+CALL PRINT_STRL, @"勧誘对%CALLNAME:MASTER%的体質有兴趣的对象作为部員。详细情报请查看各个角色的_緑_□ 特記事項 □_"
+CALL PRINT_STRL, "黄色_（魂的授受的话性交是最簡単的方式、因此如果没有特殊注释的话那么所有人都是作为性伴侣的）"
+CALL PRINT_STRL, "関于特技的情报可以通过按下名字按钮来进行确认"
 DRAWLINE
-CALL PRINT_STRL, "ハートピンク_H_エンディングがあるキャラは色が変わります_ハートピンク_H"
+CALL PRINT_STRL, "爱心粉紅_H_已经写好了个人结局的角色会用特殊颜色标注出来_爱心粉紅_H"
 
 DRAWLINE
 CALL SET_SHOP_CHARA_SHOW, "ＥＮＤチェック"
 DRAWLINE
 
-SELECTCASE TFLAG:フィルタ
+SELECTCASE TFLAG:过滤器
 CASE 200
-	CALL PRINT_STRL, "[999]戻る　_黄色_[200]中等部以下_　[201]１年生　[202]２年生　[203]３年生　[204]教師　[205]その他"
+	CALL PRINT_STRL, "[999]返回　_黄色_[200]中等部以下_　[201]１年生　[202]２年生　[203]３年生　[204]教師　[205]其他"
 CASE 201
-	CALL PRINT_STRL, "[999]戻る　[200]中等部以下　_黄色_[201]１年生_　[202]２年生　[203]３年生　[204]教師　[205]その他"
+	CALL PRINT_STRL, "[999]返回　[200]中等部以下　_黄色_[201]１年生_　[202]２年生　[203]３年生　[204]教師　[205]其他"
 CASE 202
-	CALL PRINT_STRL, "[999]戻る　[200]中等部以下　[201]１年生　_黄色_[202]２年生_　[203]３年生　[204]教師　[205]その他"
+	CALL PRINT_STRL, "[999]返回　[200]中等部以下　[201]１年生　_黄色_[202]２年生_　[203]３年生　[204]教師　[205]其他"
 CASE 203
-	CALL PRINT_STRL, "[999]戻る　[200]中等部以下　[201]１年生　[202]２年生　_黄色_[203]３年生_　[204]教師　[205]その他"
+	CALL PRINT_STRL, "[999]返回　[200]中等部以下　[201]１年生　[202]２年生　_黄色_[203]３年生_　[204]教師　[205]其他"
 CASE 204
-	CALL PRINT_STRL, "[999]戻る　[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　_黄色_[204]教師_　[205]その他"
+	CALL PRINT_STRL, "[999]返回　[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　_黄色_[204]教師_　[205]其他"
 CASE 205
-	CALL PRINT_STRL, "[999]戻る　[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　[204]教師　_黄色_[205]その他"
+	CALL PRINT_STRL, "[999]返回　[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　[204]教師　_黄色_[205]其他"
 CASEELSE
-	PRINTFORML [999]戻る　[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　[204]教師　[205]その他
+	PRINTFORML [999]返回　[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　[204]教師　[205]其他
+	PRINTFORML 备注：汉化版从100号開始为天朝自制口上
 ENDSELECT
 
 
@@ -215,7 +216,7 @@ ENDSELECT
 #DIM LCOUNT
 #DIM LCOUNT2
 
-PRINTFORML 　　　%TEXT_LJ("名前", 16)%　%TEXT_LJ("学年",14)%　%TEXT_LJ("肩書",22)%　特技
+PRINTFORML 　　　%TEXT_LJ("名前", 16)%　%TEXT_LJ("学年",14)%　%TEXT_LJ("称号",22)%　特技
 DRAWLINE
 ;実際にキャラを表示
 FOR LCOUNT, 1, 200
@@ -225,34 +226,34 @@ FOR LCOUNT, 1, 200
 
 	SELECTCASE CSVCSTR(LCOUNT, GETNUM(CSTR, "学年") )
 	CASE "初等部", "中等部"
-		SELECTCASE TFLAG:フィルタ
+		SELECTCASE TFLAG:过滤器
 		CASE 201 TO 205
 			CONTINUE
 		ENDSELECT
 	CASE "１年生"
-		SELECTCASE TFLAG:フィルタ
+		SELECTCASE TFLAG:过滤器
 		CASE 200, 202 TO 205
 			CONTINUE
 		ENDSELECT
 	CASE "２年生"
-		SELECTCASE TFLAG:フィルタ
+		SELECTCASE TFLAG:过滤器
 		CASE 200 TO 201, 203 TO 205
 			CONTINUE
 		ENDSELECT
 	CASE "３年生"
-		SELECTCASE TFLAG:フィルタ
+		SELECTCASE TFLAG:过滤器
 		CASE 200 TO 202, 204 TO 205
 			CONTINUE
 		ENDSELECT
 	CASEELSE
 		;教員
 		IF STRCOUNTS(CSVCSTR(LCOUNT, GETNUM(CSTR, "学年") ), "教師", "司書")
-			SELECTCASE TFLAG:フィルタ
+			SELECTCASE TFLAG:过滤器
 			CASE 200 TO 203, 205
 				CONTINUE
 			ENDSELECT
 		ELSE
-			SELECTCASE TFLAG:フィルタ
+			SELECTCASE TFLAG:过滤器
 			CASE 200 TO 204
 				CONTINUE
 			ENDSELECT
@@ -270,7 +271,7 @@ FOR LCOUNT, 1, 200
 		RESULT = 0
 		TRYCALLFORM IS_SINGLE_ENDING_K{LCOUNT}
 		SIF RESULT
-			SETCOLOR DEF_COLOR("ハートピンク")
+			SETCOLOR DEF_COLOR("爱心粉紅")
 	ENDIF
 	;名前、肩書、特技
 	IF LCOUNT >= 100
@@ -285,10 +286,10 @@ FOR LCOUNT, 1, 200
 	ELSE
 		PRINTFORM %TEXT_LJ(CSVCSTR(LCOUNT, GETNUM(CSTR, "学年") ), 14)%　
 	ENDIF
-	PRINTFORM %TEXT_LJ(CSVCSTR(LCOUNT, GETNUM(CSTR, "肩書") ), 22)%　
+	PRINTFORM %TEXT_LJ(CSVCSTR(LCOUNT, GETNUM(CSTR, "称号") ), 22)%　
 
 	VARSET LOCALS
-	SPLIT CSVCSTR(LCOUNT, GETNUM(CSTR, "アドバイス") ), "＆", LOCALS
+	SPLIT CSVCSTR(LCOUNT, GETNUM(CSTR, "建议") ), "＆", LOCALS
 	FOR LCOUNT2, 0, 10
 		SELECTCASE LOCALS:LCOUNT2
 		CASE ""

@@ -42,7 +42,7 @@ CALL SETFLAG, "助手相手の恋慕外し開始"
 
 ;以下コマンドジャンプなど
 ;酔っ払い
-IF PREVCOM != 507 && (TEQUIP:押し倒し || (SELECTCOM >= 90 && SELECTCOM <= 119) ) && STATE("酔い", TARGET) && RAND:3 == 0
+IF PREVCOM != 507 && (TEQUIP:推倒 || (SELECTCOM >= 90 && SELECTCOM <= 119) ) && STATE("酔酒", TARGET) && RAND:3 == 0
 	SELECTCOM = 507
 ;ELSEIF TEQUIP:押し倒し == 0 && STATE("酔い", PLAYER) && RAND:3 == 0
 ;	SELECTCOM = 506
@@ -52,7 +52,7 @@ ELSE
 	;胸愛撫
 	CASE 5
 		;ぱふぱふ
-		SIF TEQUIP:押し倒し
+		SIF TEQUIP:推倒
 			SELECTCOM = 104
 	;セックス系
 	CASE 60 TO 79, 83 TO 88
@@ -72,11 +72,11 @@ ELSE
 		CASE 68
 		CASEELSE
 			;騎乗位連続＆腰使い＆強気などでワイルドスウィング(連続ではしてこない)
-			CALL SETFLAG, "ワイルドスウィング", TARGET
+			CALL SETFLAG, "狂野摇摆", TARGET
 			;前のプレイがセックス系かつ調教者の技巧3以上の場合、挿入Ｇスポ責めまたは挿入子宮口責めへ派生
 			;Ｖ感覚が高く欲情しているほど子宮口へ行きやすい
-			SIF CHECK_COM("Ｖ二本挿入") == 0 && CHECK_COM("二穴挿入") == 0
-				SELECTCOM = CHECK_COM("挿入局所責め", SELECTCOM)
+			SIF CHECK_COM("两根挿入Ｖ中") == 0 && CHECK_COM("二穴挿入") == 0
+				SELECTCOM = CHECK_COM("刺激挿入部位", SELECTCOM)
 		ENDSELECT
 	;スパンキング
 	CASE 130
@@ -88,18 +88,18 @@ ELSE
 			CLEARBIT TEQUIP:PLAYER:特殊行動, 1
 	;逆剃毛
 	CASE 145
-		SIF TEQUIP:押し倒し
+		SIF TEQUIP:推倒
 			SELECTCOM = 504
 	ENDSELECT
 ENDIF
 
 
 ;助手参加(もがく、なすがままの時にはそれぞれのCOMF中で決定)
-IF TEQUIP:Ｗ押し倒し
+IF TEQUIP:Ｗ推倒
 	IF SELECTCOM == 280 || SELECTCOM == 281
 		SELECTCOM:1 = PREVCOM:1
 	ELSE
-		CALL SET_SELECTCOM_MULTI, "Ｗ押し倒し"
+		CALL SET_SELECTCOM_MULTI, "Ｗ推倒"
 	ENDIF
 ELSE
 	;シックスナイン判定
@@ -123,26 +123,26 @@ ENDIF
 IF SELECTCOM:2 == -1
 	CALL RESET_INSERT, PLAYER:1
 	;調教者のものを咥えているので無いなら解除
-	SIF TEQUIP:ディープスロート != PLAYER
-		TEQUIP:ディープスロート = 0
+	SIF TEQUIP:深喉 != PLAYER
+		TEQUIP:深喉 = 0
 ENDIF
 
 ;キス継続…ここではフラグOFFのみ
 ;フラグONはCHECK_EX_EQUIPで行う
 ;インサート中はモード継続してみる
-IF INSERT("インサート") == 0
+IF INSERT("挿入") == 0
 	SELECTCASE SELECTCOM
 	;キス、挿入局所責めなどは値を変更させない。アイテムとアルカナも変更しないことに
-	CASE 6, 65 TO 68, 230 TO 279, 282, 301, 311, TNUM("甘い言葉"), TNUM("褒める"), TNUM("抱きしめる")
+	CASE 6, 65 TO 68, 230 TO 279, 282, 301, 311, TNUM("甜言蜜语"), TNUM("夸奖"), TNUM("抱上去")
 	;同じ調教者で連続選択時のみキス継続
 	CASE 0, 2, 5, 7, 8, 10, 15, 16, 60 TO 79, 83 TO 88, 90, 93, 94, 97, 105, 120 TO 129, 130, 176, 280, 281, 283
 		;調教者が変わるとダメ
 		SIF COND("前Ｔ調教者") != PLAYER
-			TEQUIP:キス = 0
+			TEQUIP:接吻 = 0
 
 		;前のターンのコマンド次第でダメ
 		SELECTCASE PREVCOM
-		CASE TNUM("キス")
+		CASE TNUM("接吻")
 		;連続実行ならOK
 		CASE SELECTCOM
 		CASEELSE
@@ -150,19 +150,19 @@ IF INSERT("インサート") == 0
 			;インサート中はモード継続してみる
 			CASE 60 TO 79
 			CASEELSE
-				SIF PREVPLAY("インサート") == 0
-					TEQUIP:キス = 0
+				SIF PREVPLAY("挿入") == 0
+					TEQUIP:接吻 = 0
 			ENDSELECT
 		ENDSELECT
 	CASEELSE
-		TEQUIP:キス = 0
+		TEQUIP:接吻 = 0
 	ENDSELECT
 ENDIF
 
 ;占有不可な場合
-IF TEQUIP:Ｗ押し倒し || COND("３Ｐ")
-	TEQUIP:キス = 0
-	TEQUIP:ASSI:キス = 0
+IF TEQUIP:Ｗ推倒 || COND("３Ｐ")
+	TEQUIP:接吻 = 0
+	TEQUIP:ASSI:接吻 = 0
 ENDIF
 
 
@@ -173,9 +173,9 @@ SELECTCASE SELECTCOM
 CASE 1, 3, 4, 6, 9, 13, 14, 96, 104, 282
 
 CASEELSE
-	IF TEQUIP:顔面騎乗
+	IF TEQUIP:面部騎乗
 	ELSE
-		TEQUIP:PLAYER:自慰する = 0
+		TEQUIP:PLAYER:自慰 = 0
 	ENDIF
 ENDSELECT
 
@@ -184,10 +184,10 @@ SIF SELECTCOM != 5
 	TEQUIP:胸愛撫 = 0
 ;アソコ愛撫のフラグ消滅判定
 SIF SELECTCOM != 7
-	TEQUIP:アソコ愛撫 = 0
+	TEQUIP:阴部愛撫 = 0
 ;足コキのフラグ消滅判定
 SIF SELECTCOM != 95
-	TEQUIP:足コキ = 0
+	TEQUIP:足交 = 0
 
 ;調教コマンド実行前のパラメータの記録
 CALL SAVE_PALAM_BEFORECOM
@@ -205,13 +205,13 @@ CALL SETFLAG, "快楽経験判定", SELECTCOM
 ;-------------------------------------------------
 ;効果終了のお知らせなど、ターンの最後に出力するテキスト
 ;-------------------------------------------------
-IF TEQUIP:甘い言葉 == 1
-	TEQUIP:甘い言葉 = 0
+IF TEQUIP:甜言蜜语 == 1
+	TEQUIP:甜言蜜语 = 0
 	CALL BLANKLINE
-	PRINTL 高めたムードが元に戻っていく…
+	PRINTL 高涨的情緒回到了原状…
 ENDIF
 ;ビデオ撮影中
-SIF TEQUIP:ビデオカメラ
+SIF TEQUIP:攝像機
 	CALL EQUIP_COM170_EVENTCOMEND
 ;女王様プレイ中
 ;IF TEQUIP:女王様プレイ
@@ -226,9 +226,9 @@ SIF TEQUIP:ビデオカメラ
 ;PLAYERのTEQUIPの管理
 ;-------------------------------------------------
 IF SELECTCOM == 106
-	TEQUIP:PLAYER:バイブ = 0
+	TEQUIP:PLAYER:振動棒 = 0
 ELSEIF SELECTCOM == 107
-	TEQUIP:PLAYER:アナルバイブ = 0
+	TEQUIP:PLAYER:肛用振動棒 = 0
 ENDIF
 
 CALL SETFLAG, "助手相手の恋慕外し終了"
@@ -240,23 +240,23 @@ CALL RECORD_SP_EXP_ALLACTOR
 
 
 ;押し倒されると起きるイベント
-IF TEQUIP:押し倒し
+IF TEQUIP:推倒
 	;マスかき止め！ぱんつはそのまま
-	TEQUIP:PLAYER:自慰する = 0
+	TEQUIP:PLAYER:自慰 = 0
 
-	IF TEQUIP:手加減
+	IF TEQUIP:手下留情
 		CALL BLANKLINE
-		PRINTFORMW 主導権を%CALLNAME:TARGET%に奪われ、%CALLNAME:PLAYER%は手加減を続けることが出来ない…！
+		PRINTFORMW 主导权被%CALLNAME:TARGET%夺走、%CALLNAME:PLAYER%不能从其手下逃脱…！
 	ENDIF
-	TEQUIP:手加減 = 0
+	TEQUIP:手下留情 = 0
 
 	;３ＰはＷ押し倒しに移行
-	SIF TEQUIP:押し倒し && SELECTCOM:1 >= 90 && SELECTCOM:1 <= 97
-		CALL SETFLAG, "Ｗ押し倒し"
+	SIF TEQUIP:推倒 && SELECTCOM:1 >= 90 && SELECTCOM:1 <= 97
+		CALL SETFLAG, "Ｗ推倒"
 ELSE
 	;押し倒しの解除→二人で押し倒しも解除
-	SIF TARGET:1 && TEQUIP:(TARGET:1):Ｗ押し倒し
-		CALL SETFLAG, "Ｗ押し倒し解除"
+	SIF TARGET:1 && TEQUIP:(TARGET:1):Ｗ推倒
+		CALL SETFLAG, "Ｗ推倒解除"
 ENDIF
 
 ;シックスナインにおける道具コマンド等の処理
@@ -269,39 +269,39 @@ CALL STAIN_CALC_COSPLAY
 
 ;PLAYERが恍惚状態
 IF STATE("恍惚", PLAYER)
-	SIF TEQUIP:押し倒し == 0
-		TEQUIP:押し倒し = 1
+	SIF TEQUIP:推倒 == 0
+		TEQUIP:推倒 = 1
 	;相手が乗り気じゃない
-	IF TALENT:反抗的
+	IF TALENT:叛逆
 		CALL BLANKLINE
-		PRINTFORM ……%CALLNAME:TARGET%は自分から行為をするつもりはない様子で、
+		PRINTFORM ……%CALLNAME:TARGET%似乎不想自己主动做的様子、
 		IF RAND:2
-			PRINTFORMW %CALLNAME:PLAYER%の肩を揺すって正気に戻してきた。
+			PRINTFORMW 摇着%CALLNAME:PLAYER%的肩膀直到%CALLNAME:PLAYER%清醒过来为止。
 		ELSE
-			PRINTFORMW %CALLNAME:PLAYER%の頬をぺちぺちして正気に戻してきた。
+			PRINTFORMW 轻轻拍打着%CALLNAME:PLAYER%的脸頬直到%CALLNAME:PLAYER%清醒过来为止。
 		ENDIF
 		CALL REMOVE_STATE, PLAYER, "恍惚"
-		TEQUIP:押し倒し = 0
+		TEQUIP:推倒 = 0
 	;恍惚状態で相手の好きにさせるなら
 	ELSEIF COND("疲労") == 0 && FLAG:恍惚状態
 		NEXTCOM = 281
 	ELSEIF COND("疲労")
 		CALL BLANKLINE
-		PRINTFORM %CALLNAME:TARGET%は疲れてしまったのか、
+		PRINTFORM %CALLNAME:TARGET%感觉像是累了的样子、
 		IF TALENT:恋慕 && PLAYER == MASTER
 			IF RAND:2
-				IF INSERT("インサート")
-					PRINTFORMW 跨ったままの体勢で%CALLNAME:PLAYER%の顔を眺めながら、正気になるまで待った…
+				IF INSERT("挿入")
+					PRINTFORMW 用骑着的姿势看着%CALLNAME:PLAYER%的脸、等待%CALLNAME:PLAYER%清醒过来…
 				ELSE
-					PRINTFORMW %CALLNAME:PLAYER%に膝枕をして髪を撫でつつ、正気になるまで待った…
+					PRINTFORMW 撫摸着%CALLNAME:PLAYER%的头髪用膝枕等待着%CALLNAME:PLAYER%清醒过来…
 				ENDIF
 			ELSE
-				PRINTFORMW %CALLNAME:PLAYER%が正気に戻るのを抱きつきながら待った…
+				PRINTFORMW 就这样抱着等待%CALLNAME:PLAYER%恢复正常…
 			ENDIF
 		ELSEIF RAND:2
-			PRINTFORMW %CALLNAME:PLAYER%の肩を揺すって正気に戻してきた…
+			PRINTFORMW 摇着%CALLNAME:PLAYER%的肩膀直到%CALLNAME:PLAYER%清醒过来为止…
 		ELSE
-			PRINTFORMW %CALLNAME:PLAYER%の頬をぺちぺちして正気に戻してきた…
+			PRINTFORMW 轻轻拍打着%CALLNAME:PLAYER%的脸頬直到%CALLNAME:PLAYER%清醒过来为止…
 		ENDIF
 		CALL REMOVE_STATE, PLAYER, "恍惚"
 	ENDIF
@@ -322,16 +322,16 @@ CALL SETFLAG, "ターン終了", MASTER
 IF ASSI
 	CALL SETFLAG, "ターン終了", ASSI
 	;助手経験
-	IF TEQUIP:押し倒し == 0 && PLAYER != ASSI && RAND:2
+	IF TEQUIP:推倒 == 0 && PLAYER != ASSI && RAND:2
 		EXP:ASSI:助手経験 += 1
-		SIF TALENT:ASSI:賢い && RAND:2
+		SIF TALENT:ASSI:聰慧 && RAND:2
 			EXP:ASSI:助手経験 += 1
-		SIF TALENT:ASSI:愚か && RAND:2
+		SIF TALENT:ASSI:笨蛋 && RAND:2
 			EXP:ASSI:助手経験 -= 1
 	ENDIF
 
 	;相性の変動(とりあえずは上昇のみ)。絶頂していなくても上昇します。
-	IF (NOWEX:絶頂数合計 + NOWEX:射精 + NOWEX:噴乳 + NOWEX:絶頂お漏らし >= RAND:10 && ASSIPLAY) || (COND("絶頂", PLAYER) >= RAND:4 && TEQUIP:Ｗ押し倒し && TARGET:1 == ASSI)
+	IF (NOWEX:絶頂数合計 + NOWEX:射精 + NOWEX:噴乳 + NOWEX:絶頂漏尿 >= RAND:10 && ASSIPLAY) || (COND("絶頂", PLAYER) >= RAND:4 && TEQUIP:Ｗ推倒 && TARGET:1 == ASSI)
 		LOCAL = 0
 		SELECTCASE RELATION:(NO:ASSI)
 		CASE IS >= 200
@@ -357,7 +357,7 @@ ENDIF
 ;-------------------------------------------------
 ;助手の行動や起こった事を総合して今回のコマンド行動を記録
 ;-------------------------------------------------
-CALL SETFLAG, "今回コマンド"
+CALL SETFLAG, "今回指令"
 
 ;前回のTARGETが誰か
 TFLAG:前Ｔ対象 = TARGET

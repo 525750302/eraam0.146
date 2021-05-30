@@ -9,10 +9,10 @@
 #DIM MEMO_EQUIP, 50
 #DIM MEMO_STAIN, 20
 
-SIF CHARA_NUM("デート可能") == 0
+SIF CHARA_NUM("约会可能") == 0
 	RETURN 0
 ;とりあえずは日曜の昼のみ
-SIF DAYEV("デートタイム") == 0
+SIF DAYEV("约会領帯ム") == 0
 	RETURN 0
 
 MEMO_REALTIMEFORFLAG = FLAG:現実時間
@@ -22,68 +22,68 @@ CALL GET_REALTIMEFORFLAG
 REDRAW 0
 
 ;約束があるならば既に相手は決まっている
-IF COND("デートの予定あり")
-	TARGET = TO_NUMBER(CFLAG:MASTER:デートの約束)
-	PRINTFORMW %CALLNAME:MASTER%は%NAMES("デート相手")%と約束したデートの待ち合わせ場所に向かった。
+IF COND("约会の予定あり")
+	TARGET = TO_NUMBER(CFLAG:MASTER:约会的约定)
+	PRINTFORMW %CALLNAME:MASTER%去了和%NAMES("约会相手")%的约定好见面的地方。
 ;約束していないなら相手選び
 ELSE
 	CALL SELECT_DATE
 	;やっぱやーめた
 	IF RESULT == 0
-		PRINTFORMW デートに行くのをやめました。
+		PRINTFORMW 不去约会了。
 		FLAG:現実時間 = MEMO_REALTIMEFORFLAG
 		RETURN 0
 	ENDIF
 
 	CVARSET CFLAG, GETNUM(CFLAG, "睡眠")
-	CVARSET CFLAG, GETNUM(CFLAG, "寝起き")
+	CVARSET CFLAG, GETNUM(CFLAG, "刚睡醒")
 
 	CALL BLANKLINE
 	;まずは誘った際の反応
-	CALL KOJO_DATE, "デートに誘う"
+	CALL KOJO_DATE, "约会邀请"
 
 	IF TFLAG:地の文スキップ == 0
 		;この場に居ない相手を選んだのなら、呼び出したりなんなり
-		IF COND("同棲中")
-			PRINTFORMW せっかくのデートという事で、%CALLNAME:MASTER%達はお互いに準備をしてから敢えて玄関外で合流して出かける事にした。
+		IF COND("同居中")
+			PRINTFORMW 难得地有了一次约会、%CALLNAME:MASTER%他们决定各自做好准备后在门外汇合然后出发。
 		ELSE
-			PRINTFORMW %CALLNAME:TARGET%を誘うことに成功した%CALLNAME:MASTER%は、デートを楽しむために外で待ち合わせをする事にした。
+			PRINTFORMW 成功邀请了%CALLNAME:TARGET%的%CALLNAME:MASTER%、为了享受约会决定在外面汇合。
 		ENDIF
 	ENDIF
 ENDIF
 
 ;デート中フラグON
 SETBIT FLAG:状況判定, 40
-FLAG:ムード = 30
+FLAG:情緒 = 30
 
 ;デートの行き先初期化
-SAVESTR:デート = 
+SAVESTR:约会 = 
 STR:Ｈする場所 = 
 
 CFLAG:睡眠 = 0
-CFLAG:寝起き = 0
+CFLAG:刚睡醒 = 0
 ;パンツなどのCFLAGは謎にする
-CVARSET CFLAG, GETNUM(CFLAG, "下着確認済")
+CVARSET CFLAG, GETNUM(CFLAG, "内衣確認済")
 CVARSET CFLAG, GETNUM(CFLAG, "股間確認済")
-CVARSET CFLAG, GETNUM(CFLAG, "アソコチェック")
-CVARSET CFLAG, GETNUM(CFLAG, "スカートめくり")
+CVARSET CFLAG, GETNUM(CFLAG, "检查阴部")
+CVARSET CFLAG, GETNUM(CFLAG, "掀起裙子")
 
 ;デートで使うTFLAG初期化
 TFLAG:手繋ぎ = 0
-TFLAG:キス = 0
+TFLAG:接吻 = 0
 TFLAG:手淫 = 0
-TFLAG:フェラ = 0
-TFLAG:お尻を触る = 0
-TFLAG:セックス = 0
-TFLAG:デート手つなぎ可能 = 0
-TFLAG:デートエロ可能 = 0
-TFLAG:下着チラ見え可能 = 0
-TFLAG:水着デート = 0
-TFLAG:文化祭デート = 0
+TFLAG:口交 = 0
+TFLAG:摸屁股 = 0
+TFLAG:性交 = 0
+TFLAG:约会手つなぎ可能 = 0
+TFLAG:约会エロ可能 = 0
+TFLAG:内衣チラ見え可能 = 0
+TFLAG:泳装约会 = 0
+TFLAG:文化祭约会 = 0
 TFLAG:衣装解説済み = 0
 TFLAG:イベント回数 = 0
 
-CALL EVENT_DATE, "デート衣装に着替える"
+CALL EVENT_DATE, "约会衣装に更衣"
 DRAWLINE
 DRAWLINE
 ;デートプラン羅列
@@ -101,10 +101,10 @@ FOR LCOUNT, 10, 20
 NEXT
 
 CALL EVENT_DATE, "行先決定"
-CALL EVENT_DATE, "下着チラ見え"
+CALL EVENT_DATE, "内衣チラ見え"
 
 ;ここから先は行き先次第で変化がある
-SELECTCASE SAVESTR:デート
+SELECTCASE SAVESTR:约会
 CASE "文化祭"
 	;制服に着替える
 	FOR LCOUNT, 2, CHARANUM
@@ -118,40 +118,40 @@ CASE "文化祭"
 		CALL DEL_CEVENT_GROUP, "学園祭", LCOUNT
 	NEXT
 	CALL EVENT_DATE, "文化祭"
-	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "便当"
 	CALL EVENT_DATE, "手繋ぎ"
 	CALL EVENT_DATE, "文化祭"
-	CALL EVENT_DATE, "デートエロ"
+	CALL EVENT_DATE, "约会エロ"
 	CALL EVENT_DATE, "文化祭"
 CASE "泳ぎに行く"
 	CALL EVENT_DATE, "着替えて合流"
-	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "便当"
 	CALL EVENT_DATE, "手繋ぎ"
-	CALL EVENT_DATE, "デートエロ"
+	CALL EVENT_DATE, "约会エロ"
 CASE "映画館に行く"
 	CALL EVENT_DATE, "手繋ぎ"
-	CALL EVENT_DATE, "デートエロ"
-	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "约会エロ"
+	CALL EVENT_DATE, "便当"
 CASE "図書館に行く"
-	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "便当"
 	CALL BLANK_DRAWLINE
 	CALL SETFLAG_DAILY, "勉強"
-	CALL EVENT_DATE, "デートエロ"
-CASE "食べ歩き"
+	CALL EVENT_DATE, "约会エロ"
+CASE "尋訪美食"
 	CALL EVENT_DATE, "手繋ぎ"
 	;水着を買いに行った場合など
-	CALL EVENT_DATE, "お買い物"
-	CALL EVENT_DATE, "デートエロ"
+	CALL EVENT_DATE, "购物"
+	CALL EVENT_DATE, "约会エロ"
 CASEELSE
-	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "便当"
 	CALL EVENT_DATE, "手繋ぎ"
 	;水着を買いに行った場合など
-	CALL EVENT_DATE, "お買い物"
-	CALL EVENT_DATE, "デートエロ"
+	CALL EVENT_DATE, "购物"
+	CALL EVENT_DATE, "约会エロ"
 ENDSELECT
 ;水着デートは日焼けも起きる
-SIF TFLAG:水着デート
-	CALL EVENT_DATE, "日焼け"
+SIF TFLAG:泳装约会
+	CALL EVENT_DATE, "晒痕"
 
 ;着ていた服と汚れを戻す
 FOR LCOUNT, 40, 50
@@ -166,10 +166,10 @@ NEXT
 
 ;デートも終わり。さて……
 CALL BLANK_DRAWLINE
-IF TFLAG:文化祭デート
-	PRINTFORMW 気が付くと出し物の大半が撤収の準備を始めており、文化祭も終わりに近づいていた。
+IF TFLAG:文化祭约会
+	PRINTFORMW 注意到大多数展区已经開始在做撤収的準備了、文化祭也临近尾声了。
 ELSE
-	PRINTFORMW 楽しかったデートも、そろそろ終わりの時間だ。
+	PRINTFORMW 愉快的约会、差不多要到结束的时间了。
 ENDIF
 CALL BLANKLINE
 CALL KOJO_DATE, "帰り際"
@@ -186,9 +186,9 @@ MEMO_LINECOUNT = LINECOUNT
 
 REDRAW 0
 
-PRINTL ……誰をデートに誘いますか？
-CALL PRINT_STRL, "ちなみに、お誘いを受けてもらうには_黄色_[信頼LV3]or[恋慕]or[屈服刻印LV1]_が必要となります"
-CALL SHOW_CHARA_LIST, "デート"
+PRINTL ……要邀请谁一起约会呢？
+CALL PRINT_STRL, "顺便一提、需要_黄色_[信頼LV3]or[恋慕]or[屈服刻印LV1]_才会接受邀请"
+CALL SHOW_CHARA_LIST, "约会"
 
 $INPUT_LOOP
 INPUT
@@ -201,7 +201,7 @@ CASE 100
 CASE IS < MASTER, IS >= CHARANUM
 	GOTO INPUT_LOOP
 CASEELSE
-	SIF COND("デート可能", CHOICE) == 0
+	SIF COND("约会可能", CHOICE) == 0
 		GOTO INPUT_LOOP
 ENDSELECT
 
@@ -232,41 +232,41 @@ RETURN 1
 #DIMS AFTER_CLO
 
 TFLAG:地の文スキップ = 0
-MEMO_MOOD = FLAG:ムード
+MEMO_MOOD = FLAG:情緒
 
 SELECTCASE ARGS
-CASE "デート衣装に着替える"
+CASE "约会衣装に更衣"
 	;デート用の髪型など変更
 	CALL SETFLAG, "ＴＰＯによる外見変更"
 
-	STR:変更衣装 = デート衣装
+	STR:変更衣装 = 约会衣装
 
 	;着ていた服を記憶する。一致するかを見るだけなので文字列コピーで良い
-	BEFORE_CLO = %CSTR:パンツ%%CSTR:ブラ%%CSTR:服%%CSTR:スカート%%CSTR:ボディスーツ%%CSTR:アウター%%CSTR:靴下%%CSTR:靴%%CSTR:手袋%%CSTR:アクセサリ%
+	BEFORE_CLO = %CSTR:胖次%%CSTR:胸罩%%CSTR:服%%CSTR:裙%%CSTR:贴身制服%%CSTR:外套%%CSTR:襪子%%CSTR:靴%%CSTR:手袋%%CSTR:飾品%
 
-	CALL KOJO_DATE, "デート衣装に着替える"
+	CALL KOJO_DATE, "约会衣装に更衣"
 
-	AFTER_CLO = %CSTR:パンツ%%CSTR:ブラ%%CSTR:服%%CSTR:スカート%%CSTR:ボディスーツ%%CSTR:アウター%%CSTR:靴下%%CSTR:靴%%CSTR:手袋%%CSTR:アクセサリ%
+	AFTER_CLO = %CSTR:胖次%%CSTR:胸罩%%CSTR:服%%CSTR:裙%%CSTR:贴身制服%%CSTR:外套%%CSTR:襪子%%CSTR:靴%%CSTR:手袋%%CSTR:飾品%
 
 	;着替えた場合はフラグON
 	SIF BEFORE_CLO != AFTER_CLO
 		CALL SETFLAG, "着替えをした"
 
 	;口上などで着替えていないなら(あるなら)デート衣装になる
-	SIF COND("デート衣装に着替えた") == 0
-		CALL SETFLAG, "デート衣装に着替える"
+	SIF COND("约会衣装に着替えた") == 0
+		CALL SETFLAG, "约会衣装に更衣"
 	;デート用の衣装で登場したならムードアップ
-	SIF COND("デート衣装に着替えた")
-		FLAG:ムード += 30
+	SIF COND("约会衣装に着替えた")
+		FLAG:情緒 += 30
 CASE "待ち合わせ"
 	CALL PRINT_MAIDFACE, TARGET
 	CALL KOJO_DATE, "待ち合わせ"
 	;もしも衣装の解説が無いならここでしておく
 	IF TFLAG:衣装解説済み == 0
-		IF COND("デート衣装に着替えた") && TFLAG:地の文スキップ == 0
-			CALL PRINT_STRW, @"今日の%CALLNAME:TARGET%の格好は、_ハートピンク_%CLO_ABOUT(TARGET)%_だ。"
-			PRINTFORM %TEXTR("普段とは一味違う/いつもとは異なる気合の入った/デートに備えておめかしして来た様子の")%%CONDS("間柄")%の姿に、
-			PRINTFORMW 否応なくテンションが高まる……
+		IF COND("约会衣装に着替えた") && TFLAG:地の文スキップ == 0
+			CALL PRINT_STRW, @"今天的%CALLNAME:TARGET%穿的是、_爱心粉紅_%CLO_ABOUT(TARGET)%_。"
+			PRINTFORM %TEXTR("和平时不同的/进入了和往常不同的气势的/看起来是为了约会而精心准备过的")%%CONDS("間柄")%的姿态、
+			PRINTFORMW 情绪十分高涨……
 		ELSE
 
 		ENDIF
@@ -274,18 +274,18 @@ CASE "待ち合わせ"
 	ENDIF
 CASE "行先決定"
 	;相手が行きたい場所あったらそっち優先
-	IF SAVESTR:デート == ""
+	IF SAVESTR:约会 == ""
 		;初めてのおデート！
-		IF EXP:MASTER:デート経験 == 0
-			PRINTFORML 記念すべき初めてのデートは一体全体、何をして過ごすとしよう？
+		IF EXP:MASTER:约会経験 == 0
+			PRINTFORML 值得纪念的第一次约会、该如何度过呢？
 		;この相手とは初めて
-		ELSEIF EXP:デート経験 == 0
-			PRINTFORML 今回は%CALLNAME:TARGET%との初デートだ。何をしようか？
+		ELSEIF EXP:约会経験 == 0
+			PRINTFORML 这次是和%CALLNAME:TARGET%的第一次约会。做些什么呢？
 		ELSE
-			PRINTFORML 今回のデートは、どのようなプランで行くとしようか？
+			PRINTFORML 这次的约会、以怎样的计划进行呢？
 		ENDIF
-		SIF COND("夏") && CSTR:今年の水着 != "" && COND("今年の水着選択済")
-			CALL PRINT_STRL, @"（※プールや海に備えて_黄色_今年の水着(%SWIM(CSTR:今年の水着, "種類")%)_を購入済みです）"
+		SIF COND("夏") && CSTR:今年の泳装 != "" && COND("今年の泳装選択済")
+			CALL PRINT_STRL, @"（※为了游泳池和海准备的_黄色_今年的泳装(%SWIM(CSTR:今年の泳装, "種類")%)_已经購入済了）"
 
 		;起きうるイベントの判定に使う
 		STR:選択肢 = 
@@ -298,8 +298,8 @@ CASE "行先決定"
 
 		SELECTCASE TEXTS("季節詳細")
 		CASE "春", "初夏", "夏"
-			SIF COND("今年の水着選択済") == 0
-				STR:選択肢 += "水着を買いに行く/"
+			SIF COND("今年の泳装選択済") == 0
+				STR:選択肢 += "泳装を買いに行く/"
 		ENDSELECT
 
 		;季節イベント。特殊な行先は作りかけなので自重して封印
@@ -316,11 +316,11 @@ CASE "行先決定"
 
 
 		;慣れた相手となら身近な場所を選べる
-		SIF EXP:デート経験
+		SIF EXP:约会経験
 			STR:選択肢 += "散歩/"
 
 		;通年ＯＫなスポット
-		STR:選択肢 += "食べ歩き/街でお買い物/水族館に行く/遊園地に行く/映画館に行く/"
+		STR:選択肢 += "尋訪美食/街で购物/水族館に行く/遊園地に行く/映画館に行く/"
 
 		;図書館は学生限定
 		SIF STRCOUNTS(CSTR:学年, "年生", "初等部", "中等部")
@@ -329,7 +329,7 @@ CASE "行先決定"
 		VARSET LOCALS
 		SPLIT STR:選択肢, "/", LOCALS
 		CALL PRINT_SELECT, STR:選択肢
-		SAVESTR:デート = %LOCALS:RESULT%
+		SAVESTR:约会 = %LOCALS:RESULT%
 	ENDIF
 
 	MEMO_LINECOUNT = LINECOUNT
@@ -338,87 +338,87 @@ CASE "行先決定"
 
 	;口上で作った選択肢を選んでいない場合
 	SIF LINECOUNT == MEMO_LINECOUNT
-		CALL KOJO_DATE, "デート本番"
+		CALL KOJO_DATE, "约会本番"
 
 	CALL BLANKLINE
 
 	;ムードのボーナス計算
 	SIF TFLAG:手繋ぎ
-		FLAG:ムード += 15
+		FLAG:情緒 += 15
 
 	;デート場所によっていくつかのフラグが立つ
 	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
-	SELECTCASE SAVESTR:デート
+	SELECTCASE SAVESTR:约会
 	;高ムード＆エロ可能
 	CASE "水族館に行く", "遊園地に行く"
-		FLAG:ムード += 60
-		TFLAG:デートエロ可能 = 1
-		TFLAG:デート手つなぎ可能 = 1
-		TFLAG:下着チラ見え可能 = 1
+		FLAG:情緒 += 60
+		TFLAG:约会エロ可能 = 1
+		TFLAG:约会手つなぎ可能 = 1
+		TFLAG:内衣チラ見え可能 = 1
 	;2019/10 hokaguru 追記 映画館で下着は見えへんやろう……
 	CASE "映画館に行く"
-		FLAG:ムード += 60
-		TFLAG:デートエロ可能 = 1
-		TFLAG:デート手つなぎ可能 = 1
+		FLAG:情緒 += 60
+		TFLAG:约会エロ可能 = 1
+		TFLAG:约会手つなぎ可能 = 1
 	CASE "泳ぎに行く"
-		FLAG:ムード += 30
-		TFLAG:デートエロ可能 = 1
-		TFLAG:デート手つなぎ可能 = 1
-		TFLAG:水着デート = 1
+		FLAG:情緒 += 30
+		TFLAG:约会エロ可能 = 1
+		TFLAG:约会手つなぎ可能 = 1
+		TFLAG:泳装约会 = 1
 
 		;もしも水着の設定が無い場合にはビキニ
-		IF CSTR:今年の水着 == ""
+		IF CSTR:今年の泳装 == ""
 			SELECTCASE COND("陰毛")
 			CASE IS >= 7
 				IF RAND:3 == 0
-					CSTR:今年の水着 = %PALAM_SWIM("ビキニ＆パレオ", CSTR:好きな色)%
+					CSTR:今年の泳装 = %PALAM_SWIM("比基尼＆荷葉邊", CSTR:喜欢的颜色)%
 				ELSEIF RAND:2
-					CSTR:今年の水着 = %PALAM_SWIM("ビキニ＆ショートパンツ", CSTR:好きな色)%
+					CSTR:今年の泳装 = %PALAM_SWIM("比基尼＆短褲", CSTR:喜欢的颜色)%
 				ELSE
-					CSTR:今年の水着 = %PALAM_SWIM("ビキニ＆ミニスカート", CSTR:好きな色)%
+					CSTR:今年の泳装 = %PALAM_SWIM("比基尼＆迷你裙", CSTR:喜欢的颜色)%
 				ENDIF
 			CASEELSE
-				CSTR:今年の水着 = %PALAM_SWIM("ビキニ", CSTR:好きな色)%
+				CSTR:今年の泳装 = %PALAM_SWIM("比基尼", CSTR:喜欢的颜色)%
 			ENDSELECT
 		ENDIF
 	;並ムード＆エロ可能
 	CASE "文化祭"
-		FLAG:ムード += 30
-		TFLAG:文化祭デート = 1
-		TFLAG:デート手つなぎ可能 = 1
-		TFLAG:デートエロ可能 = 1
-		TFLAG:下着チラ見え可能 = 1
-	CASE "水着を買いに行く"
-		FLAG:ムード += 30
-		TFLAG:デート手つなぎ可能 = 1
-		TFLAG:デートエロ可能 = 1
-		TFLAG:下着チラ見え可能 = 1
+		FLAG:情緒 += 30
+		TFLAG:文化祭约会 = 1
+		TFLAG:约会手つなぎ可能 = 1
+		TFLAG:约会エロ可能 = 1
+		TFLAG:内衣チラ見え可能 = 1
+	CASE "泳装を買いに行く"
+		FLAG:情緒 += 30
+		TFLAG:约会手つなぎ可能 = 1
+		TFLAG:约会エロ可能 = 1
+		TFLAG:内衣チラ見え可能 = 1
 	;低ムードだけどエロ可能
 	CASE "図書館に行く"
-		FLAG:ムード += 30
-		TFLAG:デートエロ可能 = 1
-		TFLAG:下着チラ見え可能 = 1
+		FLAG:情緒 += 30
+		TFLAG:约会エロ可能 = 1
+		TFLAG:内衣チラ見え可能 = 1
 	CASE "散歩"
-		TFLAG:デートエロ可能 = 1
-		TFLAG:デート手つなぎ可能 = 1
-		TFLAG:下着チラ見え可能 = 1
+		TFLAG:约会エロ可能 = 1
+		TFLAG:约会手つなぎ可能 = 1
+		TFLAG:内衣チラ見え可能 = 1
 	;その他。一般にエロいことは出来ない
-	CASE "食べ歩き", "街でお買い物"
-		FLAG:ムード += 30
-		TFLAG:デート手つなぎ可能 = 1
-		TFLAG:下着チラ見え可能 = 1
+	CASE "尋訪美食", "街で购物"
+		FLAG:情緒 += 30
+		TFLAG:约会手つなぎ可能 = 1
+		TFLAG:内衣チラ見え可能 = 1
 	;未設定
 	CASE "お花見", "山に行く", "紅葉狩りに行く", "スケート"
-		FLAG:ムード += 30
-		TFLAG:デート手つなぎ可能 = 1
-		TFLAG:下着チラ見え可能 = 1
+		FLAG:情緒 += 30
+		TFLAG:约会手つなぎ可能 = 1
+		TFLAG:内衣チラ見え可能 = 1
 	CASEELSE
-		FLAG:ムード += 30
-		TFLAG:デート手つなぎ可能 = 1
-		TFLAG:下着チラ見え可能 = 1
+		FLAG:情緒 += 30
+		TFLAG:约会手つなぎ可能 = 1
+		TFLAG:内衣チラ見え可能 = 1
 	ENDSELECT
-CASE "下着チラ見え"
-	SIF TFLAG:下着チラ見え可能 == 0
+CASE "内衣チラ見え"
+	SIF TFLAG:内衣チラ見え可能 == 0
 		RETURN 0
 	CALL BLANK_DRAWLINE
 	MEMO_LINECOUNT = LINECOUNT
@@ -427,141 +427,141 @@ CASE "下着チラ見え"
 	SIF LINECOUNT == MEMO_LINECOUNT
 		CLEARLINE 1
 CASE "着替えて合流"
-	SELECTCASE SAVESTR:デート
+	SELECTCASE SAVESTR:约会
 	CASE "泳ぎに行く"
-		STR:選んだ水着 = %CSTR:今年の水着%
-		CALL SET_COORDINATE, "今年の水着"
+		STR:選んだ泳装 = %CSTR:今年の泳装%
+		CALL SET_COORDINATE, "今年の泳装"
 		CALL BLANK_DRAWLINE
-		PRINTFORMW 目的地に着いた%CALLNAME:MASTER%達は、一旦分かれて更衣室で着替えた後に合流する事にした。
+		PRINTFORMW %CALLNAME:MASTER%一行人到达了目的地、决定暂时分開、在更衣室内换完衣服再汇合。
 		PRINTW ………
 		PRINTW ……
 		PRINTW …
-		CALL KOJO_DATE, "水着に着替えた"
-		PRINTFORMW %CALLNAME:MASTER%に遅れること数分、%SWIM(CSTR:今年の水着)%に着替えた%CALLNAME:TARGET%が姿を現した！
-		IF COMMENT_SWIM(CSTR:今年の水着, "単独文") != ""
-			SIF EQUIP:パンツ
-				CALL PRINT_CUTIN, "パンツ", TARGET
-			PRINTFORMW %COMMENT_SWIM(CSTR:今年の水着, "単独文")%
+		CALL KOJO_DATE, "泳装に着替えた"
+		PRINTFORMW 几分钟之后、%CALLNAME:MASTER%见到了换好%SWIM(CSTR:今年の泳装)%的%CALLNAME:TARGET%的身姿！
+		IF COMMENT_SWIM(CSTR:今年の泳装, "単独文") != ""
+			SIF EQUIP:胖次
+				CALL PRINT_CUTIN, "胖次", TARGET
+			PRINTFORMW %COMMENT_SWIM(CSTR:今年の泳装, "単独文")%
 		ENDIF
-		FLAG:ムード += 30
+		FLAG:情緒 += 30
 	ENDSELECT
-CASE "お弁当"
-	SIF CEVENT("デートのお弁当") == 0
+CASE "便当"
+	SIF CEVENT("约会の便当") == 0
 		RETURN 0
 	CALL BLANK_DRAWLINE
 	IF RAND:4 == 0
-		SELECTCASE SAVESTR:デート
+		SELECTCASE SAVESTR:约会
 		CASE "映画館に行く"
-			PRINTFORM 映画館から出ながら%CALLNAME:TARGET%と雑談しているうちに、話題が自然と食べる事にシフトしてきた
+			PRINTFORM 和%CALLNAME:TARGET%闲聊的同时走出了电影院、话题自然地转移到了食物上面
 		CASEELSE
-			PRINTFORM 移動しながら%CALLNAME:TARGET%と雑談しているうちに、話題が自然と食べる事にシフトしてきた
+			PRINTFORM 移动的同时和%CALLNAME:TARGET%闲聊着、话题自然地转移到了食物上面
 		ENDSELECT
 	ELSE
-		PRINTFORM 不意に%CALLNAME:MASTER%のお腹が%TEXTR("獣のような唸り声をあげた/グゥ～と鳴ってしまった/お昼を告げた")%のを受けて、%CALLNAME:TARGET%が
-		IF TALENT:素直 + TALENT:陽気 && TALENT:力持ち + TALENT:粗野 + TALENT:愚か
-			PRINTFORM %TEXTR("プッと吹き出した/楽しそうにからかってきた/ニッと微笑んだ")%
-		ELSEIF TALENT:素直 + TALENT:陽気 + TALENT:優しい + TALENT:献身 + TALENT:冷静
-			PRINTFORM %TEXTR("笑みをこぼした/優しく微笑んだ/笑顔で身を寄せてきた")%
+		PRINTFORM 突然间%CALLNAME:MASTER%的肚子%TEXTR("发出了野兽般的吼声/咕～咕噜～地响了起来/发出了代表饥饿的声响")%、%CALLNAME:TARGET%
+		IF TALENT:坦率 + TALENT:開朗 && TALENT:大力士 + TALENT:粗野 + TALENT:笨蛋
+			PRINTFORM %TEXTR("噗的一声笑了出来/愉快地调侃了起来/咧嘴笑了起来")%
+		ELSEIF TALENT:坦率 + TALENT:開朗 + TALENT:温柔 + TALENT:献身 + TALENT:冷静
+			PRINTFORM %TEXTR("露出了笑容/温柔地微笑着/笑着靠过身来")%
 		ELSEIF TALENT:強気 + TALENT:高慢
-			PRINTFORM %TEXTR("我慢できないといった様子で笑い声を漏らした/ヤレヤレとジェスチャーしながら優しく微笑みかけてきた/忍び笑いを漏らしながら脇腹を肘でつついてきた")%
+			PRINTFORM %TEXTR("忍俊不禁地笑出了声/笑着摆出\"不过如此啊\"的手势/用手肘戳着肋部偷偷地笑着")%
 		ELSE
-			PRINTFORM %TEXTR("吹き出した/ニコッと微笑んだ/呆れながらの笑顔を見せた")%
+			PRINTFORM %TEXTR("笑出声来了/微微一笑/露出了略带惊讶的笑容")%
 		ENDIF
 	ENDIF
-	PRINTFORMW ……そろそろお昼ごはんの時間のようだ。
+	PRINTFORMW ……差不多是午餐的时间了。
 	PRINTL 
 	IF COND("夏")
-		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%がクーラーボックスから取り出したお弁当を、
+		PRINTFORM %CALLNAME:MASTER%将%CALLNAME:TARGET%从保温箱中取出的便当、
 	ELSE
-		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%が用意してくれた手作りのお弁当を、
+		PRINTFORM %CALLNAME:MASTER%将%CALLNAME:TARGET%亲手用心做的便当、
 	ENDIF
 	IF COND("冬")
-		PRINTFORMW 事前に目星をつけておいた屋内の広場に腰を落ち着けて一緒に食べた。
+		PRINTFORMW 在早就计划好的室内广场的座位上一起享用了。
 	ELSE
-		SELECTCASE SAVESTR:デート
-		CASE "水族館に行く", "遊園地に行く", "映画館に行く", "スケート", "泳ぎに行く", "水着を買いに行く"
-			PRINTFORMW ベンチに座って一緒に食べた。
+		SELECTCASE SAVESTR:约会
+		CASE "水族館に行く", "遊園地に行く", "映画館に行く", "スケート", "泳ぎに行く", "泳装を買いに行く"
+			PRINTFORMW 在长凳上一起享用了。
 		CASE "図書館に行く"
-			PRINTFORMW 館外のベンチに座って一緒に食べた。
-		CASE "散歩", "食べ歩き", "街でお買い物"
-			PRINTFORMW %TEXTR("公園のベンチに座って/カフェのオープンスペースで/ショッピングモールのオープンスペースで")%一緒に食べた。
+			PRINTFORMW 在馆外的长凳上一起享用了。
+		CASE "散歩", "尋訪美食", "街で购物"
+			PRINTFORMW %TEXTR("在公園的长凳上/在咖啡館的開放空间里/在购物中心的開放空间里")%一起享用了。
 		CASE "お花見", "山に行く", "紅葉狩りに行く"
-			PRINTFORMW レジャーシートに腰を下ろして一緒に食べた。
+			PRINTFORMW 坐在休闲座椅上一起享用了。
 		CASEELSE
-			PRINTFORMW ベンチに座って一緒に食べた。
+			PRINTFORMW 在长凳上一起享用了。
 		ENDSELECT
 	ENDIF
-	CALL KOJO_DATE, "お弁当"
-	FLAG:ムード += 30
+	CALL KOJO_DATE, "便当"
+	FLAG:情緒 += 30
 CASE "手繋ぎ"
-	SIF TFLAG:手繋ぎ || TFLAG:デート手つなぎ可能 == 0
+	SIF TFLAG:手繋ぎ || TFLAG:约会手つなぎ可能 == 0
 		RETURN 0
 	CALL BLANK_DRAWLINE
-	PRINTFORMW ところで。
+	PRINTFORMW 顺便一提。
 	IF COND("合意：手繋ぎ")
-		PRINTFORMW 今日はまだ%CALLNAME:TARGET%の手を握っていない事に気づきました。
+		PRINTFORMW 突然意识到今天还没握过%CALLNAME:TARGET%的手。
 	ELSEIF TALENT:相思相愛
-		PRINTFORMW 恋人同士だと言うのに、%CALLNAME:TARGET%の手を握っていない事に気づきました。
+		PRINTFORMW 突然意识到明明是一对恋人、却没有握住%CALLNAME:TARGET%的手。
 	ELSE
-		PRINTFORMW 仮にもデートだと言うのに、%CALLNAME:TARGET%の手を握っていない事に気づきました。
+		PRINTFORMW 突然意识到明明是在约会中、却没有握住%CALLNAME:TARGET%的手。
 	ENDIF
-	PRINTFORMW ……どうする？
+	PRINTFORMW ……怎么办？
 	IF COND("合意：手繋ぎ") || TALENT:恋慕
-		CALL PRINT_SELECT, "手をつなぐ/やめておく"
+		CALL PRINT_SELECT, "牵手/还是算了"
 	ELSE
-		CALL PRINT_SELECT, "手をつなぐ/嫌がられるかもしれないし、やめておく"
+		CALL PRINT_SELECT, "牵手/可能会被讨厌、还是算了"
 	ENDIF
 
 	;手をつないだ
 	IF RESULT == 0
 		TFLAG:手繋ぎ = 1
-		FLAG:ムード += 30
+		FLAG:情緒 += 30
 
 		CALL KOJO_DATE, "手をつなぐ"
 	ELSE
 		CALL KOJO_DATE, "手をつながない"
 	ENDIF
-CASE "お買い物"
-	SELECTCASE SAVESTR:デート
-	CASE "水着を買いに行く"
+CASE "购物"
+	SELECTCASE SAVESTR:约会
+	CASE "泳装を買いに行く"
 		CALL EVENT_SHOP_SWIM
 	ENDSELECT
-CASE "デートエロ"
+CASE "约会エロ"
 	;ムードが高まって来たらエロい事もできるよ
 	EVENT_TABLE = 
-	IF TFLAG:デートエロ可能 && (COND("発情期") || MOOD_HEART() >= 2 || SAVESTR:デート == "図書館に行く")
-		SELECTCASE SAVESTR:デート
-		CASE "水着を買いに行く"
+	IF TFLAG:约会エロ可能 && (COND("発情期") || MOOD_HEART() >= 2 || SAVESTR:约会 == "図書館に行く")
+		SELECTCASE SAVESTR:约会
+		CASE "泳装を買いに行く"
 			;SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && COND("女性主導生セックス") && COND("性処理可能") && CANTRAIN("正常位")
 			;	EVENT_TABLE += "前の穴を貸してもらう/"
-			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("フェラチオ")
-				EVENT_TABLE += "こっそり口で抜いてもらう/"
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("口交")
+				EVENT_TABLE += "请求偷偷口交/"
 			SIF EVENT_TABLE != ""
-				EVENT_TABLE += "我慢する/"
+				EVENT_TABLE += "忍耐/"
 		;2019/10 hokaguru 追記
 		CASE "映画館に行く"
 			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:手淫経験 > 5 && COND("性処理可能") && CANTRAIN("手淫")
-				EVENT_TABLE += "こっそり手コキしてもらう/"
+				EVENT_TABLE += "请求偷偷手交/"
 			SIF EVENT_TABLE != ""
-				EVENT_TABLE += "映画に集中する/"
+				EVENT_TABLE += "专心看电影/"
 		;2020/02/24　マリーちゃんの中の人　追記　雑に分岐を増やす
 		CASE "図書館に行く"
-			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("フェラチオ")
-				EVENT_TABLE += "こっそり口で抜いてもらう/"
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("口交")
+				EVENT_TABLE += "请求偷偷口交/"
 			;内容を考えるのが面倒なので一旦封印
 ;			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:手淫経験 > 5 && COND("性処理可能") && CANTRAIN("手淫")
 ;				EVENT_TABLE += "こっそり手コキしてもらう/"
 			SIF EVENT_TABLE != ""
-				EVENT_TABLE += "真面目に勉強する/"
+				EVENT_TABLE += "认真学习/"
 		CASEELSE
-			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("フェラチオ")
-				EVENT_TABLE += "ちょっと物陰へ……/"
-			SIF COND("合意：キス")
-				EVENT_TABLE += "キスする/"
-			SIF CHECK_SKIRT("ミニ") || EQUIP:スカート == 0 || TFLAG:水着デート
-				EVENT_TABLE += "お尻を触る/"
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("口交")
+				EVENT_TABLE += "到暗处去……/"
+			SIF COND("合意：接吻")
+				EVENT_TABLE += "接吻/"
+			SIF CHECK_SKIRT("迷你") || EQUIP:裙 == 0 || TFLAG:泳装约会
+				EVENT_TABLE += "摸屁股/"
 			SIF EVENT_TABLE != ""
-				EVENT_TABLE += "次は何処に行こうか？と話を振る/"
+				EVENT_TABLE += "下次去哪里呢？询问/"
 		ENDSELECT
 	ENDIF
 
@@ -569,22 +569,22 @@ CASE "デートエロ"
 		RETURN 0
 
 	CALL BLANK_DRAWLINE
-	SELECTCASE SAVESTR:デート
+	SELECTCASE SAVESTR:约会
 	CASE "水族館に行く"
-		PRINTFORMW ……薄暗い水族館を\@ TFLAG:手繋ぎ ? 手をつないで # \@回っているうちに、お互いの口数が減って距離が縮まってきた気がする。
+		PRINTFORMW ……\@ TFLAG:手繋ぎ ? 手牵着手 # \@在幽暗的水族館里来回参观时、随着话语的减少、彼此间的距离缩短了。
 	CASE "遊園地に行く"
-		PRINTFORMW ……賑やかすぎるテーマパークを\@ TFLAG:手繋ぎ ? 手をつないで # \@回っているうちに、お互いの口数が減って距離が縮まってきた気がする。
+		PRINTFORMW ……在热闹的主题公园\@ TFLAG:手繋ぎ ? 手牵手 # \@来回参观时、随着话语的减少、彼此间的距离缩短了。
 	CASE "泳ぎに行く"
-		PRINTFORMW ……水着姿で\@ TFLAG:手繋ぎ ? 手をつないで # \@楽しんでいるうちに、お互いの口数が減って距離が縮まってきた気がする。
-	CASE "水着を買いに行く"
-		PRINTFORMW ……狭い部屋の中、至近距離での水着選びを終えた%CALLNAME:MASTER%は股間が大きくなっている事に気がついた。
+		PRINTFORMW ……\@ TFLAG:手繋ぎ ? 手牵着手 # \@穿着泳装開心地游玩时、随着话语的减少、彼此间的距离缩短了。
+	CASE "泳装を買いに行く"
+		PRINTFORMW ……在狭窄的房间里、极近距离的泳装挑选结束后、%CALLNAME:MASTER%发现自己的股間变大了。
 	CASE "映画館に行く"
-		PRINTFORMW ……薄暗い館内で\@ TFLAG:手繋ぎ ? 手をつないで # \@映画を観賞している内、%CALLNAME:TARGET%が熱っぽくこちらを見ている事に気がつく。
+		PRINTFORMW ……在幽暗的影厅内\@ TFLAG:手繋ぎ ? 手牵着手 # \@观赏电影时、注意到%CALLNAME:TARGET%热切地看过来了。
 	CASE "図書館に行く"
-		PRINTFORMW 集中力が切れた%CALLNAME:MASTER%が本から顔を上げると、先に一区切りつけていたらしい%CALLNAME:TARGET%と目が合った。
-		PRINTFORMW %CALLNAME:TARGET%は恥ずかしそうに目を逸らしたが、すぐまたチラリと熱の籠った眼差しを%CALLNAME:MASTER%に向けてきた……
+		PRINTFORMW 注意力耗尽的%CALLNAME:MASTER%从书本中抬起头来、和显然没有在看书的%CALLNAME:TARGET%对上了眼睛。
+		PRINTFORMW %CALLNAME:TARGET%害羞地移開了眼睛、又再次用热腾腾的目光看向%CALLNAME:MASTER%……
 	CASEELSE
-		PRINTFORMW ……\@ TFLAG:手繋ぎ ? 手をつないで # \@一緒に行動しているうちに、お互いの口数が減って距離が縮まってきた気がする。
+		PRINTFORMW ……\@ TFLAG:手繋ぎ ? 手牵着手 # \@一起行动的同时、随着话语的减少、彼此间的距离缩短了。
 	ENDSELECT
 
 	VARSET LOCALS
@@ -593,10 +593,10 @@ CASE "デートエロ"
 	CHOICES = %LOCALS:RESULT%
 
 	SELECTCASE CHOICES
-	CASE "真面目に勉強する"
-		PRINTFORMW %CALLNAME:MASTER%達は軽い休憩を挟んだのちに、再び勉強を再開する事にした。
+	CASE "认真学习"
+		PRINTFORMW %CALLNAME:MASTER%们在稍微休憩了一会之后、又重新開始努力学习了。
 		CALL SETFLAG_DAILY, "勉強"
-	CASE "ちょっと物陰へ……", "こっそり口で抜いてもらう"
+	CASE "到暗处去……", "请求偷偷口交"
 		CALL KOJO_DATE, CHOICES
 		CLEARLINE 1
 
@@ -612,47 +612,47 @@ CASE "デートエロ"
 		CALL SIMULATE_TRAIN_SHOW
 		WAIT
 
-		PRINTFORM %CALLNAME:TARGET%は
-		SELECTCASE SAVESTR:デート
-		CASE "水着を買いに行く"
-			PRINTFORM 会計前の水着が汚れない様にと、
+		PRINTFORM %CALLNAME:TARGET%
+		SELECTCASE SAVESTR:约会
+		CASE "泳装を買いに行く"
+			PRINTFORM 为了尽量不弄脏付款前的泳装的样子、
 		CASE "泳ぎに行く"
-			PRINTFORM 水着だから多少の汚れは大丈夫そうにもかかわらず、
+			PRINTFORM 因为是泳装所以有些污垢也没问题的样子、
 		CASEELSE
-			IF COND("デート衣装に着替えた")
-				PRINTFORM せっかくデート用にと着てきた
+			IF COND("约会衣装に着替えた")
+				PRINTFORM 专为约会而穿的
 			ENDIF
-			PRINTFORM 服が汚れない様にと、
+			PRINTFORM 衣服不想弄脏的样子、
 		ENDSELECT
-		PRINTFORMW %CALLNAME:MASTER%の射精を口で受け止めた。
+		PRINTFORMW 用嘴接住了%CALLNAME:MASTER%的射精。
 
-		IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色 || COND("自発フェラ可能") || ABL:精液中毒 >= 3
-			PRINTFORM ゴクリと喉を動かして%TEXTR("美味しそうに/なんて事のない様子で/そうするのが当然と言った態度で")%精液を飲み干した%CALLNAME:TARGET%は、
+		IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色 || COND("自発口交可能") || ABL:精液中毒 >= 3
+			PRINTFORM 咕噜咕噜地蠕动喉咙%TEXTR("看起来很美味地/毫不排斥地/像理所当然一样")%饮下了精液的%CALLNAME:TARGET%、
 			;ハンカチで口元を拭きながら
-			PRINTFORM %TEXTR("ほんのり上気した顔で/行為の前よりも魅力的に見える笑顔で/かきたての汗の良い匂いを漂わせながら")%
+			PRINTFORM %TEXTR("一脸轻松地/用比行为前更有魅力的笑容/散发着刚出的汗的香味")%
 
-			FLAG:ムード += 30
+			FLAG:情緒 += 30
 		ELSE
-			PRINTFORM %TEXTR("んっんっ……と/出された物の/相変わらずの")%味と粘りに苦労しながらもなんとか口の中の精液を飲み干した%CALLNAME:TARGET%は
-			PRINTFORM %TEXTR("、少し疲れた様子で/コホンと一度咳払いして喉の調子を整えると、/鞄から出した飲み物で喉を潤し、")%
+			PRINTFORM %TEXTR("嗯哼……为/因为食物的/和以前一样因为")%味道和粘性而苦恼、很困难地喝下了口中的精液的%CALLNAME:TARGET%
+			PRINTFORM %TEXTR("、用有点疲惫的样子/咳了一声调整好说话的声调、/从包里取出饮料洗刷喉咙、")%
 
-			FLAG:ムード -= 30
+			FLAG:情緒 -= 30
 		ENDIF
-		SELECTCASE SAVESTR:デート
-		CASE "水着を買いに行く"
-			PRINTFORMW 店員に気づかれる前に清算してお店を出ようと%CALLNAME:MASTER%に話を振ってきた……
+		SELECTCASE SAVESTR:约会
+		CASE "泳装を買いに行く"
+			PRINTFORMW 和%CALLNAME:MASTER%说要快点在店员发现之前付账离開……
 		CASE "泳ぎに行く"
-			PRINTFORMW %TEXTR("次の行き先について/もう一回泳ぎに行こうかと/賑やかなおかげで誰も気づいていないようだと/汚れを気にしなくていいのは良いところだなどと")%%CALLNAME:MASTER%に話を振ってきた……
+			PRINTFORMW 和%CALLNAME:MASTER%%TEXTR("聊起了関于下一个目的地的计划/问要不要再继续游泳/说这么热闹应该没有人会注意到吧/说还好这里是个不用担心脏污的好地方")%……
 		CASE "図書館に行く"
-			PRINTFORMW %TEXTR("物音を立てない様に細心の注意を払いながら終わりを告げてきた……/小さな声で終わりにしようと話を振ってきた……")%
+			PRINTFORMW %TEXTR("小心翼翼不发出声响地结束了……/摇着头小声地问是不是可以结束了……")%
 		CASEELSE
-			PRINTFORMW 次の行き先について%CALLNAME:MASTER%に話を振ってきた……
+			PRINTFORMW 和%CALLNAME:MASTER%聊起了関于下一个目的地的计划……
 		ENDSELECT
 
-		TFLAG:フェラ = 1
+		TFLAG:口交 = 1
 
 	;2019/10 hokaguru 追記　CALL SIMULATE_TRAIN_COMの指定コマンドを手淫に変えて↑を丸パク　一部地の文もパクパク美味しい
-	CASE "こっそり手コキしてもらう"
+	CASE "请求偷偷手交"
 		CALL KOJO_DATE, CHOICES
 		CLEARLINE 1
 
@@ -669,177 +669,177 @@ CASE "デートエロ"
 		WAIT
 
 		IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色 || ABL:精液中毒 >= 3
-			PRINTFORMW %CALLNAME:TARGET%の手の中にあるモノが痙攣すると、%TEXTR("粘りのある/クセのある匂いの")%液体が吐き出された。
-			PRINTFORM %TEXTR("危なげない手つきでそれを空いた手で受け止めた/吐き出させるままにした")%%CALLNAME:TARGET%は、
-			PRINTFORM 手に付着したそれを%TEXTR("舌先で舐め上げる/唇で拭うようにする/見て喉を鳴らす")%と、
+			PRINTFORMW %CALLNAME:TARGET%手中的东西一阵痉挛过后、%TEXTR("黏糊糊的/其气味使人上瘾的")%液体吐了出来。
+			PRINTFORM %TEXTR("做出不危险的手势将其用手挡住的/就这样放任喷射的")%%CALLNAME:TARGET%、
+			PRINTFORM %TEXTR("用舌头将手心舔舐干净后/用嘴唇擦拭着手心/看到手心粘上的液体时喉咙发出了声音")%、
 			;手コキなのでフェラに比べて低ムード補正で良いかな、と愚考。いや、どっちも公共の場でやるにはやべえけどね？
-			FLAG:ムード += 15
+			FLAG:情緒 += 15
 		ELSE
-			PRINTFORM 場所を選ばず吐き出された%TEXTR("濁汁に/白濁に")%一瞬顔を%TEXTR("呆けさせた/しかめた")%%CALLNAME:TARGET%は
-			PRINTFORM %TEXTR("微妙な顔をしながら/しょうがないと言った風に/慌てて")%ハンカチでそれを拭うと、
+			PRINTFORM 因为不分场合吐出来的%TEXTR("浊汁/白浊")%一瞬间%TEXTR("吓了一跳的/皱起眉头的")%%CALLNAME:TARGET%
+			PRINTFORM %TEXTR("以一副微妙的表情/好像很没办法地/慌忙地")%用手帕擦干净了、
 			;同上 フェラよりましだ、ならムードの下がり幅は狭いはずだ（などと供述
-			FLAG:ムード -= 15
+			FLAG:情緒 -= 15
 		ENDIF
-		SELECTCASE SAVESTR:デート
+		SELECTCASE SAVESTR:约会
 		CASE "映画館に行く"
 			IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色
-				PRINTFORMW %TEXTR("続きはどこで？/これで終わり？/また後でね、")%と耳元で囁いてきた……
+				PRINTFORMW 在耳边小声地说%TEXTR("「在哪里继续？」/「这就结束了吗？」/「过会继续」")%……
 			;精液中毒持ちかつ喉を鳴らすとこんなこと言いながら拭ってません、どうしたのでしょうか。安らかに息を引き取る。
-			ELSEIF TALENT:恥じらい
-				PRINTFORMW %TEXTR("せめて映画に集中して欲しい/こんな所で何をやらせるんだ")%、と顔を赤くしたまま呆れ顔で溜息を吐いた……
+			ELSEIF TALENT:害羞
+				PRINTFORMW 一边说着%TEXTR("「希望你能把注意力集中在电影上」/「在这种地方胡想些什么啊」")%、一边红着脸无可奈何地叹了口气……
 			ELSE
-				PRINTFORMW 丁度上映も終わりだ、と%CALLNAME:MASTER%に耳打ちした……
+				PRINTFORMW 在%CALLNAME:MASTER%耳旁悄悄地说「等到放映结束吧」……
 			ENDIF
 		CASEELSE
 			IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色
-				PRINTFORMW %TEXTR("どこか満足そうな顔で/手についた残り香を楽しむようにして")%次はどこに行こうかなどと話を振ってきた……
-			ELSEIF TALENT:恥じらい
-				PRINTFORMW %TEXTR("赤面した表情のまま/視線を方々へ忙しくするとやがて")%無言で%CALLNAME:MASTER%の手を掴むとその場を後にした……
+				PRINTFORMW %TEXTR("一副满意的表情/一边享受手上的残香一边")%聊起了関于下一个目的地的计划……
+			ELSEIF TALENT:害羞
+				PRINTFORMW %TEXTR("无法住控制害羞的表情/眼睛不知道该看向哪里")%、沉默地抓住%CALLNAME:MASTER%的手就离開了那个地方……
 			ELSE
-				PRINTFORMW 次の行き先について%CALLNAME:MASTER%に話を振ってきた……
+				PRINTFORMW 和%CALLNAME:MASTER%聊起了関于下一个目的地的计划……
 			ENDIF
 		ENDSELECT
 
 		TFLAG:手淫 = 1
 
-	CASE "キスする"
-		PRINTFORMW %CALLNAME:MASTER%は%TEXTR("顔が自然と近づくのを見計らって/不意に訪れた沈黙の隙に/無防備な")%%CALLNAME:TARGET%にキスをした。
+	CASE "接吻"
+		PRINTFORMW %CALLNAME:MASTER%%TEXTR(@"自然地接近%CALLNAME:TARGET%的脸、接吻了/不意之间亲吻了沉默中的%CALLNAME:TARGET%/吻了无防备的%CALLNAME:TARGET%")%。
 		;汎用地の文が無いのでMEMO_LINECOUNTで台詞の有無を見る
 		MEMO_LINECOUNT = LINECOUNT
 		CALL KOJO_DATE, CHOICES
 		SIF LINECOUNT != MEMO_LINECOUNT
 			CLEARLINE 1
-		FLAG:ムード += 30
+		FLAG:情緒 += 30
 
-		TFLAG:キス = 1
-	CASE "お尻を触る"
-		SIF EQUIP:パンツ && CHECK_OUTER("ズボン") == 0
-			CALL PRINT_CUTIN, "バックパンツ", TARGET
-		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%の
-		IF TFLAG:水着デート
-			IF CHECK_SWIM("スカート") || CHECK_SWIM("パレオ")
-				PRINTFORM %SWIM(CSTR:今年の水着, "ボトム")%の下に手を忍ばせ、%TEXTS("お尻：感触")%を掌で味わいながら
+		TFLAG:接吻 = 1
+	CASE "摸屁股"
+		SIF EQUIP:胖次 && CHECK_OUTER("長褲") == 0
+			CALL PRINT_CUTIN, "バック胖次", TARGET
+		PRINTFORM %CALLNAME:MASTER%把%CALLNAME:TARGET%的
+		IF TFLAG:泳装约会
+			IF CHECK_SWIM("裙") || CHECK_SWIM("荷葉邊")
+				PRINTFORM %SWIM(CSTR:今年の泳装, "ボトム")%的下面用手抚摸着、一边用手掌品味%TEXTS("お尻：感触")%
 			ELSE
 				PRINTFORM %TEXTS("お尻：感触")%を
-				IF CHECK_SWIM("パンツ")
-					PRINTFORM %SWIM(CSTR:今年の水着, "ボトム")%越しに
-				ELSEIF CHECK_SWIM("Ｔバック")
-					PRINTFORM 直に
+				IF CHECK_SWIM("胖次")
+					PRINTFORM 隔着%SWIM(CSTR:今年の泳装, "ボトム")%
+				ELSEIF CHECK_SWIM("Ｔ字褲")
+					PRINTFORM 直接
 				ELSE
-					PRINTFORM 水着越しに
+					PRINTFORM 隔着泳装
 				ENDIF
-				PRINTFORM 手の平で味わいながら、
+				PRINTFORM 用手掌品味着的同时、
 			ENDIF
-			IF CHECK_SWIM("Ｔバック") && CHECK_SWIM("パンツ") == 0
-				PRINTFORMW 指先%TEXTR("で食い込んだ紐越しにアナルに悪戯した/で細い股布が密着する股間を撫でさすった")%。
-			ELSEIF TALENT:オトコ
-				PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でお尻の穴から会陰にかけてを撫でさすった")%。
-			ELSEIF CHECK_SWIM("スカート") || CHECK_SWIM("パレオ")
-				PRINTFORMW 指先%TEXTR("で股布越しに柔らかなアソコを弄って楽しんだ/で股間に密着した布地とその下の柔らかなアソコを撫でさすった")%。
+			IF CHECK_SWIM("Ｔ字褲") && CHECK_SWIM("胖次") == 0
+				PRINTFORMW 指先%TEXTR("用被勒入的纽带在肛門里悪戯着/抚摸着紧贴纤细布料的股間")%。
+			ELSEIF TALENT:男性
+				PRINTFORMW 用手指%TEXTR("滑入了股間的缝隙/咕哩咕哩地玩弄着股間/从尻穴到会陰来回按摩着")%。
+			ELSEIF CHECK_SWIM("裙") || CHECK_SWIM("荷葉邊")
+				PRINTFORMW 用手指%TEXTR("隔着布料享受着柔软阴部的触感/伸到紧贴股間的布料下抚摸着柔软的阴部")%。
 			ELSE
-				PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でアソコからお尻の穴にかけてを撫でさすった")%。
+				PRINTFORMW 用手指%TEXTR("滑入了股間的缝隙/咕哩咕哩地玩弄着股間/从阴部到尻穴来回按摩着")%。
 			ENDIF
 		ELSE
 			;スカートならばミニのみ
-			IF CHECK_SKIRT("ミニ")
-				PRINTFORM ミニスカートの下に手を忍ばせ、%TEXTS("お尻：感触")%を掌で味わいながら
+			IF CHECK_SKIRT("迷你")
+				PRINTFORM 迷你裙的下面用手抚摸着、一边用手掌品味%TEXTS("お尻：感触")%
 			ELSE
 				PRINTFORM %TEXTS("お尻：感触")%を
-				IF EQUIP:アウター
-					PRINTFORM %OUTER(TARGET, "略")%越しに
-				ELSEIF EQUIP:ボディスーツ
-					PRINTFORM %BODYS(TARGET, "略")%越しに
-				ELSEIF EQUIP:パンツ
-					PRINTFORM %PANTIES(TARGET, "パンツ")%越しに
+				IF EQUIP:外套
+					PRINTFORM 隔着%OUTER(TARGET, "略")%
+				ELSEIF EQUIP:贴身制服
+					PRINTFORM 隔着%BODYS(TARGET, "略")%
+				ELSEIF EQUIP:胖次
+					PRINTFORM 隔着%PANTIES(TARGET, "胖次")%
 				ENDIF
-				PRINTFORM 手の平で味わいながら、
+				PRINTFORM 用手掌品味着的同时、
 			ENDIF
-			IF COND("パンツ形状確認")
-				IF EQUIP:パンツ == 0 || CHECK_PANTIES("Ｖ露出")
-					IF TALENT:オトコ
-						PRINTFORMW 指先%TEXTR("で剥き出しの股間をぐにぐにと弄った/でお尻の穴から会陰にかけてを撫でさすった")%。
+			IF COND("胖次形状確認")
+				IF EQUIP:胖次 == 0 || CHECK_PANTIES("Ｖ露出")
+					IF TALENT:男性
+						PRINTFORMW 用手指%TEXTR("咕哩咕哩地玩弄着裸露的股間/从尻穴到会陰来回按摩着")%。
 					ELSE
-						PRINTFORMW 指先%TEXTR("で剥き出しの股間をぐにぐにと弄った/でアソコからお尻の穴にかけての粘膜を撫でさすった")%。
+						PRINTFORMW 用手指%TEXTR("咕哩咕哩地玩弄着裸露的股間/从阴部到尻穴里的粘膜来回抚摸着")%。
 					ENDIF
-				ELSEIF CHECK_PANTIES("Ｔバック") && CHECK_SKIRT("ミニ")
-					PRINTFORMW 指先%TEXTR("でＴバックの紐越しにアナルに悪戯した/で細い股布が密着する股間を撫でさすった")%。
-				ELSEIF TALENT:オトコ
-					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でお尻の穴から会陰にかけてを撫でさすった")%。
-				ELSEIF CHECK_SKIRT("ミニ")
-					PRINTFORMW 指先%TEXTR("でクロッチ越しに柔らかなアソコを弄って楽しんだ/でパンツとその下の柔らかなアソコを撫でさすった")%。
+				ELSEIF CHECK_PANTIES("Ｔ字褲") && CHECK_SKIRT("迷你")
+					PRINTFORMW 用手指%TEXTR("越过Ｔ字褲的纽带在肛門里悪戯着/抚摸着紧贴纤细布料的股間")%。
+				ELSEIF TALENT:男性
+					PRINTFORMW 用手指%TEXTR("滑入了股間的缝隙/咕哩咕哩地玩弄着股間/从尻穴到会陰来回按摩着")%。
+				ELSEIF CHECK_SKIRT("迷你")
+					PRINTFORMW 用手指%TEXTR("隔着胖次享受着柔软阴部的触感/伸到胖次下抚摸着柔软的阴部")%。
 				ELSE
-					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でアソコからお尻の穴にかけてを撫でさすった")%。
+					PRINTFORMW 用手指%TEXTR("滑入了股間的缝隙/咕哩咕哩地玩弄着股間/从阴部到尻穴来回按摩着")%。
 				ENDIF
 			ELSE
-				IF TALENT:オトコ
-					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った")%。
+				IF TALENT:男性
+					PRINTFORMW 用手指%TEXTR("滑入了股間的缝隙/咕哩咕哩地玩弄着股間")%。
 				ELSE
-					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でアソコからお尻の穴にかけてを撫でさすった")%。
+					PRINTFORMW 用手指%TEXTR("滑入了股間的缝隙/咕哩咕哩地玩弄着股間/从阴部到尻穴来回按摩着")%。
 				ENDIF
-				IF EQUIP:スカート && CHECK_CLO("パンツ視認可能")
-					PRINTFORM 感触から察するに、今日の%CALLNAME:TARGET%は……
-					IF EQUIP:パンツ == 0
-						PRINTFORMW なんと、パンツを穿いていないようです！
-					ELSEIF CHECK_PANTIES("前貼り")
-						PRINTFORMW 前貼りを股間に貼り付けているようだ。
-					ELSEIF CHECK_PANTIES("褌")
-						PRINTFORMW 褌を締めているようだ。
+				IF EQUIP:裙 && CHECK_CLO("胖次視認可能")
+					PRINTFORM 从手感上来说、今天的%CALLNAME:TARGET%……
+					IF EQUIP:胖次 == 0
+						PRINTFORMW 竟然、没有穿胖次！
+					ELSEIF CHECK_PANTIES("前貼")
+						PRINTFORMW 穿的是贴在股間上的C字裤。
+					ELSEIF CHECK_PANTIES("兜襠布")
+						PRINTFORMW 好像系着兜襠布。
 					ELSE
-						PRINTFORMW %DETAIL_PANTIES(TARGET, "感触")%を穿いているようだ。
+						PRINTFORMW 穿的应该是%DETAIL_PANTIES(TARGET, "感触")%。
 					ENDIF
 				ENDIF
 			ENDIF
 		ENDIF
 		CALL KOJO_DATE, CHOICES
 		CLEARLINE 1
-		FLAG:ムード += 15
+		FLAG:情緒 += 15
 
-		TFLAG:お尻を触る = 1
-	CASE "我慢する"
-		PRINTFORMW ここで色々するのは流石に不味いので我慢しました。
+		TFLAG:摸屁股 = 1
+	CASE "忍耐"
+		PRINTFORMW 在这里不适合做这种事、所以忍了下来。
 	CASEELSE
 		CALL KOJO_DATE, CHOICES
 		IF TFLAG:地の文スキップ == 0
 			SELECTCASE CHOICES
-			CASE "映画に集中する"
-				PRINTFORMW %CALLNAME:TARGET%はスクリーンに見入る%CALLNAME:MASTER%の横顔を暫し眺めた後に、居住まいを正して映画に集中し直した……
+			CASE "专心看电影"
+				PRINTFORMW %CALLNAME:TARGET%看了看专心看电影的%CALLNAME:MASTER%的侧脸、将注意力重新集中到了电影上……
 			CASEELSE
-				PRINTFORMW %CALLNAME:TARGET%は思いのほか%CALLNAME:MASTER%とのデートがお気に召したようで、特に何も言わずに体をくっつけて笑顔を向けてきた……
+				PRINTFORMW %CALLNAME:TARGET%出乎意料的很享受和%CALLNAME:MASTER%的约会、什么都没说地把身体靠了过来……
 			ENDSELECT
 		ENDIF
-		FLAG:ムード += 15
+		FLAG:情緒 += 15
 	ENDSELECT
 	CALL BLANKLINE
-CASE "日焼け"
-	SIF TFLAG:水着デート == 0
+CASE "晒痕"
+	SIF TFLAG:泳装约会 == 0
 		RETURN 0
 
 	CALL BLANK_DRAWLINE
-	PRINTFORMW 水着姿でデートした%CALLNAME:MASTER%\@ COND("日焼け対策") ? # 達 \@は、すっかり日焼けしてしまった。
+	PRINTFORMW 泳装姿で约会した%CALLNAME:MASTER%\@ COND("晒痕対策") ? # 達 \@は、すっかり晒痕してしまった。
 
-	IF COND("日焼け対策") == 0
-		CFLAG:日焼け強度 = CALCF("日焼け強度")
-		CSTR:日焼け = %SWIM(CSTR:今年の水着, "種類")%
+	IF COND("晒痕対策") == 0
+		CFLAG:晒痕強度 = CALCF("晒痕強度")
+		CSTR:晒痕 = %SWIM(CSTR:今年の泳装, "種類")%
 	ENDIF
 
-	CFLAG:MASTER:日焼け強度 = CALCF("日焼け強度")
-	IF TALENT:MASTER:オトコ
-		CSTR:MASTER:日焼け = 海パン
-	ELSEIF TALENT:MASTER:ふたなり
-		CSTR:MASTER:日焼け = ワンピース水着
+	CFLAG:MASTER:晒痕強度 = CALCF("晒痕強度")
+	IF TALENT:MASTER:男性
+		CSTR:MASTER:晒痕 = 海胖次
+	ELSEIF TALENT:MASTER:扶她
+		CSTR:MASTER:晒痕 = 連体泳装
 	ELSE
-		CSTR:MASTER:日焼け = ビキニ
+		CSTR:MASTER:晒痕 = 比基尼
 	ENDIF
 CASE "文化祭"
 	CALL BLANK_DRAWLINE
 
 	SELECTCASE TFLAG:イベント回数
 	CASE 0
-		PRINTFORMW さてとそれでは……記念すべき一発目はどこへ行こうか？
+		PRINTFORMW 那样的话……值得記念的首次要去哪里呢？
 	CASE 1
-		PRINTFORMW ……次はどの出し物を見に行こうか？
+		PRINTFORMW ……接下来要去看哪项呢？
 	CASE 2
-		PRINTFORMW ……道行く人々の数がだいぶ減ってきた。最後はどこへ行こうか？
+		PRINTFORMW ……道路上的人数已经渐行渐少了。最後要去哪里呢？
 	ENDSELECT
 
 	STR:選択肢 = %SHOP_BUNKASAI()%
@@ -848,11 +848,11 @@ CASE "文化祭"
 	CALL PRINT_SELECT, STR:選択肢
 	CHOICES = %LOCALS:RESULT%
 
-	PRINTFORM %CALLNAME:MASTER%と%CALLNAME:TARGET%は%CHOICES%を見に行くことにした
+	PRINTFORM %CALLNAME:MASTER%和%CALLNAME:TARGET%去前往参观了%CHOICES%
 	;人いるかチェック
 	ACTOR = FIND_COND(CHOICES)
 	IF ACTOR
-		PRINTFORMW ……%CALLNAME:ACTOR%発見！
+		PRINTFORMW ……発見了%CALLNAME:ACTOR%！
 
 		;パートナーをリセット＆設定
 		CALL RESET_SET_PARTNER, ACTOR
@@ -869,7 +869,7 @@ CASE "文化祭"
 		;パートナーを再セット
 		CALL SET_PARTNER
 	ELSE
-		PRINTFORMW ……どんなもんだろう？
+		PRINTFORMW ……会是怎样的呢？
 	ENDIF
 
 	;この場所を巡ったフラグを立てる
@@ -877,8 +877,8 @@ CASE "文化祭"
 	TFLAG:イベント回数 += 1
 ENDSELECT
 
-IF FLAG:ムード > MEMO_MOOD
-	CALL TEXT, "ムード変化＆ハート個数表示", FLAG:ムード - MEMO_MOOD
+IF FLAG:情緒 > MEMO_MOOD
+	CALL TEXT, "情緒変化＆爱心個数表示", FLAG:情緒 - MEMO_MOOD
 	WAIT
 ENDIF
 
@@ -888,33 +888,33 @@ ENDIF
 ;-------------------------------------------------
 @EVENT_SHOP_SWIM
 
-STR:選んだ水着 = 
+STR:選んだ泳装 = 
 STR:試着履歴 = /
 
 CALL BLANK_DRAWLINE
-PRINTFORMW そろそろ本日のメインイベント、%CALLNAME:TARGET%の水着選びを始めます。
+PRINTFORMW 差不多是今天最重要的事、%CALLNAME:TARGET%的泳装挑选開始了。
 CALL BLANKLINE
-CALL KOJO_DATE, "水着選び開始"
-IF CSTR:今年の水着 != ""
-	PRINTFORM 現在%CALLNAME:TARGET%が持っている物は%SWIM(CSTR:今年の水着)%ですが、
+CALL KOJO_DATE, "泳装選び開始"
+IF CSTR:今年の泳装 != ""
+	PRINTFORM 現在%CALLNAME:TARGET%拥有的是%SWIM(CSTR:今年の泳装)%、
 ELSE
-	PRINTFORM 二人で店内を物色して候補は以下の物に絞られましたが……
+	PRINTFORM 两人在店内挑了许久后、有了以下几个候选方案……
 ENDIF
-PRINTW どれにしますか？
+PRINTW 选哪个好呢？
 ;外見特徴を羅列
-PRINTFORM ちなみに%CALLNAME:TARGET%は
+PRINTFORM 顺便一提%CALLNAME:TARGET%是
 CALL PRINT_LIST, SWIM_APP(TARGET), "拡大表示"
-PRINTFORMW です。
+PRINTFORMW 。
 
 ;水着を選ぶ
 CALL EVENT_SHOP_SWIM_MAIN
 CALL BLANKLINE
-CALL KOJO_DATE, "水着決定"
+CALL KOJO_DATE, "泳装決定"
 CLEARLINE 1
 
-CSTR:今年の水着 = %STR:選んだ水着%
-CFLAG:水着選び = FLAG:年
-FLAG:ムード += 30
+CSTR:今年の泳装 = %STR:選んだ泳装%
+CFLAG:泳装選び = FLAG:年
+FLAG:情緒 += 30
 
 
 @EVENT_SHOP_SWIM_MAIN
@@ -937,18 +937,18 @@ VARSET CHOICES_SWIM
 
 MEMO_LINECOUNT = LINECOUNT
 SIF STR:試着履歴 != "/"
-	PRINTL 次はどれを試してみますか？
+	PRINTL 接下来要试哪个？
 
-SIF TALENT:オトコ
-	EVENT_TABLE_SWIM += "メンズビキニ/サーフパンツ/"
+SIF TALENT:男性
+	EVENT_TABLE_SWIM += "男式比基尼/衝浪胖次/"
 
-IF TALENT:オトコ == 0 || COND("男の娘")
-	EVENT_TABLE_SWIM += "ビキニ/ワンピース水着/競泳水着/"
-	SELECTCASE COND("Ｈな水着選択可能")
+IF TALENT:男性 == 0 || COND("伪娘")
+	EVENT_TABLE_SWIM += "比基尼/連体泳装/競泳泳装/"
+	SELECTCASE COND("Ｈ的泳装選択可能")
 	CASE 1
-		EVENT_TABLE_SWIM += "マイクロビキニ/ハイレグワンピ/"
+		EVENT_TABLE_SWIM += "Micro比基尼/高開衩連衣裙/"
 	CASE IS >= 2
-		EVENT_TABLE_SWIM += "マイクロビキニ/ハイレグワンピ/ティアドロップ/スリングショット/"
+		EVENT_TABLE_SWIM += "Micro比基尼/高開衩連衣裙/淚珠泳衣/彈弓泳衣/"
 	ENDSELECT
 ENDIF
 
@@ -959,25 +959,25 @@ CALL PRINT_SELECT, EVENT_TABLE_SWIM
 CHOICES_SWIM = %LOCALS:RESULT%
 
 ;水着ごとの属性追加
-STR:選んだ水着 = %PALAM_SWIM(CHOICES_SWIM, "色以外")%
+STR:選んだ泳装 = %PALAM_SWIM(CHOICES_SWIM, "色以外")%
 
 VARSET CHOICES_BOTTOM
 $SELECT_BOTTOM
 
-SELECTCASE SWIM(STR:選んだ水着, "種類")
+SELECTCASE SWIM(STR:選んだ泳装, "種類")
 ;競泳水着や男物には合わせなくていいだろう
-CASE "メンズビキニ", "サーフパンツ", "競泳水着"
+CASE "男式比基尼", "衝浪胖次", "競泳泳装"
 
 CASEELSE
 	IF CHOICES_BOTTOM != ""
-		PRINTFORML どれを%CHOICES_SWIM%に合わせますか？
+		PRINTFORML 选哪个来搭配%CHOICES_SWIM%？
 	ELSE
-		PRINTL どれかを合わせますか？
+		PRINTL 选哪个来搭配？
 	ENDIF
-	IF STRCOUNT(STR:選んだ水着, "ワンピース")
-		EVENT_TABLE_BOTTOM = パレオ/ミニスカート/合わせない
+	IF STRCOUNT(STR:選んだ泳装, "連衣裙")
+		EVENT_TABLE_BOTTOM = 荷葉邊/迷你裙/不搭配
 	ELSE
-		EVENT_TABLE_BOTTOM = パレオ/ショートパンツ/ミニスカート/合わせない
+		EVENT_TABLE_BOTTOM = 荷葉邊/短褲/迷你裙/不搭配
 	ENDIF
 
 	;ボトムオプションの選択
@@ -988,54 +988,54 @@ CASEELSE
 ENDSELECT
 
 SELECTCASE CHOICES_BOTTOM
-CASE "", "合わせない"
+CASE "", "不搭配"
 	SWIM_SELECTED = %CHOICES_SWIM%
 CASEELSE
 	SWIM_SELECTED = %CHOICES_SWIM%＆%CHOICES_BOTTOM%
 ENDSELECT
 
 ;ボトムごとの属性追加
-STR:選んだ水着 = %PALAM_SWIM(SWIM_SELECTED, "色以外")%
+STR:選んだ泳装 = %PALAM_SWIM(SWIM_SELECTED, "色以外")%
 
 ;色の決定
-IF CSTR:好きな色 != "" && RAND:5
-	STR:選んだ水着 = %PALAM_SWIM(SWIM_SELECTED, CSTR:好きな色)%
+IF CSTR:喜欢的颜色 != "" && RAND:5
+	STR:選んだ泳装 = %PALAM_SWIM(SWIM_SELECTED, CSTR:喜欢的颜色)%
 ELSE
-	STR:選んだ水着 = %PALAM_SWIM(SWIM_SELECTED, SET_CLOCOLOR("ランダムカラー") )%
+	STR:選んだ泳装 = %PALAM_SWIM(SWIM_SELECTED, SET_CLOCOLOR("隨機顏色") )%
 ENDIF
 
-CALL SET_COORDINATE, "今年の水着"
-IF EQUIP:ボディスーツ
-	CALL PRINT_CUTIN, "アウター", TARGET
-ELSEIF EQUIP:パンツ
-	CALL PRINT_CUTIN, "パンツ前後", TARGET
+CALL SET_COORDINATE, "今年の泳装"
+IF EQUIP:贴身制服
+	CALL PRINT_CUTIN, "外套", TARGET
+ELSEIF EQUIP:胖次
+	CALL PRINT_CUTIN, "胖次前後", TARGET
 ENDIF
 
 ;試着済み？
 IF STRCOUNT(STR:試着履歴, @"\/%SWIM_SELECTED%\/")
-	PRINTFORMW %SWIM_SELECTED%に決めますか？
+	PRINTFORMW 决定好是%SWIM_SELECTED%了吗？
 
-	EVENT_TABLE_ACT = はい/別の水着を試してもらう
+	EVENT_TABLE_ACT = 是/试试别的泳装
 ELSE
 	;合わせるものを変えただけの場合
 	IF CHANGE_BOTTOM
 		SELECTCASE CHOICES_BOTTOM
-		CASE "", "合わせない"
-			CALL PRINT_STRW, @"今度は%COMMENT_SWIM(STR:選んだ水着)%_黄色_%CHOICES_SWIM%_だけの格好になってもらった。"
+		CASE "", "不搭配"
+			CALL PRINT_STRW, @"这次只穿上了%COMMENT_SWIM(STR:選んだ泳装)%_黄色_%CHOICES_SWIM%_。"
 		CASEELSE
-			CALL PRINT_STRW, @"%COMMENT_SWIM(STR:選んだ水着)%_黄色_%CHOICES_SWIM%と%CHOICES_BOTTOM%を組み合わせた格好_になってもらった。"
+			CALL PRINT_STRW, @"选择了%COMMENT_SWIM(STR:選んだ泳装)%_黄色_%CHOICES_SWIM%和%CHOICES_BOTTOM%组合的样子_。"
 		ENDSELECT
 	ELSE
-		CALL PRINT_STRW, @"%COMMENT_SWIM(STR:選んだ水着)%_黄色_%SWIM_SELECTED%_姿になってもらった。"
+		CALL PRINT_STRW, @"变成了%COMMENT_SWIM(STR:選んだ泳装)%_黄色_%SWIM_SELECTED%_姿态。"
 	ENDIF
 
 	STR:試着履歴 += @"%SWIM_SELECTED%\/"
 
-	SELECTCASE SWIM(STR:選んだ水着, "種類")
-	CASE "メンズビキニ", "サーフパンツ", "競泳水着"
-		EVENT_TABLE_ACT = これに決める/別の水着を試してもらう
+	SELECTCASE SWIM(STR:選んだ泳装, "種類")
+	CASE "男式比基尼", "衝浪胖次", "競泳泳装"
+		EVENT_TABLE_ACT = 决定好就是这个了/试试别的泳装
 	CASEELSE
-		EVENT_TABLE_ACT = これに決める/合わせるものを変える/別の水着を試してもらう
+		EVENT_TABLE_ACT = 决定好就是这个了/试试搭配别的东西/试试别的泳装
 	ENDSELECT
 ENDIF
 
@@ -1046,16 +1046,16 @@ CALL PRINT_SELECT, EVENT_TABLE_ACT
 CHOICES_ACT = %LOCALS:RESULT%
 
 SELECTCASE CHOICES_ACT
-CASE "はい", "これに決める"
+CASE "是", "决定好就是这个了"
 
-CASE "合わせるものを変える"
+CASE "试试搭配别的东西"
 	CHANGE_BOTTOM = 1
 	GOTO SELECT_BOTTOM
-CASE "別の水着を試してもらう"
-	PRINTFORMW もう少し水着選びを楽しむとします。
+CASE "试试别的泳装"
+	PRINTFORMW 再试试别的泳装吧。
 	CALL BLANKLINE
 	;CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	RESTART
 ENDSELECT
 
-CALL PRINT_STRW, @"%CALLNAME:MASTER%と%CALLNAME:TARGET%は試着と話し合いの末、_黄色_%SWIM(STR:選んだ水着)%_を今年の水着として選んだ。"
+CALL PRINT_STRW, @"作为%CALLNAME:MASTER%和%CALLNAME:TARGET%试着商量的结果、选择了_黄色_%SWIM(STR:選んだ泳装)%_作为今年的泳装。"

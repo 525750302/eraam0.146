@@ -64,7 +64,7 @@ ELSEIF SAVESTR:PREV_直前行動 != ""
 	PRINTL 
 ENDIF
 
-IF CONFIG("オートちょっかいＯＮ") || (CONFIG("顔グラＯＮ") && CONFIG("顔グラアニメＯＮ") )
+IF CONFIG("自动调戏ＯＮ") || (CONFIG("颜绘ＯＮ") && CONFIG("颜绘动画ＯＮ") )
 	IF FLAG:自動進行停止 == 0
 		PRINTFORML %SHOW_ACT%%BL(NUM("折り返し文字数") - STRLENS(SHOW_ACT) - 23)%[111]pause
 	ELSE
@@ -100,23 +100,23 @@ MEMO_CFLAG31 = CFLAG:睡眠
 CFLAG:睡眠 = 0
 
 MEMO_LINECOUNT2 = LINECOUNT
-TFLAG:顔グラ表示中 = 0
+TFLAG:颜绘表示中 = 0
 
 ;改行がデフォで付くかどうかなど
 SELECTCASE ARGS
-CASE "挨拶返し"
+CASE "打招呼返し"
 	TFLAG:交流中 = 1
 CASE "既に入室"
-	SIF COND("コート脱衣発生")
+	SIF COND("外套脱衣発生")
 		CALL RESET_OTHER, "外套", TARGET
 	TFLAG:交流中 = 1
 	SIF TFLAG:地の文スキップ == 0
 		PRINTL 
-CASE "一番乗り", "既に入室", "入室挨拶", "簡易入室挨拶"
+CASE "一番乗り", "既に入室", "入室打招呼", "簡易入室打招呼"
 	TFLAG:交流中 = 1
 	SIF TFLAG:地の文スキップ == 0
 		PRINTL 
-CASE "全裸化への反応", "他の人がＨ開始", "抜け出された", "朝駆け"
+CASE "全裸化への反応", "他の人がＨ開始", "抜け出された", "朝袭"
 
 CASEELSE
 	SIF TFLAG:地の文スキップ == 0
@@ -124,11 +124,11 @@ CASEELSE
 ENDSELECT
 
 SELECTCASE ARGS
-CASE "朝駆け"
+CASE "朝袭"
 CASE "朝拘束"
-	CALL EMOTION_PLUS, "ムラムラ", TARGET
-CASE "挨拶する"
-	CALL EMOTION_PLUS, "甘い言葉", TARGET
+	CALL EMOTION_PLUS, "躁动难忍", TARGET
+CASE "打招呼"
+	CALL EMOTION_PLUS, "甜言蜜语", TARGET
 CASEELSE
 	CALL PRINT_MAIDFACE, TARGET
 ENDSELECT
@@ -137,12 +137,12 @@ MEMO_LINECOUNT = LINECOUNT
 TRYCALLFORM KOJO_GREETING_K{NO:TARGET}, ARGS
 
 SELECTCASE ARGS
-CASE "挨拶する"
-	CALL SETFLAG_DAILY, "挨拶", TARGET
-CASE "挨拶返し", "全裸化への反応", "他の人がＨ開始"
+CASE "打招呼"
+	CALL SETFLAG_DAILY, "打招呼", TARGET
+CASE "打招呼返し", "全裸化への反応", "他の人がＨ開始"
 
 CASEELSE
-	CFLAG:挨拶した = 1
+	CFLAG:打招呼した = 1
 ENDSELECT
 SIF LINECOUNT == MEMO_LINECOUNT
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT2
@@ -153,10 +153,10 @@ SIF LINECOUNT == MEMO_LINECOUNT
 SELECTCASE ARGS
 CASE "既に入室"
 	CALL TEXT, "出会いざまの格好所感", TARGET
-CASE "一番乗り", "入室挨拶", "簡易入室挨拶"
-	IF COND("コート脱衣発生")
-		SIF OTHER(CSTR:アクセサリ, "外套") != ""
-			PRINTFORMW %CALLNAME:TARGET%は%OTHER(CSTR:アクセサリ, "外套")%を脱いでコートハンガーにかけた。
+CASE "一番乗り", "入室打招呼", "簡易入室打招呼"
+	IF COND("外套脱衣発生")
+		SIF OTHER(CSTR:飾品, "外套") != ""
+			PRINTFORMW %CALLNAME:TARGET%は%OTHER(CSTR:飾品, "外套")%を脱いで外套ハンガーにかけた。
 		CALL RESET_OTHER, "外套", TARGET
 	ENDIF
 	CALL TEXT, "出会いざまの格好所感", TARGET
@@ -200,39 +200,39 @@ SIF STRCOUNT(ARGS, "地の文前")
 MEMO_LINECOUNT2 = LINECOUNT
 
 MEMO_BLANKLINE = TFLAG:BLANKLINE
-SIF ARGS:1 != "改行無し"
+SIF ARGS:1 != "改行没有"
 	CALL BLANKLINE
 
-TFLAG:顔グラ表示中 = 0
+TFLAG:颜绘表示中 = 0
 
 SELECTCASE STR:日常イベント名
-CASE "トーク"
+CASE "Talk"
 	IF FLAG:対複数
 		TFLAG:交流中 = 1
 		CALL PRINT_MAIDFACE, TARGET
 	ENDIF
-CASE "パンツ見せ"
+CASE "展示内褲"
 	;複数の場合にはパンツを表示
 	IF FLAG:対複数
 		CALL PRINT_NAME_PANTU
-		CALL PRINT_CUTIN, "パンツ", TARGET
+		CALL PRINT_CUTIN, "胖次", TARGET
 	ENDIF
 CASE "Ｈ目的で呼び出された"
 	CUSTOMDRAWLINE ━
-	IF COND("顔グラ表示中")
+	IF COND("颜绘表示中")
 		CALL PRINT_MAIDFACE, TARGET
 	ELSE
 		CALL PRINT_NAME
 	ENDIF
 CASEELSE
 	SELECTCASE ARGS
-	CASE "性処理：前", "休憩", "特殊イベント", "おやつを用意した", "放課後Ｈのお誘い"
+	CASE "性処理：前", "休憩", "特殊事件", "点心を用意した", "放課後Ｈ的邀请"
 		CALL PRINT_MAIDFACE, TARGET
 	CASE "連れ見抜き"
-		CALL EMOTION_PLUS, "恥じらい", TARGET
+		CALL EMOTION_PLUS, "害羞", TARGET
 	CASE "連れ見抜きに誘われた"
 		CALL PRINT_MAIDFACE, TARGET
-	CASE "特殊イベント"
+	CASE "特殊事件"
 		CALL BLANK_DRAWLINE
 	CASE "お昼ご飯のお誘い"
 		CUSTOMDRAWLINE ━
@@ -275,7 +275,7 @@ IF LINECOUNT == MEMO_LINECOUNT
 	TFLAG:BLANKLINE = MEMO_BLANKLINE
 	;SIF STRCOUNTS(ARGS, "地の文前", "特殊イベント") == 0
 	;	CALL BLANKLINE
-ELSEIF ARGS:1 != "改行無し"
+ELSEIF ARGS:1 != "改行没有"
 	CALL BLANKLINE
 ENDIF
 
@@ -308,24 +308,24 @@ IF DEVENT("初回台詞") == 0 && COND("朝") == 0
 ENDIF
 
 ;その他
-IF COND("汗だく")
-	STR:イベント名 = 汗だく
+IF COND("浑身是汗")
+	STR:イベント名 = 浑身是汗
 	RETURN 1
-ELSEIF CFLAG:寝起き
-	STR:イベント名 = 寝起き
+ELSEIF CFLAG:刚睡醒
+	STR:イベント名 = 刚睡醒
 	RETURN 1
-ELSEIF CFLAG:ちょっかい数 == 0
-	SIF CFLAG:コスプレ中
-		STR:イベント名 = コスプレ中
+ELSEIF CFLAG:调戏数 == 0
+	SIF CFLAG:Cosplay中
+		STR:イベント名 = Cosplay中
 ENDIF
 SIF STR:イベント名 != ""
 	RETURN 1
 
-IF COND("おやつあり") && DEVENT("おやつの感想") == 0 && (COND("手作りおやつ") || RANDC(5) == 0)
-	STR:イベント名 = おやつの感想
-	CALL SET_DEVENT, "おやつの感想"
-	SIF COND("手作りおやつ")
-		CALL SET_DEVENT, @"%TEXTS("おやつ当番")%の手作り"
+IF COND("点心あり") && DEVENT("点心の感想") == 0 && (COND("亲手自制点心") || RANDC(5) == 0)
+	STR:イベント名 = 点心の感想
+	CALL SET_DEVENT, "点心の感想"
+	SIF COND("亲手自制点心")
+		CALL SET_DEVENT, @"%TEXTS("点心当番")%の亲手自制"
 ENDIF
 
 RETURN 1
@@ -362,7 +362,7 @@ TRYCALLFORM KOJO_WISH_K{NO:TARGET}, ARGS
 
 ;何かしゃべったら１行開ける
 IF LINECOUNT > MEMO_LINECOUNT
-	SIF ARGS:1 != "改行無し"
+	SIF ARGS:1 != "改行没有"
 		PRINTL 
 	;喋った口上のフラグを記録
 	CALL SET_DEVENT, ARGS

@@ -10,13 +10,13 @@ PRINTL 剃毛
 CALL SHOW_COM_ORDER_COM, 145
 
 ;実行できない
-SIF TCVAR:やる気 == 0
+SIF TCVAR:干劲 == 0
 	RETURN 0
 ;-------------------------------------------------
 ;実行決定
 ;-------------------------------------------------
 SIF TEQUIP:拘束
-	TCVAR:やる気 = MAX(TCVAR:やる気 - 30, 0)
+	TCVAR:干劲 = MAX(TCVAR:干劲 - 30, 0)
 
 CALL TRAIN_MESSAGE_B
 
@@ -33,7 +33,7 @@ ENDSELECT
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:前回コマンド = 剃毛
+STR:前回指令 = 剃毛
 
 RETURN 1
 
@@ -43,7 +43,7 @@ CALL SETFLAG, "剃毛フラグ", TARGET
 ;対象のＶ⇔調教者の指の汚れが移動
 CALL EQ_STAIN, TARGET, "Ｖ", PLAYER, "手"
 ;アソコを露出させる
-CALL SETFLAG, "ボトムを露出：テキスト無し", TARGET
+CALL SETFLAG, "ボトムを露出：テ接吻ト没有", TARGET
 ;日付を5にする。上手だと日付が0になります。ツルツルに剃った場合も。
 SIF ABL:PLAYER:技巧 < 4 && COND("陰毛") > 3
 	BASE:陰毛 += 5
@@ -60,7 +60,7 @@ SOURCE:0:屈従 = 1000
 SOURCE:0:逸脱 = 1000
 
 ;縛って無理やり剃ると…
-SIF TEQUIP:拘束 && TCVAR:やる気 <= 0
+SIF TEQUIP:拘束 && TCVAR:干劲 <= 0
 	SOURCE:0:逸脱 += 3000
 
 SELECTCASE COND("陰毛")
@@ -75,7 +75,7 @@ CASE 2
 ENDSELECT
 
 ;ABL:露出癖とマゾっ気をみる
-SELECTCASE (ABL:露出癖 + 1)/2 + ABL:マゾっ気
+SELECTCASE (ABL:露出癖 + 1)/2 + ABL:受虐属性
 CASE IS >= 9
 	SOURCE:0:充足 += 5000
 	TIMES SOURCE:0:屈従, 0.30
@@ -94,12 +94,12 @@ CASEELSE
 ENDSELECT
 
 ;ビデオ撮影、室内露出、野外プレイは経験等にプラス
-IF TEQUIP:ビデオカメラ
+IF TEQUIP:攝像機
 	TIMES SOURCE:0:露出, 1.50
 	TIMES SOURCE:0:屈従, 1.50
 	TIMES SOURCE:0:逸脱, 1.50
 ENDIF
-IF TEQUIP:室内露出プレイ || TEQUIP:野外プレイ
+IF TEQUIP:室内露出PLAY || TEQUIP:野外PLAY
 	TIMES SOURCE:0:露出, 1.50
 	TIMES SOURCE:0:屈従, 1.50
 	TIMES SOURCE:0:逸脱, 1.50
@@ -113,40 +113,40 @@ CALL CALC, "調教ソース", ARG
 #DIMS NAME_BUSH
 
 SELECTCASE CONDS("陰毛")
-CASE "生え放題"
-	NAME_BUSH = %TEXTR("全く手入れのされていない/陰唇を覆い隠して生え広がる/モサモサの")%陰毛
+CASE "随意生長"
+	NAME_BUSH = %TEXTR("完全沒有做過任何修剪的/將整個陰唇都覆蓋遮掩住的/經常被液體浸泡而殘留了異味的")%陰毛
 CASE "剃り跡"
-	NAME_BUSH = ジョリジョリした陰毛
-CASE "生えかけ"
-	NAME_BUSH = 淡い茂み
+	NAME_BUSH = 留有剃痕的陰毛
+CASE "还没長出来"
+	NAME_BUSH = 稍稍茂密的
 CASEELSE
 	IF PENIS(TARGET)
 		NAME_BUSH = 陰毛
 	ELSE
-		NAME_BUSH = アソコの毛
+		NAME_BUSH = 陰部毛髮
 	ENDIF
 ENDSELECT
 IF PREVCOM == 13
-	PRINTFORM %CALLNAME:PLAYER%に向けて大事な所を押し開いて\@ CHECK("陰毛管理") ? 待ち構え # 見せ \@ている
+	PRINTFORM %CALLNAME:PLAYER%將面前重要的秘處慢慢展開、將\@ CHECK("陰毛管理") ? 等待處理的 # 被清楚暴露著的 \@
 ;緊縛中
 ELSEIF GETBIT(TEQUIP:拘束, 21)
-	PRINTFORM 大きく股を開いた格好で
+	PRINTFORM 將保持著大張著股間的姿勢
 	IF BIND("縄", TEQUIP:拘束)
-		PRINT 縛られている
+		PRINT 被粗繩捆綁著的
 	ELSE
-		PRINT 拘束されている
+		PRINT 被束具拘束住的
 	ENDIF
 ELSEIF CHECK("陰毛管理") && COND("脚が無い") == 0
-	PRINTFORM 股を広げて準備している
+	PRINTFORM 將乖順的大張著股間準備好的
 ENDIF
-PRINTFORMW %CALLNAME:TARGET%の股間の毛を剃ります。
-PRINTFORML さて、現在の状態は[%CONDS("陰毛")%]ですが……今回はどうしよう？
+PRINTFORMW %CALLNAME:TARGET%的股間的毛髮修剪一下吧。
+PRINTFORML 所以、現在的狀態是[%CONDS("陰毛")%]……現在、該怎麼做？
 
-PRINTL  [ 0] ツルツルに剃る
-PRINTL  [ 1] 脱毛処理を施す
+PRINTL  [ 0] 整個的剔個精光吧！
+PRINTL  [ 1] 乾脆做一次脫毛處理吧！
 SIF COND("陰毛") >= 6
-	PRINTL  [ 2] 陰毛の形を整える
-PRINTL [100] 戻る
+	PRINTL  [ 2] 將陰毛的形態修整一下就好了吧。
+PRINTL [100] 不、再考慮一下吧。
 
 $INPUT_LOOP
 INPUT
@@ -154,100 +154,100 @@ INPUT
 TFLAG:地の文分岐 = RESULT + 1
 
 IF RESULT == 100
-	TFLAG:コマンドキャンセル = 1
+	TFLAG:指令中止 = 1
 	RETURN 0
 ELSEIF RESULT == 0 || RESULT == 1
 	IF PENIS(TARGET)
-		PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%の%NAME_BUSH%を
+		PRINTFORM %CALLNAME:PLAYER%將%CALLNAME:TARGET%的%NAME_BUSH%
 		IF TFLAG:地の文分岐 == 2
-			PRINTFORMW \@ABL:PLAYER:技巧 >= 4 ? 念入りに #  \@脱毛した…
+			PRINTFORMW \@ABL:PLAYER:技巧 >= 4 ? 仔細地 #  \@脫去毛髮……
 		ELSE
-			PRINTFORMW \@ABL:PLAYER:技巧 >= 4 ? 綺麗に # \@剃り落とした…
+			PRINTFORMW \@ABL:PLAYER:技巧 >= 4 ? 漂亮地 #  \@剃除了陰毛……
 		ENDIF
 	ELSE
-		PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%の%NAME_BUSH%を
+		PRINTFORM %CALLNAME:PLAYER%將%CALLNAME:TARGET%的%NAME_BUSH%
 		IF TFLAG:地の文分岐 == 2
-			PRINTFORM \@ABL:PLAYER:技巧 >= 4 ? 念入りに #  \@脱毛し、
+			PRINTFORM \@ABL:PLAYER:技巧 >= 4 ? 仔細地 #  \@脫去毛髮、
 		ELSE
-			PRINTFORM \@ABL:PLAYER:技巧 >= 4 ? 綺麗に # 丁寧に \@剃り落とし、
+			PRINTFORM \@ABL:PLAYER:技巧 >= 4 ? 漂亮地 # 精心地 \@剃除了陰毛、
 		ENDIF
-		IF TALENT:クリピアス + TALENT:ラビアピアス && COND("陰毛") >= 6 && RAND:3 == 0
-			IF TALENT:恥じらい && RAND:3 == 0
-				PRINT 恥ずかしい
+		IF TALENT:陰蒂環 + TALENT:陰唇環 && COND("陰毛") >= 6 && RAND:3 == 0
+			IF TALENT:害羞 && RAND:3 == 0
+				PRINT 令人害羞的
 			ELSEIF RAND:3 == 0
-				IF TALENT:クリピアス && RANDIF(1, TALENT:ラビアピアス)
+				IF TALENT:陰蒂環 && RANDIF(1, TALENT:陰唇環)
 					IF PENIS(TARGET)
-						PRINT 陰茎を装飾している
+						PRINT 将怒挺的陰莖装飾著的
 					ELSE
-						PRINT クリトリスを貫いている
+						PRINT 將勃起的陰蒂穿透而過的
 					ENDIF
 				ELSE
-					PRINT 陰唇を
+					PRINT 將饱满的陰唇
 					IF AGE(TARGET) >= 4
-						PRINT 垂れ下げている
+						PRINT 向下拉扯著暴露出內部的
 					ELSE
-						PRINT 飾っている
+						PRINT 装飾著的
 					ENDIF
 				ENDIF
 			ELSEIF RAND:2
-				PRINT 普通ではありえない場所につけられた
+				PRINT 安装在通常來說不可能的地方的
 			ELSE
-				PRINT 淫靡な
+				PRINT 閃爍淫靡光澤的
 			ENDIF
-			PRINTFORMW ピアスがよく見えるようにした…
-		ELSEIF TALENT:恥じらい && COND("陰毛") >= 6 && COND("脚が無い") == 0 && RAND:3 == 0
-			PRINTFORMW 脚をちょっと開いただけで恥ずかしい部分が丸見えになってしまう状態にした…
+			PRINTFORMW 金属穿环被清楚地观赏着……
+		ELSEIF TALENT:害羞 && COND("陰毛") >= 6 && COND("脚が無い") == 0 && RAND:3 == 0
+			PRINTFORMW 只是稍稍地張開雙腿、令人害羞的部分就會一目了然地暴露出來……
 		ELSEIF RAND:2 || COND("陰毛") < 6
 			IF RAND:2
 				IF AGE(TARGET) <= 2
-					PRINT 剥き卵のように
+					PRINT 現在、她的股間就像是剝殼雞蛋一樣
 				ELSE
-					PRINT 子供のように
+					PRINT 現在、她的股間就像是初生幼童一様
 				ENDIF
-				PRINTFORMW ツルツルにした…
+				PRINTFORMW 光滑了……
 			ELSE
-				IF TALENT:小柄
-					PRINT 小さな身体によく似合う
+				IF TALENT:娇小
+					PRINT 現在、她的股間是與嬌小身體十分相稱的
 				ELSEIF AGE(TARGET) >= 4
-					PRINT 成熟した性器とのアンバランスさが興奮する
+					PRINT 現在、她的股間是與成熟性器呈現出反差感、更加令人興奮的
 				ELSE
-					PRINT 美しい曲線を観賞しやすい
+					PRINT 現在、她的股間是能更好地展現出女體優美曲線的
 				ENDIF
-				PRINTFORMW ツルツルの状態にした…
+				PRINTFORMW 光溜溜的樣子……
 			ENDIF
 		ELSE
 			IF AGE(TARGET) >= 4
 				IF EXP:Ｖ経験 >= 1000
-					PRINT 陰唇のはみ出る
+					PRINT 外部因長期的使用而變得肥美的陰唇与
 				ELSEIF EXP:Ｖ経験 >= 300
-					PRINT 僅かに陰唇のはみ出る
+					PRINT 外部稍稍突出的美麗陰唇以及
 				ELSE
-					PRINT ふっくらとした
+					PRINT 柔軟而具有彈性的
 				ENDIF
-			ELSEIF TALENT:小柄 && RAND:3
-				PRINT ぷにぷにの
+			ELSEIF TALENT:娇小 && RAND:3
+				PRINT 隨著呼吸而微微顫抖著的
 			ELSE
-				PRINT 可愛い
+				PRINT 可愛的
 			ENDIF
-			PRINTFORMW 割れ目がよく見えるようにした…
+			PRINTFORMW 秘裂被格外清楚的觀賞著……
 		ENDIF
-		IF TALENT:力持ち && AGE(TARGET) >= 2 && COND("脚が無い") == 0
-			PRINTFORM 同時に視界に入ってくる
+		IF TALENT:大力士 && AGE(TARGET) >= 2 && COND("脚が無い") == 0
+			PRINTFORM 同時進入視野的、是
 			IF RAND:2
-				PRINTFORM 引き締まった
+				PRINTFORM 緊繃而富含彈性的
 			ELSE
-				PRINTFORM しなやかな
+				PRINTFORM 隨著呼吸而微微顫抖著柔軟肉體的
 			ENDIF
 			IF RAND:2
-				PRINTFORM 下腹部
+				PRINTFORM 小腹
 			ELSE
-				PRINTFORM フトモモ
+				PRINTFORM 大腿
 			ENDIF
-			PRINTFORM との相乗効果か、
+			PRINTFORM 兩者形成了美麗的相乘效應、
 			IF RAND:2
-				PRINTFORMW なんとも素晴らしい眺めです
+				PRINTFORMW 在凝視著極美的風景時、不禁讓人深陷其中、無法拔出目光……
 			ELSE
-				PRINTFORMW つい触りたくなってしまうような魅力に溢れています
+				PRINTFORMW 讓人會在不知不覺之時、魯莽地去觸摸的誘人魅力、外溢而出……
 			ENDIF
 		ENDIF
 	ENDIF
@@ -257,7 +257,7 @@ ELSEIF RESULT == 2 && COND("陰毛") >= 6
 	CALL DEL_CEVENT_GROUP, "陰毛の名称"
 
 	IF PENIS(TARGET)
-		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%の%NAME_BUSH%の形を\@ABL:PLAYER:技巧 >= 4 ? 綺麗に #  \@整えた…
+		PRINTFORMW %CALLNAME:PLAYER%將%CALLNAME:TARGET%的%NAME_BUSH%的形態\@ABL:PLAYER:技巧 >= 4 ? 嫻熟而利落的 #  \@修整了……
 	ELSE
 		PRINTFORML どのような形にしますか？
 		PRINTFORML  [ 0] ▼ 逆三角形
@@ -265,9 +265,9 @@ ELSEIF RESULT == 2 && COND("陰毛") >= 6
 		PRINTFORML  [ 2]  %UNICODE(0x258E)% 長方形
 		PRINTFORM  [ 3] 
 		CALL HEARTMARK
-		PRINTFORML  ハート型
-		PRINTFORML  [90] 直接入力する
-		PRINTFORML [100] 特にこだわらない（記述しません）
+		PRINTFORML  ❤ 心型
+		PRINTFORML  [90] 直接輸入
+		PRINTFORML [100] 不拘泥於特定的形態（通常無記述）
 
 		CALL INPUT_SELECT, 4, 90, 100
 
@@ -285,18 +285,18 @@ ELSEIF RESULT == 2 && COND("陰毛") >= 6
 			CALL SET_CEVENT, "陰毛の名称：長方形"
 		CASE 3
 			CALL SET_CEVENT, "陰毛の形：HEARTMARK"
-			CALL SET_CEVENT, "陰毛の名称：ハート型"
+			CALL SET_CEVENT, "陰毛の名称：心型"
 		CASE 90
-			PRINTL 全角で８文字以下（半角なら16文字まで）の文字列を入力してください
-			PRINTL ("～に剃り整えられた"等のように使われても違和感が無いもの推奨)
-			PRINTL また、何も入力しない場合は特にこだわらない事とします
+			PRINTL 請將全角８文字（半角則16文字）以下的字符串輸入。
+			PRINTL (推薦使用"～剃除整理了一番"一類不會產生違和感的說法)
+			PRINTL 另外、什麼也不輸入的場合、則不拘泥於特定的形態。
 			CALL INPUTS_SELECT, 16
 
 			LOCALS = 陰毛の形：%RESULTS%
 			CALL SET_CEVENT, LOCALS
 		ENDSELECT
 
-		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%の%NAME_BUSH%をしっかり剃り落とし、恥丘を飾る陰毛の形を\@ STRLENS(CEVENTS("陰毛の名称") ) ? %CEVENTS("陰毛の名称")% # 綺麗 \@に剃り整えた…
+		PRINTFORMW %CALLNAME:PLAYER%将%CALLNAME:TARGET%的%NAME_BUSH%好好地剃了、将装飾恥丘的陰毛剃成了\@ STRLENS(CEVENTS("陰毛の名称") ) ? %CEVENTS("陰毛の名称")% # 漂亮的 \@形状…
 	ENDIF
 ELSE
 	GOTO INPUT_LOOP
@@ -313,13 +313,13 @@ CALL COM_ORDER, ARG
 
 LOCAL = RESULT
 
-SELECTCASE TALENT:彼氏持ち
+SELECTCASE TALENT:有男朋友
 CASE 2
 	LOCAL -= 30
-	LOCALS = %LOCALS% - %TALENT_NAME(GETNUM(TALENT, "彼氏持ち"), TALENT:彼氏持ち)%(30)
+	LOCALS = %LOCALS% - %TALENT_NAME(GETNUM(TALENT, "有男朋友"), TALENT:有男朋友)%(30)
 CASE 1
 	LOCAL -= 15
-	LOCALS = %LOCALS% - %TALENT_NAME(GETNUM(TALENT, "彼氏持ち"), TALENT:彼氏持ち)%(15)
+	LOCALS = %LOCALS% - %TALENT_NAME(GETNUM(TALENT, "有男朋友"), TALENT:有男朋友)%(15)
 ENDSELECT
 
 ;ABL:露出癖
@@ -328,19 +328,19 @@ IF ABL:露出癖
 	LOCALS = %LOCALS% + 露出癖LV{ABL:露出癖}({MIN(ABL:露出癖, 10) * 2})
 ENDIF
 ;ABL:マゾっ気
-IF ABL:マゾっ気
-	LOCAL += MIN(ABL:マゾっ気, 5) * 3
-	LOCALS = %LOCALS% + マゾっ気LV{ABL:マゾっ気}({MIN(ABL:マゾっ気, 5) * 3})
+IF ABL:受虐属性
+	LOCAL += MIN(ABL:受虐属性, 5) * 3
+	LOCALS = %LOCALS% + 受虐属性LV{ABL:受虐属性}({MIN(ABL:受虐属性, 5) * 3})
 ENDIF
 ;恥じらい
-IF TALENT:恥じらい
+IF TALENT:害羞
 	LOCAL -= 15
-	LOCALS = %LOCALS% - 恥じらい(15)
+	LOCALS = %LOCALS% - 害羞(15)
 ENDIF
 ;恥薄い
-IF TALENT:恥薄い
+IF TALENT:不知羞恥
 	LOCAL += 5
-	LOCALS = %LOCALS% + 恥薄い(5)
+	LOCALS = %LOCALS% + 不知羞恥(5)
 ENDIF
 ;倒錯的
 IF TALENT:倒錯的
@@ -353,7 +353,7 @@ IF TEQUIP:拘束
 	LOCALS = %LOCALS% + 拘束中(30)
 ENDIF
 ;ビデオ撮影
-IF TEQUIP:ビデオカメラ
+IF TEQUIP:攝像機
 	LOCAL -= 20
 	LOCALS = %LOCALS% - 撮影中(20)
 ENDIF

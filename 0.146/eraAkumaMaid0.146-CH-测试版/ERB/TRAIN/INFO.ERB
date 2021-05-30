@@ -10,7 +10,7 @@ CALL SHOW_STATUS_MAIN
 CALL SETFLAG, "助手相手の恋慕外し開始"
 
 ;@COMORDERで求める実行値の初期化
-CVARSET TCVAR, GETNUM(TCVAR, "コマンド制限")
+CVARSET TCVAR, GETNUM(TCVAR, "指令制限")
 CVARSET TCVAR, GETNUM(TCVAR, "基本実行値")
 
 FLAG:COM_ABLEの一括OFF = 1
@@ -31,29 +31,29 @@ NEXT
 
 
 ;季節、年表示部分
-PRINTFORM %TEXTS("日付表示")% 
-IF TEQUIP:お風呂プレイ
-	PRINTFORM -お風呂場-
+PRINTFORM %TEXTS("日期表示")% 
+IF TEQUIP:浴室PLAY
+	PRINTFORM -浴室-
 ELSE
 	PRINTFORM -%TEXTS("現在位置")%-
 ENDIF
-SIF EQUIP:Ｈなご褒美
-	CALL PRINT_STR, "ハートピンク_ [Ｈなご褒美中]"
+SIF EQUIP:Ｈ的奖励
+	CALL PRINT_STR, "爱心粉紅_ [Ｈ的奖励中]"
 ;クリスマスツリーチェック
-IF DAYEV("クリスマス期間") && NUM("クリスマスツリー")
-	SETCOLOR DEF_COLOR("ハートピンク")
+IF DAYEV("圣诞节期間") && NUM("圣诞节ツリー")
+	SETCOLOR DEF_COLOR("爱心粉紅")
 	PRINTFORM %UNICODE(0xD83C)%%UNICODE(0xDF84)%
 	RESETCOLOR
 ENDIF
-PRINT  ムード:
-CALL TEXT, "ムードハート"
+PRINT  情緒:
+CALL TEXT, "情緒Heart"
 ;ムード記録
-TFLAG:ターン開始時のムード = MOOD()
+TFLAG:ターン開始時の情緒 = MOOD()
 ;全体に効果の出ているものはここに書く
 ;現在効果を発揮しているアドバイザー能力
-IF ASSI:1 && CSTR:(ASSI:1):アドバイス != ""
+IF ASSI:1 && CSTR:(ASSI:1):建议 != ""
 	VARSET LOCALS
-	SPLIT CSTR:(ASSI:1):アドバイス, "＆", LOCALS
+	SPLIT CSTR:(ASSI:1):建议, "＆", LOCALS
 	FOR LCOUNT, 0, 10
 		SELECTCASE LOCALS:LCOUNT
 		CASE ""
@@ -80,8 +80,8 @@ FOR LCOUNT, 50, 60
 	ITEMS = %ITEMS%%ITEMNAME:LCOUNT% ×{ITEM:LCOUNT}/
 NEXT
 ;ゴム
-SIF ITEM:使用済みゴム
-	ITEMS = %ITEMS%使用済みゴム ×{ITEM:使用済みゴム}
+SIF ITEM:用过的避孕套
+	ITEMS = %ITEMS%用过的避孕套 ×{ITEM:用过的避孕套}
 
 CALL PRINT_LIST, ITEMS
 PRINTL 
@@ -100,7 +100,7 @@ PRINTFORM ({BASE:PLAYER:精力}/{MAXBASE:PLAYER:精力})
 ;SIF BASE:PLAYER:精力 > MAXBASE:PLAYER:精力 && PENIS(PLAYER)
 ;	CALL PRINT_COLORTEXT, "(たまっている) ", DEF_COLOR("ハートピンク")
 IF PLAYER != MASTER
-	PRINTFORM  集めた魂:
+	PRINTFORM  收集的魂:
 ELSE
 	PRINTFORM  魂
 	CALL PRINT_BAR, "減少ゲージ", BASE:PLAYER:魂, MAXBASE:PLAYER:魂, 6
@@ -110,14 +110,14 @@ CALL TEXT, "尿意", PLAYER
 PRINTL 
 
 CALL SHOW_STATUS_CHARA, TARGET
-IF TEQUIP:Ｗ押し倒し
+IF TEQUIP:Ｗ推倒
 	PRINTL 
 	CALL SHOW_STATUS_CHARA, TARGET:1
 ENDIF
 
 
 ;助手がいて、ダウンしていないなら表示
-IF ASSI && STATE("撃沈", ASSI) == 0 && TEQUIP:Ｗ押し倒し == 0
+IF ASSI && STATE("撃沈", ASSI) == 0 && TEQUIP:Ｗ推倒 == 0
 	PRINTFORM \@ PENIS(ASSI) ? 射精 # 絶頂 \@(%CALLNAME:ASSI%)
 	CALL PRINT_BAR, "溜めゲージ", BASE:ASSI:絶頂, MAXBASE:ASSI:絶頂, 15
 	PRINTFORM ({BASE:ASSI:絶頂}/{MAXBASE:ASSI:絶頂})
@@ -139,7 +139,7 @@ PRINTFORM %NAME:ARG%
 CALL TEXT, "生理周期", ARG
 
 ;これはTARGETの数値を見ればよい
-IF TEQUIP:Ｗ押し倒し
+IF TEQUIP:Ｗ推倒
 	PRINTFORM 好:{CFLAG:ARG:好感度}
 ELSE
 	PRINTFORM 好感度:{CFLAG:ARG:好感度}
@@ -175,10 +175,10 @@ ENDIF
 SIF PENIS(ARG) || TALENT:ARG:母乳体質
 	PRINTL 
 
-IF EX:ARG:処女喪失 || EX:ARG:Ｃ絶頂 || EX:ARG:尿道絶頂 || EX:ARG:Ｖ絶頂 || EX:ARG:Ａ絶頂 || EX:ARG:Ｂ絶頂 || EX:ARG:Ｍ絶頂 || EX:ARG:射精 || EX:ARG:噴乳 || EX:ARG:エナジードレイン
+IF EX:ARG:処女喪失 || EX:ARG:Ｃ絶頂 || EX:ARG:尿道絶頂 || EX:ARG:Ｖ絶頂 || EX:ARG:Ａ絶頂 || EX:ARG:Ｂ絶頂 || EX:ARG:Ｍ絶頂 || EX:ARG:射精 || EX:ARG:噴乳 || EX:ARG:吸能
 	PRINT < 
 	SIF EX:ARG:処女喪失
-		CALL PRINT_COLORTEXT, "処女喪失 ", DEF_COLOR("ハートピンク")
+		CALL PRINT_COLORTEXT, "処女喪失 ", DEF_COLOR("爱心粉紅")
 	SIF EX:ARG:尿道絶頂
 		PRINTFORM 尿道絶頂:{EX:ARG:尿道絶頂}回 
 	SIF EX:ARG:Ｃ絶頂
@@ -193,12 +193,12 @@ IF EX:ARG:処女喪失 || EX:ARG:Ｃ絶頂 || EX:ARG:尿道絶頂 || EX:ARG:Ｖ�
 		PRINTFORM Ｍ絶頂:{EX:ARG:Ｍ絶頂}回 
 	SIF EXP_GAIN("射精経験", ARG)
 		PRINTFORM 射精:{EXP_GAIN("射精経験", ARG)}回 
-	SIF EX:ARG:トコロテン
-		PRINTFORM トコロテン:{EX:ARG:トコロテン}回 
+	SIF EX:ARG:前列腺高潮射精
+		PRINTFORM 前列腺高潮射精:{EX:ARG:前列腺高潮射精}回 
 	SIF EXP_GAIN("噴乳経験", ARG)
 		PRINTFORM 噴乳:{EXP_GAIN("噴乳経験", ARG)}回 
-	SIF EX:ARG:エナジードレイン
-		PRINTFORM ＥＤ:{EX:ARG:エナジードレイン}回 
+	SIF EX:ARG:吸能
+		PRINTFORM ＥＤ:{EX:ARG:吸能}回 
 	PRINT >
 	PRINTL 
 ENDIF
@@ -217,8 +217,8 @@ IF PALAM:ARG:Extacy || EX:ARG:絶対搾精量
 			MEMOS_SEMEN += @"乳内{EX:ARG:乳内射精量}ml"
 		SIF EX:ARG:尿道内射精量
 			MEMOS_SEMEN += @"膀胱{EX:ARG:尿道内射精量}ml"
-		SIF COND("ゴム搾精量", ARG)
-			MEMOS_SEMEN += @"ゴム内射精{COND("ゴム搾精量", ARG)}ml"
+		SIF COND("避孕套搾精量", ARG)
+			MEMOS_SEMEN += @"套套内射精{COND("避孕套搾精量", ARG)}ml"
 
 		SIF MEMOS_SEMEN != ""
 			PRINTFORM (%MEMOS_SEMEN%) 
@@ -256,25 +256,25 @@ PRINTL
 
 ;ARGの状況の表示
 @SHOW_EQUIP, ARG
-IF TALENT:ARG:オトコ
+IF TALENT:ARG:男性
 	PRINTPLAINFORM [%CONDS("体型", ARG)%]
 ELSE
-	PRINTPLAINFORM [%CONDS("体型", ARG)%(%CONDS("バストカップ", ARG)%)]
+	PRINTPLAINFORM [%CONDS("体型", ARG)%(%CONDS("罩杯", ARG)%)]
 ENDIF
 ;日焼け有り？
-IF TEXTS("日焼け跡", ARG) != ""
-	CALL PRINT_STR, @"[_茶色_%TEXTS("日焼け跡", ARG)%_]"
-ELSEIF TALENT:ARG:肌の色
-	PRINTFORM [%CONDS("肌の色", ARG)%]
+IF TEXTS("晒痕", ARG) != ""
+	CALL PRINT_STR, @"[_茶色_%TEXTS("晒痕", ARG)%_]"
+ELSEIF TALENT:ARG:肤色
+	PRINTFORM [%CONDS("肤色", ARG)%]
 ENDIF
 
 IF STATE("具現", ARG)
 	PRINT [具現]
-ELSEIF STATE("ペニス陰核化", ARG)
+ELSEIF STATE("阴茎陰核化", ARG)
 	PRINT [陰核化]
 ENDIF
 IF PENIS(ARG)
-	SELECTCASE SIZE("ペニス", ARG)
+	SELECTCASE SIZE("阴茎", ARG)
 	CASE 0
 		PRINTFORM [小
 	CASE 1
@@ -282,14 +282,14 @@ IF PENIS(ARG)
 	CASE 2
 		PRINTFORM [巨根
 	CASE 3
-		PRINTFORM [馬並み
+		PRINTFORM [像馬一样粗
 	CASE 4
-		PRINTFORM [腕並み
+		PRINTFORM [腕粗
 	CASEELSE
 		PRINTFORM [規格外
 	ENDSELECT
 
-	PRINTFORM (大きさLV{SIZE("ペニス", ARG)})]
+	PRINTFORM (尺寸LV{SIZE("阴茎", ARG)})]
 
 	IF ARG == PLAYER
 		PRINTFORM Ｐ潤%TEXTS("調教パラメータのＬＶ", GET_PALAMLV(PALAM:ARG:Ｐ潤) )%
@@ -297,35 +297,35 @@ IF PENIS(ARG)
 	ENDIF
 ELSE
 	IF COND("陰核露出", ARG)
-		PRINTFORM [常時クリ露出]
+		PRINTFORM [常時阴蒂露出]
 	ELSEIF CALCF("Ｃ発情", ARG) >= 2
-		CALL PRINT_STR, "ハートピンク_[陰核露出]"
+		CALL PRINT_STR, "爱心粉紅_[陰核露出]"
 	ENDIF
 ENDIF
 ;陥没乳首が勃起
-IF COND("陥没乳首", ARG)
+IF COND("陥没乳頭", ARG)
 	IF CALCF("Ｂ発情", ARG)
-		CALL PRINT_STR, "ハートピンク_[乳首露出]"
+		CALL PRINT_STR, "爱心粉紅_[乳頭露出]"
 	ELSE
-		PRINTFORM [陥没乳首]
+		PRINTFORM [陥没乳頭]
 	ENDIF
 ENDIF
 
-SIF CFLAG:ARG:甘い言葉
-	PRINT [ときめき]
-SIF CFLAG:ARG:褒める
-	PRINT [上機嫌]
+SIF CFLAG:ARG:甜言蜜语
+	PRINT [心动不已]
+SIF CFLAG:ARG:夸奖
+	PRINT [心情好]
 SIF STATE("恍惚", ARG)
-	CALL PRINT_STR, "ピンク_[恍惚]"
-SIF EX:ARG:イくのをこらえた
-	CALL PRINT_STR, "ハートピンク_[イきそう]"
+	CALL PRINT_STR, "粉紅_[恍惚]"
+SIF EX:ARG:绝顶忍耐
+	CALL PRINT_STR, "爱心粉紅_[要去了]"
 SIF COND("発情期", ARG)
-	CALL PRINT_STR, "ハートピンク_[発情中]"
+	CALL PRINT_STR, "爱心粉紅_[発情中]"
 
-IF STATE("悪酔い", ARG)
-	CALL PRINT_STR, "[_青_悪酔い_]"
-ELSEIF STATE("酔い", ARG)
-	CALL PRINT_STR, "[_ハートピンク_酔い_]"
+IF STATE("烂醉", ARG)
+	CALL PRINT_STR, "[_青_烂醉_]"
+ELSEIF STATE("酔酒", ARG)
+	CALL PRINT_STR, "[_爱心粉紅_酔酒_]"
 ENDIF
 
 SELECTCASE TEQUIP:ARG:弛緩
@@ -334,32 +334,32 @@ CASE 1
 CASE 2
 	CALL PRINT_STR, "黄色_[弛緩]"
 CASE 3
-	CALL PRINT_STR, "ハートピンク_[陶酔]"
+	CALL PRINT_STR, "爱心粉紅_[陶酔]"
 ENDSELECT
 
 IF ARG != PLAYER
-	SIF COND("Ｖ潤十分", ARG) && FIRSTCOMS("Ｖ挿入") && CHOSECOMS("Ｖ挿入") == 0
-		CALL PRINT_STR, "ハートピンク_[Ｖ潤十分]"
-	SIF COND("Ａ潤十分", ARG) && FIRSTCOMS("Ａ挿入") && CHOSECOMS("Ａ挿入") == 0
-		CALL PRINT_STR, "ハートピンク_[Ａ潤十分]"
+	SIF COND("Ｖ潤充分", ARG) && FIRSTCOMS("Ｖ挿入") && CHOSECOMS("Ｖ挿入") == 0
+		CALL PRINT_STR, "爱心粉紅_[Ｖ潤充分]"
+	SIF COND("Ａ潤充分", ARG) && FIRSTCOMS("Ａ挿入") && CHOSECOMS("Ａ挿入") == 0
+		CALL PRINT_STR, "爱心粉紅_[Ａ潤充分]"
 ENDIF
-IF INSERT("インサート", ARG)
+IF INSERT("挿入", ARG)
 	VARSET LOCALS
-	IF INSERT("Ｖ二本挿入", ARG)
-		LOCALS = Ｖ二本挿入
-	ELSEIF INSERT("Ａ二本挿入", ARG)
-		LOCALS = Ａ二本挿入
+	IF INSERT("两根挿入Ｖ中", ARG)
+		LOCALS = 两根挿入Ｖ中
+	ELSEIF INSERT("两根挿入Ａ中", ARG)
+		LOCALS = 两根挿入Ａ中
 	ELSEIF INSERT("二穴挿入", ARG)
 		LOCALS = 二穴挿入
 	ELSE
-		IF INSERT("Ａインサート", ARG)
+		IF INSERT("Ａ挿入", ARG)
 			LOCALS = Ａ%CONDS("体位", ARG)%
-		ELSEIF INSERT("尿道インサート", ARG)
+		ELSEIF INSERT("尿道挿入", ARG)
 			LOCALS = 尿道%CONDS("体位", ARG)%
 		ELSE
 			LOCALS = %CONDS("体位", ARG)%
 		ENDIF
-		SELECTCASE INSERT("インサート相手", ARG)
+		SELECTCASE INSERT("挿入相手", ARG)
 		CASE PLAYER
 		CASE ASSI
 			LOCALS += @"(%TEXTS("助手の名称")%)"
@@ -367,8 +367,8 @@ IF INSERT("インサート", ARG)
 			LOCALS += @"(主人)"
 		ENDSELECT
 	ENDIF
-	IF COND("好きな体位中", ARG)
-		CALL PRINT_STR, @"[_ハートピンク_%LOCALS%☆_]"
+	IF COND("喜欢的体位中", ARG)
+		CALL PRINT_STR, @"[_爱心粉紅_%LOCALS%☆_]"
 	ELSE
 		CALL PRINT_STR, @"[_黄色_%LOCALS%_]"
 	ENDIF
@@ -381,23 +381,23 @@ ELSEIF INSERT("挿入中", ARG)
 		PRINTFORM [Ｖ挿入中(%CALLNAME:INSERT("挿入中", ARG)%)]
 	ENDIF
 ENDIF
-SIF TEQUIP:ARG:手加減
-	CALL PRINT_STR, "[_ハートピンク_焦らされ中_]"
-SIF TEQUIP:ARG:コンドーム
-	PRINT [ゴム装着中]
+SIF TEQUIP:ARG:手下留情
+	CALL PRINT_STR, "[_爱心粉紅_焦躁中_]"
+SIF TEQUIP:ARG:避孕套
+	PRINT [戴上套套中]
 
 ;これはTARGETの値を見る
-IF TEQUIP:Ｗ押し倒し
+IF TEQUIP:Ｗ推倒
 	SIF ARG == PLAYER
-		PRINT [Ｗ押し倒され中]
-ELSEIF TEQUIP:ARG:シックスナイン
-	PRINTFORM [\@ TEQUIP:ARG:押し倒し ? 押し倒し # \@６９(%TRAIN_NAME_STANDARD(TEQUIP:ARG:シックスナイン)%)中]
-ELSEIF TEQUIP:ARG:押し倒し
-	PRINT [押し倒し
+		PRINT [Ｗ被逆推中]
+ELSEIF TEQUIP:ARG:六九式
+	PRINTFORM [\@ TEQUIP:ARG:推倒 ? 推倒 # \@６９(%TRAIN_NAME_STANDARD(TEQUIP:ARG:六九式)%)中]
+ELSEIF TEQUIP:ARG:推倒
+	PRINT [推倒
 	IF TEQUIP:PLAYER:拘束
 		PRINT 拘束
-	ELSEIF TEQUIP:ARG:顔面騎乗
-		PRINT 顔面騎乗
+	ELSEIF TEQUIP:ARG:面部騎乗
+		PRINT 神情恍惚的脸颊面騎乗
 	ENDIF
 	PRINT 中]
 ENDIF
@@ -406,12 +406,12 @@ SIF TEQUIP:ARG:電話中
 
 SIF COND("指の使用", ARG) == 0
 	PRINT [腕使用不可]
-SIF TEQUIP:ARG:キス
-	PRINT [隙あらばキス]
+SIF TEQUIP:ARG:接吻
+	PRINT [一有破绽就接吻]
 
-SIF TEQUIP:ARG:ビデオカメラ
-	PRINTFORM [撮影中(残{10 - TEQUIP:ARG:ビデオカメラ + 1}回)]
-IF TEQUIP:ARG:野外プレイ
+SIF TEQUIP:ARG:攝像機
+	PRINTFORM [撮影中(残{10 - TEQUIP:ARG:攝像機 + 1}回)]
+IF TEQUIP:ARG:野外PLAY
 	SIF COND("人里", ARG)
 		PRINT [人里]
 	SIF COND("森林", ARG)
@@ -423,29 +423,29 @@ IF TEQUIP:ARG:野外プレイ
 	SIF COND("海", ARG)
 		PRINT [海]
 ENDIF
-SIF TEQUIP:ARG:室内露出プレイ
+SIF TEQUIP:ARG:室内露出PLAY
 	PRINT [室内露出中]
-IF TEQUIP:ARG:女王様プレイ
-	IF TALENT:ARG:オトコ
-		PRINTFORM [ＳＭプレイ LV{TEQUIP:ARG:女王様プレイ}]
+IF TEQUIP:ARG:女王様PLAY
+	IF TALENT:ARG:男性
+		PRINTFORM [ＳＭPLAY LV{TEQUIP:ARG:女王様PLAY}]
 	ELSE
-		PRINTFORM [女王様プレイ LV{TEQUIP:ARG:女王様プレイ}]
+		PRINTFORM [女王様PLAY LV{TEQUIP:ARG:女王様PLAY}]
 	ENDIF
 ENDIF
 
-SIF TEQUIP:ARG:お風呂プレイ
-	PRINT [お風呂場]
-SIF TEQUIP:ARG:新妻プレイ
+SIF TEQUIP:ARG:浴室PLAY
+	PRINT [浴室]
+SIF TEQUIP:ARG:新妻PLAY
 	PRINT [新妻]
 
-IF TEQUIP:ARG:ディープスロート == PLAYER
-	PRINT [ディープスロート中]
-ELSEIF TEQUIP:ARG:ディープスロート
-	PRINTFORM [ディープスロート中(%CALLNAME:(TEQUIP:ARG:ディープスロート)%)]
+IF TEQUIP:ARG:深喉 == PLAYER
+	PRINT [深喉中]
+ELSEIF TEQUIP:ARG:深喉
+	PRINTFORM [深喉中(%CALLNAME:(TEQUIP:ARG:深喉)%)]
 ENDIF
 
-SIF TEQUIP:ARG:甘い言葉 >= 1 && TEQUIP:ARG:甘い言葉 <= 8
-	PRINTFORM [甘い言葉]
+SIF TEQUIP:ARG:甜言蜜语 >= 1 && TEQUIP:ARG:甜言蜜语 <= 8
+	PRINTFORM [甜言蜜语]
 SIF TEQUIP:ARG:排卵誘発剤
 	PRINTFORM [排卵誘発剤]
 
@@ -474,65 +474,65 @@ IF TEQUIP:ARG:筋弛緩剤
 		PRINTFORM (子宮口)
 	PRINTFORM ]
 ENDIF
-IF TEQUIP:ARG:バイブ
-	IF COND("双頭バイブ", ARG)
-		PRINTFORM [双頭バイブ]
+IF TEQUIP:ARG:振動棒
+	IF COND("双頭振動棒", ARG)
+		PRINTFORM [双頭振動棒]
 	ELSE
-		SELECTCASE SIZE("バイブ", ARG)
+		SELECTCASE SIZE("振動棒", ARG)
 		CASE 6
-			PRINTFORM [規格外バイブ]
+			PRINTFORM [規格外振動棒]
 		CASE 5
-			PRINTFORM [馬型バイブ]
+			PRINTFORM [馬型振動棒]
 		CASE 4
-			PRINTFORM [腕並バイブ]
+			PRINTFORM [腕並振動棒]
 		CASE 3
-			PRINTFORM [極太バイブ]
+			PRINTFORM [極太振動棒]
 		CASEELSE
-			PRINTFORM [バイブ]
+			PRINTFORM [振動棒]
 		ENDSELECT
 	ENDIF
 ENDIF
 
-SIF TEQUIP:ARG:カテーテル
-	PRINTFORM [カテーテル]
+SIF TEQUIP:ARG:导管
+	PRINTFORM [导管]
 
-IF TEQUIP:ARG:アナルバイブ
-	IF COND("アナルパール", ARG)
-		PRINTFORM [アナルパール]
+IF TEQUIP:ARG:肛用振動棒
+	IF COND("肛門拉珠", ARG)
+		PRINTFORM [肛門拉珠]
 	ELSE
 		VARSET LOCALS
-		SIF COND("ロングバイブ", ARG)
+		SIF COND("長振動棒", ARG)
 			LOCALS = (結腸挿入中)
-		SELECTCASE SIZE("Ａバイブ", ARG)
+		SELECTCASE SIZE("Ａ振動棒", ARG)
 		CASE 6
-			PRINTFORM [Ａ規格外バイブ%LOCALS%]
+			PRINTFORM [Ａ規格外振動棒%LOCALS%]
 		CASE 5
-			PRINTFORM [Ａ馬型バイブ%LOCALS%]
+			PRINTFORM [Ａ馬型振動棒%LOCALS%]
 		CASE 4
-			PRINTFORM [Ａ腕並バイブ%LOCALS%]
+			PRINTFORM [Ａ腕並振動棒%LOCALS%]
 		CASE 3
-			PRINTFORM [Ａ極太バイブ%LOCALS%]
+			PRINTFORM [Ａ極太振動棒%LOCALS%]
 		CASEELSE
-			PRINTFORM [アナルバイブ%LOCALS%]
+			PRINTFORM [肛用振動棒%LOCALS%]
 		ENDSELECT
 	ENDIF
 ENDIF
 
-IF TEQUIP:ARG:尿道バイブ
+IF TEQUIP:ARG:尿道振動棒
 	IF COND("尿道パール", ARG)
 		PRINTFORM [尿道パール]
 	ELSE
-		SELECTCASE SIZE("尿道バイブ", ARG)
+		SELECTCASE SIZE("尿道振動棒", ARG)
 		CASE 6
-			PRINTFORM [尿道規格外バイブ]
+			PRINTFORM [尿道規格外振動棒]
 		CASE 5
-			PRINTFORM [尿道馬型バイブ]
+			PRINTFORM [尿道馬型振動棒]
 		CASE 4
-			PRINTFORM [尿道腕並バイブ]
+			PRINTFORM [尿道腕並振動棒]
 		CASE 3
-			PRINTFORM [尿道極太バイブ]
+			PRINTFORM [尿道極太振動棒]
 		CASEELSE
-			PRINTFORM [尿道バイブ]
+			PRINTFORM [尿道振動棒]
 		ENDSELECT
 	ENDIF
 ENDIF
@@ -550,30 +550,30 @@ IF TEQUIP:ARG:浣腸
 	SIF COND("空気浣腸", ARG)
 		PRINTFORM (空気)
 
-	SIF TEQUIP:ARG:浣腸 && COND("アナルプラグ", ARG)
-		PRINTFORM ＋アナルプラグ
+	SIF TEQUIP:ARG:浣腸 && COND("肛塞", ARG)
+		PRINTFORM ＋肛塞
 
 	PRINTFORM ]
 ENDIF
 
-IF TEQUIP:ARG:アイマスク || TEQUIP:ARG:鼻フック
-	IF TEQUIP:ARG:アイマスク && TEQUIP:ARG:鼻フック
-		PRINTFORM [アイマスク＆鼻フック]
-	ELSEIF TEQUIP:ARG:アイマスク
-		PRINTFORM [アイマスク]
-	ELSEIF TEQUIP:ARG:鼻フック
-		PRINTFORM [鼻フック]
+IF TEQUIP:ARG:眼罩 || TEQUIP:ARG:鼻钩
+	IF TEQUIP:ARG:眼罩 && TEQUIP:ARG:鼻钩
+		PRINTFORM [眼罩＆鼻钩]
+	ELSEIF TEQUIP:ARG:眼罩
+		PRINTFORM [眼罩]
+	ELSEIF TEQUIP:ARG:鼻钩
+		PRINTFORM [鼻钩]
 	ENDIF
 ENDIF
 
 IF TEQUIP:ARG:口枷 == 1
-	PRINTFORM [ボールギャグ]
+	PRINTFORM [口球]
 ELSEIF TEQUIP:ARG:口枷 == 2
-	PRINTFORM [リングギャグ]
+	PRINTFORM [環形口枷]
 ENDIF
 
-SIF TEQUIP:ARG:絆創膏
-	PRINTFORM [絆創膏]
+SIF TEQUIP:ARG:創口貼
+	PRINTFORM [創口貼]
 	
 PRINTL  
 ;着せ替え表示
@@ -587,24 +587,24 @@ MEMO_LINECOUNT = LINECOUNT
 
 REDRAW 0
 PRINTL 
-PRINTFORML 以下が各々の汚れの状態です。
-SIF TEQUIP:押し倒し == 0
-	PRINTFORML お望みならば、手や口の汚れ等を綺麗にすることもできます。
+PRINTFORML 以下为各自的污渍状態。
+SIF TEQUIP:推倒 == 0
+	PRINTFORML 如果希望的话、手和口的污渍可以清洁干净。
 ;誰かが真性包茎
 IF COND("真性包茎") || COND("真性包茎", MASTER) || COND("真性包茎", ASSI)
 	SETCOLOR DEF_COLOR("イエロー")
-	PRINTFORML ※真性包茎の人はＰに常に<Ｐ恥垢>汚れが有ります。洗っても掃除しても落ちません
+	PRINTFORML ※真性包茎的人的Ｐ会一直保持<Ｐ恥垢>的状态。清洗也洗不掉的
 	RESETCOLOR
 ENDIF
-PRINTFORML （入浴中・お風呂上り状態だと汚れが移りづらく、奉仕調教も実行しやすくなります）
+PRINTFORML （入浴中・出浴状態下可以去除污垢、奉仕調教的実行也会变简单）
 CALL STAIN_INFO_SHOW, MASTER
 CALL STAIN_INFO_SHOW, TARGET
 CALL STAIN_INFO_SHOW, TARGET:1
 DRAWLINE
-IF TEQUIP:押し倒し
+IF TEQUIP:推倒
 	WAIT
 ELSE
-	PRINTBUTTON "[Enter] 閉じる", "Enter"
+	PRINTBUTTON "[Enter] 関閉", "Enter"
 
 	ONEINPUTS
 
@@ -658,12 +658,12 @@ REDRAW 1
 
 SIF ARG <= 0
 	RETURN 0
-IF TEQUIP:ARG:お風呂上り
+IF TEQUIP:ARG:出浴
 	;ここはTARGETの値を見る
-	IF TARGET && TEQUIP:お風呂プレイ
+	IF TARGET && TEQUIP:浴室PLAY
 		LOCALS = □ %NAME:ARG%（入浴中）□
 	ELSE
-		LOCALS = □ %NAME:ARG%（お風呂上り）□
+		LOCALS = □ %NAME:ARG%（出浴）□
 	ENDIF
 ELSE
 	LOCALS = □ %NAME:ARG% □
@@ -705,20 +705,20 @@ FOR LCOUNT, 0, 7
 	SELECTCASE LCOUNT
 	CASE 0
 		PRINTFORM 　口：%TEXT_LJ(LOCALS, 32)%
-		SIF TEQUIP:押し倒し == 0 && LOCALS != ""
-			PRINTFORM [{LOCAL + LCOUNT}] 口を\@ ARG == MASTER ? すすぐ # すすがせる \@
+		SIF TEQUIP:推倒 == 0 && LOCALS != ""
+			PRINTFORM [{LOCAL + LCOUNT}] 让口\@ ARG == MASTER ? 自己清洗 # 被清洗 \@
 	CASE 1
 		PRINTFORM 　手：%TEXT_LJ(LOCALS, 32)%
-		SIF TEQUIP:押し倒し == 0 && LOCALS != ""
-			PRINTFORM [{LOCAL + LCOUNT}] 指を拭う
+		SIF TEQUIP:推倒 == 0 && LOCALS != ""
+			PRINTFORM [{LOCAL + LCOUNT}] 擦拭手指
 	CASE 2
 		SIF PENIS(ARG) == 0
 			CONTINUE
 		PRINTFORM 　Ｐ：%TEXT_LJ(LOCALS, 32)%
-		SIF TEQUIP:押し倒し == 0 && CHECK_ADD_STAIN("Ｐ", ARG)
-			PRINTFORM [{LOCAL + LCOUNT}] ペニスを拭う \@ INSERT("挿入中", ARG) ? (インサートは解除) # \@
+		SIF TEQUIP:推倒 == 0 && CHECK_ADD_STAIN("Ｐ", ARG)
+			PRINTFORM [{LOCAL + LCOUNT}] 擦拭阴茎 \@ INSERT("挿入中", ARG) ? (解除挿入) # \@
 	CASE 3
-		SIF TALENT:ARG:オトコ
+		SIF TALENT:ARG:男性
 			CONTINUE
 		PRINTFORM 　Ｖ：%TEXT_LJ(LOCALS, 32)%
 	CASE 4

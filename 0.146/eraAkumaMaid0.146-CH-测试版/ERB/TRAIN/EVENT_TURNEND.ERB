@@ -12,7 +12,7 @@ SIF STATE("撃沈", PLAYER)
 ;処女喪失で射精なし。処女喪失の描写について詳しく描きたい場合は@KOJO_MESSAGE_PALAMCNG_K1, ARGSの"処女喪失の分岐が推奨です"
 IF NOWEX:処女喪失
 	CALL BLANKLINE
-	PRINTFORMW %CALLNAME:TARGET%の秘唇から、処女の証である赤い血が垂れ落ちていった…
+	PRINTFORMW 从%CALLNAME:TARGET%的秘唇里、作为处女的证明的红色的血垂落下来了…
 	RETURN 0
 ENDIF
 
@@ -28,15 +28,15 @@ EJECT_FLAG = 0
 
 ;TFLAG:EJECTがONなら100％抜く
 IF TFLAG:EJECT
-ELSEIF SHOOT("中出し") && COND("絶頂", PLAYER) && INSERT("インサート")
+ELSEIF SHOOT("中出し") && COND("絶頂", PLAYER) && INSERT("挿入")
 	;コンドーム使用なら100％抜く。
-	IF TEQUIP:PLAYER:コンドーム
+	IF TEQUIP:PLAYER:避孕套
 		EJECT_FLAG = 100
 	ELSEIF CONFIG("自動挿入解除OFF")
 	ELSE
 		EJECT_FLAG = NOWEX:同時絶頂 - TALENT:吸精体質*2
 
-		SIF TALENT:小柄
+		SIF TALENT:娇小
 			EJECT_FLAG += 2
 		;イってない
 		SIF NOWEX:絶頂数合計 == 0
@@ -47,7 +47,7 @@ ELSEIF SHOOT("中出し") && COND("絶頂", PLAYER) && INSERT("インサート")
 		;中に出した精液の量
 		IF SHOOT("膣内")
 			EJECT_FLAG += EXP_GAIN("膣内精液経験")
-		ELSEIF SHOOT("アナル")
+		ELSEIF SHOOT("肛門")
 			EJECT_FLAG += EXP_GAIN("肛内精液経験")
 			;精液浣腸の時には排泄欲ゲージＭＡＸなら抜く
 			SIF COND("精液浣腸") && BASE:排泄欲 >= MAXBASE:排泄欲
@@ -59,12 +59,12 @@ ELSEIF SHOOT("中出し") && COND("絶頂", PLAYER) && INSERT("インサート")
 		ENDIF
 		IF CONFIG("自動挿入解除選択肢") && (EJECT_FLAG >= 100 || (RAND:4 == 0 && EJECT_FLAG > 0) )
 			CALL BLANKLINE
-			IF TEQUIP:押し倒し
-				PRINTL ……一旦ペニスを解放してあげますか？
-				CALL PRINT_SELECT, "あげる/あげない"
+			IF TEQUIP:推倒
+				PRINTL ……可以暂时拔出阴茎吗？
+				CALL PRINT_SELECT, "给/不给"
 			ELSE
-				PRINTL ……ペニスを引き抜きますか？
-				CALL PRINT_SELECT, "抜く/抜かない"
+				PRINTL ……拔出阴茎吗？
+				CALL PRINT_SELECT, "拔出/不拔出"
 			ENDIF
 			IF RESULT == 0
 				EJECT_FLAG = 100
@@ -95,41 +95,41 @@ IF TFLAG:EJECT || EJECT_FLAG >= 100 || (RAND:4 == 0 && EJECT_FLAG > 0)
 ENDIF
 
 ;お掃除フェラ…毎回だとウザいかな？
-IF RAND:3 == 0 && TEQUIP:PLAYER:コンドーム == 0 && TEQUIP:ディープスロート == 0
+IF RAND:3 == 0 && TEQUIP:PLAYER:避孕套 == 0 && TEQUIP:深喉 == 0
 	OSOUJI_FLAG = 0
 	SIF SHOOT("膣内") && CHECK_STAIN(STAIN:MASTER:Ｐ, "Ｖ")
 		OSOUJI_FLAG = 1
-	SIF SHOOT("アナル") && CHECK_STAIN(STAIN:MASTER:Ｐ, "Ａ")
+	SIF SHOOT("肛門") && CHECK_STAIN(STAIN:MASTER:Ｐ, "Ａ")
 		OSOUJI_FLAG = 2
 	SIF SHOOT("尿道") && CHECK_STAIN(STAIN:MASTER:Ｐ, "尿")
 		OSOUJI_FLAG = 3
 
-	IF OSOUJI_FLAG && COND("絶頂", PLAYER) && INSERT("インサート") == 0 && PENIS(PLAYER)
+	IF OSOUJI_FLAG && COND("絶頂", PLAYER) && INSERT("挿入") == 0 && PENIS(PLAYER)
 		CALL OSOUJI_F
-	ELSEIF TFLAG:お掃除フェラ && PENIS(PLAYER) && STAIN:PLAYER:Ｐ != SET_STAIN(0, "Ｐ")
+	ELSEIF TFLAG:清洁口交 && PENIS(PLAYER) && STAIN:PLAYER:Ｐ != SET_STAIN(0, "Ｐ")
 		;二本フェラはひとまず中止
 		;IF SELECTCOM == 
 		;	PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%と%CALLNAME:ASSI%のペニスを交互に咥え、汚れを舐め取っていった…
 		;ELSE
 			SIF ASSI && SELECTCOM:1 == SELECTCOM
-				PRINTFORM %CALLNAME:ASSI%と
-			PRINTFORM %CALLNAME:TARGET%は
+				PRINTFORM %CALLNAME:ASSI%与
+			PRINTFORM %CALLNAME:TARGET%
 			SIF (ABL:信頼 >= 4 || ABL:精液中毒 >= 2) && COND("絶頂", PLAYER)
-				 PRINTFORM 残った精液を吸い取りながら、
-			PRINTW ペニスの汚れを綺麗に舐めとっていった…
+				  PRINTFORM 一边吸取剩下的精液、
+			PRINTW 把阴茎上的污垢舔干净了……
 		;ENDIF
 
 		TFLAG:口上分岐 = 1
-		CALL KOJO_EVENT, "お掃除フェラ"
+		CALL KOJO_EVENT, "清洁口交"
 
 		IF ASSI && SELECTCOM:1 == SELECTCOM
 			SWAP TARGET, ASSI
 			TFLAG:口上分岐 = 1
-			CALL KOJO_EVENT, "お掃除フェラ"
+			CALL KOJO_EVENT, "清洁口交"
 			SWAP TARGET, ASSI
 
 			IF (ABL:信頼 >= 4 || ABL:精液中毒 >= 2) && (ABL:ASSI:信頼 >= 4 || ABL:ASSI:精液中毒 >= 2)
-				PRINTW 二人はそれだけでは足りないかのように互いの口に溜まった精液を舐めあっている…
+				PRINTW 两个人似乎仅仅这样还不够、互相舔着嘴里积存的精液……
 				CALL EQ_STAIN, TARGET, "Ｍ", ASSI, "Ｍ"
 			ENDIF
 		ENDIF
@@ -142,7 +142,7 @@ IF RAND:3 == 0 && TEQUIP:PLAYER:コンドーム == 0 && TEQUIP:ディープス�
 		NEXT
 
 		;経験や汚れなどの処理は全部ここで行う
-		CALL SETFLAG, "お掃除フェラ", TARGET, MASTER
+		CALL SETFLAG, "清洁口交", TARGET, MASTER
 
 		FOR LCOUNT, 0, 100
 			SELECTCASE EXP:LCOUNT
@@ -160,7 +160,7 @@ IF RAND:3 == 0 && TEQUIP:PLAYER:コンドーム == 0 && TEQUIP:ディープス�
 				MEMO_EXP:LCOUNT = EXP:ASSI:LCOUNT
 			NEXT
 
-			CALL SETFLAG, "お掃除フェラ", ASSI, MASTER
+			CALL SETFLAG, "清洁口交", ASSI, MASTER
 
 			FOR LCOUNT, 0, 100
 				SELECTCASE EXP:ASSI:LCOUNT
@@ -192,7 +192,7 @@ IF BASE:体力 >= 500
 	CALL EVENT_AUTO_DATUI
 	CALL EVENT_ZURENAOSHI
 ENDIF
-IF TEQUIP:Ｗ押し倒し
+IF TEQUIP:Ｗ推倒
 	SWAP TARGET, TARGET:1
 	SWAP SELECTCOM, SELECTCOM:1
 	SWAP PREVCOM, PREVCOM:1
@@ -210,17 +210,17 @@ ENDIF
 @SELECTEVENT_TURNEND
 TFLAG:地の文分岐 = 0
 ;イきまくって無いなら、視線に気づく。そして、サービス。
-IF SHOOT("アナル") && COND("精液浣腸") && BASE:排泄欲 >= MAXBASE:排泄欲
+IF SHOOT("肛門") && COND("精液浣腸") && BASE:排泄欲 >= MAXBASE:排泄欲
 	;イっているなら、快感に浸ったり
-	IF NOWEX:絶頂数合計 && ABL:マゾっ気 >= 3
+	IF NOWEX:絶頂数合計 && ABL:受虐属性 >= 3
 		STR:イベント名 = 中出し後恍惚
 		TFLAG:地の文分岐 = 1
 	ELSE
-		STR:イベント名 = プラグ無し浣腸イベント
+		STR:イベント名 = 塞子没有浣腸イベント
 		TFLAG:地の文分岐 = 1
 	ENDIF
 ELSEIF (NOWEX:絶頂数合計 < 12 || PALAM:連続絶頂COMBO数 < 5 || TALENT:好色 || TALENT:淫乱) && COND("疲労") == 0 && COND("指の使用") && COND("液体浣腸") == 0 && RAND:2
-	IF (TALENT:恥じらい && PALAM:欲情*(TALENT:恋慕 + 1) < 30000) || (TALENT:恥薄い == 0 && PALAM:欲情*(TALENT:恋慕 + 1) < 10000)
+	IF (TALENT:害羞 && PALAM:欲情*(TALENT:恋慕 + 1) < 30000) || (TALENT:不知羞恥 == 0 && PALAM:欲情*(TALENT:恋慕 + 1) < 10000)
 		IF CFLAG:好感度 * ABL:奉仕精神 >= 4500 && RAND:3 == 0
 			STR:イベント名 = 中出し後くぱぁ
 			TFLAG:地の文分岐 = 1
@@ -228,11 +228,11 @@ ELSEIF (NOWEX:絶頂数合計 < 12 || PALAM:連続絶頂COMBO数 < 5 || TALENT:�
 			STR:イベント名 = 中出し後くぱぁ
 			TFLAG:地の文分岐 = 2
 		ELSE
-			STR:イベント名 = 中出し後恥じらい
+			STR:イベント名 = 中出し後害羞
 			TFLAG:地の文分岐 = 1
 		ENDIF
-	ELSEIF TALENT:淫乱 || (TALENT:恥薄い && TALENT:好色 && PALAM:欲情 >= 3000) || (TALENT:恋慕 && PALAM:欲情 >= 10000)
-		IF ABL:精液中毒 > RAND:10 && TEQUIP:PLAYER:コンドーム == 0
+	ELSEIF TALENT:淫乱 || (TALENT:不知羞恥 && TALENT:好色 && PALAM:欲情 >= 3000) || (TALENT:恋慕 && PALAM:欲情 >= 10000)
+		IF ABL:精液中毒 > RAND:10 && TEQUIP:PLAYER:避孕套 == 0
 			STR:イベント名 = 中出し後精液掻き出し
 			TFLAG:地の文分岐 = 1
 		ELSE
@@ -241,7 +241,7 @@ ELSEIF (NOWEX:絶頂数合計 < 12 || PALAM:連続絶頂COMBO数 < 5 || TALENT:�
 		ENDIF
 	ELSE
 		IF ABL:露出癖 == 0
-			STR:イベント名 = 中出し後恥じらい
+			STR:イベント名 = 中出し後害羞
 			TFLAG:地の文分岐 = 2
 		ELSE
 			STR:イベント名 = 中出し後くぱぁ
@@ -275,16 +275,16 @@ IF SHOOT("膣内")
 
 	NAME_HOLE = 膣
 	HOLE = 膣口
-	CALLNAME_HOLE = アソコ
-ELSEIF SHOOT("アナル")
+	CALLNAME_HOLE = 阴部
+ELSEIF SHOOT("肛門")
 	NOWEX_HOLE = NOWEX:Ａ絶頂
 	EXP_HOLE = EXP:Ａ経験
 	ABL_GAPEHOLE = ABL:Ａ拡張
 	EXPGAIN_SEMEN = EXP_GAIN("肛内精液経験")
 
-	NAME_HOLE = アナル
-	HOLE = アヌス
-	CALLNAME_HOLE = 尻の穴
+	NAME_HOLE = 肛門
+	HOLE = 菊花
+	CALLNAME_HOLE = 菊门
 ELSEIF SHOOT("尿道")
 	NOWEX_HOLE = NOWEX:尿道絶頂
 	EXP_HOLE = EXP:尿道経験
@@ -297,115 +297,115 @@ ELSEIF SHOOT("尿道")
 ENDIF
 
 IF ABL_GAPEHOLE >= 7 && RAND:5 == 0
-	GAPING_HOLE = 丸く開いたままの
+	GAPING_HOLE = 保持完全张開的
 ELSEIF ABL_GAPEHOLE >= 5 && RAND:4 == 0
-	GAPING_HOLE = ポッカリと口を開けた
+	GAPING_HOLE = 张開口的
 ELSEIF ABL_GAPEHOLE >= 3 && RAND:3 == 0
-	GAPING_HOLE = 完全には閉じ切ってない
+	GAPING_HOLE = 尚未完全閉合的
 ELSEIF EXPGAIN_SEMEN >= 4 && RAND:3 == 0
-	GAPING_HOLE = ドロドロの
+	GAPING_HOLE = 黏黏糊糊的
 ELSEIF EXP_HOLE >= 100 && RAND:3 == 0
-	GAPING_HOLE = めくれた
-ELSEIF ( (SHOOT("膣内") && EX:Ｖ絶頂 >= 3) || (SHOOT("アナル") && EX:Ａ絶頂 >= 3) ) && RAND:3 == 0
-	GAPING_HOLE = 赤く腫れた
+	GAPING_HOLE = 外翻的
+ELSEIF ( (SHOOT("膣内") && EX:Ｖ絶頂 >= 3) || (SHOOT("肛門") && EX:Ａ絶頂 >= 3) ) && RAND:3 == 0
+	GAPING_HOLE = 红腫的
 ELSEIF PALAM:欲情 >= 3000 && RAND:3 == 0
-	GAPING_HOLE = 発情した
+	GAPING_HOLE = 発情的
 ELSEIF ABL_GAPEHOLE >= 2 && RAND:3 == 0
-	GAPING_HOLE = 緩んだ
-ELSEIF TALENT:小柄 && RAND:2 == 0
-	GAPING_HOLE = 幼い
+	GAPING_HOLE = 松緩的
+ELSEIF TALENT:娇小 && RAND:2 == 0
+	GAPING_HOLE = 幼嫩的
 ELSEIF EXP_HOLE <= 50 && RAND:3 == 0
-	GAPING_HOLE = 可愛い
+	GAPING_HOLE = 可愛的
 ELSEIF SHOOT("膣内") && PALAM:Ｖ潤 >= 3000
-	GAPING_HOLE = とろとろの
+	GAPING_HOLE = 粘滑的
 ELSE
 	GAPING_HOLE = 
 ENDIF
 GAPING_HOLE += @"%CALLNAME_HOLE%"
 
-IF INSERT("騎乗位") && (TEQUIP:押し倒し || ABL:奉仕精神 >= 3)
+IF INSERT("騎乗位") && (TEQUIP:推倒 || ABL:奉仕精神 >= 3)
 	PRINTFORM %CALLNAME:TARGET%が
 	IF NOWEX_HOLE && RAND:3 == 0
-		PRINTFORM 快感に震える腰を
+		PRINTFORM 因快感而颤抖的腰
 	ELSEIF EXP_HOLE >= 100 && RAND:2 == 0
-		PRINTFORM 根元まで飲み込んでいる腰を
+		PRINTFORM 连根部都吞下的腰
 	ELSE
-		PRINTFORM %CALLNAME:PLAYER%の胸に手を付いて腰を
+		PRINTFORM 手贴在%CALLNAME:PLAYER%的胸膛上
 	ENDIF
 	IF BASE:PLAYER:絶頂 >= 3000 && RAND:2 == 0
-		PRINTFORM 勢い良く
+		PRINTFORM 势头良好
 	ELSE
-		PRINTFORM ゆっくりと
+		PRINTFORM 慢慢地、慢慢地
 	ENDIF
-	PRINTFORM 持ち上げると、
+	PRINTFORM 举起来、
 ELSE
-	IF COND("絶頂", PLAYER) >= 2 && TEQUIP:PLAYER:コンドーム == 0 && RAND:2
-		PRINTFORM たっぷりと注ぎ込まれた
+	IF COND("絶頂", PLAYER) >= 2 && TEQUIP:PLAYER:避孕套 == 0 && RAND:2
+		PRINTFORM 灌得满满的
 	ELSEIF NOWEX:絶頂数合計 && RAND:2 == 0
-		PRINTFORM 絶頂にわななく
+		PRINTFORM 达到顶峰
 	ELSEIF NOWEX_HOLE > 2 && ABL_GAPEHOLE >= 3
 		SIF NOWEX:Ｖ絶頂 >= 2 || NOWEX:Ａ絶頂 >= 2
-			PRINTFORM 快感で
-		PRINTFORM 緩んだ
+			PRINTFORM 用快感
+		PRINTFORM 松弛了
 	ELSE
-		PRINTFORM 絡みつく
+		PRINTFORM 缠绕
 	ENDIF
-	PRINTFORM %NAME_HOLE%からペニスを
+	PRINTFORM %NAME_HOLE%から阴茎を
 	IF BASE:PLAYER:絶頂 >= 3000 && RAND:2 == 0
-		PRINTFORM 勢い良く
+		PRINTFORM 势头良好
 	ELSE
-		PRINTFORM ゆっくりと
+		PRINTFORM 慢慢地、慢慢地
 	ENDIF
-	PRINTFORM 引き抜くと、
+	PRINTFORM 拔出来
 	IF RAND:3 == 0 && NOWEX:絶頂数合計 >= 2 && COND("脚の使用")
 		IF INSERT("後背位")
-			PRINTFORM 四つん這いでお尻だけ高く上げた体勢の
+			PRINTFORM 高高地撅起屁股的姿势
 		ELSEIF INSERT("屈曲位") && COND("指の使用") && RAND:2
-			PRINTFORM 興奮のあまり自らの腕で脚を抱きかかえて股間を全開にしている
+			PRINTFORM 由于过于兴奋,双臂抱住了腿,胯股之间完全大開着
 		ELSEIF INSERT("正常位") || INSERT("屈曲位")
-			PRINTFORM 快感に身を委ねてだらしなく\@ RAND:2 ? 股 # 脚 \@を開いたままな
+			PRINTFORM 委身于快感懒散地\@ RAND:2 ? 大腿 # 脚 \@大開着
 		ENDIF
 	ENDIF
-	PRINTFORM %CALLNAME:TARGET%の
+	PRINTFORM %CALLNAME:TARGET%的
 ENDIF
 IF NOWEX_HOLE >= MAX(2, RAND:5) && EX:絶頂数合計 >= 10
-	PRINTFORM 蕩けきった
-ELSEIF TALENT:小柄 && RAND:2 == 0
-	PRINTFORM 幼い
-ELSEIF TALENT:小柄 && ABL_GAPEHOLE <= 1
-	PRINTFORM 小さな
+	PRINTFORM 荡然无存
+ELSEIF TALENT:娇小 && RAND:2 == 0
+	PRINTFORM 年幼
+ELSEIF TALENT:娇小 && ABL_GAPEHOLE <= 1
+	PRINTFORM 小小的
 ENDIF
 PRINTFORM %HOLE%から
 
-IF SHOOT("アナル") && BASE:排泄物 && COND("液体浣腸") + COND("精液浣腸")
-	PRINTFORM 汚物
+IF SHOOT("肛門") && BASE:排泄物 && COND("液体浣腸") + COND("精液浣腸")
+	PRINTFORM 脏东西
 	IF COND("温泉浣腸")
-		PRINTFORM と小便
+		PRINTFORM 和小便
 	ELSEIF COND("液体浣腸")
-		PRINTFORM と薬液
+		PRINTFORM 和药液
 	ENDIF
-	PRINTFORM 混じりの濁った
+	PRINTFORM 混浊不清的
 ELSEIF NOWEX:処女喪失 || (EX:処女喪失 && RAND:3 == 0)
-	PRINTFORM 破瓜の血の混ざった
+	PRINTFORM 混杂着破瓜的血
 ELSEIF EXPGAIN_SEMEN >= 9 && RAND:3 == 0
-	PRINTFORM 凄い量の
+	PRINTFORM 惊人的量
 ELSEIF EXPGAIN_SEMEN >= 4 && RAND:3 == 0
-	PRINTFORM ドロッと
+	PRINTFORM 粘度
 ELSEIF NOWEX_HOLE && RAND:3 == 0
-	PRINTFORM 泡立った
-ELSEIF TEQUIP:PLAYER:コンドーム
-	PRINTFORM 撹拌された
+	PRINTFORM 起泡沫了
+ELSEIF TEQUIP:PLAYER:避孕套
+	PRINTFORM 搅拌好了
 ELSE
-	PRINTFORM %TEXTR("ドロリと/とろりと/白い")%
+	PRINTFORM %TEXTR("ド萝莉と/とろりと/白色")%
 ENDIF
-IF TEQUIP:PLAYER:コンドーム
+IF TEQUIP:PLAYER:避孕套
 	IF SHOOT("膣内")
-		PRINTFORM 愛液が
+		PRINTFORM 爱液
 	ELSE
-		PRINTFORM 粘液が
+		PRINTFORM 粘液
 	ENDIF
 ELSE
-	PRINTFORM 精液が
+	PRINTFORM 精液
 ENDIF
 IF EXPGAIN_SEMEN >= 9 && RAND:3 == 0
 	PRINTFORM 逆流する
@@ -421,66 +421,66 @@ SELECTCASE STR:イベント名
 CASE "中出し後恍惚"
 	PRINTFORMW 。
 	IF TFLAG:地の文分岐 == 1
-		PRINTFORM %CALLNAME:TARGET%は
+		PRINTFORM %CALLNAME:TARGET%
 		SIF MAX(NOWEX:Ｃ絶頂, NOWEX:Ｖ絶頂, NOWEX:Ａ絶頂, NOWEX:Ｂ絶頂, NOWEX:Ｍ絶頂, NOWEX:尿道絶頂) >= 2
-			PRINTFORM 激しい
-		PRINTFORM 絶頂の余韻に身を委ね、緩んだ肛門から
-		SIF TEQUIP:PLAYER:コンドーム == 0 && BASE:排泄物
-			PRINTFORM 精液に続いて
+			PRINTFORM 剧烈
+		PRINTFORM 委身于绝顶的余韵中、从松弛的肛門
+		SIF TEQUIP:PLAYER:避孕套 == 0 && BASE:排泄物
+			PRINTFORM 继精液之后
 		SELECTCASE BASE:排泄物
 		CASE 0
-			PRINTFORM 大量に注がれた精液
+			PRINTFORM 大量注入的精液
 		CASE IS <= 2
-			PRINTFORM 凄い臭いの%TEXTR("排泄物/汚物")%
+			PRINTFORM 散发着强烈气味的%TEXTR("排泄物/汚物")%
 		CASE IS <= 4
-			PRINTFORM 大量の%TEXTR("排泄物/汚物")%
+			PRINTFORM 大量的%TEXTR("排泄物/汚物")%
 		CASE IS <= 6
-			PRINTFORM 数日分はあろうかという%TEXTR("排泄物/汚物")%
+			PRINTFORM 有几天的份儿的%TEXTR("排泄物/汚物")%
 		CASEELSE
-			PRINTFORM 小山が出来るほどの%TEXTR("排泄物/汚物")%
+			PRINTFORM 像制造一座小山一般的%TEXTR("排泄物/汚物")%
 		ENDSELECT
-		PRINTFORMW をひりだしながら気持ち良さそう%TEXTR("な吐息を漏ら/に")%している…
+		PRINTFORMW 看起来很舒服%TEXTR("地喘息着/的样子")%…
 		;排泄した時のSOURCEを加算
 		CALL SETFLAG, "排泄"
 		CALL SOURCE_COM136, 100
 		CALL CALC_SOURCE
 		CALL MARK_GOT_CHECK
 	ELSE
-		PRINTFORM %CALLNAME:TARGET%は
+		PRINTFORM %CALLNAME:TARGET%
 		SIF MAX(NOWEX:Ｃ絶頂, NOWEX:Ｖ絶頂, NOWEX:Ａ絶頂, NOWEX:Ｂ絶頂, NOWEX:Ｍ絶頂, NOWEX:尿道絶頂) >= 2
-			PRINTFORM 激しい
-		PRINTFORM 絶頂の余韻に身を委ね、
-		IF NOWEX:絶頂お漏らし && PENIS(TARGET) == 0
-			PRINTFORM 緩んだ股間から%TEXTR("ジョロジョロ/チョロチョロ")%とおしっこを垂れ流しながら
+			PRINTFORM 剧烈
+		PRINTFORM 委身于绝顶的余韵中、
+		IF NOWEX:絶頂漏尿 && PENIS(TARGET) == 0
+			PRINTFORM 尿液从放松的股間中%TEXTR("汩汩/哗哗")%流下的同时
 		ELSEIF COND("脚の使用") == 0 || RAND:2 == 0 || TEQUIP:拘束
 		ELSE
-			PRINTFORM だらしなく脚を開いて
+			PRINTFORM 懒散地张開双脚
 		ENDIF
-		PRINTFORMW 気持ち良さそう%TEXTR("な吐息を漏ら/に")%している…
+		PRINTFORMW 看起来很舒服%TEXTR("地喘息着/的样子")%…
 	ENDIF
-CASE "プラグ無し浣腸イベント"
+CASE "塞子没有浣腸イベント"
 	PRINTFORMW 。
-	PRINTFORMW ……そして
+	PRINTFORMW ……然后
 	IF NOWEX:絶頂数合計
-		PRINTFORM 絶頂の快楽に耐え切れなかったのか、
+		PRINTFORM 难道无法忍受这绝顶的快乐吗？
 	ELSE
 		IF CUP:快Ａ >= 1000
-			PRINTFORM アナルへの刺激に耐え切れなかったのか、
+			PRINTFORM 难道无法忍受对肛門的刺激吗？
 		ELSE
-			PRINTFORM 便意を堪え切れなくなってしまったのか、
+			PRINTFORM 是不是忍不住想要大便了？
 		ENDIF
 	ENDIF
-	PRINTFORM %CALLNAME:TARGET%は
+	PRINTFORM %CALLNAME:TARGET%
 	SELECTCASE BASE:排泄物
 	CASE 0
-		PRINTFORMW 腸内に大量に注がれた精液を肛門からドロドロと漏らしてしまった…
+		PRINTFORMW 腸内被大量注入的精液从肛門里黏黏糊糊地漏了出来…
 	CASE IS <= 4
-		PRINTFORMW \@ TEQUIP:PLAYER:コンドーム == 0 ? 精液で彩られた # \@腸内の汚物を肛門から撒き散らしてしまった…
+		PRINTFORMW \@ TEQUIP:PLAYER:避孕套 == 0 ? 被精液染色 # \@腸内的汚物从肛門排出去了…
 	CASE IS <= 6
-		PRINTFORMW 腸内に溜められていた数日分はあろうかという汚物を\@ TEQUIP:PLAYER:コンドーム == 0 ? 精液と共に # \@凄い勢いでぶちまけてしまった…
+		PRINTFORMW 腸内积存了几天的汚物\@ TEQUIP:PLAYER:避孕套 == 0 ? 和精液一起 # \@被气势磅礴地排出了…
 	CASEELSE
-		PRINTFORMW \@ TEQUIP:PLAYER:コンドーム == 0 ? 精液塗れにされた # \@\@ RAND:2 ? 排泄物 # 腸内の汚物 \@を盛大にぶちまけてしまった
-		PRINTFORMW しばらく便秘気味だったのか、始めに軟らかめのモノが凄い勢いで飛び出てきた後に、\@ RAND:2 ? いかにも硬そうで # 一本に繋がった \@太いチョコバーのような汚物がゆっくりと時間をかけて肛門を押し広げながらひり出されている…
+		PRINTFORMW \@ TEQUIP:PLAYER:避孕套 == 0 ? 涂上精液的 # \@\@ RAND:2 ? 排泄物 # 腸内的汚物 \@被盛大地排泄出去了
+		PRINTFORMW 也许是因为便秘的原因、最開始很软的东西以很厉害的气势飞了出来之後、\@ RAND:2 ? 看上去很硬的 # 连成一条的 \@像粗巧克力棒一样的污物用了一些时间慢慢地推開肛門出来了…
 	ENDSELECT
 
 	;排泄した時のSOURCEを加算
@@ -490,106 +490,106 @@ CASE "プラグ無し浣腸イベント"
 	CALL MARK_GOT_CHECK
 CASE "中出し後くぱぁ"
 	PRINTFORMW 。
-	PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の視線に気付くと、
+	PRINTFORM %CALLNAME:TARGET%注意到%CALLNAME:PLAYER%的视线、
 	IF TFLAG:地の文分岐 == 1
-		PRINTFORM 恥ずかしそうに笑顔を浮かべながら、
-		IF TEQUIP:PLAYER:コンドーム
-			PRINTFORM %CALLNAME:PLAYER%のペニスから精液を扱き出したばかりの
+		PRINTFORM 害羞地笑着、
+		IF TEQUIP:PLAYER:避孕套
+			PRINTFORM 刚刚从%CALLNAME:PLAYER%的阴茎中榨出精液
 		ELSEIF RAND:3 == 0 && EXPGAIN_SEMEN >= 3
-			PRINTFORM いっぱい中に出された
+			PRINTFORM 榨出了一大堆
 		ELSE
-			PRINTFORM %TEXTR("精液にまみれた/中出し直後で精液を垂らしている")%
+			PRINTFORM %TEXTR("精液充满的/中出し直後で精液を垂らしている")%
 		ENDIF
 		SIF AGE(TARGET) == 1 && SHOOT("尿道") == 0
-			PRINTFORM 子供っぽい
-		PRINTFORMW %CALLNAME_HOLE%を見易い様に指先で広げてきた…
+			PRINTFORM 孩子气、幼稚
+		PRINTFORMW 为了让%CALLNAME_HOLE%更容易看见而用手指伸展開来…
 	ELSEIF TFLAG:地の文分岐 == 2
-		PRINTFORM 羞恥に手で顔を隠しながら、
+		PRINTFORM 羞耻地用手遮着脸、
 		IF RAND:2
-			PRINTFORMW 脚を広げてトロトロの恥ずかしい部分を見せてきた…
+			PRINTFORMW 张開双腿、露出了耻丘的害羞部分……
 		ELSE
-			PRINTFORMW 弛緩と緊張を繰り返して\@ TEQUIP:PLAYER:コンドーム ? ヒクつく # 精液を溢れさせている\@%HOLE%を見せてきた…
+			PRINTFORMW \@ TEQUIP:PLAYER:避孕套 ? 因兴奋而 # 溢出精液\@重复着松弛和收紧动作的%HOLE%露了出来…
 		ENDIF
 	ELSEIF TFLAG:地の文分岐 == 3
-		PRINTFORM %GAPING_HOLE%を%TEXTR("押し広げて/指で開いて、")%
-		IF ( (SHOOT("膣内") && TALENT:淫壷) || (SHOOT("アナル") && TALENT:尻穴狂い)  || (SHOOT("尿道") && TALENT:尿道狂い) ) && RAND:3 == 0
-			PRINTFORM 貪欲に蠢く
-		ELSEIF ( (SHOOT("膣内") && ABL:Ｖ感覚 >= 3) || (SHOOT("アナル") && ABL:Ａ感覚 >= 3)  || (SHOOT("尿道") && TALENT:尿道性感) ) && RAND:3 == 0
-			PRINTFORM ヒクヒクしている
-		ELSEIF TEQUIP:PLAYER:コンドーム || RAND:3 == 0
-			PRINTFORM 肉欲に溺れた
+		PRINTFORM 将%GAPING_HOLE%%TEXTR("広開/用手指拨開、")%
+		IF ( (SHOOT("膣内") && TALENT:淫壷) || (SHOOT("肛門") && TALENT:尻穴狂い)  || (SHOOT("尿道") && TALENT:尿道狂) ) && RAND:3 == 0
+			PRINTFORM 贪婪地蠢动
+		ELSEIF ( (SHOOT("膣内") && ABL:Ｖ感覚 >= 3) || (SHOOT("肛門") && ABL:Ａ感覚 >= 3)  || (SHOOT("尿道") && TALENT:尿道性感) ) && RAND:3 == 0
+			PRINTFORM 嘻嘻哈哈
+		ELSEIF TEQUIP:PLAYER:避孕套 || RAND:3 == 0
+			PRINTFORM 沉溺于肉欲
 		ELSE
-			PRINTFORM 精液にまみれた
+			PRINTFORM 沾满精液
 		ENDIF
 		IF SHOOT("尿道")
-			PRINTFORM 様子を
+			PRINTFORM 观察情况
 		ELSEIF ABL_GAPEHOLE >= 3 && RAND:3 == 0
-			PRINTFORM 肉の洞窟
-			IF ( (SHOOT("膣内") && TALENT:淫壷) || (SHOOT("アナル") && TALENT:尻穴狂い) ) && RAND:3 == 0
+			PRINTFORM 肉洞
+			IF ( (SHOOT("膣内") && TALENT:淫壷) || (SHOOT("肛門") && TALENT:尻穴狂い) ) && RAND:3 == 0
 				IF SHOOT("膣内")
-					PRINTFORM の奥の子宮口まで
+					PRINTFORM 深处的子宫口
 				ELSE
-					PRINTFORM の奥まで
+					PRINTFORM 直到深处
 				ENDIF
 			ELSE
-				PRINTFORM を
+				PRINTFORM 
 			ENDIF
 		ELSEIF PALAM:欲情 >= 3000 && RAND:2 == 0
 			IF SHOOT("膣内")
-				PRINTFORM 膣内を
+				PRINTFORM 阴道内
 			ELSE
-				PRINTFORM 直腸の粘膜を
+				PRINTFORM 直肠粘膜
 			ENDIF
 		ELSE
-			PRINTFORM 様子を
+			PRINTFORM 观察情况
 		ENDIF
-		PRINTFORMW 見せ付けてきた…
+		PRINTFORMW 清楚地展示著……
 	ELSE
-		PRINTFORM 脚をさらに広げて、
-		IF AGE(TARGET) < 3 || ABL:Ａ拡張 < 2 || SHOOT("アナル") || RAND:3 == 0
-			PRINTFORM 恥ずかしい部分
+		PRINTFORM 腿再度张開、
+		IF AGE(TARGET) < 3 || ABL:Ａ拡張 < 2 || SHOOT("肛門") || RAND:3 == 0
+			PRINTFORM 害羞的部分
 		ELSEIF SHOOT("尿道")
 			IF PENIS(TARGET) == 0 && CALCF("Ｃ発情") >= 3 && RAND:4 == 0
-				IF TALENT:クリピアス && RAND:2
-					PRINTFORM ピアスがお洒落な\@ TALENT:淫核 ? 自慢の # 充血した\@淫核の勃起具合
+				IF TALENT:陰蒂環 && RAND:2
+					PRINTFORM 显眼的\@ TALENT:淫核 ?自满的#充血了\@淫核勃起状况
 				ELSE
-					PRINTFORM 激しい興奮でぷっくりと膨らんでいるクリトリス
+					PRINTFORM 由于激烈的兴奋而膨胀的阴蒂
 				ENDIF
 			ELSEIF TALENT:好色 + TALENT:淫乱 && RAND:3 == 0
-				PRINTFORM 緩んで尿を溢しながらヒクつくオシッコの穴
+				PRINTFORM 一边缓慢地溢出尿一边发痒的oshiko的孔
 			ELSEIF TALENT:尿道性感 && RAND:3 == 0
-				PRINTFORM 与えられた快感でだらしなく綻んでいる尿道口
+				PRINTFORM 被给予的快感不检点的尿道口
 			ELSE
 				PRINTFORM %TEXTR("犯されたてでバカになって開いたままの粘膜/埋めていたモノが無くなって口が閉じきれていないオシッコの穴")%
 			ENDIF
 		ELSE
 			IF PENIS(TARGET) == 0 && CALCF("Ｃ発情") >= 3 && RAND:4 == 0
-				IF TALENT:クリピアス && RAND:2
-					PRINTFORM ピアスがお洒落な\@ TALENT:淫核 ? 自慢の # 充血した\@淫核の勃起具合
+				IF TALENT:陰蒂環 && RAND:2
+					PRINTFORM 显眼的\@ TALENT:淫核 ?自满的#充血了\@淫核勃起状况
 				ELSE
-					PRINTFORM 激しい興奮でぷっくりと膨らんでいるクリトリス
+					PRINTFORM 由于激烈的兴奋而膨胀的阴蒂
 				ENDIF
 			ELSEIF TALENT:好色 + TALENT:淫乱 && RAND:3 == 0
-				PRINTFORM 泡立った粘液を溢しながらヒクつくアソコ
+				PRINTFORM 一边溢出起泡的粘液一边发出光泽
 			ELSEIF ABL:Ｖ感覚 >= 3 && RAND:3 == 0
-				PRINTFORM 与えられた快感でだらしなく綻んでいるアソコ
+				PRINTFORM 被给予的快感不检点地绽放的那个
 			ELSE
-				PRINTFORM %TEXTR("犯されたてで充血した陰唇が開いたままのアソコ/埋めていたモノが無くなって口が閉じきれていない膣口")%
+				PRINTFORM %TEXTR("犯されたてで充血した陰唇が開いたままの阴部/埋めていたモノが無くなって口が閉じきれていない膣口")%
 			ENDIF
 		ENDIF
-		PRINTFORMW を見せ付けてきた…
+		PRINTFORMW 被清楚地展示著…
 	ENDIF
-CASE "中出し後恥じらい"
+CASE "中出し後害羞"
 	PRINTFORMW 。
-	PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の視線に気付くと、
+	PRINTFORM %CALLNAME:TARGET%注意到%CALLNAME:PLAYER%的视线、
 	IF TFLAG:地の文分岐 == 1
-		PRINTFORMW 慌てて恥ずかしい部分を手で隠してしまった…
+		PRINTFORMW 慌忙用手遮住了害羞的部分……
 	ELSE
 		PRINTFORMW そそくさと体勢を立て直し始めた…
 	ENDIF
 CASE "中出し後精液掻き出し"
 	PRINTFORMW 。
-	PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の視線に気付くと、
+	PRINTFORM %CALLNAME:TARGET%注意到%CALLNAME:PLAYER%的视线、
 	IF EXPGAIN_SEMEN >= 9
 		PRINTFORM %GAPING_HOLE%から溢れる大量の精液を手で受け止めて、
 	ELSEIF EXPGAIN_SEMEN >= 4
@@ -598,20 +598,20 @@ CASE "中出し後精液掻き出し"
 		PRINTFORM %GAPING_HOLE%に指先を差し入れて精液をかき出し、
 	ENDIF
 	IF ABL:精液中毒 >= 5 && RAND:2 == 0
-		PRINTFORM 恍惚とした笑みを浮かべながら
+		PRINTFORM 浮现出恍惚的笑容
 	ELSEIF ABL:精液中毒 >= 3 && RAND:2 == 0
-		PRINTFORM 興奮した面持ちで
+		PRINTFORM 带着兴奋的神情
 	ELSE
-		PRINTFORM 美味しそうに
+		PRINTFORM 看上去很美味一般
 	ENDIF
 	IF EXPGAIN_SEMEN >= 9 && RAND:2 == 0
-		PRINTFORM 喉を潤す
+		PRINTFORM 润喉
 	ELSEIF EXPGAIN_SEMEN >= 4
-		PRINTFORM 味わう
+		PRINTFORM 品尝
 	ELSE
-		PRINTFORM 舐める
+		PRINTFORM 舔舐
 	ENDIF
-	PRINTFORMW 様を見せ付けてきた…
+	PRINTFORMW 的样子展示着…
 	;口に精液汚れ
 	CALL ADD_STAIN, TARGET, "Ｍ", "精液"
 CASEELSE
@@ -624,33 +624,33 @@ ENDSELECT
 ;フェラする
 ;--------------------------------------------------------
 IF SELECTCOM == 4
-	IF TEQUIP:押し倒し
-		IF ABL:サドっ気 >= 5 && STAIN:Ｐ !=  SET_STAIN(0, "Ｐ") && RAND:3
-			PRINTFORMW %CALLNAME:TARGET%は汚れたペニスを%CALLNAME:PLAYER%の口内にゴシゴシ擦りつけ、汚れを落とした…
+	IF TEQUIP:推倒
+		IF ABL:施虐属性 >= 5 && STAIN:Ｐ !=  SET_STAIN(0, "Ｐ") && RAND:3
+			PRINTFORMW %CALLNAME:TARGET%把弄脏了的阴茎在%CALLNAME:PLAYER%的口内咯吱咯吱地擦、去除了污秽…
 			STAIN:Ｐ =  SET_STAIN(0, "Ｐ")
 		;PLAYERがあなたなら、汚れ無視が必要
-		ELSEIF NO:PLAYER == 0 && ABL:PLAYER:技巧 + ABL:PLAYER:マゾっ気 >= 5 && TALENT:PLAYER:汚れ無視 && STAIN:Ｐ !=  SET_STAIN(0, "Ｖ") && RAND:3
-			PRINTFORM %CALLNAME:PLAYER%は、
+		ELSEIF NO:PLAYER == 0 && ABL:PLAYER:技巧 + ABL:PLAYER:受虐属性 >= 5 && TALENT:PLAYER:汚臭無視 && STAIN:Ｐ !=  SET_STAIN(0, "Ｖ") && RAND:3
+			PRINTFORM %CALLNAME:PLAYER%呢？
 			IF CHECK_STAIN(STAIN:Ｐ, "Ａ")
-				PRINTFORM 腸液で汚れた
+				PRINTFORM 被肠液弄脏了
 			ELSEIF CHECK_STAIN(STAIN:Ｐ, "精液")
-				PRINTFORM 精液にまみれた
+				PRINTFORM 沾满精液
 			ELSEIF CHECK_STAIN(STAIN:Ｐ, "Ｖ")
-				PRINTFORM 愛液で汚れた
+				PRINTFORM 被爱液弄脏了
 			ENDIF
-			PRINTFORMW %CALLNAME:TARGET%のペニスを念入りに舌で掃除して、ゴクリと飲み込んだ…
+			PRINTFORMW 精心打扫%CALLNAME:TARGET%的阴茎、咕噜咕噜地咽了下去……
 			CALL RESET_STAIN_EX, "Ｐ", TARGET
 			STAIN:PLAYER:Ｍ = 0
-		ELSEIF ABL:PLAYER:技巧 + ABL:PLAYER:奉仕精神 + ABL:PLAYER:マゾっ気 >= 8 && STAIN:Ｐ != 2 && RAND:3
-			PRINTFORM %CALLNAME:PLAYER%は、
+		ELSEIF ABL:PLAYER:技巧 + ABL:PLAYER:奉仕精神 + ABL:PLAYER:受虐属性 >= 8 && STAIN:Ｐ != 2 && RAND:3
+			PRINTFORM %CALLNAME:PLAYER%呢？
 			IF CHECK_STAIN(STAIN:Ｐ, "Ａ")
-				PRINTFORM 腸液で汚れた
+				PRINTFORM 被肠液弄脏了
 			ELSEIF CHECK_STAIN(STAIN:Ｐ, "精液")
-				PRINTFORM 精液にまみれた
+				PRINTFORM 沾满精液
 			ELSEIF CHECK_STAIN(STAIN:Ｐ, "Ｖ")
-				PRINTFORM 愛液で汚れた
+				PRINTFORM 被爱液弄脏了
 			ENDIF
-			PRINTFORMW %CALLNAME:TARGET%のペニスを念入りに舌で掃除して、ゴクリと飲み込んだ…
+			PRINTFORMW 精心打扫%CALLNAME:TARGET%的阴茎、咕噜咕噜地咽了下去……
 			STAIN:Ｐ = SET_STAIN(0, "Ｖ")
 			STAIN:PLAYER:Ｍ = 0
 		ENDIF
@@ -661,17 +661,17 @@ ENDIF
 ;指挿入れ＆Gスポット刺激
 ;--------------------------------------------------------
 IF SELECTCOM == 8
-	IF NOWEX:Ｖ絶頂 && TALENT:恥じらい && TEQUIP:口枷 == 0 && EXP_GAIN("指舐め経験") == 0
-		IF TEQUIP:バイブ
-			PRINTFORMW 快感に蕩けている%CALLNAME:TARGET%の口元に愛液で根元まで濡れ光るバイブを差し出すと、%CALLNAME:TARGET%は恥ずかしそうにぺろっと舐めた…
+	IF NOWEX:Ｖ絶頂 && TALENT:害羞 && TEQUIP:口枷 == 0 && EXP_GAIN("舔指経験") == 0
+		IF TEQUIP:振動棒
+			PRINTFORMW 在快感融化的%CALLNAME:TARGET%的嘴角用爱液将湿润到根部的阴茎伸出、%CALLNAME:TARGET%害羞地舔了一下……
 			;キャラの口にアソコの汚れが追加
 			CALL ADD_STAIN, TARGET, "Ｍ", "Ｖ"
 		ELSE
-			PRINTFORML アソコから抜いた指を口元に差し出された%CALLNAME:TARGET%は、快感に蕩けた表情のままにぺろっと舐めた…
+			PRINTFORML 将从阴部拔出的手指伸向嘴角的%CALLNAME:TARGET%、就这么带着快感蕩漾的表情舔了起来…
 			;キャラの口⇔調教者の指の汚れが移動
 			CALL EQ_STAIN, TARGET, "Ｍ", PLAYER, "手"
 		ENDIF
-		EXP:指舐め経験 += 1
+		EXP:舔指経験 += 1
 	ENDIF
 ENDIF
 ;--------------------------------------------------------
@@ -679,20 +679,20 @@ ENDIF
 ;--------------------------------------------------------
 IF SELECTCOM == 98 || (SELECTCOM == 99 && PENIS(PLAYER) == 0)
 	;アソコをお掃除…奉仕精神、技巧の合計値が8以上で実行値を30以上上回っているなら汚れをなめ取る
-	IF ABL:技巧 + ABL:奉仕精神 >= 8 && TCVAR:やる気 >= 30 && STAIN:PLAYER:Ｖ != SET_STAIN(0, "Ｖ")
+	IF ABL:技巧 + ABL:奉仕精神 >= 8 && TCVAR:干劲 >= 30 && STAIN:PLAYER:Ｖ != SET_STAIN(0, "Ｖ")
 		CALL OSOUJI_V
 	ENDIF
 ENDIF
 ;--------------------------------------------------------
 ;尿道ブジー
 ;--------------------------------------------------------
-IF SELECTCOM == 151 && TEQUIP:尿道ブジー
+IF SELECTCOM == 151 && TEQUIP:尿道探针
 	;オシッコが溜まっているなら排尿
 	IF BASE:尿意 >= 10000
 		IF GETBIT(TEQUIP:筋弛緩剤, 1)
-			PRINTFORML %CALLNAME:TARGET%の尿道からブジーを引き抜くと、緩んだ穴からジョロジョロと尿が垂れ流された…
+			PRINTFORML 从%CALLNAME:TARGET%的尿道中拔出、从松弛的洞穴中咕噜咕噜地流出尿液……
 		ELSE
-			PRINTFORML %CALLNAME:TARGET%の尿道からブジーを引き抜き、雑菌を洗い流すために排尿させました
+			PRINTFORML 从%CALLNAME:TARGET%的尿道抽出、为了冲洗杂菌而使之排尿
 		ENDIF
 
 		;放尿のソース獲得
@@ -704,11 +704,11 @@ IF SELECTCOM == 151 && TEQUIP:尿道ブジー
 		BASE:尿意 = 0
 		;放尿
 		EXP:放尿経験 += 1
-		PRINTL 放尿経験＋１
+		PRINTL 小便经验+1
 		NOWEX:放尿 += 1
 		EX:放尿 += 1
 	ELSE
-		PRINTFORML %CALLNAME:PLAYER%は心行くまで%CALLNAME:TARGET%の尿道を虐めた後、ブジーを慎重に引き抜いた…
+		PRINTFORML %CALLNAME:PLAYER%在用心侵虐着%CALLNAME:TARGET%的尿道后、小心翼翼地拔出了阴茎……
 	ENDIF
-	TEQUIP:尿道ブジー = 0
+	TEQUIP:尿道探针 = 0
 ENDIF

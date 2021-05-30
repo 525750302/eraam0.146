@@ -9,7 +9,7 @@ CALL EX_ABLUP, TARGET
 ;-------------------------------------------------------------------------------------------------
 ;ネガティブな素質の克服
 ;-------------------------------------------------------------------------------------------------
-CALL SETFLAG, "反抗的消去", TARGET
+CALL SETFLAG, "叛逆消去", TARGET
 
 CALL EVENT_NEXTTIME
 
@@ -34,15 +34,15 @@ IF COND("恋慕と淫乱の自動獲得可能")
 ENDIF
 
 ;同棲できるようになったか
-SIF COND("合意：同棲") == 0 && COND("同棲可能")
-	CALL SETFLAG, "合意：同棲", TARGET
+SIF COND("合意：同居") == 0 && COND("同居可能")
+	CALL SETFLAG, "合意：同居", TARGET
 
 ;その他合意チェック
 CALL SETFLAG, "合意", TARGET
 
 ;助手化が可能になったか
 IF COND("助手可能") == 0 && ABL:信頼 >= 5 && ABL:技巧 >= 3
-	CALL PRINT_STR, @"%CALLNAME:TARGET%が_黄色_%TEXTS("助手の名称")%になれるように_なりました_W"
+	CALL PRINT_STR, @"%CALLNAME:TARGET%_黄色_成为了%TEXTS("助手の名称")%_ _W"
 	CFLAG:助手可能 = 1
 ENDIF
 
@@ -51,31 +51,31 @@ ENDIF
 ;MASTERの素質変動など
 @EVENTCHECK_M
 ;堕とした人数が1人以上で、謎の魅力が付く
-IF FLAG:陥落人数 && TALENT:MASTER:謎の魅力 == 0
-	PRINTFORMW 経験を積んだ%CALLNAME:MASTER%は【謎の魅力】を身につけた
-	TALENT:MASTER:謎の魅力 = 1
+IF FLAG:陥落人数 && TALENT:MASTER:謎之魅力 == 0
+	PRINTFORMW 在経験的积累下%CALLNAME:MASTER%获得了【謎之魅力】
+	TALENT:MASTER:謎之魅力 = 1
 ENDIF
 ;Ａ経験５００以上、Ａ拡張経験３５以上で尻穴狂い化
 IF EXP:MASTER:Ａ経験 >= 500 && EXP:MASTER:Ａ拡張経験 >= 35 && TALENT:MASTER:尻穴狂い == 0
-	PRINTFORMW 体の様子がおかしい…
-	PRINTFORML お尻が熱を持ち、疼いて仕方ない。
-	PRINTFORMW どうやら度重なる刺激によって%CALLNAME:MASTER%自身も快楽に目覚めてしまったようだ…
-	PRINTFORMW %CALLNAME:MASTER%は【尻穴狂い】になってしまった
+	PRINTFORMW 身体的情况有点奇怪…
+	PRINTFORML 屁股又热又舒服、疼得受不了。
+	PRINTFORMW 看起来在累积的刺激下%CALLNAME:MASTER%觉醒了自身新的快楽…
+	PRINTFORMW %CALLNAME:MASTER%获得了【尻穴狂い】
 	TALENT:MASTER:尻穴狂い = 1
 ENDIF
 ;Ｖ経験５００以上で淫壷化
 IF EXP:MASTER:Ｖ経験 >= 500 && TALENT:MASTER:淫壷 == 0
-	PRINTFORMW 体の様子がおかしい…
-	PRINTFORML 子宮付近が熱を持ち、疼いて仕方ない。
-	PRINTFORMW どうやら度重なる刺激によって%CALLNAME:MASTER%自身も快楽に目覚めてしまったようだ…
-	PRINTFORMW %CALLNAME:MASTER%は【淫壷】を獲得してしまった
+	PRINTFORMW 身体的情况有点奇怪…
+	PRINTFORML 子宮附近又热又舒服、疼得受不了。
+	PRINTFORMW 看起来在累积的刺激下%CALLNAME:MASTER%觉醒了自身新的快楽…
+	PRINTFORMW %CALLNAME:MASTER%获得了【淫壷】
 	TALENT:MASTER:淫壷 = 1
 ENDIF
 ;経験値によってリザレクションがレベルアップ
-IF EXP:MASTER:経験値 >= 300 && TALENT:MASTER:リザレクション < 200
-	TALENT:MASTER:リザレクション = 200
-	PRINTFORMW 身体の奥から活力が溢れ出るのを感じる……
-	CALL PRINT_STR, @"経験を積んだ%CALLNAME:MASTER%は_黄色_[%TALENT_NAME(GETNUM(TALENT, "リザレクション"), TALENT:MASTER:リザレクション)%]_を身につけた"
+IF EXP:MASTER:経験値 >= 300 && TALENT:MASTER:復活 < 200
+	TALENT:MASTER:復活 = 200
+	PRINTFORMW 感觉从身体深处涌出了活力……
+	CALL PRINT_STR, @"在経験的积累下%CALLNAME:MASTER%获得了_黄色_[%TALENT_NAME(GETNUM(TALENT, "復活"), TALENT:MASTER:復活)%]_"
 	FORCEWAIT
 ENDIF
 
@@ -111,14 +111,14 @@ CASE "週末", "能力変更"
 	VARSET LOCAL, 0, 0, 100
 	SELECTCASE ARGS
 	CASE "週末"
-		PRINTFORML 来週に備えて%CALLNAME:MASTER%の能力のLV変更を行います
-		PRINTFORML 可能な範囲で自由に変更してください
-		PRINTFORML (能力の表示上昇画面から、いつでも出来ます)
+		PRINTFORML 为了下周、进行%CALLNAME:MASTER%的能力的LV変更
+		PRINTFORML 请在可能的範囲内自由変更
+		PRINTFORML (在能力の表示上昇画面里点进来、什么時候都可以进行)
 	CASEELSE
-		PRINTFORML %CALLNAME:MASTER%の能力のLV変更を行います
-		PRINTFORML 可能な範囲で自由に変更してください
+		PRINTFORML 进行%CALLNAME:MASTER%的能力的LV変更
+		PRINTFORML 请在可能的範囲内自由変更
 	ENDSELECT
-	CALL PRINT_STR, "イエロー_※技巧LVの上昇は指使い等、～使いのLVの合計が必要値を満たす事が条件となります※_L_"
+	CALL PRINT_STR, "イエロー_※技巧LV的上昇是指靈活等、～使い的LV的合計满足必要値的条件※_L_"
 
 	MEMO_FLAG = FLAG:項目OFF
 	CLEARBIT FLAG:項目OFF, 12
@@ -128,32 +128,32 @@ CASE "週末", "能力変更"
 	DRAWLINE
 
 	;技巧ＬＶが上げられるかどうか
-	MAXABL_TECH = MIN(99, (ABL:MASTER:舌使い+ABL:MASTER:指使い+ABL:MASTER:腰使い+ABL:MASTER:魔乳)/2)
+	MAXABL_TECH = MIN(99, (ABL:MASTER:舌靈活+ABL:MASTER:指靈活+ABL:MASTER:腰靈活+ABL:MASTER:魔乳)/2)
 
 	SIF ABL:MASTER:技巧 < MAX(MAXABL_TECH, MEMO_MASTERABL)
 		LOCAL:0 = 1
 	PRINTFORM  [\@ LOCAL:0 ?  {0, 2} # × \@] 技巧＋1LV
 	SIF LOCAL:0 == 0 && ABL:MASTER:技巧 < 99
-		PRINTFORM 　次のLVに必要な～使いLVの合計：あと{(ABL:MASTER:技巧 + 1)*2 - (ABL:MASTER:舌使い+ABL:MASTER:指使い+ABL:MASTER:腰使い+ABL:MASTER:魔乳)}
+		PRINTFORM 　升到次LV需要～各个LV的总和：还需要{(ABL:MASTER:技巧 + 1)*2 - (ABL:MASTER:舌靈活+ABL:MASTER:指靈活+ABL:MASTER:腰靈活+ABL:MASTER:魔乳)}
 	PRINTL 
 
 	SIF ABL:MASTER:技巧 > 0
 		LOCAL:1 = 1
 	PRINTFORML  [\@ LOCAL:1 ?  {1, 2} # × \@] 技巧－1LV
-	SIF ABL:MASTER:マゾっ気 < 5
+	SIF ABL:MASTER:受虐属性 < 5
 		LOCAL:2 = 1
-	PRINTFORML  [\@ LOCAL:2 ?  {2, 2} # × \@] マゾっ気＋1LV
-	SIF ABL:MASTER:マゾっ気 > 0
+	PRINTFORML  [\@ LOCAL:2 ?  {2, 2} # × \@] 受虐属性＋1LV
+	SIF ABL:MASTER:受虐属性 > 0
 		LOCAL:3 = 1
-	PRINTFORML  [\@ LOCAL:3 ?  {3, 2} # × \@] マゾっ気－1LV
-	SIF ABL:MASTER:サドっ気 < 5
+	PRINTFORML  [\@ LOCAL:3 ?  {3, 2} # × \@] 受虐属性－1LV
+	SIF ABL:MASTER:施虐属性 < 5
 		LOCAL:4 = 1
-	PRINTFORML  [\@ LOCAL:4 ?  {4, 2} # × \@] サドっ気＋1LV
-	SIF ABL:MASTER:サドっ気 > 0
+	PRINTFORML  [\@ LOCAL:4 ?  {4, 2} # × \@] 施虐属性＋1LV
+	SIF ABL:MASTER:施虐属性 > 0
 		LOCAL:5 = 1
-	PRINTFORML  [\@ LOCAL:5 ?  {5, 2} # × \@] サドっ気－1LV
+	PRINTFORML  [\@ LOCAL:5 ?  {5, 2} # × \@] 施虐属性－1LV
 	IF CONFIG("ＶＡ拡張の手動ＬＶＵＰ")
-		IF TALENT:MASTER:オトコ == 0
+		IF TALENT:MASTER:男性 == 0
 			SIF CALCF("Ｖ拡張の上限", MASTER) > ABL:MASTER:Ｖ拡張
 				LOCAL:10 = 1
 			PRINTFORML  [\@ LOCAL:10 ?  {10, 2} # × \@] Ｖ拡張＋1LV
@@ -163,8 +163,8 @@ CASE "週末", "能力変更"
 		PRINTFORML  [\@ LOCAL:11 ?  {11, 2} # × \@] Ａ拡張＋1LV
 	ENDIF
 
-	PRINTFORML  [98] 技巧を部員全員の平均値に合わせる
-	PRINTFORML  [99] 技巧を上げられるだけ上げる
+	PRINTFORML  [98] 使技巧符合全体部員的平均値
+	PRINTFORML  [99] 尽可能提升技巧
 	PRINTFORML [100] 終了
 
 	CALL INPUT_SELECT, 12, 98, 99, 100
@@ -195,13 +195,13 @@ CASE "週末", "能力変更"
 		CASE 1
 			ABL:MASTER:技巧 -= 1
 		CASE 2
-			ABL:MASTER:マゾっ気 += 1
+			ABL:MASTER:受虐属性 += 1
 		CASE 3
-			ABL:MASTER:マゾっ気 -= 1
+			ABL:MASTER:受虐属性 -= 1
 		CASE 4
-			ABL:MASTER:サドっ気 += 1
+			ABL:MASTER:施虐属性 += 1
 		CASE 5
-			ABL:MASTER:サドっ気 -= 1
+			ABL:MASTER:施虐属性 -= 1
 		CASE 10
 			ABL:MASTER:Ｖ拡張 += 1
 		CASE 11
@@ -228,8 +228,8 @@ MEMO_LINECOUNT = LINECOUNT
 DRAWLINE
 FOR LCOUNT, 60, 64
 	IF ABL:ARG:LCOUNT > LOCAL:LCOUNT
-		PRINTFORML %NAME:ARG%の%ABLNAME:LCOUNT%のLVが上がった！
-		PRINTFORMW %ABLNAME:LCOUNT%がLV{ABL:ARG:LCOUNT}になった！
+		PRINTFORML %NAME:ARG%的%ABLNAME:LCOUNT%的LV提升了！
+		PRINTFORMW %ABLNAME:LCOUNT%的LV变成了{ABL:ARG:LCOUNT}！
 		PRINTFORML 
 	ENDIF
 NEXT
@@ -239,7 +239,7 @@ LOCAL = TALENT:ARG:吸精体質
 CALL GET_EXTALENT, ARG
 
 IF TALENT:ARG:吸精体質 > LOCAL
-	PRINTFORMW %CALLNAME:ARG%の吸精体質が{TALENT:ARG:吸精体質}LVに上がった！
+	PRINTFORMW %CALLNAME:ARG%的吸精体質上升到了LV{TALENT:ARG:吸精体質}！
 	PRINTFORML 
 ENDIF
 

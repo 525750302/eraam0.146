@@ -3,7 +3,7 @@
 ;もがく
 CALL PRINT_TRAIN_NAME(SELECTCOM)
 
-STR:前回コマンド = %STR:今回コマンド%
+STR:前回指令 = %STR:今回指令%
 
 ;-------------------------------------------------
 ;ソースの計算
@@ -20,21 +20,21 @@ SIF TFLAG:もがき数 <= 0
 STR:実行値 = 
 COMORDER_280 = 0
 
-IF ABL:サドっ気
-	COMORDER_280 += MIN(ABL:サドっ気, 5)
-	STR:実行値 = %STR:実行値% + サドっ気LV{ABL:サドっ気}({MIN(ABL:サドっ気, 5)})
+IF ABL:施虐属性
+	COMORDER_280 += MIN(ABL:施虐属性, 5)
+	STR:実行値 = %STR:実行値% + 施虐属性LV{ABL:施虐属性}({MIN(ABL:施虐属性, 5)})
 ENDIF
 IF TALENT:強気
 	COMORDER_280 += 1
 	STR:実行値 = %STR:実行値% + 強気(1)
 ENDIF
-IF TALENT:長身
+IF TALENT:高大
 	COMORDER_280 += 1
-	STR:実行値 = %STR:実行値% + 長身(1)
+	STR:実行値 = %STR:実行値% + 高大(1)
 ENDIF
-IF TALENT:力持ち
-	COMORDER_280 += TALENT:力持ち*3
-	STR:実行値 = %STR:実行値% + %TALENT_NAME(GETNUM(TALENT, "力持ち"), TALENT:力持ち)%({TALENT:力持ち*3})
+IF TALENT:大力士
+	COMORDER_280 += TALENT:大力士*3
+	STR:実行値 = %STR:実行値% + %TALENT_NAME(GETNUM(TALENT, "大力士"), TALENT:大力士)%({TALENT:大力士*3})
 ENDIF
 IF TALENT:好色
 	COMORDER_280 += 1
@@ -46,9 +46,9 @@ IF CHECK_SHIRT("体操服")
 	STR:実行値 = %STR:実行値% + 体操服(2)
 ENDIF
 ;二人で押し倒してるなら
-IF TEQUIP:Ｗ押し倒し
+IF TEQUIP:Ｗ推倒
 	COMORDER_280 += 5
-	STR:実行値 = %STR:実行値% + Ｗ押し倒し中(5)
+	STR:実行値 = %STR:実行値% + Ｗ推倒中(5)
 ENDIF
 ;縛られているなら
 IF TEQUIP:PLAYER:拘束 || STATE("バインド", PLAYER)
@@ -67,9 +67,9 @@ IF PREVEX("射精", PLAYER)
 ENDIF
 
 ;マイナス補正はこの後
-IF TALENT:小柄
+IF TALENT:娇小
 	COMORDER_280 -= 1
-	STR:実行値 = %STR:実行値% - 小柄(1)
+	STR:実行値 = %STR:実行値% - 娇小(1)
 ENDIF
 ;前ターンの絶頂具合
 IF PREVEX("絶頂数合計")
@@ -92,16 +92,16 @@ ELSEIF BASE:体力 < MAXBASE:体力/2
 ENDIF
 IF CFLAG:マグロ
 	COMORDER_280 -= 10
-	STR:実行値 = %STR:実行値% - やる気なし(10)
+	STR:実行値 = %STR:実行値% - 干劲无(10)
 ENDIF
 ;PLAYER側の補正
 IF ABL:PLAYER:技巧 - ABL:技巧
 	COMORDER_280 -= ABL:PLAYER:技巧 - ABL:技巧
 	STR:実行値 = %STR:実行値% \@ ABL:PLAYER:技巧 - ABL:技巧 > 0 ? - # + \@ 技巧差({ABS(ABL:PLAYER:技巧 - ABL:技巧)})
 ENDIF
-IF TALENT:PLAYER:力持ち
-	COMORDER_280 -= TALENT:PLAYER:力持ち*3
-	STR:実行値 = %STR:実行値% - %CALLNAME:PLAYER%が%TALENT_NAME(GETNUM(TALENT, "力持ち"), TALENT:PLAYER:力持ち)%({TALENT:PLAYER:力持ち*3})
+IF TALENT:PLAYER:大力士
+	COMORDER_280 -= TALENT:PLAYER:大力士*3
+	STR:実行値 = %STR:実行値% - %CALLNAME:PLAYER%が%TALENT_NAME(GETNUM(TALENT, "大力士"), TALENT:PLAYER:大力士)%({TALENT:PLAYER:大力士*3})
 ENDIF
 IF TFLAG:もがき数
 	COMORDER_280 -= TFLAG:もがき数*3
@@ -126,28 +126,28 @@ PRINTL
 IF COMORDER_280 <= 0
 	TFLAG:もがき数 = 0
 	IF TEQUIP:PLAYER:拘束 || STATE("バインド", PLAYER)
-		PRINTFORMW %CALLNAME:PLAYER%は何とか拘束から逃れた！
+		PRINTFORMW %CALLNAME:PLAYER%想辦法從拘束中逃離了！
 		TEQUIP:PLAYER:拘束 = 0
 		CALL REMOVE_STATE, PLAYER, "バインド"
 	ELSE
-		PRINTFORM %CALLNAME:PLAYER%は
+		PRINTFORM %CALLNAME:PLAYER%将
 		SIF PREVEX("絶頂数合計")
-			PRINTFORM 、絶頂の余韻に浸っている%CALLNAME:TARGET%の隙を突いて
-		PRINTFORMW 主導権を取り返した！
-		CVARSET TEQUIP, GETNUM(TEQUIP, "押し倒し")
+			PRINTFORM 從沉浸在絕頂的餘韻中的%CALLNAME:TARGET%的空隙中發起突襲、
+		PRINTFORMW 將主導權奪回了！
+		CVARSET TEQUIP, GETNUM(TEQUIP, "推倒")
 		CALL KOJO_MESSAGE_COM
 		;Ｗ押し倒し等での口上処理
 		CALL KOJO_MESSAGE_COM_MULTI
 		;助手とのインサートはここで解消
-		CALL SETFLAG, "Ｗ押し倒し解除"
-		CALL SETFLAG, "今回コマンド"
+		CALL SETFLAG, "Ｗ推倒解除"
+		CALL SETFLAG, "今回指令"
 
 		;TARGETにPLAYERがインサート中なら正常位に移行
-		IF INSERT("Ｖインサート", TARGET, PLAYER)
+		IF INSERT("Ｖ挿入", TARGET, PLAYER)
 			CALL SET_INSERT, TARGET, PLAYER, 60
-		ELSEIF INSERT("Ａインサート", TARGET, PLAYER)
+		ELSEIF INSERT("Ａ挿入", TARGET, PLAYER)
 			CALL SET_INSERT, TARGET, PLAYER, 70
-		ELSEIF INSERT("尿道インサート", TARGET, PLAYER)
+		ELSEIF INSERT("尿道挿入", TARGET, PLAYER)
 			CALL SET_INSERT, TARGET, PLAYER, 83
 		ENDIF
 	ENDIF
@@ -155,31 +155,31 @@ IF COMORDER_280 <= 0
 ELSE
 	;前回の調教によって文章変化
 	;顔面騎乗系
-	IF PREVCOM == 1 || PREVCOM == 9 || TEQUIP:顔面騎乗 || TEQUIP:シックスナイン
-		PRINTFORM 顔に跨っている%CALLNAME:TARGET%を押しのけて、
+	IF PREVCOM == 1 || PREVCOM == 9 || TEQUIP:面部騎乗 || TEQUIP:六九式
+		PRINTFORM 從跨坐在臉上的%CALLNAME:TARGET%那裡、
 	;逆イラマチオ
 	ELSEIF PREVCOM == 4
-		PRINTFORM %CALLNAME:PLAYER%の口を犯している%CALLNAME:TARGET%から、
+		PRINTFORM 從帶著愉快的表情強硬的衝擊著%CALLNAME:PLAYER%口腔的%CALLNAME:TARGET%那裡、
 	;奉仕系
 	ELSEIF (PREVCOM == 90 || PREVCOM == 91 || PREVCOM == 92 || PREVCOM == 95 || PREVCOM == 97 || PREVCOM == 99) && PENIS(PLAYER)
 		SIF PREVCOM == 90 || PREVCOM == 91 || PREVCOM == 92 || PREVCOM == 99
-			PRINT 圧し掛かって
-		PRINTFORM ペニスを弄んでいる%CALLNAME:TARGET%から、
+			PRINT 壓在身上
+		PRINTFORM 蹂躪著陰莖的%CALLNAME:TARGET%那裡、
 	;騎乗位系
 	ELSEIF (PREVCOM >= 65 && PREVCOM <= 67) || PREVCOM == 75 || PREVCOM == 80 || PREVCOM == 88 || PREVCOM == 98 || PREVCOM == 120 || PREVCOM == 126
-		PRINTFORM %CALLNAME:PLAYER%を犯して愉しんでいる%CALLNAME:TARGET%から、
+		PRINTFORM 從亢奮的侵犯著%CALLNAME:PLAYER%的%CALLNAME:TARGET%那裡、
 	;アナル奉仕系
 	ELSEIF PREVCOM == 96
-		PRINTFORM アナルを弄んでいる%CALLNAME:TARGET%から、
+		PRINTFORM 從愉快的蹂躪著肛門的%CALLNAME:TARGET%那裡、
 	ELSE
-		PRINTFORM %CALLNAME:PLAYER%は
+		PRINTFORM %CALLNAME:PLAYER%将
 	ENDIF
-	PRINTFORML 何とか主導権を取り返そうともがいたが、%CALLNAME:TARGET%\@ TEQUIP:Ｗ押し倒し ? 達 # \@は隙を見せなかった。
-	IF TEQUIP:キス && ABL:欲望 >= 5 && RAND:3 == 0
-		PRINTFORMW それどころか、%CALLNAME:TARGET%は%CALLNAME:PLAYER%の唇を奪うと、舌を絡めて唾液をたっぷりと流し込んで飲ませてきた！
-		CALL SETFLAG, "追加キスフラグ", TARGET
+	PRINTFORML 试图夺回主导权、但%CALLNAME:TARGET%\@ TEQUIP:Ｗ推倒 ? 她们 # \@完全没有破绽。
+	IF TEQUIP:接吻 && ABL:欲望 >= 5 && RAND:3 == 0
+		PRINTFORMW 不止如此、%CALLNAME:TARGET%像是在享受%CALLNAME:PLAYER%的反抗一樣再次奪去了嘴唇、強行用舌頭交纏再一次、強硬的灌下香甜的唾液。
+		CALL SETFLAG, "追加接吻フラグ", TARGET
 	ELSE
-		PRINTFORMW それどころか、さらに%CALLNAME:PLAYER%を攻めてきた！
+		PRINTFORMW 不但如此、像是在懲罰%CALLNAME:PLAYER%的抵抗一樣、更加猛烈地侵犯起來。
 	ENDIF
 	TFLAG:もがき数 += 1
 
@@ -188,8 +188,8 @@ ELSE
 
 	CALL SET_COUNTER_ABL
 
-	SIF TEQUIP:Ｗ押し倒し
-		CALL SET_SELECTCOM_MULTI, "Ｗ押し倒し"
+	SIF TEQUIP:Ｗ推倒
+		CALL SET_SELECTCOM_MULTI, "Ｗ推倒"
 
 	TRYJUMPFORM COM{SELECTCOM}
 ENDIF
@@ -220,7 +220,7 @@ CASE IS >= PALAMLV:4
 ENDSELECT
 
 ;ABL:サドッ気をみる
-SELECTCASE ABL:サドっ気
+SELECTCASE ABL:施虐属性
 CASE 0
 CASE 1
 	TIMES SOURCE:0:性行動, 1.20

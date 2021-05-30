@@ -11,7 +11,7 @@ MEMO_TARGET = TARGET
 ;変換が必要なARGSの処理
 SELECTCASE ARGS
 ;パートナー呼びはTARGETの名前呼びに変換する
-CASE "パートナー"
+CASE "对象"
 	SIF ARG != TARGET
 		ARGS = %CALLNAME:TARGET%
 ENDSELECT
@@ -67,8 +67,8 @@ VARSET KANA
 
 ;変換が必要なARGSの処理
 SELECTCASE ARGS
-CASE "パートナー"
-	ARGS = %NAMES("パートナー")%
+CASE "对象"
+	ARGS = %NAMES("对象")%
 ENDSELECT
 MEMO_ARGS = %ARGS%
 
@@ -248,21 +248,21 @@ IF STR:基本呼び名 != ""
 ELSE
 	SELECTCASE ARGS
 	CASE "一人称"
-		PERSON_DEF = 私
-		KANA_DEF = わたし
+		PERSON_DEF = 我
+		KANA_DEF = 我
 	CASE "二人称"
 		;相手が主人
 		IF PLAYER == MASTER
-			PERSON_DEF = あなた
-			KANA_DEF = あなた
+			PERSON_DEF = 你
+			KANA_DEF = 你
 		;相手が主人ではない
 		ELSE
-			PERSON_DEF = あなた
-			KANA_DEF = あなた
+			PERSON_DEF = 你
+			KANA_DEF = 你
 		ENDIF
 	CASE "主人"
-		PERSON_DEF = ご主人様
-		KANA_DEF = ごしゅじんさま
+		PERSON_DEF = 主人様
+		KANA_DEF = 主人大人
 	CASEELSE
 		;名前を呼ぶ相手のキャラ番号をACTORに代入する
 		SELECTCASE ARGS
@@ -280,7 +280,7 @@ ELSE
 		ELSE
 			;相手が教員
 			IF COND("教員", ACTOR)
-				STR:基本呼び名 = %CALLNAME:ACTOR%先生_%CSTR:ACTOR:ふりがな%せんせい
+				STR:基本呼び名 = %CALLNAME:ACTOR%老师_%CSTR:ACTOR:ふりがな%老师
 
 			;自分も相手も学生なら学年比較
 			ELSEIF COND("学生") && COND("学生", ACTOR)
@@ -289,19 +289,19 @@ ELSE
 					STR:基本呼び名 = %CALLNAME:ACTOR%_%CSTR:ACTOR:ふりがな%
 				;相手が下の学年
 				ELSEIF COND("学年") > COND("学年", ACTOR)
-					IF TALENT:ACTOR:オトコ
+					IF TALENT:ACTOR:男性
 						STR:基本呼び名 = %CALLNAME:ACTOR%_%CSTR:ACTOR:ふりがな%
 					ELSE
-						STR:基本呼び名 = %CALLNAME:ACTOR%ちゃん_%CSTR:ACTOR:ふりがな%ちゃん
+						STR:基本呼び名 = %CALLNAME:ACTOR%酱_%CSTR:ACTOR:ふりがな%酱
 					ENDIF
 				;相手が上級生
 				ELSE
-					STR:基本呼び名 = %CALLNAME:ACTOR%先輩_%CSTR:ACTOR:ふりがな%せんぱい
+					STR:基本呼び名 = %CALLNAME:ACTOR%前輩_%CSTR:ACTOR:ふりがな%前輩
 				ENDIF
 
 			;それ以外
 			ELSE
-				STR:基本呼び名 = %CALLNAME:ACTOR%さん_%CSTR:ACTOR:ふりがな%さん
+				STR:基本呼び名 = %CALLNAME:ACTOR%桑_%CSTR:ACTOR:ふりがな%桑
 			ENDIF
 
 			VARSET LOCALS
@@ -383,18 +383,18 @@ FOR LCOUNT, 1, 5
 	NEXT
 	SELECTCASE PERSON
 	;特殊変化
-	CASE "せ・ん・せ・い"
-		PERSON = せ・ん・せ
+	CASE "老・师"
+		PERSON = 老・师
 	CASEELSE
 		SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 6, 0), -1)
-		CASE "さ・ん"
-			PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%さん
-		CASE "く・ん"
-			PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%くん
+		CASE "桑"
+			PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%桑
+		CASE "君"
+			PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%君
 		CASEELSE
 			SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 10, 0), -1)
-			CASE "ち・ゃ・ん"
-				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 10)%ちゃん
+			CASE "酱"
+				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 10)%酱
 			ENDSELECT
 		ENDSELECT
 	ENDSELECT
@@ -405,45 +405,45 @@ FOR LCOUNT, 1, 5
 		CONTINUE
 
 	SELECTCASE PERSON
-	CASE "マスター"
-		PERSON = マスタぁ
-	CASE "あなた", "ぼうや", "ママ", "まま", "パパ", "ぱぱ"
+	CASE "Master"
+		PERSON = Master
+	CASE "你", "小哥", "妈妈", "まま", "爸爸", "爸爸"
 		PERSON = %PERSON%ぁ
-	CASE "あたし", "アタシ", "あるじ", "わたし", "ワタシ", "わたくし", "ワタクシ"
+	CASE "我", "我", "主上", "我", "我", "我", "我"
 		PERSON = %PERSON%ぃ
-	CASE "僕", "ぼく", "ボク"
+	CASE "僕", "僕", "僕"
 		PERSON = %PERSON%ぅ
-	CASE "おれ", "オレ", "母上", "ははうえ", "父上", "ちちうえ", "姉上", "あねうえ", "兄上", "あにうえ"
+	CASE "俺", "俺", "母上", "母上", "父上", "父上", "姉上", "姉上", "兄上", "兄上"
 		PERSON = %PERSON%ぇ
-	CASE "せんせい"
-		PERSON = せんせぇ
-	CASE "先輩"
-		PERSON = せんぱぁい
+	CASE "老师"
+		PERSON = 老师
+	CASE "前輩"
+		PERSON = 前輩
 	;甘え口調が無い
-	CASE "貴方", "貴女", "君", "きみ", "キミ", "マスター", "ますたー"
+	CASE "貴方", "貴女", "君", "你", "你", "Master", "Master"
 	CASEELSE
 		SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 2, 0), -1)
 		CASE "様"
 			PERSON = %PERSON%ぁ
 		CASE "君"
 			SIF STRLENS(PERSON) >= 3
-				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 2)%くぅん
+				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 2)%君
 		CASEELSE
 			SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 4, 0), -1)
-			CASE "先生"
-				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%せんせぇ
-			CASE "さま"
+			CASE "老师"
+				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%老师
+			CASE "大人"
 				PERSON = %PERSON%ぁ
-			CASE "さん"
-				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%さぁん
-			CASE "くん"
-				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%くぅん
+			CASE "桑"
+				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%桑
+			CASE "君"
+				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%君
 
 			CASEELSE
 				SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 6, 0), -1)
-				CASE "ちゃん"
-					PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%ちゃぁん
-				CASE "しゃま"
+				CASE "酱"
+					PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%酱
+				CASE "大涅"
 					PERSON = %PERSON%ぁ
 				ENDSELECT
 			ENDSELECT

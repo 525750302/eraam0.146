@@ -8,23 +8,23 @@ CALL PRINT_TRAIN_NAME(SELECTCOM)
 CALL SHOW_COM_ORDER_COM, 140
 
 ;実行できない
-SIF TCVAR:やる気 == 0
+SIF TCVAR:干劲 == 0
 	RETURN 0
 ;-------------------------------------------------
 ;実行決定
 ;-------------------------------------------------
 SIF TEQUIP:拘束
-	TCVAR:やる気 -= 30
+	TCVAR:干劲 -= 30
 SIF TEQUIP:口枷 == 2
-	TCVAR:やる気 -= 30
-TCVAR:やる気 = MAX(TCVAR:やる気, 0)
+	TCVAR:干劲 -= 30
+TCVAR:干劲 = MAX(TCVAR:干劲, 0)
 
 CALL TRAIN_MESSAGE_B
 
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:前回コマンド = %STR:今回コマンド%
+STR:前回指令 = %STR:今回指令%
 
 ;-------------------------------------------------
 ;射精チェック
@@ -35,16 +35,16 @@ RETURN 1
 
 
 @FLAG_COM140, ARG
-CALL SETFLAG, "フェラチオフラグ", TARGET
+CALL SETFLAG, "口交フラグ", TARGET
 ;対象の口⇔調教者のＰの汚れが移動
 CALL EQ_STAIN, TARGET, "Ｍ", PLAYER, "Ｐ"
 
 @SOURCE_COM140, ARG
-CALL SOURCE_SMPLAY, "イラマチオ", ARG
+CALL SOURCE_SMPLAY, "強制口交", ARG
 
 CALL VARSET_COMF
 
-CALL SOURCE_SERVICE_PLAY, "イラマチオ"
+CALL SOURCE_SERVICE_PLAY, "強制口交"
 
 CALL SOURCE_DOWNBASE_HP, 140
 
@@ -64,66 +64,66 @@ IF TALENT:喉性感 == 0
 ENDIF
 
 ;喉ＬＶを見る
-SELECTCASE ABL:喉拡張 - SIZE("ペニス", PLAYER)
+SELECTCASE ABL:喉拡張 - SIZE("阴茎", PLAYER)
 CASE IS <= -2
-	SOURCE:0:痛み = 3000
-	SOURCE:0:恐れ = 8000
+	SOURCE:0:疼痛 = 3000
+	SOURCE:0:恐惧 = 8000
 	TIMES SOURCE:0:Ｍ快楽, 0.00
 CASE -1
-	SOURCE:0:痛み = 1000
-	SOURCE:0:恐れ = 3000
+	SOURCE:0:疼痛 = 1000
+	SOURCE:0:恐惧 = 3000
 	TIMES SOURCE:0:Ｍ快楽, 0.00
 CASE 0
-	SOURCE:0:痛み = 500
-	SOURCE:0:恐れ = 1000
+	SOURCE:0:疼痛 = 500
+	SOURCE:0:恐惧 = 1000
 CASE 1
-	SOURCE:0:痛み = 100
-	SOURCE:0:恐れ = 300
+	SOURCE:0:疼痛 = 100
+	SOURCE:0:恐惧 = 300
 ENDSELECT
 
 ;堅さを見る
-SELECTCASE HARD("ペニス", PLAYER)
+SELECTCASE HARD("阴茎", PLAYER)
 CASE 3
-	TIMES SOURCE:0:痛み, 1.20
-	TIMES SOURCE:0:恐れ, 1.20
+	TIMES SOURCE:0:疼痛, 1.20
+	TIMES SOURCE:0:恐惧, 1.20
 CASE IS >= 4
-	TIMES SOURCE:0:痛み, 1.50
-	TIMES SOURCE:0:恐れ, 1.50
+	TIMES SOURCE:0:疼痛, 1.50
+	TIMES SOURCE:0:恐惧, 1.50
 ENDSELECT
 
 ;ABL:マゾっ気をみる
-SELECTCASE ABL:マゾっ気
+SELECTCASE ABL:受虐属性
 CASE 1
 	TIMES SOURCE:0:屈従, 1.20
-	TIMES SOURCE:0:恐れ, 0.80
+	TIMES SOURCE:0:恐惧, 0.80
 CASE 2
 	TIMES SOURCE:0:屈従, 1.50
-	TIMES SOURCE:0:恐れ, 0.50
+	TIMES SOURCE:0:恐惧, 0.50
 CASE 3
 	TIMES SOURCE:0:屈従, 2.00
-	TIMES SOURCE:0:恐れ, 0.20
+	TIMES SOURCE:0:恐惧, 0.20
 CASE 4
 	TIMES SOURCE:0:屈従, 2.50
-	TIMES SOURCE:0:恐れ, 0.10
+	TIMES SOURCE:0:恐惧, 0.10
 CASE IS >= 5
 	TIMES SOURCE:0:屈従, 3.00
-	TIMES SOURCE:0:恐れ, 0.05
+	TIMES SOURCE:0:恐惧, 0.05
 ENDSELECT
 
 ;ディープスロート中？
-IF TEQUIP:ディープスロート
+IF TEQUIP:深喉
 	TIMES SOURCE:0:性行動, 1.50
 	TIMES SOURCE:0:達成感, 1.50
-	TIMES SOURCE:0:痛み, 1.50
+	TIMES SOURCE:0:疼痛, 1.50
 	TIMES SOURCE:0:不潔, 1.50
-	TIMES SOURCE:0:恐れ, 1.50
+	TIMES SOURCE:0:恐惧, 1.50
 	TIMES SOURCE:0:屈従, 1.50
 	TIMES SOURCE:0:逸脱, 1.50
 	TIMES SOURCE:0:Ｍ快楽, 1.50
 ENDIF
 
 SIF TALENT:Ｍ性向
-	CALL CALC, "好みのプレイ", SOURCE:0:Ｍ快楽
+	CALL CALC, "好みのPLAY", SOURCE:0:Ｍ快楽
 
 CALL CALC, "調教ソース", ARG
 
@@ -133,83 +133,83 @@ IF CHECK_COM("３Ｐ奉仕")
 	CALL TRAIN_MESSAGE_3P
 ;前回もイラマチオ
 ELSEIF PREVCOM == SELECTCOM && COND("前Ｔ調教者") == PLAYER
-	PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%の
+	PRINTFORM %CALLNAME:PLAYER%將%CALLNAME:TARGET%的
 	;角がありますか？
-	PRINTFORM \@ COND("ツノハンドル") ? 角を掴んで # 頭を押さえて \@、
-	IF SIZE("ペニス", PLAYER) >= 2 && RANDIF(2, ABL:PLAYER:サドっ気 >= 3)
-		PRINTFORM 長いペニスで
-	ELSEIF ABL:PLAYER:サドっ気 >= 3 && RAND:2
-		PRINTFORM 息継ぎもさせない勢いで
-	ELSEIF ABL:マゾっ気 >= 3 && CHECK("喉姦")
-		PRINTFORM 望まれるがままに
+	PRINTFORM \@ COND("角ハンドル") ? 角緊緊抓住 # 頭向下壓住 \@、
+	IF SIZE("阴茎", PLAYER) >= 2 && RANDIF(2, ABL:PLAYER:施虐属性 >= 3)
+		PRINTFORM 用過分粗長的陰莖將
+	ELSEIF ABL:PLAYER:施虐属性 >= 3 && RAND:2
+		PRINTFORM 用毫無停歇的激烈動作與猛烈氣勢將
+	ELSEIF ABL:受虐属性 >= 3 && CHECK("喉姦")
+		PRINTFORM 為了滿足那過剩的受虐慾望而將
 	ENDIF
-	IF (ABL:技巧 >= 4 || ABL:PLAYER:サドっ気 >= 3 || TEQUIP:ディープスロート) && SIZE("ペニス", PLAYER) && RAND:2
-		IF SIZE("ペニス", PLAYER) >= 3 && TEQUIP:ディープスロート && RAND:2
+	IF (ABL:技巧 >= 4 || ABL:PLAYER:施虐属性 >= 3 || TEQUIP:深喉) && SIZE("阴茎", PLAYER) && RAND:2
+		IF SIZE("阴茎", PLAYER) >= 3 && TEQUIP:深喉 && RAND:2
 			PRINT 食道
 		ELSE
-			PRINT 喉
+			PRINT 咽喉
 		ENDIF
 	ELSE
 		PRINT 口
 	ENDIF
-	PRINTFORMW を容赦なく犯し続けている…
+	PRINTFORMW 毫不留情地持續侵犯著……
 ELSE
 	;特に[恋慕＋奉仕精神Lv5]、[奉仕精神Lv3]、[PLAYERがサド]、[直前の調教]、[角があるか]、[アイマスク]等でテキストが変わります。
-	PRINTFORM %CALLNAME:PLAYER%は
+	PRINTFORM %CALLNAME:PLAYER%将
 	;前回はフェラチオ
 	IF PREVCOM == 91 && COND("前Ｔ調教者") == PLAYER
 		;汚れてますか？汚臭鈍感で無いならば、実行値の10分の一の値とRAND:5を比べて判定
-		IF CHECK_STAIN(STAIN:PLAYER:Ｐ, "Ｖ", "Ａ") && TALENT:汚臭鈍感 == 0 && RAND:6 > TCVAR:やる気/10
-			PRINTFORM 臭いに眉根を寄せつつ
+		IF CHECK_STAIN(STAIN:PLAYER:Ｐ, "Ｖ", "Ａ") && TALENT:汚臭鈍感 == 0 && RAND:6 > TCVAR:干劲/10
+			PRINTFORM 因精液的淫臭而皺著眉頭
 		;恋慕or献身的or奉仕精神3以上or汚臭鈍感
 		ELSEIF (TALENT:恋慕 || TALENT:献身 || ABL:奉仕精神 >= 3 || TALENT:汚臭鈍感) && RAND:2 == 0
-			PRINT 美味しそうに
+			PRINT 就好像是在品嚐美味一樣的
 		;恥じらい
-		ELSEIF TALENT:恥じらい && RAND:3 == 0
-			PRINT 恥ずかしそうに
+		ELSEIF TALENT:害羞 && RAND:3 == 0
+			PRINT 害羞地
 		;欲情4以上
 		ELSEIF PALAM:欲情 >= PALAMLV:4 && RAND:3 == 0
 			SIF TALENT:倒錯的 && RAND:3 == 0
-				PRINTFORM %TEXTS("匂い")%に
-			PRINT 興奮しつつ
+				PRINTFORM 因慾望的%TEXTS("气味")%而
+			PRINT 興奮地
 		;恋慕かつ奉仕精神5or献身的かつ奉仕精神3以上
 		ELSEIF ( (TALENT:恋慕 && ABL:奉仕精神 >= 5) || (TALENT:献身 && ABL:奉仕精神 >= 3) ) && RAND:3 == 0
-			PRINT 嬉しそうに
+			PRINT 滿臉幸福快樂的
 		;恋慕or献身的or奉仕精神3以上
 		ELSEIF TALENT:恋慕 || TALENT:献身 || ABL:奉仕精神 >= 3
-			PRINT 美味しそうに
+			PRINT 就好像是在品嚐美味一樣的
 		ELSEIF RAND:2 == 0 && ABL:技巧 < 2
-			PRINT えづきながらも
+			PRINT 開始生疏的吞吐侍奉著
 		ENDIF
 		;前回お掃除フェラ
-		IF PREVPLAY("お掃除フェラ")
-			PRINTFORM ペニスをお掃除している%CALLNAME:TARGET%の
+		IF PREVPLAY("清洁口交")
+			PRINTFORM 將陰莖清潔著的%CALLNAME:TARGET%的
 		ELSE
-			PRINTFORM 奉仕している%CALLNAME:TARGET%の
+			PRINTFORM 持續侍奉著的%CALLNAME:TARGET%的
 		ENDIF
 	;ディープスロート中
-	ELSEIF TEQUIP:ディープスロート
-		PRINTFORM 根元までペニスを咥え込んだ%CALLNAME:TARGET%の
+	ELSEIF TEQUIP:深喉
+		PRINTFORM 把陰莖直達根部的吞入體內的%CALLNAME:TARGET%的
 	ELSE
-		IF BIND("ベッド", TEQUIP:拘束) && RAND:2
-			PRINTFORM 仰向けにされて喉と一直線になっている%CALLNAME:TARGET%の口の中に
+		IF BIND("床", TEQUIP:拘束) && RAND:2
+			PRINTFORM 聽從指示仰起頭而與咽喉和食道處於同一直線的%CALLNAME:TARGET%的口腔中、
 		;リングギャグ
 		ELSEIF TEQUIP:口枷 == 2
-			PRINTFORM 器具で開きっぱなしにされている%CALLNAME:TARGET%の口の中に
+			PRINTFORM 被環形的器具強行打開無法閉合的%CALLNAME:TARGET%的口腔中、
 		;アイマスク+縄
-		ELSEIF TEQUIP:アイマスク && TEQUIP:拘束
-			PRINTFORM 完全に拘束されている%CALLNAME:TARGET%の口の中に
+		ELSEIF TEQUIP:眼罩 && TEQUIP:拘束
+			PRINTFORM 全身都被牢牢束縛住的%CALLNAME:TARGET%的口腔中、
 		;アイマスクあり？
-		ELSEIF TEQUIP:アイマスク
-			PRINTFORM 目隠しをした%CALLNAME:TARGET%の口の中に
+		ELSEIF TEQUIP:眼罩
+			PRINTFORM 因雙眼被蒙住而更加敏感的%CALLNAME:TARGET%的口腔中、
 		;縛ってますか？
 		ELSEIF TEQUIP:拘束
-			PRINTFORM 身動きの取れない%CALLNAME:TARGET%の口の中に
+			PRINTFORM 因身體動彈不得而顯得緊張不安的%CALLNAME:TARGET%的口腔中、
 		;恋慕＋奉仕精神Lv5
 		ELSEIF ABL:奉仕精神 >= 5 && TALENT:恋慕 && RAND:2 == 0
-			PRINTFORM %NAMES("ペニス", PLAYER)%に頬擦りをしてきた%CALLNAME:TARGET%の口の中に
+			PRINTFORM 把%NAMES("阴茎", PLAYER)%用脸颊的内侧反复摩擦着的%CALLNAME:TARGET%的口腔中、
 		ELSE
-			PRINTFORM 跪かせた%CALLNAME:TARGET%の口の中に
+			PRINTFORM 半跪在胯前的%CALLNAME:TARGET%的口腔中、
 		ENDIF
 		;直前の調教と汚れで分岐
 		IF PREVPLAY("挿入中", PLAYER)
@@ -217,58 +217,58 @@ ELSE
 		ELSEIF PENIS(PLAYER) == 0
 		;セックス系を直前にしていないなら乱数分岐
 		ELSE
-			PRINTFORM %TEXTS("ペニス：視覚", PLAYER)%
+			PRINTFORM %TEXTS("阴茎：視覚", PLAYER)%
 		ENDIF
 		IF PENIS(PLAYER)
-			PRINTFORM ペニスを
+			PRINTFORM 陰莖
 		ELSE
-			PRINTFORM ペニバンを
+			PRINTFORM 假陽具
 		ENDIF
-		IF (ABL:PLAYER:サドっ気 >= 3 || ABL:奉仕精神 >= 5) && RAND:3 == 0
-			PRINT 一気に
-		ELSEIF ABL:PLAYER:サドっ気 >= 3 || (ABL:奉仕精神 >= 3 && RAND:2 == 0)
-			PRINT 奥まで
+		IF (ABL:PLAYER:施虐属性 >= 3 || ABL:奉仕精神 >= 5) && RAND:3 == 0
+			PRINT 一口気
+		ELSEIF ABL:PLAYER:施虐属性 >= 3 || (ABL:奉仕精神 >= 3 && RAND:2 == 0)
+			PRINT 以最深處為目標
 		ELSE
-			PRINT ゆっくりと
+			PRINT 溫柔緩慢地
 		ENDIF
-		IF (ABL:PLAYER:サドっ気 >= 3 || ABL:奉仕精神 >= 5) && RAND:3 == 0
-			PRINT 突き入れると、
+		IF (ABL:PLAYER:施虐属性 >= 3 || ABL:奉仕精神 >= 5) && RAND:3 == 0
+			PRINT 刺入其中、
 		ELSEIF ABL:奉仕精神 >= 3 && RAND:2 == 0
-			PRINT 挿入すると、
+			PRINT 插入其中、
 		ELSE
-			PRINT 入れると、
+			PRINT 放入其中、
 		ENDIF
 		;奉仕精神5かつ恋慕で追加
 		SIF ABL:奉仕精神 >= 5 && TALENT:恋慕 && RAND:3 >= 1
-			PRINT 舌を絡めさせながら、
+			PRINT 被靈巧的舌頭纏繞著舔舐著的同時、
 	ENDIF
 	;角がありますか？
-	IF COND("ツノハンドル")
-		PRINT 角を掴んで
+	IF COND("角ハンドル")
+		PRINT 將角緊緊地抓住
 	ELSE
-		PRINT 頭を持って
+		PRINT 將頭不斷地下壓
 	ENDIF
 	SIF PREVCOM == 91 && COND("前Ｔ調教者") == PLAYER
 		PRINT 、
 	IF PREVCOM >= 60 && PREVCOM <= 79 && RAND:3 == 0
-		PRINT 先ほど犯していた穴と比べながら
-	ELSEIF (ABL:PLAYER:サドっ気 >= 3 || ABL:奉仕精神 >= 3) && RAND:3 == 0
-		PRINT セックスする時のように
+		PRINT 用像是在侵犯淫穴一樣的激烈動作
+	ELSEIF (ABL:PLAYER:施虐属性 >= 3 || ABL:奉仕精神 >= 3) && RAND:3 == 0
+		PRINT 就像是在正常性交一樣
 	ENDIF
-	IF (ABL:PLAYER:サドっ気 >= 3 || ABL:奉仕精神 >= 5) && RAND:3 == 0
-		PRINTFORMW 荒々しく口の中を陵辱した…
-	ELSEIF ABL:PLAYER:サドっ気 >= 3 || (ABL:奉仕精神 >= 3 && RAND:2 == 0)
-		PRINTFORMW 激しく出し入れした…
+	IF (ABL:PLAYER:施虐属性 >= 3 || ABL:奉仕精神 >= 5) && RAND:3 == 0
+		PRINTFORMW 粗暴地凌辱著口腔的深處……
+	ELSEIF ABL:PLAYER:施虐属性 >= 3 || (ABL:奉仕精神 >= 3 && RAND:2 == 0)
+		PRINTFORMW 激烈地前後進出著……
 	ELSE
-		PRINTFORMW 腰を前後に動かした…
+		PRINTFORMW 前後动起了腰…
 	ENDIF
 ENDIF
 
 ;いけるようなら喉奥まで
 IF CHECK("喉姦")
-	TEQUIP:ディープスロート = PLAYER
+	TEQUIP:深喉 = PLAYER
 	;フラグとTEQUIPが分かれているのは、射精後などにTEQUIP:ディープスロートが０となっている時でも参照するため
-	CALL SETFLAG, "ディープスロートフラグ", TARGET
+	CALL SETFLAG, "深喉フラグ", TARGET
 ENDIF
 
 @COM_ORDER_COM140, ARG
@@ -289,9 +289,9 @@ IF ABL:奉仕精神
 	LOCALS = %LOCALS% + 奉仕精神LV{ABL:奉仕精神}({MIN(ABL:奉仕精神, 10) * 2})
 ENDIF
 ;ABL:マゾっ気
-IF ABL:マゾっ気
-	LOCAL += MIN(ABL:マゾっ気, 5) * 3
-	LOCALS = %LOCALS% + マゾっ気LV{ABL:マゾっ気}({MIN(ABL:マゾっ気, 5) * 3})
+IF ABL:受虐属性
+	LOCAL += MIN(ABL:受虐属性, 5) * 3
+	LOCALS = %LOCALS% + 受虐属性LV{ABL:受虐属性}({MIN(ABL:受虐属性, 5) * 3})
 ENDIF
 ;ABL:精液中毒
 IF ABL:精液中毒
@@ -300,9 +300,9 @@ IF ABL:精液中毒
 ENDIF
 
 ;恥じらい
-IF TALENT:恥じらい
+IF TALENT:害羞
 	LOCAL -= 5
-	LOCALS = %LOCALS% - 恥じらい(5)
+	LOCALS = %LOCALS% - 害羞(5)
 ENDIF
 ;献身的
 IF TALENT:献身
@@ -310,9 +310,9 @@ IF TALENT:献身
 	LOCALS = %LOCALS% + 献身(6)
 ENDIF
 ;快感の否定
-IF TALENT:快感の否定
+IF TALENT:否定快感
 	LOCAL -= 1
-	LOCALS = %LOCALS% - 快感の否定(1)
+	LOCALS = %LOCALS% - 否定快感(1)
 ENDIF
 ;Ｍ性向
 IF TALENT:Ｍ性向
@@ -328,12 +328,12 @@ ENDIF
 ;リングギャグ
 IF TEQUIP:口枷 == 2
 	LOCAL += 30
-	LOCALS = %LOCALS% + リングギャグ(30)
+	LOCALS = %LOCALS% + 環形口枷(30)
 ENDIF
 
 MEMO_STAIN = COM_ORDER_STAIN("Ｐ", "Ｍ")
 ;サドなら、汚れていても、かまわずに突っ込みます
-SIF ABL:PLAYER:サドっ気 >= 3
+SIF ABL:PLAYER:施虐属性 >= 3
 	MEMO_STAIN /= 3
 
 ;汚れあり

@@ -8,7 +8,7 @@ CALL PRINT_TRAIN_NAME(SELECTCOM)
 CALL SHOW_COM_ORDER_COM, 93
 
 ;実行できない
-SIF TCVAR:やる気 == 0
+SIF TCVAR:干劲 == 0
 	RETURN 0
 ;-------------------------------------------------
 ;実行決定
@@ -18,7 +18,7 @@ CALL TRAIN_MESSAGE_B
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:前回コマンド = %STR:今回コマンド%
+STR:前回指令 = %STR:今回指令%
 ;-------------------------------------------------
 ;射精チェック
 ;-------------------------------------------------
@@ -27,15 +27,15 @@ CALL SAMEN_CHECK
 RETURN 1
 
 @FLAG_COM93, ARG
-IF CHECK_COM("見せ槍")
-	CALL SETFLAG, "見せ槍フラグ", TARGET
+IF CHECK_COM("展示肉棒")
+	CALL SETFLAG, "展示肉棒フラグ", TARGET
 ELSE
 	;対象のＶ⇔調教者のＰの汚れが移動
 	SIF CHECK_CLO("Ｖ露出")
 		CALL EQ_STAIN, TARGET, "Ｖ", PLAYER, "Ｐ"
 ENDIF
 SIF ASSIPLAY == 0
-	TFLAG:好感度ボーナス += 1
+	TFLAG:好感度BOUNS += 1
 
 @SOURCE_COM93, ARG
 CALL VARSET_COMF
@@ -44,7 +44,7 @@ SOURCE:0:欲情追加 = CALCF("実行値による欲情追加")
 SOURCE:0:屈従 = 1200
 SOURCE:0:逸脱 = 50
 
-IF CHECK_COM("見せ槍") == 0
+IF CHECK_COM("展示肉棒") == 0
 	CALL SOURCE_SERVICE_PLAY, "素股"
 
 	CALL SOURCE_DOWNBASE_HP, 93
@@ -78,7 +78,7 @@ IF CHECK_COM("見せ槍") == 0
 	;アソコが露出していないと快Ｃ減
 	IF CHECK_CLO("Ｖ露出") == 0 && COND("調教中")
 		;ズボン等をはいていると快Ｃ激減
-		IF CHECK_OUTER("ズボン") || CHECK_PANTIES("レザー")
+		IF CHECK_OUTER("長褲") || CHECK_PANTIES("皮革")
 			TIMES SOURCE:0:Ｃ快楽, 0.20
 			TIMES SOURCE:0:露出, 0.20
 		ELSE
@@ -93,67 +93,67 @@ CALL CALC, "調教ソース", ARG
 
 @TRAIN_MESSAGE_COM93
 ;ちんこの大きさは２以上
-IF CHECK_COM("見せ槍")
-	PRINTFORMW %CALLNAME:PLAYER%は腰を突き出して%TEXTS("巨根：視覚", PLAYER)%を%CALLNAME:TARGET%に見せつけた。
+IF CHECK_COM("展示肉棒")
+	PRINTFORMW %CALLNAME:PLAYER%挺起腰肢将%TEXTS("巨根：視覚", PLAYER)%向%CALLNAME:TARGET%展示着。
 	IF ABL:欲望 < 3 || EXP:Ｖ性交経験 + EXP:Ａ性交経験 + EXP:尿道性交経験 == 0
-		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%のペニスに気圧されつつも、目が離せないでいる……
+		PRINTFORMW %CALLNAME:TARGET%在%CALLNAME:PLAYER%將陰莖壓上的時候、眼神一直沒能離開……
 	ELSE
-		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%のモノ%TEXTR("に腰を擦り付けつつ/をお腹にあてがい")%、
-		PRINTFORMW %TEXTR("大きさに惚れ惚れし/これから起こることを想像し/どこまで入ってくるのかを確認し/気分を高め")%ている……
+		PRINTFORM %CALLNAME:TARGET%將%CALLNAME:PLAYER%的陰莖%TEXTR("用腰肢輕輕摩擦著/放在腹部感受著")%、
+		PRINTFORMW %TEXTR("因這雄偉而神往著/臉紅地想像著接下來的/確認著其中的灼熱/忍耐著愈加旺盛的慾望")%……
 	ENDIF
 ELSEIF CHECK_COM("Ｗ奉仕")
 	IF SELECTCOM:1 == PREVCOM:1 && SELECTCOM == PREVCOM
-		PRINTFORM 二人は
+		PRINTFORM 兩人
 		IF TALENT:(TARGET:1):淫乱 + TALENT:(TARGET:1):恋慕 && TALENT:淫乱 + TALENT:恋慕 && RAND:3 == 0
-			PRINT うっとりしながら
+			PRINT 神情恍惚、眼神濕潤的對視著的同時
 		ELSEIF RAND:2 == 0
-			PRINT 夢中になって
+			PRINT 如同完全沉浸於快感一樣無意識的漏出涎水的同時
 		ENDIF
-		PRINTFORMW %CALLNAME:MASTER%のペニスに股間を擦り付け、刺激し続けている…
+		PRINTFORMW 將%CALLNAME:MASTER%的陰莖用股間貼緊摩擦著、持續地給予並索取著快樂……
 	ELSE
-		PRINTFORM %CALLNAME:TARGET%と%CALLNAME:(TARGET:1)%は
+		PRINTFORM %CALLNAME:TARGET%和%CALLNAME:(TARGET:1)%
 		SIF TALENT:(TARGET:1):淫乱 + TALENT:(TARGET:1):恋慕 + TALENT:淫乱 + TALENT:恋慕 && RAND:2 == 0
-			PRINTFORM 上気した瞳で%CALLNAME:MASTER%を見つめながら、
-		PRINTFORMW 協力してペニスを\@ PENIS(TARGET) + PENIS(TARGET:1) == 0 ? アソコ # 股間 \@で挟んで扱いてきた…
+			PRINTFORM 在用充滿慾望與依戀的雙瞳凝視著%CALLNAME:MASTER%赤裸身體的同時、
+		PRINTFORMW 互相协力用\@ PENIS(TARGET) + PENIS(TARGET:1) == 0 ? 阴部 # 股間 \@将阴茎夹紧…
 	ENDIF
 ELSE
-	IF TEQUIP:キス
-		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%%TEXTS("キス継続助詞付き")%ペニスを
-		CALL SETFLAG, "追加キスフラグ", TARGET
+	IF TEQUIP:接吻
+		PRINTFORM %CALLNAME:TARGET%將%CALLNAME:PLAYER%%TEXTS("接吻継続助詞付き")%將阴茎用
+		CALL SETFLAG, "追加接吻フラグ", TARGET
 	ELSE
-		PRINTFORM %CALLNAME:TARGET%はペニスを
+		PRINTFORM %CALLNAME:TARGET%將阴茎用
 	ENDIF
-	IF PREVCOM == SELECTCOM && PREVPLAY("見せ槍") == 0
-		PRINTFORMW 股間で挟んで扱き続けている……
+	IF PREVCOM == SELECTCOM && PREVPLAY("展示肉棒") == 0
+		PRINTFORMW 柔軟的股間夾住、持續摩擦著……
 	ELSE
 		;アソコ剥き出し
-		IF CHECK_CLO("Ｖ露出") && TALENT:オトコ == 0
+		IF CHECK_CLO("Ｖ露出") && TALENT:男性 == 0
 			IF RAND:2
-				PRINT ぷっくりと膨らんだ柔らかい
+				PRINT 豐腴而柔軟的
 			ELSEIF COND("陰毛") >= 6
-				PRINT 濡れた陰毛の絡みつく
+				PRINT 濡濕的陰毛糾纏在一起的
 			ELSEIF COND("陰毛") == 5
 				;PRINT 綺麗に剃り整えられた
-				PRINT 柔らかな
+				PRINT 十分柔軟的
 			;ELSEIF COND("陰毛") == 4
 			;	PRINT 生えかけの
 			ELSEIF COND("陰毛") && COND("陰毛") <= 3
-				PRINT ツルツルの
+				PRINT 剝殼雞蛋一樣光潔的
 			ENDIF
 		ENDIF
-		PRINTFORM 股間で挟み、
-		SIF ABL:腰使い >= 3
-			PRINT 腰を淫靡にくねらせて
-		IF CHOSECOM(SELECTCOM) == 0 && PENIS(PLAYER) && SIZE("ペニス", PLAYER) >= 2
-			PRINTFORMW 扱き始めた。
-			PRINTFORM %CALLNAME:TARGET%は奉仕の合間に%CALLNAME:PLAYER%のペニスを自分のお腹にあてがい、
+		PRINTFORM 胯股之间夾住、
+		SIF ABL:腰靈活 >= 3
+			PRINT 腰肢淫靡的擺動著
+		IF CHOSECOM(SELECTCOM) == 0 && PENIS(PLAYER) && SIZE("阴茎", PLAYER) >= 2
+			PRINTFORMW 開始摩擦。
+			PRINTFORM %CALLNAME:TARGET%在侍奉的間歇將%CALLNAME:PLAYER%的陰莖用自己的腹部貼緊、
 			IF CHOSECOMS("挿入")
-				PRINTFORMW どこまで入っていたのか確認している……
+				PRINTFORMW 丈量著體內進入了多少……
 			ELSE
-				PRINTFORMW どこまで入ってくるのかを確認している……
+				PRINTFORMW 丈量著會抵達哪裡……
 			ENDIF
 		ELSE
-			PRINTFORMW 扱きあげた…
+			PRINTFORMW 摩擦起來…
 		ENDIF
 	ENDIF
 ENDIF
@@ -180,14 +180,14 @@ IF ABL:精液中毒
 ENDIF
 
 ;恥じらい
-IF TALENT:恥じらい
+IF TALENT:害羞
 	LOCAL -= 3
-	LOCALS = %LOCALS% - 恥じらい(3)
+	LOCALS = %LOCALS% - 害羞(3)
 ENDIF
 ;快感の否定
-IF TALENT:快感の否定
+IF TALENT:否定快感
 	LOCAL -= 1
-	LOCALS = %LOCALS% - 快感の否定(1)
+	LOCALS = %LOCALS% - 否定快感(1)
 ENDIF
 
 ;媚薬
@@ -209,7 +209,7 @@ IF COM_ORDER_STAIN("Ｐ", "Ｖ")/3
 ENDIF
 
 ;合計を表示(20以上で実行)
-IF CHECK_COM("見せ槍", 93)
+IF CHECK_COM("展示肉棒", 93)
 	CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 5
 ELSE
 	CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 20

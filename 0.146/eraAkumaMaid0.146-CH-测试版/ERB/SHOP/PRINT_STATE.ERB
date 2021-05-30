@@ -1,4 +1,4 @@
-﻿;PRINT_XXX系コマンドと置き換えて使う関数
+﻿;PRINT_XXX系指令と置き換えて使う関数
 @NEW_PRINT_STATE, ARG, ARGS
 #DIM MEMO_LINECOUNT
 #DIM MEMO_FLAG
@@ -15,20 +15,20 @@ DRAWLINE
 ;エラーチェック
 SELECTCASE ARG
 CASE IS < 0
-	PRINTW エラー：参照番号が負の数です
+	PRINTW 错误：参照番号为负数
 	RETURN 0
 CASE 0
-	PRINTW エラー：参照番号がダミーです
+	PRINTW 错误：参照番号为假
 	RETURN 0
 CASE IS > CHARANUM-1
-	PRINTW エラー：参照番号が末端キャラの登録番号を超えています
+	PRINTW 错误：参照番号超过了末端角色的登録番号
 	RETURN 0
 ENDSELECT
 
 SELECTCASE ARGS
-CASE "キャラメイク"
+CASE "角色メイク"
 	;まずは解説を入れる
-	PRINTFORM ■ %NAME:ARG% %CSTR:ARG:学年%[%CSTR:ARG:肩書%] ■ 体力:{MAXBASE:ARG:体力}　精力:{MAXBASE:ARG:精力}　
+	PRINTFORM ■ %NAME:ARG% %CSTR:ARG:学年%[%CSTR:ARG:称号%] ■ 体力:{MAXBASE:ARG:体力}　精力:{MAXBASE:ARG:精力}　
 	SIF BASE:ARG:学力
 		PRINTFORM 学力:{BASE:ARG:学力}　
 	PRINTFORML \@ BASE:ARG:魂 ? 魂:%TEXTS("0.01", BASE:ARG:魂)% # \@
@@ -41,15 +41,15 @@ CASE "通常", "通常：２", "ABLUP"
 		RESULT = 0
 		TRYCALLFORM IS_SINGLE_ENDING_K{NO:ARG}
 		SIF RESULT
-			CALL PRINT_STR, "(_ハートピンク_個別ＥＮＤ有_)_ _"
+			CALL PRINT_STR, "(_爱心粉紅_有個人ＥＮＤ_)_ _"
 	ENDIF
 	PRINTFORM %CSTR:ARG:学年%
-	IF COND("同棲：週末のみ", ARG)
-		PRINT (週末のみ同棲中)
-	ELSEIF COND("同棲中", ARG)
-		PRINT (同棲中)
+	IF COND("同居：仅周末", ARG)
+		PRINT (週末のみ同居中)
+	ELSEIF COND("同居中", ARG)
+		PRINT (同居中)
 	ENDIF
-	PRINTFORM [%CSTR:ARG:肩書%]
+	PRINTFORM [%CSTR:ARG:称号%]
 
 	;アドバイザーとかパートナーとか
 	SELECTCASE ARG
@@ -66,37 +66,37 @@ CASE "通常", "通常：２", "ABLUP"
 	SIF TALENT:ARG:妊娠 || BASE:ARG:育児中 || GETBITS(BASE:ARG:バイオリズム, 10, 20) || COND("避妊中", ARG) || COND("着床確認", ARG) || COND("受精確認", ARG)
 		PRINT  (
 	IF BASE:ARG:育児中
-		PRINTFORM %CONDS("胎児の父親", ARG)%の子を子育て中
+		PRINTFORM 正在养育%CONDS("胎児の父親", ARG)%的孩子
 		SIF TALENT:ARG:妊娠 || GETBITS(BASE:ARG:バイオリズム, 10, 20) || COND("避妊中", ARG)
 			PRINT 　
 	ENDIF
 	IF TALENT:ARG:妊娠
-		PRINTFORM %CONDS("精液の優勢", ARG)%の子を妊娠中
+		PRINTFORM 正怀着%CONDS("精液の優勢", ARG)%的孩子
 	;***着床判定追加パッチで追加
 	ELSEIF COND("着床確認", ARG)
-		CALL PRINT_STR, @"ハートピンク_%CONDS("精液の優勢", ARG)%との受精卵が着床_HH"
-	ELSEIF TALENT:ARG:アフターピル
-		CALL PRINT_STR, "黄色_アフターピル"
+		CALL PRINT_STR, @"爱心粉紅_%CONDS("精液の優勢", ARG)%的受精卵正在着床_HH"
+	ELSEIF TALENT:ARG:事后避孕药
+		CALL PRINT_STR, "黄色_事后避孕药"
 	ELSEIF COND("受精確認", ARG)
 		IF CFLAG:ARG:着床確実
-			CALL PRINT_STR, @"ハートピンク_%CONDS("精液の優勢", ARG)%の精子で_ショッキングピンク_超危険日に_ハートピンク_受精_HH"
+			CALL PRINT_STR, @"爱心粉紅_%CONDS("精液の優勢", ARG)%的精子在_ショッキング粉紅_超危険日_爱心粉紅_受精了_HH"
 		ELSE
-			CALL PRINT_STR, @"ハートピンク_%CONDS("精液の優勢", ARG)%の精子で受精_HH"
+			CALL PRINT_STR, @"爱心粉紅_%CONDS("精液の優勢", ARG)%的精子受精了_HH"
 		ENDIF
 	ELSEIF COND("発情期", ARG)
-		CALL PRINT_STR, "ハートピンク_発情期"
+		CALL PRINT_STR, "爱心粉紅_発情期"
 	ELSEIF TALENT:ARG:未成熟
 		PRINTFORM 未成熟
 	ELSEIF COND("避妊中", ARG)
-		IF CFLAG:ARG:ピル
-			PRINTFORM ピル
+		IF CFLAG:ARG:口服避孕薬
+			PRINTFORM 口服避孕薬
 		ELSE
 			PRINTFORM 避妊の護符
 		ENDIF
 	ELSEIF COND("安全日", ARG)
 		PRINTFORM 安全日
 	ELSEIF COND("排卵中", ARG)
-		CALL PRINT_STR, "ショッキングピンク_超危険日"
+		CALL PRINT_STR, "ショッキング粉紅_超危険日"
 	ELSEIF COND("危険日", ARG)
 		CALL PRINT_STR, "イエロー_危険日"
 	ENDIF
@@ -115,11 +115,11 @@ CASE "通常", "通常：２", "ABLUP"
 	SIF BASE:ARG:学力
 		PRINTFORM 学力:{BASE:ARG:学力}　
 	IF ARG != MASTER
-		PRINTFORM 集めた魂:%TEXTS("0.01", BASE:ARG:魂)%　
+		PRINTFORM 收集的魂:%TEXTS("0.01", BASE:ARG:魂)%　
 	ELSEIF BASE:ARG:魂
 		PRINTFORM 魂:%TEXTS("0.01", BASE:ARG:魂)%　
 	ENDIF
-	SIF TALENT:ARG:オトコ == 0
+	SIF TALENT:ARG:男性 == 0
 		PRINTFORM 胎内精液量:{COND("胎内の精液量", ARG)}pt
 	PRINTL 
 	;最後に相手した日からの経過日数
@@ -173,9 +173,9 @@ CASE "通常：２"
 		CALL BIRTH_RECORD, "出産記録：書き出し", ARG
 		CALL PRINT_OTHER, ARG
 	ENDIF
-CASE "キャラメイク"
+CASE "角色メイク"
 	CALL NEW_PRINT_3SIZE, ARG, "個別表示"
-	SIF COND("顔グラ表示中", ARG) == 0
+	SIF COND("颜绘表示中", ARG) == 0
 		CALL PRINT_COS, ARG, ARGS
 	CALL NEW_PRINT_ABL, ARG
 	CALL NEW_PRINT_TALENT, ARG
@@ -192,13 +192,13 @@ DRAWLINE
 SELECTCASE ARGS
 CASE "通常", "通常：２"
 	IF ARG == MASTER
-		IF CONFIG("顔グラＯＮ")
-			PRINTFORML [ 0]身嗜み、弱点、性癖、顔グラの変更
+		IF CONFIG("颜绘ＯＮ")
+			PRINTFORML [ 0]身嗜み、弱点、性癖、颜绘の変更
 		ELSE
-			PRINTFORML [ 0]身嗜み、弱点、性癖の変更
+			PRINTFORML [ 0]身嗜、弱点、性癖の変更
 		ENDIF
 	ENDIF
-	PRINTBUTTON "[Enter]閉じる", "Enter"
+	PRINTBUTTON "[Enter]関閉", "Enter"
 	IF ARGS == "通常：２"
 		PRINTFORM  [ 1]page1
 	ELSE
@@ -229,11 +229,11 @@ CASE "通常", "通常：２"
 		REDRAW MEMO_REDRAW
 		RETURN 0
 	;項目ONOFFボタン
-	CASE "搾精ランキング"
+	CASE "搾精排行"
 		INVERTBIT FLAG:項目OFF, 0
-	CASE "助手のお仕事指示"
+	CASE "助手的任务指示"
 		INVERTBIT FLAG:項目OFF, 1
-	CASE "キャラ紹介"
+	CASE "角色介绍"
 		INVERTBIT FLAG:項目OFF, 2
 	CASE "身嗜み"
 		INVERTBIT FLAG:項目OFF, 3
@@ -245,13 +245,13 @@ CASE "通常", "通常：２"
 		INVERTBIT FLAG:項目OFF, 6
 	CASE "自室の状態"
 		INVERTBIT FLAG:項目OFF, 7
-	CASE "属性と外見"
+	CASE "属性与外表"
 		INVERTBIT FLAG:項目OFF, 8
 	CASE "宝珠"
 		INVERTBIT FLAG:項目OFF, 9
 	CASE "経験"
 		INVERTBIT FLAG:項目OFF, 10
-	CASE "パンツコレクション"
+	CASE "胖次收藏"
 		INVERTBIT FLAG:項目OFF, 11
 	CASE "能力"
 		INVERTBIT FLAG:項目OFF, 12
@@ -265,9 +265,9 @@ CASE "通常", "通常：２"
 		INVERTBIT FLAG:項目OFF, 16
 	CASE "性処理"
 		INVERTBIT FLAG:項目OFF, 17
-	CASE "射精ランキング"
+	CASE "射精排行"
 		INVERTBIT FLAG:項目OFF, 18
-	CASE "所持アイテム一覧"
+	CASE "所持道具一覧"
 		INVERTBIT FLAG:項目OFF, 19
 	CASE "特記事項"
 		INVERTBIT FLAG:項目OFF, 20
@@ -281,7 +281,7 @@ CASE "通常", "通常：２"
 			INVERTBIT FLAG:項目OFF, 21
 			INVERTBIT FLAG:項目OFF, 22
 		ENDIF
-	CASE "普段の格好"
+	CASE "平常的装扮"
 		INVERTBIT FLAG:項目OFF, 23
 	CASE "出産の記録"
 		INVERTBIT FLAG:項目OFF, 24
@@ -340,9 +340,9 @@ RETURN 0
 #DIM MEMO_LINECOUNT
 #DIM NUM_BLANKSTR
 
-IF COND("キャラメイク中", ARG) == 0
-	CALL DRAWLINES, "□ キャラ紹介 □", "キャラ紹介"
-	SIF CONFIG("項目：キャラ紹介")
+IF COND("角色メイク中", ARG) == 0
+	CALL DRAWLINES, "□ 角色介绍 □", "角色介绍"
+	SIF CONFIG("項目：角色介绍")
 		RETURN 0
 ENDIF
 
@@ -353,9 +353,9 @@ VARSET STR, "", 0, 20
 
 SELECTCASE ARG
 CASE MASTER
-	STR:1 = 学園の２年生。日中は休み時間を部室で過ごしつつ講義を受ける日々を送る。
+	STR:1 = 学園的２年生。白天就在部室里打发休息時间、过着正常上课的生活。
 	SIF FLAG:オープニング
-		STR:2 = 目下の悩みは部員が自分一人しか居ない事か。
+		STR:2 = 现在最苦恼的事情是部员就只有自己一个人。
 CASEELSE
 	CALL EVENT_PROFILE, "紹介文", ARG
 ENDSELECT
@@ -371,10 +371,10 @@ FOR LCOUNT, 1, 19
 	ENDSELECT
 NEXT
 ;好きなものと嫌いなもの
-IF CSTR:ARG:好きなもの != ""
+IF CSTR:ARG:喜欢的东西 != ""
 	VARSET LOCALS
-	SPLIT CSTR:ARG:好きなもの, "/", LOCALS
-	STR:NUM_BLANKSTR += "好きなもの:"
+	SPLIT CSTR:ARG:喜欢的东西, "/", LOCALS
+	STR:NUM_BLANKSTR += "喜欢的东西:"
 	FOR LCOUNT, 0, 10
 		SELECTCASE LOCALS:LCOUNT
 		CASE ""
@@ -386,10 +386,10 @@ IF CSTR:ARG:好きなもの != ""
 		ENDSELECT
 	NEXT
 ENDIF
-IF CSTR:ARG:嫌いなもの != ""
+IF CSTR:ARG:讨厌的东西 != ""
 	VARSET LOCALS
-	SPLIT CSTR:ARG:嫌いなもの, "/", LOCALS
-	STR:(NUM_BLANKSTR + 1) += "嫌いなもの:"
+	SPLIT CSTR:ARG:讨厌的东西, "/", LOCALS
+	STR:(NUM_BLANKSTR + 1) += "讨厌的东西:"
 	FOR LCOUNT,0, 10
 		SELECTCASE LOCALS:LCOUNT
 		CASE ""
@@ -431,195 +431,195 @@ VARSET LOCALS
 ;特筆すべき関係
 
 IF ARG != MASTER
-	SIF CFLAG:ARG:お弁当
-		LOCALS = %LOCALS%・[お弁当の作り手] \@ CFLAG:ARG:お弁当 >= 6 ? 来週 # 次 \@の土曜日まで、お弁当を作って一緒に食べてくれます_L_
+	SIF CFLAG:ARG:便当
+		LOCALS = %LOCALS%・[便当制作者] \@ CFLAG:ARG:便当 >= 6 ? 来週 # 次 \@的周五之前、自制便当并一起吃_L_
 	SIF COND("合意：性処理", ARG)
-		LOCALS = %LOCALS%・[性処理係] 気軽に性処理をしてくれる関係です。首の_黄色_[黒いチョーカー]_がその証です_L_
+		LOCALS = %LOCALS%・[性処理係] 可以随意进行性処理的関係。脖子上有作为证明的_黄色_[黒色颈环]__L_
 
 	SIF COND("実母", ARG)
-		LOCALS = %LOCALS%・[実母] %CALLNAME:MASTER%の実の母親です。最初から同棲中です_L_
+		LOCALS = %LOCALS%・[実母] %CALLNAME:MASTER%的母親。一開始就住在一起_L_
 
 	;恋人以外はぶっちゃけセフレみたいなもんです
 	SELECTCASE CONDS("関係", ARG)
 	CASE "恋人"
-		LOCALS = %LOCALS%ハートピンク_・[恋人] 相思相愛です。お互いを大事にしあう関係です_L_
-	CASE "ご主人様"
-		LOCALS = %LOCALS%・[ご主人様] お互いの身体を許し合う関係です。ですが優先権は%CALLNAME:MASTER%には有りません_L_
+		LOCALS = %LOCALS%爱心粉紅_・[恋人] 相思相愛。是彼此珍视的関係_L_
+	CASE "主人様"
+		LOCALS = %LOCALS%・[主人様] 互相委身于对方的関係。但是%CALLNAME:MASTER%没有優先権_L_
 	CASE "性奴隷"
-		LOCALS = %LOCALS%・[性奴隷] %CALLNAME:MASTER%に身体を捧げています。性欲の捌け口にしましょう_L_
-	CASE "メイド"
-		LOCALS = %LOCALS%・[メイド] %CALLNAME:MASTER%にかいがいしく仕えます。Ｈなのも大丈夫です_L_
+		LOCALS = %LOCALS%・[性奴隷] 向%CALLNAME:MASTER%献上了身体。负责解决性欲问题_L_
+	CASE "女仆"
+		LOCALS = %LOCALS%・[女仆] 侍奉%CALLNAME:MASTER%。Ｈ也完全大丈夫_L_
 	CASE "執事"
-		LOCALS = %LOCALS%・[執事] %CALLNAME:MASTER%にかいがいしく仕えます。このゲームではメイドと同じくらいの立場_L_
+		LOCALS = %LOCALS%・[執事] 侍奉%CALLNAME:MASTER%。在这个游戏里和女仆是一様的立場_L_
 	CASE "魔法の師匠"
-		LOCALS = %LOCALS%・[魔法の師匠] %CALLNAME:MASTER%に主に西洋の秘技を教えてくれます_L_
+		LOCALS = %LOCALS%・[魔法の師匠] 主要是教%CALLNAME:MASTER%西洋的秘技_L_
 	CASE "Ｈの師匠"
-		LOCALS = %LOCALS%・[Ｈの師匠] %CALLNAME:MASTER%にＨな事を教えてくれます。教材は勿論自分！_L_
+		LOCALS = %LOCALS%・[Ｈの師匠] 教%CALLNAME:MASTER%Ｈ的事情。毫无疑问教材就是自己了！_L_
 	CASE "式神"
-		LOCALS = %LOCALS%・[式神] %CALLNAME:MASTER%から力を借りる代わりに、手となり足となる鬼神。お代は一日に魂0.01_L_
-	CASE "先輩"
-		LOCALS = %LOCALS%・[先輩] %CALLNAME:MASTER%の先輩です。思う存分頼りましょう_L_
+		LOCALS = %LOCALS%・[式神] 作为从%CALLNAME:MASTER%那里借来力量的代价、可以作为手足驱使的鬼神。代价是每日0.01魂_L_
+	CASE "前輩"
+		LOCALS = %LOCALS%・[前輩] %CALLNAME:MASTER%的前輩。可以尽管依靠_L_
 	CASE "後輩"
-		LOCALS = %LOCALS%・[後輩] %CALLNAME:MASTER%の後輩です。先輩風吹かせたり可愛がったりしましょう_L_
-	CASE "隣の人妻"
-		LOCALS = %LOCALS%・[隣の人妻] %CALLNAME:MASTER%の隣の家に住んでる人妻です。ご近所づきあいは大事！_L_
+		LOCALS = %LOCALS%・[後輩] %CALLNAME:MASTER%的後輩。用非常有前輩风范的方式好好疼爱一下吧_L_
+	CASE "隔壁的人妻"
+		LOCALS = %LOCALS%・[隔壁的人妻] %CALLNAME:MASTER%隣家生活的人妻。邻里関系很重要！_L_
 	CASE "保護者"
-		LOCALS = %LOCALS%・[保護者] %CALLNAME:MASTER%の成長を見守る身近な大人。どんなことをしても味方で居てくれる_L_
+		LOCALS = %LOCALS%・[保護者] 守护着%CALLNAME:MASTER%的成長的身旁的大人。无论在什么情况下都是可靠的同伴_L_
 	CASE "実妹"
-		LOCALS = %LOCALS%・[実妹] %CALLNAME:MASTER%の実の妹です。優しくしないと拗ねちゃいますよ！_L_
-	CASE "セフレ"
-		LOCALS = %LOCALS%・[セフレ] お互いの身体を許し合う関係です。どっちが上とかありません_L_
-	CASE "取引相手"
-		LOCALS = %LOCALS%・[取引相手] 魂の授受契約を結んでいます。これはビジネスであり邪な行為ではありません_L_
-	CASE "居候"
-		LOCALS = %LOCALS%・[居候] %CALLNAME:MASTER%の家に転がり込んでます。おかわりはそっと出す……_L_
-	CASE "クラスメイト"
-		LOCALS = %LOCALS%・[クラスメイト] %CALLNAME:MASTER%のクラスメイトです。授業中にイタズラしてはだめですよ_L_
-	CASE "部活仲間"
-		LOCALS = %LOCALS%・[部活仲間] %CALLNAME:MASTER%と同じ部活です。ところでどんな活動内容なんですかね_L_
+		LOCALS = %LOCALS%・[実妹] %CALLNAME:MASTER%的実妹。不温柔对待的话就会闹别扭的呦！_L_
+	CASE "炮友"
+		LOCALS = %LOCALS%・[炮友] 互相委身于对方的関係。双方地位平等_L_
+	CASE "交易对象"
+		LOCALS = %LOCALS%・[交易对象] 结成了魂的授受契約。这是正经的商业関系、绝不是什么邪恶的行為_L_
+	CASE "借住"
+		LOCALS = %LOCALS%・[借住] 正借住在%CALLNAME:MASTER%的家里。给自己加饭都不太好意思……_L_
+	CASE "同班同学"
+		LOCALS = %LOCALS%・[同班同学] %CALLNAME:MASTER%的同班同学。在上课的時候恶作剧是不行的呦_L_
+	CASE "社团同伴"
+		LOCALS = %LOCALS%・[社团同伴] %CALLNAME:MASTER%一起进行社团活动。不过话说回来活動内容是啥啊_L_
 	CASE "所有物"
-		LOCALS = %LOCALS%・[所有物] 今は%CALLNAME:MASTER%の持ち物です。大事に使ってあげましょう_L_
+		LOCALS = %LOCALS%・[所有物] 现在是%CALLNAME:MASTER%的所有物。请爱惜地使用_L_
 	CASE "教師"
-		LOCALS = %LOCALS%・[教師] %CALLNAME:MASTER%が通う学校の先生です。禁断の関係……になれるかはアナタ次第_L_
+		LOCALS = %LOCALS%・[教師] %CALLNAME:MASTER%的学校的老师。禁断的関係……有没有的话就看你的本事了_L_
 	CASE "監視役"
-		LOCALS = %LOCALS%・[監視役] %CALLNAME:MASTER%の監視が目的です。Ｈな事は役割に含まれていません_L_
+		LOCALS = %LOCALS%・[監視役] 目的是监视%CALLNAME:MASTER%。Ｈ的事情不包含在职责范围之内_L_
 	CASE "同級生"
-		LOCALS = %LOCALS%・[同級生] %CALLNAME:MASTER%が通う学校の違うクラスの同級生です。一緒に授業中抜け出すのは難しそう？_L_
+		LOCALS = %LOCALS%・[同級生] 和%CALLNAME:MASTER%同一个学校但是不同一个班级的同級生。想要一起翘课有点困難的呦？_L_
 	CASE "見学者"
-		LOCALS = %LOCALS%・[見学者] %CALLNAME:MASTER%の部活の見学者です。Ｈなことをされても自己責任_L_
+		LOCALS = %LOCALS%・[見学者] %CALLNAME:MASTER%的社团的参观者。如果做了Ｈ的事的话请好好地负起責任_L_
 	CASE "教師"
-		LOCALS = %LOCALS%・[教師] %CALLNAME:MASTER%が通う学校の先生です。禁断の関係……になれるかはアナタ次第_L_
+		LOCALS = %LOCALS%・[教師] %CALLNAME:MASTER%的学校的老师。禁断的関係……有没有的话就看你的本事了_L_
 	CASE "幼馴染"
-		LOCALS = %LOCALS%・[幼馴染] %CALLNAME:MASTER%が子供の時に仲良くしてた相手です。大きくなってからも仲良くできると良いですね_L_
+		LOCALS = %LOCALS%・[幼馴染] %CALLNAME:MASTER%在童年时期的好朋友。如果长大后也能好好相处就好了_L_
 	CASE "自称弟子"
-		LOCALS = %LOCALS%・[自称弟子] %CALLNAME:MASTER%の弟子を自称しています。色々なことを教えてあげましょう_L_
+		LOCALS = %LOCALS%・[自称弟子] 自称是%CALLNAME:MASTER%的弟子。大胆地教给弟子各种各样的事情吧_L_
 	CASE "飼い猫"
-		LOCALS = %LOCALS%・[飼い猫] %CALLNAME:MASTER%のペットみたいなものです。つまり問題が起きた場合の責任を取るのは……_L_
+		LOCALS = %LOCALS%・[飼い猫] %CALLNAME:MASTER%的宠物。也就是说如果出了什么问题必须自己处理……_L_
 	CASE ""
 
 	CASEELSE
-		LOCALS = %LOCALS%・[%CONDS("関係", ARG)%] 未定義な関係です_L_
+		LOCALS = %LOCALS%・[%CONDS("関係", ARG)%] 未定義的関係_L_
 	ENDSELECT
 ENDIF
 
 ;仕事や役職など
 SIF STRCOUNT(CSTR:ARG:仕事, "生徒会")
-	LOCALS = %LOCALS%・[生徒会]%CALLNAME:MASTER%の通う学校の生徒会役員です。いつも学校のために奔走しています_L_
+	LOCALS = %LOCALS%・[生徒会]%CALLNAME:MASTER%的学校的学生会的成员。一直在为了学校而忙碌地奔走着_L_
 
 ;素質のセフレはbitで種類を管理する
 ;基本的にはセフレ契約と同じ。満足させていなくても秘め事を終了できるが、代わりに魂のお値段が割高になっている。
 IF COND("性処理契約", ARG)
-	LOCALS = %LOCALS%・[性処理契約] あなたが絶頂する毎に魂を0.1差し出す約束です。好きな時に秘め事を終了できます_L_
-ELSEIF COND("セフレ契約", ARG)
-	LOCALS = %LOCALS%・[セフレ契約] 無理強い不可。あなたが絶頂する毎に魂を0.05差し出す約束です_L_
+	LOCALS = %LOCALS%・[性処理契約] 定下了每次让玩家絶頂就交出0.1魂的约定。H也可以随时结束_L_
+ELSEIF COND("炮友契約", ARG)
+	LOCALS = %LOCALS%・[炮友契約] 不能强上。主人公每次絶頂就要交出0.05魂的契约_L_
 ENDIF
 
 
-SIF TALENT:ARG:反抗的
-	LOCALS = %LOCALS%・[反抗的] %CALLNAME:MASTER%の事をよく思ってません。仲良くなるには_黄色_[好感度200]_or_黄色_[信頼LV2]_が必要_L_
+SIF TALENT:ARG:叛逆
+	LOCALS = %LOCALS%・[叛逆] 不怎么听%CALLNAME:MASTER%的话。想要处好関系的话至少需要_黄色_[好感度200]_or_黄色_[信頼LV2]__L_
 SIF TALENT:ARG:吸精体質
-	LOCALS = %LOCALS%・[吸精体質] 性交の際に相手の生気(魂)を吸い取って力に変えます_L_
+	LOCALS = %LOCALS%・[吸精体質] 性交時会吸取对方的生気(魂)变成自己的力量_L_
 SIF TALENT:ARG:恋慕 && TALENT:ARG:相思相愛 == 0
-	LOCALS = %LOCALS%ハートピンク_・[恋慕] %CALLNAME:MASTER%の事が好きです_L_
+	LOCALS = %LOCALS%爱心粉紅_・[恋慕] 喜欢%CALLNAME:MASTER%_L_
 
 IF MARK:ARG:淫紋
 	TYPE_INMON = %CONDS("淫紋の種類", ARG)%
 	SELECTCASE TYPE_INMON
 	CASE "基本"
-		TYPE_INMON = ハート型の
+		TYPE_INMON = 心型的
 	CASEELSE
-		TYPE_INMON = 淫靡な
+		TYPE_INMON = 淫靡的
 	ENDSELECT
-	IF COND("淫紋シール", ARG)
-		LOCALS = %LOCALS%・[淫紋シール] 下腹部に%TYPE_INMON%シールが貼られてます_L_
+	IF COND("淫紋贴纸", ARG)
+		LOCALS = %LOCALS%・[淫紋贴纸] 下腹部贴着%TYPE_INMON%的贴纸_L_
 	ELSE
-		LOCALS = %LOCALS%・[淫紋] 下腹部に%TYPE_INMON%刻印があります。欲情が溜まり易く、触られるだけでもＶ快感発生_L_
+		LOCALS = %LOCALS%・[淫紋] 下腹部有%TYPE_INMON%的刻印。非常容易激发欲情、轻轻触碰就会有Ｖ快感発生_L_
 	ENDIF
 ENDIF
 
 ;種族、物凄い特技や特徴
-SELECTCASE TALENT:ARG:リザレクション
+SELECTCASE TALENT:ARG:復活
 CASE 0
 CASE 100, 200, 300, 400, 500
-	LOCALS = %LOCALS%・[%TALENT_NAME(GETNUM(TALENT, "リザレクション"), TALENT:MASTER:リザレクション)%] 魂を常人換算で_黄色_{1 + TALENT:ARG:リザレクション/100}つ分_持っている＆魂の損傷が毎日_黄色_{TALENT:ARG:リザレクション/100}つ分_回復_L_
+	LOCALS = %LOCALS%・[%TALENT_NAME(GETNUM(TALENT, "復活"), TALENT:MASTER:復活)%] 如果说常人的魂可以換算为_黄色_{1 + TALENT:ARG:復活/100}份_的话＆每天可以回復_黄色_{TALENT:ARG:復活/100}份_魂的損傷_L_
 CASEELSE
-	LOCALS = %LOCALS%・[%TALENT_NAME(GETNUM(TALENT, "リザレクション"), TALENT:MASTER:リザレクション)%] 魂を常人換算で_黄色_%TEXTS("0.1", 10 + TALENT:ARG:リザレクション/10)%個_持っている＆魂の損傷が毎日_黄色_%TEXTS("0.1", TALENT:ARG:リザレクション/10)%_回復_L_
+	LOCALS = %LOCALS%・[%TALENT_NAME(GETNUM(TALENT, "復活"), TALENT:MASTER:復活)%] 如果说常人的魂可以換算为_黄色_%TEXTS("0.1", 10 + TALENT:ARG:復活/10)%個_的话＆每天可以回復_黄色_%TEXTS("0.1", TALENT:ARG:復活/10)%_魂的損傷_L_
 ENDSELECT
 
-SELECTCASE TALENT:ARG:孕ませ男
+SELECTCASE TALENT:ARG:小种马
 CASE 1
-	LOCALS = %LOCALS%・[孕ませ男] 精子力が高く、かなりの着床率を誇ります。_L_
+	LOCALS = %LOCALS%・[小种马] 精子力很高、着床率值得夸耀。_L_
 CASE IS >= 2
-	LOCALS = %LOCALS%・[超孕ませ男] 精子力が非常に高く、極めて優秀な着床率を誇ります。_L_
+	LOCALS = %LOCALS%・[大种马] 精子力非常高、有着極为優秀的着床率。_L_
 ENDSELECT
 
 SIF COND("種族：竜人", ARG)
-	LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] 竜のツノと尻尾が有ります。発情期は色々激しくなるとかならないとか_L_
+	LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] 有竜的角和尾巴。発情期的時候必需得进行各种各様激烈的行为_L_
 SIF COND("種族：死神", ARG)
-	LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] _聖書の神が創造した初期型の天使の一機。管轄部門は死と地獄_L_
+	LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] _聖書の神所創造的初期型天使的一种。管轄部門包含死亡和地獄_L_
 SIF COND("種族：天使", ARG)
-	LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] 名前が読めない神に仕える使者。基本的に人間の味方であることが多い_L_
+	LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] 名字读不出来的侍奉神的使者。基本上大部分情况下是人类的伙伴_L_
 SIF COND("種族：精霊", ARG)
-	LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] 自然の力が形を成したもの。長命なのもあって人の常識が通用しない事で有名_L_
+	LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] 在自然之力下形成的生物。因为寿命很长以及人的常識无法通用之类的事迹比较出名_L_
 IF COND("種族：悪魔", ARG)
 	IF COND("悪魔の取引可能", ARG)
-		LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] 魂の取引で様々な欲望を叶えられる。最初から%TEXTS("助手の名称")%になれる_L_
+		LOCALS = %LOCALS%・[悪魔] 用魂来做交易而实现各种各様的欲望。从一開始就可以担任%TEXTS("助手の名称")%_L_
 	ELSE
-		LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] 願いを叶えられる悪魔ではないので魂の取引は出来ません。最初から%TEXTS("助手の名称")%になれる_L_
+		LOCALS = %LOCALS%・[%CONDS("種族", ARG)%] 因为不是能够实现愿望的悪魔所以并不能进行魂的交易。从一開始就可以担任%TEXTS("助手の名称")%_L_
 	ENDIF
 ENDIF
-SIF COND("種族：魔法使い", ARG)
-	LOCALS = %LOCALS%・[魔法使い] 魔法の探求に血道をあげており、西洋の様々な秘儀に長ける_L_
+SIF COND("種族：魔法使", ARG)
+	LOCALS = %LOCALS%・[魔法使] 一直在探求魔法之路、擅长西洋的各种秘儀_L_
 SIF COND("種族：式神", ARG) && CONDS("関係", ARG) != "式神"
-	LOCALS = %LOCALS%・[式神] %CALLNAME:MASTER%から力を借りる代わりに、手となり足となる鬼神。お代は一日に魂0.01_L_
+	LOCALS = %LOCALS%・[式神] 作为从%CALLNAME:MASTER%那里借来力量的代价、可以作为手足驱使的鬼神。代价是每日0.01魂_L_
 SIF COND("種族：妖狐", ARG)
-	LOCALS = %LOCALS%・[妖狐] 狐の妖。変化が得意で人の形態を好む。文字に力を籠める術が得意_L_
-SIF COND("種族：悪魔祓い", ARG)
-	LOCALS = %LOCALS%・[悪魔祓い] エクソシストと呼ばれる西洋の聖職者です。近年は人材難が深刻_L_
-SIF COND("種族：ラミア", ARG)
-	LOCALS = %LOCALS%・[ラミア] 下半身が蛇の妖で、寒さに弱い。人の生気や血を吸う者も居るのだとか_L_
+	LOCALS = %LOCALS%・[妖狐] 狐妖。擅长変化而且喜欢人的形態。擅长用文字来化为力量的術式_L_
+SIF COND("種族：驱魔人", ARG)
+	LOCALS = %LOCALS%・[驱魔人] 被称作驱魔人的西洋的聖職者。近年来人材匮乏严重_L_
+SIF COND("種族：拉米亚", ARG)
+	LOCALS = %LOCALS%・[拉米亚] 下半身是蛇的妖、喜热恶寒。以吸取人的生気或者血之类的为食_L_
 SIF COND("種族：吸血鬼", ARG)
-	LOCALS = %LOCALS%・[吸血鬼] 人の血を吸う鬼。人知を超えた力を持つが、陽の光をはじめ苦手な物がやたらと多い_L_
+	LOCALS = %LOCALS%・[吸血鬼] 吸人血的鬼怪。有着超越人知的力量、有着包括陽光在内有很多头疼的东西_L_
 SIF COND("種族：人形", ARG)
-	LOCALS = %LOCALS%・[人形] 自我に目覚めた人間大の人形。殆ど人と同じだが、妊娠する事は出来ない_L_
+	LOCALS = %LOCALS%・[人形] 觉醒了自我的和人类一様大的人偶。基本上和人类一様、但是无法妊娠_L_
 SIF COND("種族：鬼", ARG)
-	LOCALS = %LOCALS%・[鬼] 角以外はだいたい人と同じだが、でかくて強い。色と酒を好むものが多いとか_L_
+	LOCALS = %LOCALS%・[鬼] 除了有角以外其他基本和人类相同、个头大而且很強。大多喜欢酒色_L_
 SIF COND("種族：エルフ", ARG)
-	LOCALS = %LOCALS%・[エルフ] 耳と寿命が長い森の住人。姿こそ人間に似ているが価値観は全く別物らしい_L_
+	LOCALS = %LOCALS%・[エルフ] 耳朵和寿命都很長的森林住人。外貌和人类相似但価値観完全不同_L_
 
 IF COND("種族：獣人", ARG)
 	IF COND("種族：猫", ARG)
-		LOCALS = %LOCALS%・[獣人] 猫の耳と尻尾が有ります。発情期になると……_L_
+		LOCALS = %LOCALS%・[獣人] 有猫的耳朵和尾巴。以及発情期什么的……_L_
 	ELSEIF COND("種族：狼", ARG)
-		LOCALS = %LOCALS%・[獣人] 狼の耳と尻尾が有ります。人によって犬っぽかったり狼っぽかったりします_L_
+		LOCALS = %LOCALS%・[獣人] 有狼的耳朵和尾巴。根据个体情况不同、有的像犬有的像狼……_L_
 	ELSEIF COND("種族：鼠", ARG)
-		LOCALS = %LOCALS%・[獣人] 鼠の耳と尻尾が有ります。性欲が強めです。_L_
+		LOCALS = %LOCALS%・[獣人] 有鼠的耳朵和尾巴。性欲很強。_L_
 	ELSE
-		LOCALS = %LOCALS%・[獣人] 獣の耳と尻尾が有ります_L_
+		LOCALS = %LOCALS%・[獣人] 有野兽的耳朵和尾巴_L_
 	ENDIF
 ENDIF
 
 ;禁断の知識
 IF ARG == MASTER
-	SELECTCASE TALENT:ARG:禁断の知識
+	SELECTCASE TALENT:ARG:禁断的知識
 	CASE 1
-		LOCALS = %LOCALS%・[禁断の知識] 現在Ⅰ巻を所有。[_黄色_淫紋の刻印_]が出来る_L_
+		LOCALS = %LOCALS%・[禁断的知識] 現在持有Ⅰ巻。可以[_黄色_淫紋の刻印_]_L_
 	CASE 2
-		LOCALS = %LOCALS%・[禁断の知識] Ⅱ巻まで所有。[_黄色_淫紋の刻印_][_黄色_具現_]を習得済み_L_
+		LOCALS = %LOCALS%・[禁断的知識] 現在持有至Ⅱ巻。已经習得了[_黄色_淫紋の刻印_]和[_黄色_具現_]_L_
 	CASE 3
-		LOCALS = %LOCALS%・[禁断の知識] Ⅲ巻まで所有。[_黄色_淫紋の刻印_][_黄色_具現_][_黄色_認識阻害_]を習得済み_L_
+		LOCALS = %LOCALS%・[禁断的知識] 現在持有至Ⅲ巻。已经習得了[_黄色_淫紋の刻印_][_黄色_具現_][_黄色_認識阻害_]_L_
 	ENDSELECT
 ENDIF
 
 ;アドバイザー能力
 VARSET ADVISE
-SPLIT CSTR:ARG:アドバイス, "＆", ADVISE
+SPLIT CSTR:ARG:建议, "＆", ADVISE
 
 FOR LCOUNT, 0, 10
 	SELECTCASE ADVISE:LCOUNT
 	CASE ""
 		BREAK
-	CASE "無し"
+	CASE "没有"
 		CONTINUE
 	CASEELSE
 		LOCALS = %LOCALS%・[%ADVISE:LCOUNT%] %COMMENT_ADVISER(ADVISE:LCOUNT)%_L_
@@ -628,36 +628,36 @@ NEXT
 
 ;素質
 IF TALENT:ARG:未成熟
-	IF TALENT:ARG:オトコ
+	IF TALENT:ARG:男性
 	;	LOCALS = %LOCALS%・[未成熟] まだ精通していません。射精ができません_L_
 	;ELSEIF TALENT:ARG:ふたなり
 	;	LOCALS = %LOCALS%・[未成熟] まだ初潮を迎えていません。精通もまだです。受精と射精が発生しません_L_
 	ELSE
-		LOCALS = %LOCALS%・[未成熟] まだ初潮を迎えていないため、妊娠する事ができません_L_
+		LOCALS = %LOCALS%・[未成熟] 还没有迎来初潮、不会妊娠_L_
 	ENDIF
 ENDIF
-SIF TALENT:ARG:縦割れアナル
-	LOCALS = %LOCALS%・[縦割れアナル] 閉じた状態の肛門が縦長の線状で皺が伸び気味。Ａ使用時の痛みが激減_L_
+SIF TALENT:ARG:縦深菊穴
+	LOCALS = %LOCALS%・[縦深菊穴] 閉合状態下的肛門褶皱呈縦向線状。減少Ａ使用時的疼痛_L_
 SIF TALENT:ARG:豊穣
-	LOCALS = %LOCALS%・[豊穣] 胸への愛撫or射精で女性の胸を大きくできる。\@ CONFIG("豊穣フィルタ") ? # _現在_黄色_OFF \@_L_
+	LOCALS = %LOCALS%・[豊穣] 对着胸部的愛撫or射精会让女性的胸变大。\@ CONFIG("豊穣过滤器") ? # _現在_黄色_OFF \@_L_
 SIF TALENT:ARG:献身
-	LOCALS = %LOCALS%・[献身] 奉仕する事が大好きです。奉仕精神のLVUPに要する珠が半分で済みます_L_
+	LOCALS = %LOCALS%・[献身] 非常喜欢奉仕。奉仕精神的LVUP需要的珠減半_L_
 ;SIF TALENT:ARG:好色
 ;	LOCALS = %LOCALS%・[好色] セックスが大好きです。欲求不満が50％以上の時に誘われたら断れません_L_
 SIF TALENT:ARG:受け身
-	LOCALS = %LOCALS%・[受け身] 性行為において受動的。押し倒したりしてきません_L_
-SIF COND("キャラメイク中", ARG) && (TALENT:ARG:Ｃ性向 || TALENT:ARG:Ｖ性向 || TALENT:ARG:Ａ性向 || TALENT:ARG:Ｂ性向 || TALENT:ARG:Ｍ性向)
-	LOCALS = %LOCALS%・[～性向] 該当箇所で快感を得る事を好む。対応した珠の取得+50％。感度自体には影響なし_L_
+	LOCALS = %LOCALS%・[受け身] 被动地接受性行为。不能主动强推他人_L_
+SIF COND("角色メイク中", ARG) && (TALENT:ARG:Ｃ性向 || TALENT:ARG:Ｖ性向 || TALENT:ARG:Ａ性向 || TALENT:ARG:Ｂ性向 || TALENT:ARG:Ｍ性向)
+	LOCALS = %LOCALS%・[～性向] 非常喜欢該部位获得快感。対応的珠的取得+50％。对该部位敏感度本身没有影響_L_
 IF TALENT:ARG:妊娠不能
 	SELECTCASE TALENT:ARG:妊娠不能
 	CASEELSE
-		LOCALS = %LOCALS%・[妊娠不能] ちょっとした訳があって妊娠することが出来ない身体です_L_
+		LOCALS = %LOCALS%・[妊娠不能] 因为某些原因身体不能妊娠_L_
 	ENDSELECT
 ELSEIF TALENT:ARG:妊娠可能 && COND("本来は妊娠不可能", ARG)
-	IF TALENT:ARG:オトコ
-		LOCALS = %LOCALS%・[妊娠可能] 精液をお尻の穴に注がれることで妊娠する事ができます_L_
+	IF TALENT:ARG:男性
+		LOCALS = %LOCALS%・[妊娠可能] 可以把精液注入菊穴之中来妊娠_L_
 	ELSEIF COND("種族：人形", ARG)
-		LOCALS = %LOCALS%・[妊娠可能] 人形にもかかわらず妊娠することができます_L_
+		LOCALS = %LOCALS%・[妊娠可能] 尽管只是一个人偶但也依然可以妊娠_L_
 	ELSE
 	;	LOCALS = %LOCALS%・[妊娠可能] 妊娠することができます_L_
 	ENDIF
@@ -666,30 +666,30 @@ ENDIF
 ;性行為の熟達度
 SELECTCASE (COND("Ｖ熟達", ARG) > 0) + (COND("Ａ熟達", ARG) > 0) + (COND("尿道熟達", ARG) > 0)
 CASE 3
-	LOCALS = %LOCALS%・[３穴熟達] 膣と肛門は勿論の事、尿道での性交にも長ける。
+	LOCALS = %LOCALS%・[３穴熟達] 且不用说膣和肛門、尿道性交也非常擅長。
 	IF COND("Ｖ熟達", ARG) > MAX(COND("Ａ熟達", ARG), COND("尿道熟達", ARG) )
-		LOCALS = %LOCALS%特にＶセックスが好み_L_
+		LOCALS = %LOCALS%非常喜欢Ｖ性交_L_
 	ELSEIF COND("Ａ熟達", ARG) > MAX(COND("Ｖ熟達", ARG), COND("尿道熟達", ARG) )
-		LOCALS = %LOCALS%特にＡセックスが好み_L_
+		LOCALS = %LOCALS%非常喜欢Ａ性交_L_
 	ELSEIF COND("尿道熟達", ARG) > MAX(COND("Ｖ熟達", ARG), COND("Ａ熟達", ARG) )
-		LOCALS = %LOCALS%特に尿道セックスが好み_L_
+		LOCALS = %LOCALS%非常喜欢尿道性交_L_
 	ELSE
 		LOCALS = %LOCALS%_L_
 	ENDIF
 CASE 2
 	IF COND("Ｖ熟達", ARG) && COND("Ａ熟達", ARG)
-		LOCALS = %LOCALS%・[２穴熟達] 膣と肛門での性交に長ける。
+		LOCALS = %LOCALS%・[２穴熟達] 擅長膣性交与肛門性交。
 	ELSEIF COND("Ｖ熟達", ARG) && COND("尿道熟達", ARG)
-		LOCALS = %LOCALS%・[２穴熟達] 膣と尿道での性交に長ける。
+		LOCALS = %LOCALS%・[２穴熟達] 擅長膣性交与尿道性交。
 	ELSE
-		LOCALS = %LOCALS%・[２穴熟達] 肛門と尿道での性交に長ける。
+		LOCALS = %LOCALS%・[２穴熟達] 擅長肛門性交与尿道性交。
 	ENDIF
 	IF COND("Ｖ熟達", ARG) > MAX(COND("Ａ熟達", ARG), COND("尿道熟達", ARG) )
-		LOCALS = %LOCALS%特にＶセックスが好み_L_
+		LOCALS = %LOCALS%非常喜欢Ｖ性交_L_
 	ELSEIF COND("Ａ熟達", ARG) > MAX(COND("Ｖ熟達", ARG), COND("尿道熟達", ARG) )
-		LOCALS = %LOCALS%特にＡセックスが好み_L_
+		LOCALS = %LOCALS%非常喜欢Ａ性交_L_
 	ELSEIF COND("尿道熟達", ARG) > MAX(COND("Ｖ熟達", ARG), COND("Ａ熟達", ARG) )
-		LOCALS = %LOCALS%特に尿道セックスが好み_L_
+		LOCALS = %LOCALS%非常喜欢尿道性交_L_
 	ELSE
 		LOCALS = %LOCALS%_L_
 	ENDIF
@@ -698,70 +698,70 @@ CASE 1
 		SELECTCASE CSTR:ARG:学年
 		CASE "初等部", "中等部", "１年生"
 			IF ABL:ARG:Ｖ拡張 >= 3
-				LOCALS = %LOCALS%・[Ｖ熟達] %CSTR:ARG:学年%の癖にセックス経験が豊富で、大人の巨根だろうと余裕で相手する事が出来る。_L_
+				LOCALS = %LOCALS%・[Ｖ熟達] 尽管只是%CSTR:ARG:学年%、性交経験却已经已经十分豊富了、就算是以大人的巨根为对手也有足够的余裕。_L_
 			ELSE
-				LOCALS = %LOCALS%・[Ｖ熟達] %CSTR:ARG:学年%の癖にセックス経験が豊富です。_L_
+				LOCALS = %LOCALS%・[Ｖ熟達] 尽管只是%CSTR:ARG:学年%、性交経験却已经已经十分豊富了。_L_
 			ENDIF
 		CASE "２年生"
 			SELECTCASE CONDS("陰毛", ARG)
-			CASE "脱毛処理", "ツルツル", "お手入れ済"
-				LOCALS = %LOCALS%・[Ｖ熟達] 学園生の癖にセックスに手慣れており、見えない場所のお洒落も完璧。_L_
+			CASE "脱毛処理", "光滑无毛", "保养完毕"
+				LOCALS = %LOCALS%・[Ｖ熟達] 尽管只是个学園生、但已经非常习惯性交了。他人看不到的地方也十分美丽。_L_
 			CASEELSE
-				LOCALS = %LOCALS%・[Ｖ熟達] 学園生の癖にセックスに手慣れています。_L_
+				LOCALS = %LOCALS%・[Ｖ熟達] 尽管只是个学園生、但已经非常习惯性交了。_L_
 			ENDSELECT
 		CASEELSE
 			SELECTCASE AGE(ARG)
 			CASE IS >= 4
 				SELECTCASE CONDS("陰毛", ARG)
 				CASE "脱毛処理"
-					LOCALS = %LOCALS%・[Ｖ熟達] オトナだけあってセックスに手慣れています。陰毛も脱毛済み。_L_
-				CASE "ツルツル", "お手入れ済"
-					LOCALS = %LOCALS%・[Ｖ熟達] オトナだけあってセックスに手慣れています。アソコのお手入れもバッチリ。_L_
+					LOCALS = %LOCALS%・[Ｖ熟達] 已经十分习惯大人的性交了。陰部已经脱毛了。_L_
+				CASE "光滑无毛", "保养完毕"
+					LOCALS = %LOCALS%・[Ｖ熟達] 已经十分习惯大人的性交了。阴部也扩张到了手都可以插进去的地步。_L_
 				CASEELSE
-					LOCALS = %LOCALS%・[Ｖ熟達] オトナだけあってセックスに手慣れています。_L_
+					LOCALS = %LOCALS%・[Ｖ熟達] 已经十分习惯大人的性交了。_L_
 				ENDSELECT
 			CASE 3
 				SELECTCASE CONDS("陰毛", ARG)
 				CASE "脱毛処理"
-					LOCALS = %LOCALS%・[Ｖ熟達] 見た目通りセックスの経験が豊富です。陰毛も脱毛済み。_L_
-				CASE "ツルツル", "お手入れ済"
-					LOCALS = %LOCALS%・[Ｖ熟達] 見た目通りセックスの経験が豊富です。アソコのお手入れもバッチリ。_L_
+					LOCALS = %LOCALS%・[Ｖ熟達] 和外表看上去一样有着豊富的性交経験。陰部已经脱毛了。_L_
+				CASE "光滑无毛", "保养完毕"
+					LOCALS = %LOCALS%・[Ｖ熟達] 和外表看上去一样有着豊富的性交経験。阴部也扩张到了手都可以插进去的地步。_L_
 				CASEELSE
-					LOCALS = %LOCALS%・[Ｖ熟達] 見た目通りセックスの経験が豊富です。_L_
+					LOCALS = %LOCALS%・[Ｖ熟達] 和外表看上去一样有着豊富的性交経験。_L_
 				ENDSELECT
 			CASE 2
 				IF ABL:ARG:Ｖ拡張 >= 3
-					LOCALS = %LOCALS%・[Ｖ熟達] 子供っぽさの残る外見だが経験豊富で、巨根相手でも問題なく楽しむ事ができる。_L_
+					LOCALS = %LOCALS%・[Ｖ熟達] 外表稚气未脱但性交経験却十分豊富、就算以巨根为对手也可以毫无問題地享受其中。_L_
 				ELSE
-					LOCALS = %LOCALS%・[Ｖ熟達] 子供っぽさの残る外見ですがセックス経験が豊富です。_L_
+					LOCALS = %LOCALS%・[Ｖ熟達] 外表稚气未脱但性交経験却十分豊富。_L_
 				ENDIF
 			CASE 1
 				IF ABL:ARG:Ｖ拡張 >= 3
-					LOCALS = %LOCALS%・[Ｖ熟達] 幼い外見の癖にセックス経験が豊富で、大人の巨根だろうと余裕で相手する事が出来る。_L_
+					LOCALS = %LOCALS%・[Ｖ熟達] 尽管外表十分年幼、却有着豊富的性交経験、就算是以大人的巨根为对手也有足够的余裕。_L_
 				ELSE
-					LOCALS = %LOCALS%・[Ｖ熟達] 幼い外見の癖にセックス経験が豊富です。_L_
+					LOCALS = %LOCALS%・[Ｖ熟達] 尽管外表十分年幼、却有着豊富的性交経験。_L_
 				ENDIF
 			ENDSELECT
 		ENDSELECT
 	ELSEIF COND("Ａ熟達", ARG)
 		IF TALENT:ARG:処女
-			LOCALS = %LOCALS%・[Ａ熟達] 処女の癖にお尻の穴での性交に慣れきっています。Ｈと言ったらアナルセックス！_L_
+			LOCALS = %LOCALS%・[Ａ熟達] 因为想要保持処女所以已经习慣了菊穴性交。说起Ｈ的话那肯定就是菊穴SEX了！_L_
 		ELSEIF TALENT:ARG:童貞
-			LOCALS = %LOCALS%・[Ａ熟達] 童貞だというのにお尻の穴での性交に慣れきっています。Ｈと言ったらアナルセックス！_L_
+			LOCALS = %LOCALS%・[Ａ熟達] 因为想要保持童貞所以已经习慣了菊穴性交。说起Ｈ的话那肯定就是菊穴SEX了！_L_
 		ELSE
-			LOCALS = %LOCALS%・[Ａ熟達] お尻の穴での性交に慣れきっています。Ｈと言ったらアナルセックス。_L_
+			LOCALS = %LOCALS%・[Ａ熟達] 已经习慣了菊穴性交。说起Ｈ的话那肯定就是菊穴SEX了！_L_
 		ENDIF
 	ELSE
-		LOCALS = %LOCALS%・[尿道熟達] 尿道での性交に慣れきっています。Ｈと言ったら尿道セックス。_L_
+		LOCALS = %LOCALS%・[尿道熟達] 已经习慣了尿道性交。说起Ｈ的话那肯定就是尿道SEX了。_L_
 	ENDIF
 ENDSELECT
 
 ;
 SELECTCASE CFLAG:ARG:ＮＴＲ禁止
 CASE 1
-	LOCALS = %LOCALS%・[ＮＴＲ禁止] %CALLNAME:MASTER%以外とはＨしません。_L_
+	LOCALS = %LOCALS%・[ＮＴＲ禁止] 不能和%CALLNAME:MASTER%以外的人Ｈ。_L_
 CASE 2
-	LOCALS = %LOCALS%・[モブＨ禁止] 部活仲間以外とはＨしません。_L_
+	LOCALS = %LOCALS%・[禁止与路人Ｈ] 不能和社团成员以外的人Ｈ。_L_
 ENDSELECT
 
 SIF LOCALS == ""
@@ -776,15 +776,15 @@ CALL PRINT_STR, LOCALS
 ;パンツコレクション
 @PRINT_COLLECT_PANTU, ARG
 
-SIF CALCF("パンツコレクション枚数", ARG) == 0
+SIF CALCF("胖次收藏枚数", ARG) == 0
 	RETURN 0
 
-CALL DRAWLINES, "□ パンツコレクション □", "パンツコレクション"
+CALL DRAWLINES, "□ 胖次收藏 □", "胖次收藏"
 
-SIF CONFIG("項目：パンツコレクション")
+SIF CONFIG("項目：胖次收藏")
 	RETURN 0
 
-CALL PRINT_LIST, CSTR:ARG:パンツコレクション
+CALL PRINT_LIST, CSTR:ARG:胖次收藏
 PRINTL 
 
 @SHOW_ITEM_HAVE
@@ -792,12 +792,12 @@ PRINTL
 #DIM LCOUNT
 #DIMS ITEMS
 
-SIF NUM("所持アイテム") == 0
+SIF NUM("所持道具") == 0
 	RETURN 0
 
-CALL DRAWLINES, "□ 所持アイテム一覧 □", "所持アイテム一覧"
+CALL DRAWLINES, "□ 所持道具一覧 □", "所持道具一覧"
 
-SIF CONFIG("項目：所持アイテム一覧")
+SIF CONFIG("項目：所持道具一覧")
 	RETURN 0
 
 ITEMS = 
@@ -832,7 +832,7 @@ SIF CFLAG:ARG:性処理 == 0
 IF COND("性処理中", ARG)
 	CALL DRAWLINES, "□ 性処理 □", "性処理"
 ELSE
-	CALL DRAWLINES, "□ 性処理 (現在は指名されていません)□", "性処理"
+	CALL DRAWLINES, "□ 性処理 (現在没有指名)□", "性処理"
 ENDIF
 
 SIF CONFIG("項目：性処理")
@@ -842,11 +842,11 @@ FOR LCOUNT, 0, 10
 	VARSET LOCALS
 	SPLIT CSTR:ARG:性処理, "/", LOCALS
 	;×印に指定している場合
-	IF STRCOUNT(CSTR:ARG:性処理, @"!%NAMES("性処理の採用コマンド", LCOUNT)%\/")
+	IF STRCOUNT(CSTR:ARG:性処理, @"!%NAMES("性処理の採用指令", LCOUNT)%\/")
 		PRINTFORM × 
 	;それ以外は個数をカウント
 	ELSE
-		SELECTCASE MATCH(LOCALS, NAMES("性処理の採用コマンド", LCOUNT), 0, 100)
+		SELECTCASE MATCH(LOCALS, NAMES("性処理の採用指令", LCOUNT), 0, 100)
 		CASE 5
 			PRINTFORM ☆ 
 		CASE 3
@@ -857,13 +857,13 @@ FOR LCOUNT, 0, 10
 			CONTINUE
 		ENDSELECT
 	ENDIF
-	PRINTFORM %TEXT_LJ(NAMES("性処理のジャンル", LCOUNT), 18)%
+	PRINTFORM %TEXT_LJ(NAMES("性処理的类型", LCOUNT), 18)%
 
 	;回数表示
 	VARSET LOCALS
 	SPLIT CSTR:ARG:性処理履歴, "/", LOCALS
 	FOR LCOUNT2, 0, 10
-		SIF STRCOUNT(LOCALS:LCOUNT2, NAMES("性処理のジャンル", LCOUNT) ) == 0
+		SIF STRCOUNT(LOCALS:LCOUNT2, NAMES("性処理的类型", LCOUNT) ) == 0
 			CONTINUE
 		PRINT …　
 		SETCOLOR DEF_COLOR("黄色")
@@ -895,15 +895,15 @@ VARSET SPERM_RANK_U, -1
 
 ;中出され履歴の有無チェック
 FOR LCOUNT, 1, CHARANUM
-	SIF CSTR:LCOUNT:Ｖ中出され != "" || CSTR:LCOUNT:Ａ中出され != "" || CSTR:LCOUNT:精飲 != "" || CSTR:LCOUNT:乳内中出され != "" || CSTR:LCOUNT:膀胱中出され != ""
+	SIF CSTR:LCOUNT:被Ｖ中出 != "" || CSTR:LCOUNT:被Ａ中出 != "" || CSTR:LCOUNT:精飲 != "" || CSTR:LCOUNT:被乳内中出 != "" || CSTR:LCOUNT:被膀胱中出 != ""
 		BREAK
 	SIF LCOUNT == CHARANUM - 1
 		RETURN 0
 NEXT
 
-CALL DRAWLINES, "□ 射精ランキング □", "射精ランキング"
+CALL DRAWLINES, "□ 射精排行 □", "射精排行"
 
-SIF CONFIG("項目：射精ランキング")
+SIF CONFIG("項目：射精排行")
 	RETURN 0
 
 ;SPERM_TOTAL	LCOUNT番のキャラの総中搾精量
@@ -1137,11 +1137,11 @@ VARSET SPERM_RANK_B, -1
 VARSET SPERM_RANK_U, -1
 
 ;中出され履歴の有無チェック
-SIF CSTR:ARG:Ｖ中出され == "" && CSTR:ARG:Ａ中出され == "" && CSTR:ARG:精飲 == "" && CSTR:ARG:乳内中出され == "" && CSTR:ARG:膀胱中出され == ""
+SIF CSTR:ARG:被Ｖ中出 == "" && CSTR:ARG:被Ａ中出 == "" && CSTR:ARG:精飲 == "" && CSTR:ARG:被乳内中出 == "" && CSTR:ARG:被膀胱中出 == ""
 	RETURN 0
-CALL DRAWLINES, "□ 搾精ランキング □", "搾精ランキング"
+CALL DRAWLINES, "□ 搾精排行 □", "搾精排行"
 
-SIF CONFIG("項目：搾精ランキング")
+SIF CONFIG("項目：搾精排行")
 	RETURN 0
 
 ;SPERM_TOTAL		LCOUNT番のキャラの総中出し量
@@ -1311,9 +1311,9 @@ SIF LINECOUNT == MEMO_LINECOUNT
 SIF ABL:ARG:助手 == 0 || ARG == MASTER
 	RETURN 0
 
-CALL DRAWLINES, @"□ %TEXTS("助手の名称")%のお仕事指示 □", "助手のお仕事指示"
+CALL DRAWLINES, @"□ %TEXTS("助手の名称")%的工作指示 □", "助手的工作指示"
 
-SIF CONFIG("項目：助手のお仕事指示")
+SIF CONFIG("項目：助手的任务指示")
 	RETURN 0
 
 CALL ASSI_LIST_INDICATE, ARG
@@ -1326,73 +1326,73 @@ VARSET LOCALS
 
 SELECTCASE COND("身嗜み：陰毛", ARG)
 CASE 3
-	LOCALS = %LOCALS%[陰毛ツルツル]
+	LOCALS = %LOCALS%[陰毛剃得精光]
 CASE 5
-	LOCALS = %LOCALS%[陰毛を整える]
+	LOCALS = %LOCALS%[時常修剪陰毛]
 CASE 7
-	LOCALS = %LOCALS%[陰毛を剃らない]
+	LOCALS = %LOCALS%[完全不处理陰毛]
 ENDSELECT
 
 SELECTCASE COND("身嗜み：腋毛", ARG)
 CASE 3
-	LOCALS = %LOCALS%[%TEXTS("腋")%毛ツルツル]
+	LOCALS = %LOCALS%[%TEXTS("腋")%毛剃得精光]
 CASE 7
-	LOCALS = %LOCALS%[%TEXTS("腋")%毛を剃らない]
+	LOCALS = %LOCALS%[完全不处理%TEXTS("腋")%毛]
 ENDSELECT
 
 SELECTCASE COND("身嗜み：Ｖ拡張", ARG)
 CASE 1
-	LOCALS = %LOCALS%[Ｖバイブ]
+	LOCALS = %LOCALS%[Ｖ振動棒]
 CASE 2
-	LOCALS = %LOCALS%[Ｖバイブ(大)]
+	LOCALS = %LOCALS%[Ｖ振動棒(大)]
 CASE 3
-	LOCALS = %LOCALS%[Ｖ極太バイブ]
+	LOCALS = %LOCALS%[Ｖ極太振動棒]
 CASE 4
-	LOCALS = %LOCALS%[Ｖ腕並バイブ]
+	LOCALS = %LOCALS%[Ｖ腕並振動棒]
 ENDSELECT
 
 SELECTCASE COND("身嗜み：Ａ拡張", ARG)
 CASE 1
-	LOCALS = %LOCALS%[Ａプラグ]
+	LOCALS = %LOCALS%[Ａ塞子]
 CASE 2
-	LOCALS = %LOCALS%[Ａプラグ(大)]
+	LOCALS = %LOCALS%[Ａ塞子(大)]
 CASE 3
-	LOCALS = %LOCALS%[極太Ａプラグ]
+	LOCALS = %LOCALS%[極太Ａ塞子]
 CASE 4
-	LOCALS = %LOCALS%[Ａプラグ(特大)]
+	LOCALS = %LOCALS%[Ａ塞子(特大)]
 ENDSELECT
 
 SELECTCASE COND("身嗜み：Ａ準備", ARG)
 CASE 1
 	LOCALS = %LOCALS%[腸内清掃]
 CASE 2
-	LOCALS = %LOCALS%[アナルローション]
+	LOCALS = %LOCALS%[肛門潤滑液]
 CASE 3
-	LOCALS = %LOCALS%[腸内清掃][アナルローション]
+	LOCALS = %LOCALS%[腸内清掃][肛門潤滑液]
 ENDSELECT
 
 SELECTCASE COND("身嗜み：Ｐ準備", ARG)
 CASE 1
-	LOCALS = %LOCALS%ペニスの恥垢はそのままにしておく
+	LOCALS = %LOCALS%阴茎的恥垢保持原様
 ENDSELECT
 
 SELECTCASE COND("身嗜み：Ｖ準備", ARG)
 CASE 1
-	LOCALS = %LOCALS%[入浴せずベッドイン]
+	LOCALS = %LOCALS%[不洗澡直接上床]
 ENDSELECT
 
 SELECTCASE COND("身嗜み：服装", ARG)
 CASE 1
-	LOCALS = %LOCALS%[ノーパン]
+	LOCALS = %LOCALS%[没穿内褲]
 ENDSELECT
 
 SELECTCASE COND("身嗜み：尿道拡張", ARG)
 CASE 1
-	LOCALS = %LOCALS%[尿道プラグ]
+	LOCALS = %LOCALS%[尿道塞子]
 ENDSELECT
 
 IF LOCALS == ""
-	PRINTFORM 無し
+	PRINTFORM 没有
 ELSE
 	PRINTFORM %LOCALS%
 ENDIF
@@ -1413,113 +1413,113 @@ SIF CONFIG("項目：身嗜み")
 
 SELECTCASE COND("身嗜み：陰毛", ARG)
 CASE 3
-	PRINTFORML ・陰毛を常にツルツルに保つ
+	PRINTFORML ・陰毛一直保持光滑状态
 CASE 5
-	PRINTFORML ・陰毛を常に整える
+	PRINTFORML ・一直整理陰毛
 CASE 7
-	PRINTFORML ・陰毛を剃らない
+	PRINTFORML ・从不剃陰毛
 ENDSELECT
 
 SELECTCASE COND("身嗜み：腋毛", ARG)
 CASE 3
-	PRINTFORML ・%TEXTS("腋")%毛を常にツルツルに保つ
+	PRINTFORML ・%TEXTS("腋")%毛一直保持光滑状态
 CASE 7
-	PRINTFORML ・%TEXTS("腋")%毛を剃らない
+	PRINTFORML 从不剃・%TEXTS("腋")%毛
 ENDSELECT
 
-IF CFLAG:ARG:常時Ｖバイブ日数
-	MEMOS = （{CFLAG:ARG:常時Ｖバイブ日数}日目）
+IF CFLAG:ARG:常時Ｖ振動棒日数
+	MEMOS = （{CFLAG:ARG:常時Ｖ振動棒日数}日目）
 ELSE
 	MEMOS = 
 ENDIF
 SELECTCASE COND("身嗜み：Ｖ拡張", ARG)
 CASE 1
-	PRINTFORML ・膣に普段からバイブを挿入%MEMOS%
+	PRINTFORML ・膣平常一直振動棒を挿入%MEMOS%
 CASE 2
-	PRINTFORML ・膣に普段から大きめのバイブを挿入%MEMOS%
+	PRINTFORML ・膣平常一直大号振動棒を挿入%MEMOS%
 CASE 3
-	PRINTFORML ・膣に普段から極太サイズのバイブを挿入%MEMOS%
+	PRINTFORML ・膣平常一直極太尺寸的振動棒を挿入%MEMOS%
 CASE IS >= 4
-	PRINTFORML ・膣に普段から超極太のバイブを挿入%MEMOS%
+	PRINTFORML ・膣平常一直超極太の振動棒を挿入%MEMOS%
 ENDSELECT
 
-IF CFLAG:ARG:常時Ａプラグ日数
-	MEMOS = （{CFLAG:ARG:常時Ａプラグ日数}日目）
+IF CFLAG:ARG:常時Ａ肛塞日数
+	MEMOS = （{CFLAG:ARG:常時Ａ肛塞日数}日目）
 ELSE
 	MEMOS = 
 ENDIF
 SELECTCASE COND("身嗜み：Ａ拡張", ARG)
 CASE 1
-	PRINTFORML ・普段からアナルプラグを挿入%MEMOS%
+	PRINTFORML ・普段から肛塞を挿入%MEMOS%
 CASE 2
-	PRINTFORML ・普段から大きめのアナルプラグを挿入%MEMOS%
+	PRINTFORML ・普段から大号肛塞を挿入%MEMOS%
 CASE 3
-	PRINTFORML ・普段から極太サイズのアナルプラグを挿入%MEMOS%
+	PRINTFORML ・普段から極太尺寸的肛塞を挿入%MEMOS%
 CASE IS >= 4
-	PRINTFORML ・普段から超大型のアナルプラグを挿入%MEMOS%
+	PRINTFORML ・普段から超大型の肛塞を挿入%MEMOS%
 ENDSELECT
 
 SELECTCASE COND("身嗜み：Ａ準備", ARG)
 CASE 1
-	PRINTFORML ・調教前に腸内を綺麗にする
+	PRINTFORML ・調教前把腸内清洁干净
 CASE 2
-	PRINTFORML ・調教前にアナルにローションを馴染ませる
+	PRINTFORML ・在調教前肛門里涂好润滑液
 CASE 3
-	PRINTFORML ・調教前に腸内洗浄＆ローション準備
+	PRINTFORML ・在調教前腸内洗浄＆润滑液準備
 ENDSELECT
 
 SELECTCASE COND("身嗜み：Ｐ準備", ARG)
 CASE 1
-	PRINTFORML ・ペニスの恥垢はそのままにしておく
+	PRINTFORML ・阴茎的恥垢保持原様
 ENDSELECT
 
 SELECTCASE COND("身嗜み：Ｖ準備", ARG)
 CASE 1
-	PRINTFORML ・調教前の入浴は控える
+	PRINTFORML ・調教前不许洗澡
 ENDSELECT
 
 SELECTCASE COND("身嗜み：服装", ARG)
 CASE 1
-	PRINTFORML ・パンツは穿かない
+	PRINTFORML ・不穿胖次
 ENDSELECT
 
-IF CFLAG:ARG:常時尿道プラグ日数
-	MEMOS = （{CFLAG:ARG:常時尿道プラグ日数}日目）
+IF CFLAG:ARG:常時尿道塞日数
+	MEMOS = （{CFLAG:ARG:常時尿道塞日数}日目）
 ELSE
 	MEMOS = 
 ENDIF
 SELECTCASE COND("身嗜み：尿道拡張", ARG)
 CASE 1
-	PRINTFORML ・尿道に普段から指ほどの大きさのプラグを挿入%MEMOS%
+	PRINTFORML ・尿道平常一直手指粗的塞子を挿入%MEMOS%
 CASE 2
-	PRINTFORML ・尿道に普段からペニスサイズのプラグを挿入%MEMOS%
+	PRINTFORML ・尿道平常一直阴茎尺寸の塞子を挿入%MEMOS%
 CASE 3
-	PRINTFORML ・尿道に普段から極太のプラグを挿入%MEMOS%
+	PRINTFORML ・尿道平常一直極太の塞子を挿入%MEMOS%
 CASE IS >= 4
-	PRINTFORML ・尿道に普段からあり得ない太さのプラグを挿入%MEMOS%
+	PRINTFORML ・尿道平常一直不太可能的粗细的塞子を挿入%MEMOS%
 ENDSELECT
 
 SELECTCASE COND("身嗜み：性行為の制限", ARG)
 CASE 1
-	PRINTFORML ・前の穴を使っての性行為は%CALLNAME:MASTER%とだけ
+	PRINTFORML ・只能和%CALLNAME:MASTER%用前の穴进行性行為
 CASE 2
-	PRINTFORML ・アナルを使っての性行為は%CALLNAME:MASTER%とだけ
+	PRINTFORML ・只能和%CALLNAME:MASTER%用肛門进行性行為
 CASE 3
-	PRINTFORML ・口を使っての奉仕は%CALLNAME:MASTER%にだけ
+	PRINTFORML ・只能对%CALLNAME:MASTER%用嘴进行奉仕
 CASE 4
-	PRINTFORML ・キスは%CALLNAME:MASTER%とだけ
+	PRINTFORML ・只能和%CALLNAME:MASTER%接吻
 CASE 5
-	PRINTFORML ・ペニスを使っての性行為は%CALLNAME:MASTER%とだけ
+	PRINTFORML ・只能和%CALLNAME:MASTER%用阴茎进行性行為
 CASE 100
-	PRINTFORML ・%CALLNAME:ARG%は%CALLNAME:MASTER%のもの
+	PRINTFORML ・%CALLNAME:ARG%是%CALLNAME:MASTER%的所有物
 CASE IS > 0
 	VARSET LOCALS
-	LOCALS = %LOCALS%\@ COND("身嗜み：Ｖ独占", ARG) ? アソコと # \@
-	LOCALS = %LOCALS%\@ COND("身嗜み：Ａ独占", ARG) ? アナルと # \@
-	LOCALS = %LOCALS%\@ COND("身嗜み：口独占", ARG) ? 口での奉仕と # \@
-	LOCALS = %LOCALS%\@ COND("身嗜み：キス独占", ARG) ? キスと # \@
-	LOCALS = %LOCALS%\@ COND("身嗜み：Ｐ独占", ARG) ? 肉棒と # \@
-	PRINTFORML ・%SUBSTRING(LOCALS, 0, STRLENS(LOCALS) - 2)%を用いた行為は%CALLNAME:MASTER%とだけ
+	LOCALS = %LOCALS%\@ COND("身嗜み：Ｖ独占", ARG) ? 阴部和 # \@
+	LOCALS = %LOCALS%\@ COND("身嗜み：Ａ独占", ARG) ? 肛門和 # \@
+	LOCALS = %LOCALS%\@ COND("身嗜み：口独占", ARG) ? 口腔奉仕和 # \@
+	LOCALS = %LOCALS%\@ COND("身嗜み：接吻独占", ARG) ? 接吻和 # \@
+	LOCALS = %LOCALS%\@ COND("身嗜み：Ｐ独占", ARG) ? 肉棒和 # \@
+	PRINTFORML ・只能和%CALLNAME:MASTER%进行%SUBSTRING(LOCALS, 0, STRLENS(LOCALS) - 2)%的行為
 ENDSELECT
 
 ;SELECTCASE COND("身嗜み：Ｖ準備", ARG)
@@ -1538,19 +1538,19 @@ ENDSELECT
 #DIMS MEMO_CLO, 50
 #DIM MEMO_EQUIP, 50
 #DIM MEMO_STAIN, 20
-SIF ARG == MASTER && CFLAG:MASTER:顔グラ == 0
+SIF ARG == MASTER && CFLAG:MASTER:颜绘 == 0
 	RETURN 0
 
-CALL DRAWLINES, "□ 普段の格好 □", "普段の格好"
+CALL DRAWLINES, "□ 平常的装扮 □", "平常的装扮"
 
-SIF CONFIG("項目：普段の格好")
+SIF CONFIG("項目：平常的装扮")
 	RETURN 0
 
 IF ARG == MASTER
 	PRINTFORML 　制服：%CLOTH_MAIDFACE_MASTER("制服")%
 	PRINTFORML 体操服：%CLOTH_MAIDFACE_MASTER("体操服")%
-	SIF SAVESTR:水着 != "" || COND("男の娘", MASTER) || TALENT:MASTER:オトコ == 0
-		PRINTFORML 　水着：%CLOTH_MAIDFACE_MASTER("水着")%
+	SIF SAVESTR:泳装 != "" || COND("伪娘", MASTER) || TALENT:MASTER:男性 == 0
+		PRINTFORML 　泳装：%CLOTH_MAIDFACE_MASTER("泳装")%
 	SIF SAVESTR:自宅着 != ""
 		PRINTFORML 自宅着：%CLOTH_MAIDFACE_MASTER("自宅着")%
 	SIF SAVESTR:外出着 != ""
@@ -1575,15 +1575,15 @@ ELSE
 		SIF CHECK_CLO("体操服姿", ARG)
 			PRINTFORML 体操服：%CLO_ABOUT(ARG)%
 
-		CALL SET_COORDINATE, "水着", ARG
-		SIF CHECK_CLO("水着姿", ARG)
-			PRINTFORML 　水着：%CLO_ABOUT(ARG)%
+		CALL SET_COORDINATE, "泳装", ARG
+		SIF CHECK_CLO("泳装姿", ARG)
+			PRINTFORML 　泳装：%CLO_ABOUT(ARG)%
 	ELSE
-		CALL SET_COORDINATE, "普段着", ARG
-		PRINTFORML 普段着：%CLO_ABOUT(ARG)%
+		CALL SET_COORDINATE, "便装", ARG
+		PRINTFORML 便装：%CLO_ABOUT(ARG)%
 	ENDIF
-	SIF SWIM(CSTR:ARG:今年の水着) != ""
-		PRINTFORML 今年の水着：%SWIM(CSTR:ARG:今年の水着)%
+	SIF SWIM(CSTR:ARG:今年の泳装) != ""
+		PRINTFORML 今年の泳装：%SWIM(CSTR:ARG:今年の泳装)%
 
 	;着ていた服と汚れを戻す
 	FOR LCOUNT, 40, 50
@@ -1602,16 +1602,16 @@ ENDIF
 SIF ARG == MASTER
 	RETURN 0
 
-IF EQUIP:ARG:スカート && CHECK_CLO("パンツ未確認", ARG) && CHECK_CLO("アウター未確認", ARG)
-	CALL DRAWLINES, "□ 服装詳細(スカートの下は現在不明) □", "服装詳細"
-ELSEIF (TALENT:ARG:オトコ == 0 || EQUIP:ARG:ブラ) && EQUIP:ARG:服 + EQUIP:ARG:ボディスーツ && CHECK_CLO("ブラ未確認", ARG)
-	IF CHECK_CLO("パンツ未確認", ARG)
-		CALL DRAWLINES, "□ 服装詳細(下着に関しては現在不明) □", "服装詳細"
+IF EQUIP:ARG:裙 && CHECK_CLO("胖次未確認", ARG) && CHECK_CLO("外套未確認", ARG)
+	CALL DRAWLINES, "□ 服装詳細(裙下状态現在不明) □", "服装詳細"
+ELSEIF (TALENT:ARG:男性 == 0 || EQUIP:ARG:胸罩) && EQUIP:ARG:服 + EQUIP:ARG:贴身制服 && CHECK_CLO("胸罩未確認", ARG)
+	IF CHECK_CLO("胖次未確認", ARG)
+		CALL DRAWLINES, "□ 服装詳細(内衣情况現在不明) □", "服装詳細"
 	ELSE
-		CALL DRAWLINES, "□ 服装詳細(ブラに関しては現在不明) □", "服装詳細"
+		CALL DRAWLINES, "□ 服装詳細(胸罩情况現在不明) □", "服装詳細"
 	ENDIF
-ELSEIF CHECK_CLO("パンツ未確認", ARG)
-	CALL DRAWLINES, "□ 服装詳細(パンツは現在不明) □", "服装詳細"
+ELSEIF CHECK_CLO("胖次未確認", ARG)
+	CALL DRAWLINES, "□ 服装詳細(胖次情况現在不明) □", "服装詳細"
 ELSE
 	CALL DRAWLINES, "□ 服装詳細 □", "服装詳細"
 ENDIF
@@ -1620,109 +1620,109 @@ SIF CONFIG("項目：服装詳細")
 	RETURN 0
 
 IF EQUIP:ARG:服
-	PRINTFORM  Ｅ：[%SHIRT(ARG)%\@ CHECK_SHIRT("上下セット", ARG) && EQUIP:ARG:スカート == 0 ? (スカートなし) # \@
+	PRINTFORM  Ｅ：[%SHIRT(ARG)%\@ CHECK_SHIRT("两件套", ARG) && EQUIP:ARG:裙 == 0 ? (裙无) # \@
 	SIF CHECK_CLO("谷間露出", ARG)
 		PRINT (谷間露出)
 	PRINTL ]
 ENDIF
-SIF EQUIP:ARG:スカート && CHECK_SHIRT("ワンピース", ARG) == 0
+SIF EQUIP:ARG:裙 && CHECK_SHIRT("連衣裙", ARG) == 0
 	PRINTFORML  Ｅ：[%SKIRT(ARG)%]
-IF EQUIP:ARG:ボディスーツ
+IF EQUIP:ARG:贴身制服
 	PRINTFORM  Ｅ：[%BODYS(ARG)%
 	SIF CHECK_CLO("谷間露出", ARG)
 		PRINT (谷間露出)
-	IF CHECK_BODYS("ファスナー", ARG)
-		PRINT (ファスナー付)
+	IF CHECK_BODYS("带拉链的", ARG)
+		PRINT (带拉链的付)
 	ELSEIF CHECK_BODYS("ＶＡ露出", ARG)
-		PRINT (穴開き)
+		PRINT (穴開)
 	ELSEIF CHECK_BODYS("Ａ露出", ARG)
-		PRINT (Ａ穴開き)
+		PRINT (Ａ穴開)
 	ELSEIF CHECK_BODYS("Ｖ露出", ARG)
-		PRINT (Ｖ穴開き)
+		PRINT (Ｖ穴開)
 	ENDIF
 	PRINTL ]
 ENDIF
-IF EQUIP:ARG:アウター && CHECK_CLO("アウター未確認", ARG) == 0
+IF EQUIP:ARG:外套 && CHECK_CLO("外套未確認", ARG) == 0
 	PRINTFORM  Ｅ：[%OUTER(ARG)%
-	IF CHECK_OUTER("ファスナー", ARG)
-		PRINT (ファスナー付)
-	ELSEIF CHECK_OUTER("スリット", ARG)
-		PRINT (スリット有り)
+	IF CHECK_OUTER("带拉链的", ARG)
+		PRINT (带拉链的付)
+	ELSEIF CHECK_OUTER("開衩", ARG)
+		PRINT (開衩有些)
 	ELSEIF CHECK_OUTER("ＶＡ露出", ARG)
-		PRINT (穴開き)
+		PRINT (穴開)
 	ELSEIF CHECK_OUTER("Ａ露出", ARG)
-		PRINT (Ａ穴開き)
+		PRINT (Ａ穴開)
 	ELSEIF CHECK_OUTER("Ｖ露出", ARG)
-		PRINT (Ｖ穴開き)
+		PRINT (Ｖ穴開)
 	ENDIF
 	PRINTL ]
 ENDIF
-SIF EQUIP:ARG:ブラ && CHECK_CLO("ブラ未確認", ARG) == 0
+SIF EQUIP:ARG:胸罩 && CHECK_CLO("胸罩未確認", ARG) == 0
 	PRINTFORML  Ｅ：[%BRA(ARG)%]
-IF EQUIP:ARG:パンツ && CHECK_CLO("パンツ未確認", ARG) == 0
+IF EQUIP:ARG:胖次 && CHECK_CLO("胖次未確認", ARG) == 0
 	PRINTFORM  Ｅ：[%PANTIES(ARG)%
-	IF CHECK_PANTIES("ファスナー", ARG)
-		PRINT (ファスナー付)
+	IF CHECK_PANTIES("带拉链的", ARG)
+		PRINT (带拉链的付)
 	ELSEIF CHECK_PANTIES("ＶＡ露出", ARG)
-		PRINT (穴開き)
+		PRINT (穴開)
 	ELSEIF CHECK_PANTIES("Ａ露出", ARG)
-		PRINT (Ａ穴開き)
+		PRINT (Ａ穴開)
 	ELSEIF CHECK_PANTIES("Ｖ露出", ARG)
-		PRINT (Ｖ穴開き)
+		PRINT (Ｖ穴開)
 	ENDIF
 	PRINTL ]
 ENDIF
-SIF EQUIP:ARG:靴下
+SIF EQUIP:ARG:襪子
 	PRINTFORML  Ｅ：[%SOCKS(ARG)%]
 SIF EQUIP:ARG:靴
 	PRINTFORML  Ｅ：[%SHOES(ARG)%]
 SIF EQUIP:ARG:手袋
 	PRINTFORML  Ｅ：[%GLOVE(ARG)%]
-IF EQUIP:ARG:アクセサリ
+IF EQUIP:ARG:飾品
 	VARSET LOCALS
-	SPLIT CSTR:ARG:アクセサリ, "/", LOCALS
+	SPLIT CSTR:ARG:飾品, "/", LOCALS
 	FOR LCOUNT, 0, 6
 		SIF LOCALS:LCOUNT != ""
 			PRINTFORML  Ｅ：[%LOCALS:LCOUNT%]
 	NEXT
 ENDIF
-IF TALENT:ARG:クリピアス
-	IF CEVENTS("クリピアス", ARG) != ""
-		CALL PRINT_STRL, @" Ｅ：[\@ PENIS(ARG) ? ペニ # クリ \@ピアス]_黄色_(%CEVENTS("クリピアス", ARG)%)_]"
+IF TALENT:ARG:陰蒂環
+	IF CEVENTS("陰蒂環", ARG) != ""
+		CALL PRINT_STRL, @" Ｅ：[\@ PENIS(ARG) ? 阴茎 # 阴蒂 \@穿環]_黄色_(%CEVENTS("陰蒂環", ARG)%)_]"
 	ELSE
-		CALL PRINT_STRL, @" Ｅ：[\@ PENIS(ARG) ? ペニ # クリ \@ピアス]"
+		CALL PRINT_STRL, @" Ｅ：[\@ PENIS(ARG) ? 阴茎 # 阴蒂 \@穿環]"
 	ENDIF
 ENDIF
-IF TALENT:ARG:ラビアピアス
-	IF CEVENTS("ラビアピアス", ARG) != ""
-		CALL PRINT_STRL, @" Ｅ：[ラビアピアス]_黄色_(%CEVENTS("ラビアピアス", ARG)%)_]"
+IF TALENT:ARG:陰唇環
+	IF CEVENTS("陰唇環", ARG) != ""
+		CALL PRINT_STRL, @" Ｅ：[陰唇環]_黄色_(%CEVENTS("陰唇環", ARG)%)_]"
 	ELSE
-		CALL PRINT_STRL, @" Ｅ：[ラビアピアス]"
+		CALL PRINT_STRL, @" Ｅ：[陰唇環]"
 	ENDIF
 ENDIF
-IF TALENT:ARG:尿道ピアス
-	IF CEVENTS("尿道ピアス", ARG) != ""
-		CALL PRINT_STRL, @" Ｅ：[尿道ピアス]_黄色_(%CEVENTS("尿道ピアス", ARG)%)_]"
+IF TALENT:ARG:尿道穿環
+	IF CEVENTS("尿道穿環", ARG) != ""
+		CALL PRINT_STRL, @" Ｅ：[尿道穿環]_黄色_(%CEVENTS("尿道穿環", ARG)%)_]"
 	ELSE
-		CALL PRINT_STRL, @" Ｅ：[尿道ピアス]"
+		CALL PRINT_STRL, @" Ｅ：[尿道穿環]"
 	ENDIF
 ENDIF
-IF TALENT:ARG:ニプルピアス
-	IF CEVENTS("ニプルピアス", ARG) != ""
-		CALL PRINT_STRL, @" Ｅ：[ニプルピアス]_黄色_(%CEVENTS("ニプルピアス", ARG)%)_]"
+IF TALENT:ARG:乳环
+	IF CEVENTS("乳环", ARG) != ""
+		CALL PRINT_STRL, @" Ｅ：[乳环]_黄色_(%CEVENTS("乳环", ARG)%)_]"
 	ELSE
-		CALL PRINT_STRL, @" Ｅ：[ニプルピアス]"
+		CALL PRINT_STRL, @" Ｅ：[乳环]"
 	ENDIF
 ENDIF
-IF TALENT:ARG:へそピアス
-	IF CEVENTS("へそピアス", ARG) != ""
-		CALL PRINT_STRL, @" Ｅ：[へそピアス]_黄色_(%CEVENTS("へそピアス", ARG)%)_]"
+IF TALENT:ARG:肚脐环
+	IF CEVENTS("肚脐环", ARG) != ""
+		CALL PRINT_STRL, @" Ｅ：[肚脐环]_黄色_(%CEVENTS("肚脐环", ARG)%)_]"
 	ELSE
-		CALL PRINT_STRL, @" Ｅ：[へそピアス]"
+		CALL PRINT_STRL, @" Ｅ：[肚脐环]"
 	ENDIF
 ENDIF
-SIF TEQUIP:ARG:絆創膏 || CFLAG:ARG:絆創膏装着
-	PRINTFORML  Ｅ：[絆創膏]
+SIF TEQUIP:ARG:創口貼 || CFLAG:ARG:創口貼装着
+	PRINTFORML  Ｅ：[創口貼]
 ;IF TALENT:ARG:常時Ｖバイブ
 ;	LOCALS = 
 ;	SELECTCASE COND("身嗜み：Ｖ拡張", ARG)
@@ -1749,22 +1749,22 @@ SIF TEQUIP:ARG:絆創膏 || CFLAG:ARG:絆創膏装着
 ;ENDIF
 
 LOCALS = 
-IF CHECK_CLO("ハダカ", ARG)
-	LOCALS = ハダカ
+IF CHECK_CLO("裸体", ARG)
+	LOCALS = 裸体
 ELSE
-	IF CHECK_CLO("ボトムレス", ARG)
+	IF CHECK_CLO("没穿下衣", ARG)
 		LOCALS = 下半身露出
-	ELSEIF CHECK_CLO("トップレス", ARG)
-		IF TALENT:ARG:オトコ
+	ELSEIF CHECK_CLO("没穿外衣", ARG)
+		IF TALENT:ARG:男性
 			LOCALS = 上半身露出
 		ELSE
- 			LOCALS = おっぱい露出
+ 			LOCALS = 胸部露出
 		ENDIF
 	;ELSEIF CHECK_CLO("Ｖ露出", ARG) && CHECK_CLO("Ａ露出", ARG) && CHECK_CLO("乳首露出", ARG)
 	;	LOCALS = 大事な場所だけ露出
-	ELSEIF CHECK_CLO("ノーパン", ARG)
-		SIF CHECK_CLO("パンツ未確認", ARG) == 0
-			LOCALS = ノーパン
+	ELSEIF CHECK_CLO("没穿内褲", ARG)
+		SIF CHECK_CLO("胖次未確認", ARG) == 0
+			LOCALS = 没穿内褲
 	ENDIF
 ENDIF
 
@@ -1780,19 +1780,19 @@ SIF STRLENS(LOCALS)
 
 SELECTCASE ARGS
 CASE "一覧表示"
-	IF BASE:ARG:身長 == 0
+	IF BASE:ARG:身高 == 0
 		PRINTL 
 		RETURN 0
 	ENDIF
-	IF COND("種族：ラミア", ARG)
-		PRINTFORM {BASE:ARG:身長 + BASE:ARG:身長の追加要素, 3}cm
+	IF COND("種族：拉米亚", ARG)
+		PRINTFORM {BASE:ARG:身高 + BASE:ARG:身高の追加要素, 3}cm
 	ELSE
-		PRINTFORM {BASE:ARG:身長, 3}cm
+		PRINTFORM {BASE:ARG:身高, 3}cm
 	ENDIF
 
-	PRINTFORM  {BASE:ARG:バスト, 3}(%TEXT_RJ(CONDS("バストカップ", ARG), 3)%)-{BASE:ARG:ウェスト, 3} -{BASE:ARG:ヒップ, 3}
+	PRINTFORM  {BASE:ARG:胸圍, 3}(%TEXT_RJ(CONDS("罩杯", ARG), 3)%)-{BASE:ARG:腰圍, 3} -{BASE:ARG:臀圍, 3}
 
-	IF TALENT:ARG:オトコ
+	IF TALENT:ARG:男性
 		PRINTFORM (--) 
 	ELSEIF TALENT:ARG:巨尻 >= 3
 		PRINTFORM (超) 
@@ -1816,20 +1816,20 @@ CASE "一覧表示"
 	PRINTFORML %CONDS("体型", ARG)%
 
 CASE "個別表示"
-	SIF BASE:ARG:身長 == 0
+	SIF BASE:ARG:身高 == 0
 		RETURN 0
 
 	CALL SETFLAG, "属性", ARG
 
-	IF CFLAG:ARG:顔グラ
-		CALL DRAWLINES, @"□ 属性と外見 … 体型:%CONDS("体型", ARG)% %CONDS("髪色", ARG)%%CONDS("髪型", ARG)% □", "属性と外見"
+	IF CFLAG:ARG:颜绘
+		CALL DRAWLINES, @"□ 属性与外表 … 体型:%CONDS("体型", ARG)% %CONDS("髪色", ARG)%%CONDS("髪型", ARG)% □", "属性与外表"
 	ELSEIF CFLAG:ARG:髪型変更のお願い中
-		CALL DRAWLINES, @"□ 属性と外見 … 体型:%CONDS("体型", ARG)% %CONDS("髪型", ARG)% □", "属性と外見"
+		CALL DRAWLINES, @"□ 属性与外表 … 体型:%CONDS("体型", ARG)% %CONDS("髪型", ARG)% □", "属性与外表"
 	ELSE
-		CALL DRAWLINES, @"□ 属性と外見 … 体型:%CONDS("体型", ARG)% □", "属性と外見"
+		CALL DRAWLINES, @"□ 属性与外表 … 体型:%CONDS("体型", ARG)% □", "属性与外表"
 	ENDIF
 
-	SIF CONFIG("項目：属性と外見")
+	SIF CONFIG("項目：属性与外表")
 		RETURN 0
 
 	IF CSTR:ARG:属性 != ""
@@ -1858,15 +1858,15 @@ CASE "個別表示"
 	ENDIF
 
 	;PRINTFORM 体型:%CONDS("体型", ARG)%　
-	IF COND("種族：ラミア", ARG)
-		PRINTFORM 体長:{BASE:ARG:身長 + BASE:ARG:身長の追加要素}cm　
+	IF COND("種族：拉米亚", ARG)
+		PRINTFORM 体長:{BASE:ARG:身高 + BASE:ARG:身高の追加要素}cm　
 	ELSE
-		PRINTFORM 身長:{BASE:ARG:身長}cm　
+		PRINTFORM 身高:{BASE:ARG:身高}cm　
 	ENDIF
-	PRINTFORM バスト:{BASE:ARG:バスト}cm (%CONDS("バストカップ", ARG)%カップ) ウェスト:{BASE:ARG:ウェスト}cm ヒップ:{BASE:ARG:ヒップ}cm 
+	PRINTFORM 胸圍:{BASE:ARG:胸圍}cm (%CONDS("罩杯", ARG)%罩杯) 腰圍:{BASE:ARG:腰圍}cm 臀圍:{BASE:ARG:臀圍}cm 
 	;SIF CONDS("お尻", ARG) != ""
 	;	PRINTFORM （%CONDS("お尻", ARG)%）
-	IF TALENT:ARG:オトコ
+	IF TALENT:ARG:男性
 		PRINTFORML 
 	ELSEIF TALENT:ARG:巨尻 >= 3
 		PRINTFORML (超) 
@@ -1880,11 +1880,11 @@ CASE "個別表示"
 		PRINTFORML (並) 
 	ENDIF
 
-	SIF CONFIG("陰毛と腋毛") == 0 || (TALENT:ARG:オトコ && COND("男の娘", ARG) == 0)
+	SIF CONFIG("陰毛と腋毛") == 0 || (TALENT:ARG:男性 && COND("伪娘", ARG) == 0)
 		RETURN 0
 
 	PRINTFORM 陰毛:%CONDS("陰毛", ARG)%
-	IF CONDS("陰毛", ARG) == "お手入れ済" && CEVENTS("陰毛の名称", ARG) != ""
+	IF CONDS("陰毛", ARG) == "保养完毕" && CEVENTS("陰毛の名称", ARG) != ""
 		IF CEVENTS("陰毛の形", ARG) == "HEARTMARK"
 			PRINT (
 			CALL HEARTMARK
@@ -1896,20 +1896,20 @@ CASE "個別表示"
 
 	SELECTCASE COND("身嗜み：陰毛", ARG)
 	CASE 3
-		PRINTFORM  ※ツルツルに剃る\@ ARG == MASTER ? 主義 # ようにお願い中 \@
+		PRINTFORM  ※剃得精光\@ ARG == MASTER ? 主義 # 拜托中 \@
 	CASE 5
-		PRINTFORM  ※形を綺麗に保つ\@ ARG == MASTER ? 主義 # ようにお願い中 \@
+		PRINTFORM  ※形状修剪得很漂亮\@ ARG == MASTER ? 主義 # 拜托中 \@
 	CASE 7
-		PRINTFORM  ※剃らない\@ ARG == MASTER ? 主義 # ようにお願い中 \@
+		PRINTFORM  ※完全不剃\@ ARG == MASTER ? 主義 # 拜托中 \@
 	ENDSELECT
 
 	IF CONFIG("腋毛")
 		PRINTFORM 　%TEXTS("腋")%毛:%CONDS("腋毛", ARG)%
 		SELECTCASE COND("身嗜み：腋毛", ARG)
 		CASE 3
-			PRINTFORM 　　※ツルツルに剃る\@ ARG == MASTER ? 主義 # ようにお願い中 \@
+			PRINTFORM 　　※剃得精光\@ ARG == MASTER ? 主義 # 拜托中 \@
 		CASE 7
-			PRINTFORM 　　※剃らない\@ ARG == MASTER ? 主義 # ようにお願い中 \@
+			PRINTFORM 　　※从不剃\@ ARG == MASTER ? 主義 # 拜托中 \@
 		ENDSELECT
 	ENDIF
 	PRINTL 
@@ -1948,13 +1948,13 @@ FOR LCOUNT, 0, NUM("属性")
 	PRINTFORM [%LOCALS:LCOUNT%]
 NEXT
 
-IF COND("全てに弱い", MASTER)
-	NEXT_LINE += STRLENS("[全てに弱い]")
+IF COND("全部弱点", MASTER)
+	NEXT_LINE += STRLENS("[全部弱点]")
 	IF NEXT_LINE > NUM("折り返し文字数")
 		PRINTL 
-		NEXT_LINE = STRLENS("[全てに弱い]")
+		NEXT_LINE = STRLENS("[全部弱点]")
 	ENDIF
-	PRINT [全てに弱い]
+	PRINT [全部弱点]
 ELSE
 	VARSET LOCALS
 	SPLIT CSTR:MASTER:弱点, "/", LOCALS
@@ -2020,7 +2020,7 @@ IS_PRINTEXP = 0
 FOR LCOUNT, 0, 100
 	;ここではもともと表示しない素質かを判定
 	SELECTCASE EXPNAME:LCOUNT
-	CASE "", "助手経験", "経験値", "イかせた回数", "Ｈ回数", "特別経験"
+	CASE "", "助手経験", "経験値", "强制绝顶回数", "Ｈ回数", "特別経験"
 		CONTINUE
 	ENDSELECT
 
@@ -2040,27 +2040,27 @@ SIF CONFIG("項目：経験")
 
 ;表示順の設定
 LOCALS = 
-LOCALS += "　　　　　Ｖ経験/　　　Ｖ性交経験/　　　Ｖ拡張経験/　Ｖフィスト経験/"
-LOCALS += "　　　　　Ａ経験/　　　Ａ性交経験/　　　Ａ拡張経験/　Ａフィスト経験/"
-LOCALS += "　　　　結腸経験/　　ゴム性交経験/　　ゴム挿入経験/　　　睡眠姦経験/"
-LOCALS += "　　　子宮口経験/　　　子宮姦経験/　　　　絶頂経験/　　　　射精経験/　トコロテン経験/"
+LOCALS += "　　　　　Ｖ経験/　　　Ｖ性交経験/　　　Ｖ拡張経験/　Ｖ拳交経験/"
+LOCALS += "　　　　　Ａ経験/　　　Ａ性交経験/　　　Ａ拡張経験/　Ａ拳交経験/"
+LOCALS += "　　　　結腸経験/　　避孕套性交経験/　　避孕套挿入経験/　　　睡眠姦経験/"
+LOCALS += "　　　子宮口経験/　　　子宮姦経験/　　　　絶頂経験/　　　　射精経験/　前列腺高潮射精経験/"
 LOCALS += "　　　　精液経験/　　膣内精液経験/　　肛内精液経験/　　　　精飲経験/"
 LOCALS += "　　　　自慰経験/　　　Ｖ挿入経験/　　　Ａ挿入経験/　　　喉性交経験/"
 
 ;[オトコ]なら40,レズ経験のかわりに41,BL経験を表示
-IF TALENT:ARG:オトコ
+IF TALENT:ARG:男性
 	LOCALS += "　　　　ＢＬ経験/　　　　露出経験/　　　　浣腸経験/　　　　ＳＭ経験/"
 ELSE
-	LOCALS += "　　　　レズ経験/　　　　露出経験/　　　　浣腸経験/　　　　ＳＭ経験/"
+	LOCALS += "　　　　百合経験/　　　　露出経験/　　　　浣腸経験/　　　　ＳＭ経験/"
 ENDIF
-LOCALS += "　　　　撮影経験/　　お漏らし経験/　　　　聖水経験/　　　　拘束経験/"
+LOCALS += "　　　　撮影経験/　　漏尿経験/　　　　聖水経験/　　　　拘束経験/"
 LOCALS += "　　　　飲尿経験/　　膣内浴尿経験/　　子宮浴尿経験/　　温泉浣腸経験/"
-LOCALS += "　　　　キス経験/　　　フェラ経験/　　　　手淫経験/　　　足コキ経験/"
-LOCALS += "　　　腰使い経験/　　　股コキ経験/　　パイズリ経験/　　　Ａ責め経験/　　　クンニ経験/"
+LOCALS += "　　　　接吻経験/　　　口交経験/　　　　手淫経験/　　　足交経験/"
+LOCALS += "　　　腰靈活経験/　　　股コキ経験/　　乳交経験/　　　玩弄Ａ経験/　　　舐陰経験/"
 LOCALS += "　　　足舐め経験/"
-LOCALS += "　　　Ａ舐め経験/お掃除フェラ経験/お掃除クンニ経験/お掃除Ａ舐め経験/"
+LOCALS += "　　　Ａ舐め経験/清洁口交経験/清洁舔阴経験/清洁舔A経験/"
 LOCALS += "　　奉仕快楽経験/　　嗜虐快楽経験/　　被虐快楽経験/　　羞恥快楽経験/"
-LOCALS += "　　処女簒奪経験/　　童貞狩り経験/　　　Ｖ損傷経験/　　　Ａ損傷経験/"
+LOCALS += "　　処女簒奪経験/　　童貞狩猎経験/　　　Ｖ損傷経験/　　　Ａ損傷経験/"
 LOCALS += "　　　Ｂ性交経験/　　　Ｂ挿入経験/　　乳内精液経験/　　　　噴乳経験/"
 LOCALS += "　　尿道責め経験/　　　　尿道経験/　　尿道拡張経験/　　尿道性交経験/"
 LOCALS += "　　尿道挿入経験/　　膀胱精液経験/　　　　輸尿経験/　　　孕ませ経験/"
@@ -2288,43 +2288,43 @@ FOR LCOUNT, 0, NUM_SHOWABL
 		SIF PENIS(ARG)
 			NO_ABL = 16
 		IF TALENT:ARG:淫核
-			SETCOLOR DEF_COLOR("ピンク")
+			SETCOLOR DEF_COLOR("粉紅")
 		ELSEIF TALENT:ARG:Ｃ性向
-			SETCOLOR DEF_COLOR("ハートピンク")
+			SETCOLOR DEF_COLOR("爱心粉紅")
 		ENDIF
 	CASE 11
 		IF TALENT:ARG:淫壷
-			SETCOLOR DEF_COLOR("ピンク")
+			SETCOLOR DEF_COLOR("粉紅")
 		ELSEIF TALENT:ARG:Ｖ性向
-			SETCOLOR DEF_COLOR("ハートピンク")
+			SETCOLOR DEF_COLOR("爱心粉紅")
 		ENDIF
-		SIF TALENT:ARG:オトコ
+		SIF TALENT:ARG:男性
 			NOT_PRINT = 1
 	CASE 12
 		IF TALENT:ARG:尻穴狂い
-			SETCOLOR DEF_COLOR("ピンク")
+			SETCOLOR DEF_COLOR("粉紅")
 		ELSEIF TALENT:ARG:Ａ性向
-			SETCOLOR DEF_COLOR("ハートピンク")
+			SETCOLOR DEF_COLOR("爱心粉紅")
 		ENDIF
 	CASE 13
 		IF TALENT:ARG:淫乳
-			SETCOLOR DEF_COLOR("ピンク")
+			SETCOLOR DEF_COLOR("粉紅")
 		ELSEIF TALENT:ARG:Ｂ性向
-			SETCOLOR DEF_COLOR("ハートピンク")
+			SETCOLOR DEF_COLOR("爱心粉紅")
 		ENDIF
 	CASE 14
 		IF TALENT:ARG:蕩唇
-			SETCOLOR DEF_COLOR("ピンク")
+			SETCOLOR DEF_COLOR("粉紅")
 		ELSEIF TALENT:ARG:Ｍ性向
-			SETCOLOR DEF_COLOR("ハートピンク")
+			SETCOLOR DEF_COLOR("爱心粉紅")
 		ENDIF
 
 	CASE 19
 		NO_ABL = 15
-		IF TALENT:ARG:尿道狂い
-			SETCOLOR DEF_COLOR("ピンク")
+		IF TALENT:ARG:尿道狂
+			SETCOLOR DEF_COLOR("粉紅")
 		ELSEIF TALENT:ARG:尿道性感
-			SETCOLOR DEF_COLOR("ハートピンク")
+			SETCOLOR DEF_COLOR("爱心粉紅")
 		ENDIF
 
 	CASE 15
@@ -2335,20 +2335,20 @@ FOR LCOUNT, 0, NUM_SHOWABL
 		NO_ABL = 62
 	CASE 18
 		NO_ABL = 63
-		SIF TALENT:ARG:オトコ
+		SIF TALENT:ARG:男性
 			NOT_PRINT = 1
 
 	CASE 20
 		NO_ABL = 40
-		SIF TALENT:ARG:オトコ
+		SIF TALENT:ARG:男性
 			NOT_PRINT = 1
 	CASE 21
 		NO_ABL = 30
-		SIF TALENT:ARG:オトコ
+		SIF TALENT:ARG:男性
 			NOT_PRINT = 1
 	CASE 22
 		NO_ABL = 50
-		SIF TALENT:ARG:オトコ
+		SIF TALENT:ARG:男性
 			NOT_PRINT = 1
 	CASE 23
 		NO_ABL = 32
@@ -2387,12 +2387,12 @@ FOR LCOUNT, 0, NUM_SHOWABL
 	ELSE
 		SELECTCASE ABLNAME:NO_ABL
 		;特殊処理をするABL
-		CASE "Ｖ使い"
+		CASE "Ｖ技術"
 			SIF ABL:ARG:Ｖ弛緩
 				NO_ABL = GETNUM(ABL, "Ｖ弛緩")
 			PRINTFORM %TEXT_RJ(ABLNAME:NO_ABL, 10)%:{ABL:ARG:NO_ABL, 2} 
 			CALL PRINT_RANK, ABL:ARG:NO_ABL, NUM("Ｓランク", NO_ABL)
-		CASE "Ａ使い"
+		CASE "Ａ技術"
 			SIF ABL:ARG:Ａ弛緩
 				NO_ABL = GETNUM(ABL, "Ａ弛緩")
 			PRINTFORM %TEXT_RJ(ABLNAME:NO_ABL, 10)%:{ABL:ARG:NO_ABL, 2} 
@@ -2470,7 +2470,7 @@ PRINTL
 
 SELECTCASE ARG
 CASE MASTER
-	SIF MARK:ARG:淫紋 == 0 || TALENT:ARG:オトコ
+	SIF MARK:ARG:淫紋 == 0 || TALENT:ARG:男性
 		RETURN 0
 
 	CALL DRAWLINES, "□ 刻印 □", "刻印"
@@ -2495,7 +2495,7 @@ ENDSELECT
 PRINTFORM 淫紋LV{MARK:ARG:淫紋}
 CALL PRINT_BAR, "桃色ゲージ", MARK:ARG:淫紋, 4, 3
 SIF MARK:ARG:淫紋
-	PRINTFORM (%CONDS("淫紋の種類", ARG)%タイプ)
+	PRINTFORM (%CONDS("淫紋の種類", ARG)%类型)
 
 PRINTL 
 RETURN 0
@@ -2521,7 +2521,7 @@ RETURN 0
 ;キャラメイクの時の除外素質
 #DIMS TALENT_RMV
 
-IF ARG != MASTER && COND("キャラメイク中", ARG) && STRCOUNTS(CSTR:MASTER:CEVENT, "固定：", "除外：")
+IF ARG != MASTER && COND("角色メイク中", ARG) && STRCOUNTS(CSTR:MASTER:CEVENT, "固定：", "除外：")
 	PRINTFORM □ 素質 □ 
 	MEMO_STR = STRLENS("□ 素質 □ ")
 
@@ -2583,7 +2583,7 @@ FOR LCOUNT, 0, 300
 	SELECTCASE TALENT:ARG:LCOUNT
 	CASE 0
 		;ペニスだけは唯一の例外
-		SIF TALENTNAME:LCOUNT != "ペニス"
+		SIF TALENTNAME:LCOUNT != "阴茎"
 			CONTINUE
 	ENDSELECT
 
@@ -2601,15 +2601,15 @@ FOR LCOUNT, 0, 300
 		CONTINUE
 	;オトコだと表示させない
 	CASE 15 TO 16, 33 TO 37, 40, 41, 52, 60, 162, 163, 173
-		SIF TALENT:ARG:オトコ
+		SIF TALENT:ARG:男性
 			CONTINUE
 	;男の娘だと表示させない
 	CASE 2
-		SIF TALENT:ARG:男の娘
+		SIF TALENT:ARG:伪娘
 			CONTINUE
 	;オトコ以外だと表示させない
 	CASE 3
-		SIF TALENT:ARG:オトコ == 0
+		SIF TALENT:ARG:男性 == 0
 			CONTINUE
 	;最初から妊娠可能or本来妊娠できるなら表示させない
 	CASE 6
@@ -2641,14 +2641,14 @@ FOR LCOUNT, 0, 300
 	CASE 0 TO 29, 30 TO 69, 180 TO 189
 		TALENT_TYPE = 0
 	;性格
-	CASE GETNUM(TALENT, "料理上手")
+	CASE GETNUM(TALENT, "料理擅長")
 		TALENT_TYPE = 3
 	CASE 70 TO 119
 		TALENT_TYPE = 1
 	;特技
 	CASE GETNUM(TALENT, "具現")
 		;禁断の知識で覚えた場合にはそっちにまとめる
-		SIF TALENT:ARG:禁断の知識 >= 2
+		SIF TALENT:ARG:禁断的知識 >= 2
 			CONTINUE
 		TALENT_TYPE = 3
 	CASE 120 TO 149
@@ -2678,7 +2678,7 @@ FOR LCOUNT, 0, 300
 	ENDSELECT
 
 	;デフォと異なる素質は色を変える
-	IF COND("キャラメイク中")
+	IF COND("角色メイク中")
 		SELECTCASE LCOUNT
 		;しっぽとかツノとかは色が変わらない例外
 		CASE 180 TO 187

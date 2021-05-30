@@ -9,14 +9,14 @@ STR:選択肢 =
 ;相手が寝ている
 IF CFLAG:睡眠
 	IF COND("熟睡")
-		PRINTFORMW 気持ちよさそうに寝ている%CALLNAME:TARGET%に悪戯をすることにした。
-		PRINTFORM %CALLNAME:TARGET%は深い寝息を立てて眠っている……そう簡単には目覚めなさそうだ
-	ELSEIF COND("うたた寝")
-		PRINTFORMW 気持ちよさそうに寝ている%CALLNAME:TARGET%に悪戯をすることにした。
-		PRINTFORM %CALLNAME:TARGET%は穏やかな様子で眠りに落ちている……
+		PRINTFORMW 对着看上去好像睡的很舒服的%CALLNAME:TARGET%进行恶作剧。
+		PRINTFORM %CALLNAME:TARGET%深沉地呼吸着……看来不会轻易就醒过来的样子
+	ELSEIF COND("打瞌睡")
+		PRINTFORMW 对着看上去好像睡的很舒服的%CALLNAME:TARGET%进行恶作剧。
+		PRINTFORM %CALLNAME:TARGET%平穏地沉浸在梦乡里……
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%に悪戯をすることにしたものの……見るからに眠りが浅い。
-		PRINTFORM ……すぐにでも目を覚ましそうだ
+		PRINTFORMW 对%CALLNAME:TARGET%恶作剧也不是不行……不过看上去好像睡的很浅。
+		PRINTFORM ……看上去好像马上就要醒过来的样子
 	ENDIF
 	PRINTFORMW (睡眠深度:{CFLAG:睡眠 - 1}LV)
 
@@ -24,44 +24,44 @@ IF CFLAG:睡眠
 	TRYCALLFORM DAILY2_SLEEP_K{NO:TARGET}_ADDSELECT
 
 	;２回目以降
-	IF CHOSE_DEVENT("睡眠姦キス")
-		STR:選択肢 = 再びキスする/
+	IF CHOSE_DEVENT("睡眠姦接吻")
+		STR:選択肢 = 再次接吻/
 	ELSE
-		STR:選択肢 = キスする/
+		STR:選択肢 = 接吻/
 	ENDIF
 	IF PENIS(MASTER) && BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100
 		IF EXP_GAIN("睡眠姦経験") && CHECK_STAIN(STAIN:PLAYER:Ｐ, "Ｖ", "Ａ", "精液")
-			STR:選択肢 += "汚れたペニスをしゃぶらせる/"
+			STR:選択肢 += "把汚臭的阴茎插进睡着的嘴里/"
 		ELSE
-			STR:選択肢 += "しゃぶらせる/"
+			STR:選択肢 += "插进睡着的嘴里/"
 		ENDIF
-		IF TALENT:処女 == 0 && TALENT:オトコ == 0 && FIRSTCOMS("Ｖ挿入")
+		IF TALENT:処女 == 0 && TALENT:男性 == 0 && FIRSTCOMS("Ｖ挿入")
 			IF INSERT("正常位")
-				STR:選択肢 += "引き続き正常位で犯す/今度は寝バックで犯す/"
+				STR:選択肢 += "继续用正常位侵犯/这次用睡眠后背位侵犯/"
 			ELSEIF INSERT("後背位")
-				STR:選択肢 += "今度は正常位で犯す/引き続き寝バックで犯す/"
+				STR:選択肢 += "这次用正常位侵犯/继续用睡眠后背位侵犯/"
 			ELSE
-				STR:選択肢 += "正常位で犯す/寝バックで犯す/"
+				STR:選択肢 += "用正常位侵犯/用睡眠后背位侵犯/"
 			ENDIF
 		ENDIF
-		SIF PENIS(TARGET) && FIRSTCOM(TNUM("フェラする") )
-			STR:選択肢 += "フェラする/"
+		SIF PENIS(TARGET) && FIRSTCOM(TNUM("舐陰莖") )
+			STR:選択肢 += "舐陰莖/"
 	ENDIF
 
 	VARSET LOCALS
 	SPLIT STR:選択肢, "/", LOCALS
 	CALL PRINT_SELECT, STR:選択肢
 
-	IF STRCOUNT(LOCALS:RESULT, "キスする")
-		STR:日常イベント名 = 睡眠姦キス
-	ELSEIF STRCOUNT(LOCALS:RESULT, "しゃぶらせる")
-		STR:日常イベント名 = 睡眠姦フェラ
-	ELSEIF STRCOUNT(LOCALS:RESULT, "フェラする")
-		STR:日常イベント名 = 睡眠姦逆フェラ
-	ELSEIF STRCOUNT(LOCALS:RESULT, "正常位で犯す")
+	IF STRCOUNT(LOCALS:RESULT, "接吻")
+		STR:日常イベント名 = 睡眠姦接吻
+	ELSEIF STRCOUNT(LOCALS:RESULT, "插进睡着的嘴里")
+		STR:日常イベント名 = 睡眠姦口交
+	ELSEIF STRCOUNT(LOCALS:RESULT, "舐陰莖")
+		STR:日常イベント名 = 睡眠姦逆口交
+	ELSEIF STRCOUNT(LOCALS:RESULT, "正常位侵犯")
 		STR:日常イベント名 = 睡眠姦正常位
-	ELSEIF STRCOUNT(LOCALS:RESULT, "寝バックで犯す")
-		STR:日常イベント名 = 睡眠姦寝バック
+	ELSEIF STRCOUNT(LOCALS:RESULT, "后背位睡姦で犯す")
+		STR:日常イベント名 = 睡眠姦寝后背位
 	ELSE
 		STR:日常イベント名 = %LOCALS:RESULT%
 	ENDIF
@@ -69,48 +69,48 @@ IF CFLAG:睡眠
 ENDIF
 
 
-IF DAILYCOMNAME(2) != "もてなす"
+IF DAILYCOMNAME(2) != "互动"
 	STR:日常イベント名 = %DAILYCOMNAME(2)%
 ELSE
 	STR:選択肢 = 
 	;口上側で選択肢を自由に作ることができる
 	TRYCALLFORM DAILY2_K{NO:TARGET}_ADDSELECT
 
-	SIF CHECK_CLO("谷間露出") && CHECK_BODYS("バニー") && CHOSE_DEVENT("チップを渡す") == 0 && MONEY >= 300
-		STR:選択肢 += "チップを渡す/"
+	SIF CHECK_CLO("谷間露出") && CHECK_BODYS("兔") && CHOSE_DEVENT("给小费") == 0 && MONEY >= 300
+		STR:選択肢 += "给小费/"
 
-	IF CFLAG:お茶 == 0
+	IF CFLAG:茶 == 0
 		IF CHARA_NUM("室内の邪魔者")
-			STR:選択肢 += "みんなにお茶を淹れる/"
+			STR:選択肢 += "给大家泡茶/"
 		ELSE
-			STR:選択肢 += "お茶を淹れる/"
+			STR:選択肢 += "泡茶/"
 		ENDIF
 	ENDIF
-	IF PLACE("自宅") && STATE("酔い", TARGET) == 0 && MONEY >= (CHARA_NUM("現在存在") + 1)*500
+	IF PLACE("自宅") && STATE("酔酒", TARGET) == 0 && MONEY >= (CHARA_NUM("現在存在") + 1)*500
 		IF CHARA_NUM("室内の邪魔者")
-			STR:選択肢 += @"みんなにお酒をふるまう(要：%MONEY_C( (CHARA_NUM("現在存在") + 1)*500)%)/"
+			STR:選択肢 += @"给大家勸酒(要：%MONEY_C( (CHARA_NUM("現在存在") + 1)*500)%)/"
 		ELSE
-			STR:選択肢 += @"お酒をふるまう(要：%MONEY_C( (CHARA_NUM("現在存在") + 1)*500)%)/"
+			STR:選択肢 += @"勸酒(要：%MONEY_C( (CHARA_NUM("現在存在") + 1)*500)%)/"
 		ENDIF
 	ENDIF
 
 	SIF PLACE("勉強可能") && COND("勉強可能")
-		STR:選択肢 += "一緒に勉強する/"
+		STR:選択肢 += "一起学习/"
 
-	STR:選択肢 += "マッサージする/膝枕する/"
+	STR:選択肢 += "按摩/膝枕/"
 	SIF COND("教師") == 0 || TALENT:恋慕
-		STR:選択肢 += "頭を撫でる/"
-	SIF TALENT:オトコ == 0
-		STR:選択肢 += "おっぱいリフトする/"
+		STR:選択肢 += "摸頭/"
+	SIF TALENT:男性 == 0
+		STR:選択肢 += "托一托胸部/"
 	;SIF COND("性別嫌悪") == 0 && TALENT:快感の否定 == 0 && COND("合意：パンツチェック") && CFLAG:ムラムラ + TALENT:淫乱 + TALENT:快感に素直
 	;	STR:選択肢 += "股間を撫でる/"
-	SIF COND("合意：キス")
-		STR:選択肢 += "キスする/"
-	SIF TALENT:しっぽ
-		STR:選択肢 += "しっぽをなでる/"
+	SIF COND("合意：接吻")
+		STR:選択肢 += "接吻/"
+	SIF TALENT:尾巴
+		STR:選択肢 += "抚摸尾巴/"
 	;STR:選択肢 += "もてなす/"
-	SIF COND("汗かき")
-		STR:選択肢 += "汗を拭く/"
+	SIF COND("易出汗")
+		STR:選択肢 += "拭汗/"
 	;IF COND("性別嫌悪") == 0 && TALENT:快感の否定 == 0
 	;	IF PENIS(TARGET)
 	;		SIF TALENT:好色 + TALENT:淫乱 + TALENT:倒錯的 + TALENT:快感に素直
@@ -120,9 +120,9 @@ ELSE
 	;			STR:選択肢 += "クンニ奉仕する/"
 	;	ENDIF
 	;ENDIF
-	SIF MONEY >= 10 && TALENT:反抗的 == 0 && CFLAG:プレゼント渡し済 == 0
-		STR:選択肢 += "プレゼントを渡す/"
-	STR:選択肢 += "やっぱやめる/"
+	SIF MONEY >= 10 && TALENT:叛逆 == 0 && CFLAG:送禮渡し済 == 0
+		STR:選択肢 += "送一份礼物/"
+	STR:選択肢 += "果然还是算了/"
 
 	SELECTCASE STRCOUNT(STR:選択肢, "/")
 	CASE IS >= 2
@@ -135,41 +135,41 @@ ELSE
 	ENDSELECT
 
 	SELECTCASE STR:日常イベント名
-	CASE "やっぱやめる"
+	CASE "果然还是算了"
 		STR:日常イベント名 = 
 		RETURN 0
-	CASE "みんなにお茶を淹れる"
-		STR:日常イベント名 = お茶を淹れる
+	CASE "给大家泡茶"
+		STR:日常イベント名 = 泡茶
 		FLAG:対複数 = 1
-	CASE @"みんなにお酒をふるまう(要：%MONEY_C( (CHARA_NUM("現在存在") + 1)*500)%)"
-		STR:日常イベント名 = お酒をふるまう(要：%MONEY_C( (CHARA_NUM("現在存在") + 1)*500)%)
+	CASE @"给大家勸酒(要：%MONEY_C( (CHARA_NUM("現在存在") + 1)*500)%)"
+		STR:日常イベント名 = 勸酒(要：%MONEY_C( (CHARA_NUM("現在存在") + 1)*500)%)
 		FLAG:対複数 = 1
-	CASE "プレゼントを渡す"
-		PRINTFORML 現在の所持金は%MONEY_C(MONEY)%ですが……どんなものを渡しますか？
-		PRINTFORML (１$は現代の貨幣価値に換算して10円ぐらいとの説があります)
+	CASE "送一份礼物"
+		PRINTFORML 你现在有%MONEY_C(MONEY)%……打算送什么样的礼物？
+		PRINTFORML (１$相当于现代货币里的10日元)
 		STR:選択肢 = 
 		SIF MONEY >= 10
-			STR:選択肢 += @"手頃な物　　　（%MONEY_C(10)%）/"
+			STR:選択肢 += @"小礼物　　　（%MONEY_C(10)%）/"
 		SIF MONEY >= 200
-			STR:選択肢 += @"そこそこする物（%MONEY_C(200)%）/"
+			STR:選択肢 += @"普通的礼物（%MONEY_C(200)%）/"
 		SIF MONEY >= 10000
-			STR:選択肢 += @"お高い物　　　（%MONEY_C(10000)%）/"
-		STR:選択肢 += "やっぱやめる/"
+			STR:選択肢 += @"高价的礼物　　　（%MONEY_C(10000)%）/"
+		STR:選択肢 += "果然还是算了/"
 		VARSET LOCALS
 		SPLIT STR:選択肢, "/", LOCALS
 		CALL PRINT_SELECT, STR:選択肢
 		SELECTCASE LOCALS:RESULT
-		CASE "やっぱやめる"
+		CASE "果然还是算了"
 			STR:日常イベント名 = 
 			RETURN 0
-		CASE @"手頃な物　　　（%MONEY_C(10)%）"
-			STR:日常イベント名 = 手頃な物をプレゼント
-		CASE @"そこそこする物（%MONEY_C(200)%）"
-			STR:日常イベント名 = そこそこする物をプレゼント
-		CASE @"お高い物　　　（%MONEY_C(10000)%）"
-			STR:日常イベント名 = お高い物をプレゼント
+		CASE @"小礼物　　　（%MONEY_C(10)%）"
+			STR:日常イベント名 = 送一份小礼物
+		CASE @"普通的礼物（%MONEY_C(200)%）"
+			STR:日常イベント名 = 送一份普通的礼物
+		CASE @"高价的礼物　　　（%MONEY_C(10000)%）"
+			STR:日常イベント名 = 送一份高价的礼物
 		ENDSELECT
-		CFLAG:プレゼント渡し済 = 1
+		CFLAG:送禮渡し済 = 1
 	ENDSELECT
 ENDIF
 
@@ -181,265 +181,265 @@ SIF TFLAG:地の文スキップ
 	RETURN 0
 
 SELECTCASE STR:日常イベント名
-CASE "手頃な物をプレゼント"
-	PRINTFORMW %CALLNAME:MASTER%は%TEXTS("行動継続中の")%%CALLNAME:TARGET%にちょっとした物をあげた。
-CASE "そこそこする物をプレゼント"
-	PRINTFORMW %CALLNAME:MASTER%は%TEXTS("行動継続中の")%%CALLNAME:TARGET%にプレゼントを渡した。
-CASE "お高い物をプレゼント"
-	PRINTFORMW %CALLNAME:MASTER%は%TEXTS("行動継続中の")%%CALLNAME:TARGET%にガツンとお高いプレゼントを渡した。
+CASE "送一份小礼物"
+	PRINTFORMW %CALLNAME:MASTER%送了%TEXTS("行動継続中の")%%CALLNAME:TARGET%一件小礼物。
+CASE "送一份普通的礼物"
+	PRINTFORMW %CALLNAME:MASTER%送了%TEXTS("行動継続中の")%%CALLNAME:TARGET%一件礼物。
+CASE "送一份高价的礼物"
+	PRINTFORMW %CALLNAME:MASTER%送了%TEXTS("行動継続中の")%%CALLNAME:TARGET%一件相当贵的礼物。
 
-CASE "一緒に勉強する"
+CASE "一起学习"
 	IF TEXTS("行動継続中の") != ""
 		IF COND("教員")
-			PRINTFORMW %CALLNAME:MASTER%は%TEXTS("行動継続中の")%%CALLNAME:TARGET%に、今度は勉強を教えてもらうことにした。
+			PRINTFORMW %CALLNAME:MASTER%决定这次让%TEXTS("行動継続中の")%%CALLNAME:TARGET%教导自己学习。
 		ELSEIF COND("学生") == 0
-			PRINTFORMW %CALLNAME:MASTER%は%TEXTS("行動継続中の")%%CALLNAME:TARGET%に、今度は勉強を見てもらうことにした。
+			PRINTFORMW %CALLNAME:MASTER%决定这次让%TEXTS("行動継続中の")%%CALLNAME:TARGET%看着自己学习。
 		ELSE
-			PRINTFORMW %CALLNAME:MASTER%は%TEXTS("行動継続中の")%%CALLNAME:TARGET%を勉強に誘った。
+			PRINTFORMW %CALLNAME:MASTER%邀请%TEXTS("行動継続中の")%%CALLNAME:TARGET%一起学习。
 		ENDIF
 	ELSEIF COND("教員")
-		PRINTFORMW %CALLNAME:MASTER%は%CSTR:学年%である%CALLNAME:TARGET%に勉強を教わった。
+		PRINTFORMW %CALLNAME:MASTER%被%CSTR:学年%的%CALLNAME:TARGET%指导着监督学习。
 	ELSEIF COND("学生") == 0
-		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%と一緒に勉強した。
-	ELSEIF TALENT:MASTER:賢い && TALENT:賢い
-		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%と教え合いながら一緒に勉強した。
-	ELSEIF TALENT:MASTER:賢い || (TALENT:MASTER:愚か == 0 && TALENT:愚か)
-		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の分かってない部分を見てやりながら一緒に勉強した。
-	ELSEIF TALENT:賢い
-		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に教えてもらいながら、一緒に勉強した。
+		PRINTFORMW %CALLNAME:MASTER%和%CALLNAME:TARGET%一起学习。
+	ELSEIF TALENT:MASTER:聰慧 && TALENT:聰慧
+		PRINTFORMW %CALLNAME:MASTER%和%CALLNAME:TARGET%一边互相教对方一边一起学习。
+	ELSEIF TALENT:MASTER:聰慧 || (TALENT:MASTER:笨蛋 == 0 && TALENT:笨蛋)
+		PRINTFORMW %CALLNAME:MASTER%一边教%CALLNAME:TARGET%不会的地方一边一起学习。
+	ELSEIF TALENT:聰慧
+		PRINTFORMW %CALLNAME:MASTER%一边被%CALLNAME:TARGET%指导、一边一起学习。
 	ELSE
-		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%と一緒に勉強した。
+		PRINTFORMW %CALLNAME:MASTER%和%CALLNAME:TARGET%一起学习。
 	ENDIF
-CASE "チップを渡す"
-	CALL PRINT_CUTIN, "バニーチップ", TARGET
-	PRINTFORM %CALLNAME:MASTER%は%TEXTS("行動継続中の")%%CALLNAME:TARGET%の
-	IF TALENT:貧乳 || TALENT:オトコ
-		PRINTFORMW バニースーツと胸の間に出来た隙間にチップを差し込んだ。
+CASE "给小费"
+	CALL PRINT_CUTIN, "兔チップ", TARGET
+	PRINTFORM %CALLNAME:MASTER%%TEXTS("行動継続中の")%%CALLNAME:TARGET%の
+	IF TALENT:貧乳 || TALENT:男性
+		PRINTFORMW 兔女郎装和胸之間的空隙塞入了小费。
 	ELSE
-		PRINTFORMW 胸の谷間にチップを差し込んだ。
+		PRINTFORMW 胸的谷間中塞入了小费。
 	ENDIF
 
-CASE "お誘いに乗る"
-	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の誘いに乗ることにした。
-CASE "お茶を淹れる"
-	SAVESTR:お茶 = お茶
+CASE "邀请"
+	PRINTFORMW %CALLNAME:MASTER%答应了%CALLNAME:TARGET%的邀请。
+CASE "泡茶"
+	SAVESTR:茶 = 茶
 	IF CHARA_NUM("室内の邪魔者")
-		PRINTFORMW %CALLNAME:MASTER%は部屋にいる全員にお茶を淹れて振舞った。
+		PRINTFORMW %CALLNAME:MASTER%给房间里的全員泡了茶。
 	ELSE
-		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%にお茶を淹れて差し出した。
+		PRINTFORMW %CALLNAME:MASTER%给%CALLNAME:TARGET%泡了茶。
 	ENDIF
-CASE @"お酒をふるまう(要：%MONEY_C( (CHARA_NUM("現在存在") + 1)*500)%)"
-	STR:日常イベント名 = お酒をふるまう
-	IF STATE("酔い", TARGET)
-		PRINTFORMW %CALLNAME:MASTER%はほろ酔い状態の%CALLNAME:TARGET%\@ CHARA_NUM("現在存在") >= 2 ? 達 # \@に更にお酒をすすめた。
+CASE @"勸酒(要：%MONEY_C( (CHARA_NUM("現在存在") + 1)*500)%)"
+	STR:日常イベント名 = 勸酒
+	IF STATE("酔酒", TARGET)
+		PRINTFORMW %CALLNAME:MASTER%继续向微醺状態的%CALLNAME:TARGET%\@ CHARA_NUM("現在存在") >= 2 ? 们 # \@进行劝酒。
 	ELSEIF CEVENT("飲酒拒否")
-		PRINTFORMW %CALLNAME:MASTER%はダメ元で%CALLNAME:TARGET%にお酒を勧めてみた。
+		PRINTFORMW %CALLNAME:MASTER%试着向拒绝飲酒的%CALLNAME:TARGET%继续劝酒。
 	ELSE
-		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%\@ CHARA_NUM("現在存在") >= 2 ? 達 # \@にお酒をふるまった。
+		PRINTFORMW %CALLNAME:MASTER%让%CALLNAME:TARGET%\@ CHARA_NUM("現在存在") >= 2 ? 们 # \@把酒一饮而尽。
 	ENDIF
-CASE "体を拭く"
-	IF COND("お風呂上り")
-		PRINTFORMW %CALLNAME:MASTER%は、お風呂上がりの%CALLNAME:TARGET%の体をタオルで拭いた。
+CASE "擦身体"
+	IF COND("出浴")
+		PRINTFORMW %CALLNAME:MASTER%用毛巾擦拭了刚出浴的%CALLNAME:TARGET%的身体。
 	ELSE
-		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の体をタオルで拭いた。
+		PRINTFORMW %CALLNAME:MASTER%用毛巾擦拭了%CALLNAME:TARGET%的身体。
 	ENDIF
-CASE "汗を拭く"
-	PRINTFORM %CALLNAME:MASTER%は%TEXTS("行動継続中の")%
-	IF COND("汗だく")
-		PRINTFORMW %CALLNAME:TARGET%の全身から滴る汗を丁寧に拭いた。
+CASE "拭汗"
+	PRINTFORM %CALLNAME:MASTER%%TEXTS("行動継続中の")%
+	IF COND("浑身是汗")
+		PRINTFORMW 细心擦拭了%CALLNAME:TARGET%全身的每一处的汗。
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%の体をタオルで拭いた。
+		PRINTFORMW 用毛巾擦拭了%CALLNAME:TARGET%的身体。
 	ENDIF
-CASE "クンニ奉仕する", "フェラ奉仕する"
-	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に口での奉仕を提案した。
-CASE "マッサージする"
+CASE "舐陰奉仕する", "口交奉仕する"
+	PRINTFORMW %CALLNAME:MASTER%向%CALLNAME:TARGET%提出要用口来奉仕。
+CASE "按摩"
 	SELECTCASE CONDS("直前行動")
-	CASE "ながら性処理", "性処理を頼む", "性欲解消を手伝う"
-		PRINTFORMW %CALLNAME:MASTER%は%TEXTS("行動継続中の")%%CALLNAME:TARGET%の%TEXTR("体をマッサージ/身体のコリを揉み解")%した
+	CASE "进行性処理", "拜托処理性欲", "性欲解消を手伝う"
+		PRINTFORMW %CALLNAME:MASTER%帮%TEXTS("行動継続中の")%%CALLNAME:TARGET%%TEXTR("的身体做了按摩/揉解了身体的僵硬")%
 	CASEELSE
-		PRINTFORMW %CALLNAME:MASTER%は%CLO("現在の格好＆の")%%CALLNAME:TARGET%の%TEXTR("体をマッサージ/身体のコリを揉み解")%した
+		PRINTFORMW %CALLNAME:MASTER%给%CLO("現在的格好＆の")%%CALLNAME:TARGET%%TEXTR("做了身体按摩/揉解了身体的劳累")%
 	ENDSELECT
-CASE "キスする"
+CASE "接吻"
 	SELECTCASE CONDS("直前行動")
-	CASE "キス"
-		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%%TEXTR("をつかまえ/を抱き寄せ/の隙を突い")%てキスをし返した。
-	CASE "おっぱいリフトする"
-		PRINTFORMW %CALLNAME:MASTER%は%TEXTR("手のひらの感触を楽しみ/胸をやわやわと撫でさすり/悪戯を続け")%ながら%CALLNAME:TARGET%にキスした。
+	CASE "接吻"
+		PRINTFORMW %CALLNAME:MASTER%%TEXTR(@"搂住%CALLNAME:TARGET%并/拥抱着%CALLNAME:TARGET%/抓住了%CALLNAME:TARGET%的空隙")%吻了回去。
+	CASE "托一托胸部"
+		PRINTFORMW %CALLNAME:MASTER%は%TEXTR("手のひらの感触を楽しみ/胸をやわやわと撫でさすり/悪戯を続け")%ながら%CALLNAME:TARGET%に接吻した。
 	CASEELSE
-		PRINTFORM %CALLNAME:MASTER%は%TEXTS("行動継続中の")%
-		PRINTFORMW %CALLNAME:TARGET%にキスした。
+		PRINTFORM %CALLNAME:MASTER%%TEXTS("行動継続中の")%
+		PRINTFORMW 和%CALLNAME:TARGET%接吻了。
 	ENDSELECT
-CASE "膝枕する"
-	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に膝枕を提案した。
-CASE "頭を撫でる"
-	PRINTFORM %CALLNAME:MASTER%は%TEXTS("行動継続中の")%
-	PRINTFORMW %CALLNAME:TARGET%の頭を撫でた。
-CASE "おっぱいリフトする"
+CASE "膝枕"
+	PRINTFORMW %CALLNAME:MASTER%向%CALLNAME:TARGET%提出了膝枕的要求。
+CASE "摸頭"
+	PRINTFORM %CALLNAME:MASTER%%TEXTS("行動継続中の")%
+	PRINTFORMW 摸了摸%CALLNAME:TARGET%的頭。
+CASE "托一托胸部"
 	IF CONDS("直前行動") == STR:日常イベント名
-		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の胸を弄り続けた……
+		PRINTFORMW %CALLNAME:MASTER%不停玩弄着%CALLNAME:TARGET%的胸……
 	;乳首が露出している状況
-	ELSEIF CHECK_CLO("乳首露出") && (CHOSE_DEVENT(STR:日常イベント名) == 0 || RAND:2)
-		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%の
-		IF TALENT:貧乳 || TALENT:オトコ
-			PRINTFORM 胸を手のひらで下から包みつつ、
+	ELSEIF CHECK_CLO("乳頭露出") && (CHOSE_DEVENT(STR:日常イベント名) == 0 || RAND:2)
+		PRINTFORM %CALLNAME:MASTER%把%CALLNAME:TARGET%的
+		IF TALENT:貧乳 || TALENT:男性
+			PRINTFORM 胸从下向上用手整个包住、
 		ELSE
-			PRINTFORM おっぱいを下から支えつつ、
+			PRINTFORM 胸部从下向上支撑着、
 		ENDIF
-		IF COND("陥没乳首")
-			PRINTFORM %TEXTR("陥没した乳首/顔を隠している乳頭/乳輪中央に埋没する乳首")%
+		IF COND("陥没乳頭")
+			PRINTFORM 对着%TEXTR("陥没的乳頭/藏起来了脸的乳頭/在乳輪中央埋没的乳頭")%
 			IF RAND:3 == 0
-				PRINTFORMW を撫でまわした。
+				PRINTFORMW 轻轻撫摸着。
 			ELSEIF RAND:2 == 0
-				PRINTFORMW を弄んだ。
+				PRINTFORMW 玩弄了一下。
 			ELSE
-				PRINTFORMW を指先でほじくった。
+				PRINTFORMW 用手指捏了捏。
 			ENDIF
-		ELSEIF TALENT:ニプルピアス && (CHOSE_DEVENT(STR:日常イベント名) == 0 || RAND:2)
-			PRINTFORM %TEXTR("胸の中央で主張している/乳首を貫く/乳首を飾っている")%
-			IF CEVENTS("ニプルピアス") != "" && RAND:3
-				PRINTFORM %CEVENTS("ニプルピアス")%のピアス
+		ELSEIF TALENT:乳环 && (CHOSE_DEVENT(STR:日常イベント名) == 0 || RAND:2)
+			PRINTFORM %TEXTR("胸中央显眼的/贯穿乳頭的/装飾乳頭的")%
+			IF CEVENTS("乳环") != "" && RAND:3
+				PRINTFORM %CEVENTS("乳环")%の穿環
 			ELSE
-				PRINTFORM %TEXTR("ピアス/金属の輝き")%
+				PRINTFORM %TEXTR("穿環/金属の輝き")%
 			ENDIF
 			IF RAND:3 == 0
-				PRINTFORMW を指で弾いた。
+				PRINTFORMW 用手指弹了一下。
 			ELSEIF RAND:2 == 0
-				PRINTFORMW を弄んだ。
+				PRINTFORMW 玩弄了一下。
 			ELSE
-				PRINTFORMW を軽く引っ張った。
+				PRINTFORMW 轻轻地向外拉动。
 			ENDIF
 		ELSE
-			PRINTFORM 丸見えの\@ COND("乳首肥大") ? 大きな # \@乳首を
+			PRINTFORM 完全暴露着的\@ COND("乳頭肥大") ? 大 # \@乳頭
 			IF RAND:3 == 0
-				PRINTFORMW 指先で弄んだ。
+				PRINTFORMW 用手指尖玩弄着。
 			ELSE
-				SIF TALENT:ニプルピアス
-					PRINTFORM ピアスごと
+				SIF TALENT:乳环
+					PRINTFORM 連帶著金屬穿環
 				IF RAND:2 == 0
-					PRINTFORMW 指で優しく扱いた。
+					PRINTFORMW 用手指温柔地对待着。
 				ELSE
-					PRINTFORMW 指でつまみあげた。
+					PRINTFORMW 用手指捏住了。
 				ENDIF
 			ENDIF
 		ENDIF
 	ELSE
-		IF CHECK_SHIRT("セーラー服")
-			PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%のセーラー服の裾から中に手を突っ込み、
+		IF CHECK_SHIRT("水手服")
+			PRINTFORM %CALLNAME:MASTER%从%CALLNAME:TARGET%的水手服的下摆把手伸进衣服、
 		ELSE
-			PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%に忍び寄り、
+			PRINTFORM %CALLNAME:MASTER%向%CALLNAME:TARGET%悄悄靠近、
 		ENDIF
 		IF TALENT:巨乳
 			IF RAND:2 && CHOSE_DEVENT(STR:日常イベント名) == 0
-				PRINTFORM %TOFULL(CONDS("バストカップ") )%カップの%TALENT_NAME(GETNUM(TALENT, "巨乳"), TALENT:巨乳)%
+				PRINTFORM %TOFULL(CONDS("罩杯") )%杯的%TALENT_NAME(GETNUM(TALENT, "巨乳"), TALENT:巨乳)%
 			ELSE
-				PRINTFORM 重そうなおっぱい
+				PRINTFORM 对着看上去很有分量的胸部
 			ENDIF
-			PRINTFORMW を下から手の平で持ち上げた。
-		ELSEIF TALENT:貧乳 || TALENT:オトコ
-			PRINTFORMW 薄い胸を掌で包んだ。
+			PRINTFORMW 用手从下向上平托了一下。
+		ELSEIF TALENT:貧乳 || TALENT:男性
+			PRINTFORMW 用手掌包着小小的胸部。
 		ELSE
-			PRINTFORMW おっぱいを下から上に向かって手の平で撫でた。
+			PRINTFORMW 从下向上抚摸着胸部。
 		ENDIF
 	ENDIF
-CASE "股間を撫でる"
-	PRINTFORM %CALLNAME:MASTER%は
+CASE "撫摸股間"
+	PRINTFORM %CALLNAME:MASTER%
 	SELECTCASE CONDS("直前行動")
-	CASE "起こす"
-		PRINTFORM %TEXTR("起きたばかりで頭が回ってなさそうな/欠伸をかみ殺している/まだ眠気が抜けきっていない")%寝惚け眼の
-	CASE "挨拶する"
-		PRINTFORM 挨拶を交わしながら
-	CASE "甘い言葉"
-		PRINTFORM 口説き文句を囁きながら、%TEXTR("自然な動作で/おもむろに/満更でもなさそうな/照れる")%
-	CASE "褒める"
-		PRINTFORM 褒め言葉を口に出しながら、%TEXTR("自然な動作で/おもむろに/隙を見つけて/満更でもなさそうな/頬を緩める")%
-	CASE "トーク", "Ｈな話"
-		PRINTFORM %TEXTR("雑談に華を咲かせ/他愛のない話をし/ダラダラと話をし")%ながら
+	CASE "叫醒"
+		PRINTFORM 对着%TEXTR("刚起床、头脑似乎还没有清醒过来/伸着懒腰打着哈欠/睡意还没有完全消除")%、还睁着惺忪的睡眼的对方
+	CASE "打招呼"
+		PRINTFORM 一边打着招呼、一边
+	CASE "甜言蜜语"
+		PRINTFORM 小声地奉承着的同時、一边对着%TEXTR("自然地動作着的/慢吞吞的/感觉也不是那么坏的/害羞着的")%的对方、
+	CASE "夸奖"
+		PRINTFORM 一边说着赞美的话、一边对着%TEXTR("自然地動作着的/慢吞吞的/被突入了破绽的/感觉也不是那么坏的/脸頬放松了下来的")%的对方、
+	CASE "Talk", "Ｈ的話"
+		PRINTFORM 一边%TEXTR("天南海北地闲聊着/滔滔不绝地聊着/随随便便地聊着")%、一边
 	CASE "膝枕"
-		PRINTFORM %TEXTR("頭を浮かせると/ゴロリと転がり/素早く体勢を変え")%、膝枕をしてくれていた
-	CASE "ミニスカパンチラ"
-		PRINTFORM パンチラ直後の
+		PRINTFORM %TEXTR("頭抬了一下/咕噜地滚了一下/迅速改変了体勢")%、对着正给你膝枕的%CALLNAME:TARGET%、
+	CASE "露脐装超短裙胖次チラ"
+		PRINTFORM 刚掀起了胖次就
 	CASEELSE
 		PRINTFORM %TEXTS("行動継続中の")%
 	ENDSELECT
-	PRINTFORMW %CALLNAME:TARGET%の股間を撫でた。
-CASE "しっぽをなでる"
-	PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%の
-	SELECTCASE TALENT:しっぽ
+	PRINTFORMW 抚摸着%CALLNAME:TARGET%的股間。
+CASE "抚摸尾巴"
+	PRINTFORM %CALLNAME:MASTER%把%CALLNAME:TARGET%的
+	SELECTCASE TALENT:尾巴
 	;ねこ
 	CASE 1
-		PRINTFORM %TEXTR("しっぽ/クネクネ動く尻尾/しなやかな尻尾")%
+		PRINTFORM %TEXTR("尾巴/卷来卷去的尾巴/柔软的尾巴")%
 	;狼
 	CASE 2
-		PRINTFORM %TEXTR("しっぽ/パタパタ動く尻尾/ふさふさした尻尾")%
+		PRINTFORM %TEXTR("尾巴/啪嗒啪嗒動着的尾巴/蓬松的尾巴")%
 	;狐
 	CASE 3
-		PRINTFORM %TEXTR("しっぽ/もふもふした尻尾/太い尻尾")%
+		PRINTFORM %TEXTR("尾巴/毛茸茸的尾巴/粗大的尾巴")%
 	;兎
 	CASE 4
-		PRINTFORM %TEXTR("しっぽ/ふさふさした尻尾")%
+		PRINTFORM %TEXTR("尾巴/蓬松的尾巴")%
 	;馬
 	CASE 5
-		PRINTFORM %TEXTR("しっぽ/ふさふさした尻尾/パタパタ動く尻尾")%
+		PRINTFORM %TEXTR("尾巴/蓬松的尾巴/啪嗒啪嗒動着的尾巴")%
 	;悪魔
 	CASE 6
-		PRINTFORM %TEXTR("しっぽ/クネクネ動く尻尾/尻尾の先端のハート型部分")%
+		PRINTFORM %TEXTR("尾巴/卷来卷去的尾巴/尾巴の先端の心型部分")%
 	;トカゲ、竜
 	CASE 7
 		;サラマンダー
-		IF COND("種族：サラマンダー")
-			PRINTFORM %TEXTR("しっぽ/先端が燃え盛る尻尾/ゆらゆら動く尻尾")%
+		IF COND("種族：火精灵")
+			PRINTFORM %TEXTR("尾巴/前端燃着火的尾巴/摇晃着的尾巴")%
 		ELSE
-			PRINTFORM %TEXTR("しっぽ/鱗に覆われた尻尾/ゆらゆら動く尻尾")%
+			PRINTFORM %TEXTR("尾巴/覆盖着鱗片的尾巴/摇晃着的尾巴")%
 		ENDIF
 	;ネズミ
 	CASE 8
-		PRINTFORM %TEXTR("しっぽ/クネクネ動く尻尾/しなやかな尻尾")%
+		PRINTFORM %TEXTR("尾巴/卷来卷去的尾巴/柔软的尾巴")%
 	CASEELSE
-		PRINTFORM %TEXTR("しっぽ/尻尾")%
+		PRINTFORM %TEXTR("尾巴/尾巴")%
 	ENDSELECT
-	PRINTFORMW に手を伸ばした。
+	PRINTFORMW 伸出了手。
 ;CASE "もてなす"
 ;	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%をもてなした。
 
 ;以下は睡眠姦
-CASE "睡眠姦キス"
-	PRINTFORM %CALLNAME:MASTER%は
+CASE "睡眠姦接吻"
+	PRINTFORM %CALLNAME:MASTER%
 	;２回目以降
 	IF CHOSE_DEVENT(STR:日常イベント名)
-		PRINTFORMW 寝息を立てる%CALLNAME:TARGET%の唇を再び奪った。
+		PRINTFORMW 又一次奪走了发出着鼾声的%CALLNAME:TARGET%的嘴唇。
 	ELSE
-		PRINTFORMW スヤスヤと眠る%CALLNAME:TARGET%の唇を奪った。
+		PRINTFORMW 奪走了睡的很香的%CALLNAME:TARGET%的嘴唇。
 	ENDIF
-CASE "睡眠姦フェラ"
-	PRINTFORM %CALLNAME:MASTER%は
+CASE "睡眠姦口交"
+	PRINTFORM %CALLNAME:MASTER%
 	;２回目以降
 	IF CHOSE_DEVENT(STR:日常イベント名)
-		PRINTFORMW 寝入る%CALLNAME:TARGET%の口にペニスを再び押し付け、先端から滲むカウパー液を唇に塗り広げた。
+		PRINTFORMW 把阴茎又一次塞进沉睡着的%CALLNAME:TARGET%的嘴中、把前端滲出的前列腺液塗抹在嘴唇上。
 	;中出し直後
-	ELSEIF INSERT("インサート")
-		PRINTFORMW %CALLNAME:TARGET%の口に中出し直後の汚れたペニスを近づけ、手で扱いて尿道に残る精液を絞り出した後に唇に擦り付けた。
+	ELSEIF INSERT("挿入")
+		PRINTFORMW 把刚刚中出完的阴茎凑近%CALLNAME:TARGET%的嘴边、用手把尿道里残留的精液全部挤出来蹭在%CALLNAME:TARGET%的唇上。
 	;使用後
 	ELSEIF EXP_GAIN("睡眠姦経験")
-		PRINTFORM %CALLNAME:TARGET%の唇に
+		PRINTFORM 对着%CALLNAME:TARGET%的嘴唇
 		IF CHECK_STAIN(STAIN:PLAYER:Ｐ, "Ａ")
-			PRINTFORM 汚液まみれのペニス
+			PRINTFORM 把沾满了汚液的阴茎
 		ELSEIF CHECK_STAIN(STAIN:PLAYER:Ｐ, "Ｖ")
-			PRINTFORM 愛液まみれのペニス
+			PRINTFORM 把沾满了愛液的阴茎
 		ELSE
-			PRINTFORM 汚れたペニス
+			PRINTFORM 把汚臭的阴茎
 		ENDIF
-		PRINTFORMW を押し当て、反射で口を開けたのを良い事に舌に擦り付けた。
+		PRINTFORMW 塞进去、在因为嘴巴被迫张開而条件反射伸出的舌头上擦蹭着。
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%の唇に亀頭を押し当て、反射で口を開けたのを良い事に舌に擦り付けた。
+		PRINTFORMW 把%CALLNAME:TARGET%的嘴唇用亀頭挤開、在因为嘴巴被迫张開而条件反射伸出的舌头上擦蹭着。
 	ENDIF
-CASE "睡眠姦逆フェラ"
-	PRINTFORM %CALLNAME:MASTER%は
+CASE "睡眠姦逆口交"
+	PRINTFORM %CALLNAME:MASTER%
 	;２回目以降
 	IF CHOSE_DEVENT(STR:日常イベント名)
-		PRINTFORMW %TEXTR("射精直後で白い涎を垂らしている/射精直後で敏感そうな/射精したばかりの")%%CALLNAME:TARGET%のペニスに再び舌を伸ばした。
+		PRINTFORMW %TEXTR("射精直後で白色涎を垂らしている/射精直後で敏感そうな/射精したばかりの")%%CALLNAME:TARGET%の阴茎に再び舌を伸ばした。
 	ELSE
 		PRINTFORM 寝入る%CALLNAME:TARGET%の
-		IF CHECK_CLO("アウター露出")
+		IF CHECK_CLO("外套露出")
 			IF CHECK_OUTER("社会の窓")
  				PRINTFORM %OUTER(TARGET, "略")%のチャックを開き、
 			ELSE
@@ -447,37 +447,37 @@ CASE "睡眠姦逆フェラ"
 			ENDIF
 		ENDIF
 		IF CHECK_STAIN(STAIN:Ｐ, "汗")
-			PRINTFORM %TEXTR("僅かに汗臭い/少々しょっぱい/蒸れてやや臭う")%
+			PRINTFORM %TEXTR("僅かに汗臭い/少々しょっぱい/闷热的てやや臭う")%
 		ELSE
-			PRINTFORM %TEXTR("勃起していない柔らか/僅かにオシッコの臭いのする/蒸れて性臭を漂わせる")%
+			PRINTFORM %TEXTR("勃起ていない柔らか/僅かにオシッコの臭いのする/闷热的て性臭を漂わせる")%
 		ENDIF
-		PRINTFORMW ペニスを口に咥えて%TEXTR("フェラチオを開始し/精液を搾り取り始め/舌で刺激し始め")%た。
+		PRINTFORMW 阴茎を口に咥えて%TEXTR("口交を開始し/精液を搾り取り始め/舌で刺激し始め")%た。
 	ENDIF
 
-CASE "睡眠姦正常位", "睡眠姦寝バック"
-	PRINTFORM %CALLNAME:MASTER%は
+CASE "睡眠姦正常位", "睡眠姦寝后背位"
+	PRINTFORM %CALLNAME:MASTER%
 	;パンツ穿いてるなら一時的に没収
-	IF EQUIP:パンツ && CHECK_CLO("アウター露出") == 0
-		PRINTFORMW 寝入る%CALLNAME:TARGET%の下着を脱がして脇に置き、膣を\@ EXP_GAIN("睡眠姦経験") ? 性欲に任せて再び # 猛る肉棒で深々と \@貫いた。
-		SIF COND("パンツ形状確認") == 0
+	IF EQUIP:胖次 && CHECK_CLO("外套露出") == 0
+		PRINTFORMW 把睡眠中的%CALLNAME:TARGET%的内衣脱下放到一边、\@ EXP_GAIN("睡眠姦経験") ? 任凭性欲再次 # 用猛烈的肉棒深深地 \@貫穿膣穴。
+		SIF COND("胖次形状確認") == 0
 			CALL TEXT_PANTU_CHECK_SHORT
-		CALL SETFLAG, "パンツ没収", TARGET
+		CALL SETFLAG, "胖次没収", TARGET
 	;二度目？
 	ELSEIF EXP_GAIN("睡眠姦経験")
-		IF INSERT("インサート")
-			PRINTFORMW 自らの精液で滑りの良くなった%CALLNAME:TARGET%の膣で再び楽しむ事にした。
+		IF INSERT("挿入")
+			PRINTFORMW 在被自己的精液充分润滑的%CALLNAME:TARGET%的膣内再次開始了享受。
 		ELSE
-			PRINTFORMW 程よく解れてきた%CALLNAME:TARGET%の膣を性欲に任せて再び貫いた。
+			PRINTFORMW 任凭自己的性欲、再次貫穿了适度松開的%CALLNAME:TARGET%的膣穴。
 		ENDIF
 	ELSEIF STR:日常イベント名 == "睡眠姦正常位"
-		PRINTFORMW 寝入る%CALLNAME:TARGET%の膣を猛る肉棒で深々と貫いた。
+		PRINTFORMW 用猛烈的肉棒深深地贯穿了睡眠中的%CALLNAME:TARGET%的膣穴。
 	ELSE
-		PRINTFORMW うつ伏せで寝入る%CALLNAME:TARGET%に覆いかぶさり、膣を猛る肉棒で深々と貫いた。
+		PRINTFORMW 将趴着睡觉的%CALLNAME:TARGET%翻了过来、用猛烈的肉棒深深地贯穿了膣穴。
 	ENDIF
-	IF COND("起きそう")
-		PRINTFORMW %CALLNAME:TARGET%は粘膜を擦りあげられた事で寝顔を少々歪ませている……
+	IF COND("快要醒了")
+		PRINTFORMW %CALLNAME:TARGET%因为粘膜被摩擦的事表情稍微有些不自然……
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%は\@ EXP_GAIN("睡眠姦経験") ? 度重なる挿入に # 挿入の衝撃で \@呼吸を僅かに乱したが、%TEXTR("起きる気配は微塵もない様子/依然として深い眠りに落ちたままのよう")%だ……
+		PRINTFORMW %CALLNAME:TARGET%由于\@ EXP_GAIN("睡眠姦経験") ? 反复的挿入 # 挿入的衝撃 \@呼吸稍微紊乱了、%TEXTR("但仍然没有醒来的迹象/但依然沉浸在梦乡里")%……
 	ENDIF
 ENDSELECT
 
@@ -488,57 +488,57 @@ ENDSELECT
 @AFTERMESSAGE_DAILY2
 
 SELECTCASE STR:日常イベント名
-CASE "睡眠姦キス"
+CASE "睡眠姦接吻"
 	;２回目以降
 	IF CHOSE_DEVENT(STR:日常イベント名)
-		PRINTFORMW %CALLNAME:TARGET%は何度も口を塞がれた事で呼吸が乱れたようで、少々鬱陶しそうな反応を浮かべつつ寝入っている……
+		PRINTFORMW %CALLNAME:TARGET%好像因为嘴被塞住了好几次为呼吸紊乱、脸上带着稍微郁闷的反応睡着……
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の口づけに何ら反応を示すことなく、依然として深い眠りに落ちたままのようだ……
+		PRINTFORMW %CALLNAME:TARGET%对%CALLNAME:MASTER%的接吻没有表现出任何反応、依然处于深度睡眠的状态……
 	ENDIF
-CASE "睡眠姦フェラ"
+CASE "睡眠姦口交"
 	;２回目以降
 	IF CHOSE_DEVENT(STR:日常イベント名)
-		PRINTFORMW %CALLNAME:TARGET%は時折反射で%CALLNAME:MASTER%のペニスに舌を這わせながら、少々寝苦しそうにしている……
+		PRINTFORMW %CALLNAME:TARGET%的舌头偶尔条件反射一般舔着%CALLNAME:MASTER%的阴茎、睡眠稍有不安稳的样子……
 	;使用後
 	ELSEIF EXP_GAIN("睡眠姦経験")
 		IF ABL:精液中毒 && ABL:奉仕精神 >= 5
-			PRINTFORMW 押し当てられるペニスに寝苦しそうにしていた%CALLNAME:TARGET%だったが、精液の臭いに反応したのか睡眠状態だというのに口を開いてペロペロと飴を舐めるような舌づかいで%CALLNAME:MASTER%を楽しませている……
+			PRINTFORMW PRINTFORMW 被阴茎押着睡得不太舒服的%CALLNAME:TARGET%、对精液的气味起了反应、明明是睡眠状態却张開嘴像舔糖果一样动着舌头取悦着%CALLNAME:MASTER%……
 		ELSE
-		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の悪戯に眉根を歪めているものの、まだまだ夢の世界からは戻って来ない様子だ……
+		PRINTFORMW %CALLNAME:TARGET%因为%CALLNAME:MASTER%的悪戯皱着眉头、好像马上就要从夢的世界回来的様子……
 		ENDIF
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の悪戯に眉根を歪めているものの、まだまだ夢の世界からは戻って来ない様子だ……
+		PRINTFORMW %CALLNAME:TARGET%因为%CALLNAME:MASTER%的悪戯皱着眉头、好像马上就要从夢的世界回来的様子……
 	ENDIF
-CASE "睡眠姦逆フェラ"
-	IF COND("起きそう") || CHOSE_DEVENT(STR:日常イベント名)
-		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%から与えられる刺激で徐々にペニス%TEXTR("を勃起させ/を膨張させ/の硬度を上げ")%つつ、寝顔を少々歪ませている……
+CASE "睡眠姦逆口交"
+	IF COND("快要醒了") || CHOSE_DEVENT(STR:日常イベント名)
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%から与えられる刺激で徐々に阴茎%TEXTR("を勃起させ/を膨張させ/の硬度を上げ")%つつ、寝顔を少々歪ませている……
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%は敏感な場所への愛撫によって%TEXTR("ピクピクとペニスを撥ねさせた/呼吸を僅かに乱した/ペニスをムクムク大きくさせつつある")%が、%TEXTR("起きる気配は微塵もない様子/依然として深い眠りに落ちたままのよう")%だ……
+		PRINTFORMW %CALLNAME:TARGET%は敏感な場所への愛撫によって%TEXTR("ピクピクと阴茎を撥ねさせた/呼吸を僅かに乱した/阴茎をムクムク大きくさせつつある")%が、%TEXTR("起きる气息は微塵もない様子/依然として深い睡眠に落ちたままのよう")%だ……
 	ENDIF
-CASE "おっぱいリフトする"
-	SIF COND("ブラ形状確認") || CHECK_CLO("乳首露出") || EQUIP:ボディスーツ
+CASE "托一托胸部"
+	SIF COND("胸罩形状確認") || CHECK_CLO("乳頭露出") || EQUIP:贴身制服
 		RETURN 0
 	;ノーブラが当たり前の場合にはここで終わり
-	SIF EQUIP:ブラ == 0 && TALENT:オトコ
+	SIF EQUIP:胸罩 == 0 && TALENT:男性
 		RETURN 0
-	IF EQUIP:ブラ
-		PRINTFORM 今日の%CALLNAME:TARGET%が身に着けているのは……
-		IF CHECK_BRA("乳首露出")
-			PRINTFORMW 乳首が露出している%BRA(TARGET, "大体の形状")%のようだ！
+	IF EQUIP:胸罩
+		PRINTFORM 今天的%CALLNAME:TARGET%戴着的是……
+		IF CHECK_BRA("乳頭露出")
+			PRINTFORMW 会露出乳頭的%BRA(TARGET, "大体の形状")%的様子！
 		ELSE
-			PRINTFORMW 手触りからするに%BRA(TARGET, "大体の形状")%のようだ。
+			PRINTFORMW 依照手的触感是%BRA(TARGET, "大体の形状")%的様子。
 		ENDIF
 	ELSE
-		PRINTFORMW 今日の%CALLNAME:TARGET%は……どうやらブラを着けていないようだ！
+		PRINTFORMW 今天的%CALLNAME:TARGET%……好像没有戴胸罩的様子！
 	ENDIF
-CASE "一緒に勉強する"
+CASE "一起学习"
 	CALL SETFLAG_DAILY, "勉強"
-CASE "頭を撫でる"
+CASE "摸頭"
 	SELECTCASE CONDS("直前行動")
-	CASE "口淫", "お掃除フェラ", "性処理を頼む"
-		PRINTFORMW %CALLNAME:TARGET%は……少し嬉しそうだ。
+	CASE "口淫", "清洁口交", "拜托処理性欲"
+		PRINTFORMW %CALLNAME:TARGET%……好像很高兴的样子。
 	ENDSELECT
 
-CASE "クンニ奉仕する", "フェラ奉仕する"
-	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の股間に顔を埋め、心を込めて奉仕をした……
+CASE "舐陰奉仕する", "口交奉仕する"
+	PRINTFORMW %CALLNAME:MASTER%把头埋进%CALLNAME:TARGET%股間、用心地奉仕着……
 ENDSELECT

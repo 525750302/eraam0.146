@@ -13,11 +13,11 @@ CASE "取引開始"
 		PRINTFORMW 「对%CNAME("一人称")%有话要说？……唔嗯，听取下仆的请求也是主人的义务之一」
 		PRINTFORMW 「好啊，说说看吧」
 	ENDIF
-CASE "呼び名変更"
+CASE "称呼変更"
 	PRINTFORMW 「那么，要怎么称呼呢」
-CASE "呼び名変更完了"
+CASE "称呼変更完了"
 	PRINTFORMW 「%CNAME("二人称")%吗…嗯…就这样吧」
-CASE "呼び名変更キャンセル"
+CASE "称呼変更中止"
 	PRINTFORMW 「嗯？改变心意了？」
 CASE "愛の告白"
 	;告白成功！
@@ -33,43 +33,43 @@ CASE "愛の告白"
 		PRINTFORMW 「抱歉呐」
 	ENDIF
 ;パンツのお願いした時に相手がノーパンだった
-CASE "ノーパン"
-	IF COND("合意：パンツ取引")
+CASE "没穿内褲"
+	IF COND("合意：胖次交易")
 		PRINTFORMW 「不好意思，今天不行」
-		SIF EQUIP:スカート
-			PRINTFORMW %CALLNAME:TARGET%给%SKIRT(TARGET, "略")%翻开裙子，展现了什么东西都没有穿的下体。
+		SIF EQUIP:裙
+			PRINTFORMW %CALLNAME:TARGET%给%SKIRT(TARGET, "略")%翻開裙子，展现了什么东西都没有穿的下体。
 	ELSE
 		PRINTFORMW 「……唔」
 		PRINTFORMW 「就当没有听到吧」
 	ENDIF
-CASE "パンツ取引"
+CASE "胖次交易"
 	IF TFLAG:取引承諾
-		IF COND("合意：パンツ取引") == 0
+		IF COND("合意：胖次交易") == 0
 			TFLAG:取引価格 = 1000
 			PRINTFORMW 「唔姆，我想想……%MONEY_C(TFLAG:取引価格)%怎么样？」
 			PRINTFORMW 「嗯？太贵了？」
 			PRINTFORMW 「说什么呢……即使是内衣也不是免费的哦」
 		;寝起きは断る
-		ELSEIF CFLAG:寝起き
+		ELSEIF CFLAG:刚睡醒
 			TFLAG:取引拒否 = 1
 		ELSE
 			PRINTFORMW 「……フ」
-			PRINTFORMW 「毕竟%CNAME("一人称")%和%CNAME("二人称")%是同伴的关系，%MONEY_C(TFLAG:取引価格)%就够了」
+			PRINTFORMW 「毕竟%CNAME("一人称")%和%CNAME("二人称")%是同伴的関系，%MONEY_C(TFLAG:取引価格)%就够了」
 		ENDIF
 	ENDIF
-CASE "パンツ"
+CASE "胖次"
 	;値切って相場と変わらず$500払う。ここでTFLAG:取引承諾 = 0とすることで拒否するのもよいでしょう
 	IF TFLAG:値切った
 		PRINTFORMW 「唉。不管怎么谈，我们的对话都像平行线一样搭不上话呢」
 		PRINTFORMW 「拜托其他人也可以的哦」
 		TFLAG:取引承諾 = 0
 	;取引初成功
-	ELSEIF COND("合意：パンツ取引") == 0
+	ELSEIF COND("合意：胖次交易") == 0
 		PRINTFORMW 「这样的东西也想要啊……%CNAME("二人称")%真的是一个有恋物癖的孩子呢」
 		PRINTFORMW 「嘛，好吧」
 		PRINTFORMW 「所以，要好好地感谢%CNAME("一人称")%的温柔哦」
 		;パンツを脱いで渡してくる汎用地の文
-		CALL DAILY_MESSAGE, "パンツを脱いで手渡し"
+		CALL DAILY_MESSAGE, "脱下胖次交了出去"
 	ELSE
 		IF CHECK_PANTIES("紐") && RAND:2
 			PRINTFORMW %CALLNAME:TARGET%像往常一样脱下胖次……
@@ -78,7 +78,7 @@ CASE "パンツ"
 			PRINTFORMW 「好不容易穿上系绳胖次的说……随%CNAME("二人称")%喜欢吧」
 		ELSE
 			;パンツを脱いで渡してくる汎用地の文
-			CALL DAILY_MESSAGE, "パンツを脱いで手渡し"
+			CALL DAILY_MESSAGE, "脱下胖次交了出去"
 			IF RAND:2
 				PRINTFORMW 「喏，这样就行了吗？」
 			ELSE
@@ -88,17 +88,17 @@ CASE "パンツ"
 			ENDIF
 		ENDIF
 	ENDIF
-CASE "パンツ拒否"
+CASE "胖次拒否"
 	;まだ取引が成功していない状態
-	IF COND("合意：パンツ取引") == 0
-		PRINTFORMW 「不要开玩笑了」
+	IF COND("合意：胖次交易") == 0
+		PRINTFORMW 「不要開玩笑了」
 	;２回目以降
 	ELSE
 		;取引自体を拒否した
 		IF TFLAG:取引拒否
 			PRINTFORMW 「……现在心情很好，等会再说吧」
 		;対価を拒否した場合
-		ELSEIF TCVAR:やる気 > 0
+		ELSEIF TCVAR:干劲 > 0
 			PRINTFORMW 「不好意思，免费是不行的哦」
 		ELSEIF CHARA_NUM("室内の邪魔者")
 			PRINTFORMW 「……如果%CNAME("二人称")%能学学怎么观察气氛就好了」
@@ -110,7 +110,7 @@ CASE "パンツ拒否"
 	ENDIF
 ;TFLAG:値上げ交渉 に数字を入れておくと、断られた際もその値上乗せで服を脱ぐ展開に出来る
 ;TFLAG:取引拒否 = 1 とすると本来取引できるかに関わらず、取引しなくなる
-CASE "全裸取引"
+CASE "全裸交易"
 	;ＯＫ！
 	IF TFLAG:取引承諾
 
@@ -130,7 +130,7 @@ CASE "全裸"
 
 	ENDIF
 	PRINTFORMW 「唔姆。好吧」
-	CALL EVENT_DATUI, "ハダカ"
+	CALL EVENT_DATUI, "裸体"
 CASE "全裸拒否"
 	;取引を拒否した際("全裸取引"で設定した場合のみ)
 	IF TFLAG:取引拒否
@@ -142,7 +142,7 @@ CASE "全裸拒否"
 
 	ENDIF
 	PRINTFORMW 「不好意思，%CNAME("一人称")%拒绝。而且%CNAME("一人称")%也不是喜欢做那种事情的人」
-CASE "同棲拒否"
+CASE "同居拒否"
 	;初回
 	IF DEVENT(ARGS) == 0
 		PRINTFORMW 「同居？」
@@ -150,7 +150,7 @@ CASE "同棲拒否"
 	ELSE
 		PRINTFORMW 「烦死了。拜托其他的人吧」
 	ENDIF
-CASE "同棲希望"
+CASE "同居希望"
 	;初回
 	IF DEVENT(ARGS) == 0
 		PRINTFORMW 「…………唔姆，好像有点意思呐。」
@@ -161,13 +161,13 @@ CASE "同棲希望"
 		PRINTFORMW 「如果不会让%CNAME("一人称")%无聊的话，那就试着看看吧」
 		PRINTFORMW 说着装腔作势的话的%CALLNAME:TARGET%，看起来倒是非常高兴的样子。
 	ENDIF
-CASE "同棲頻度の相談"
+CASE "同居頻度的相談"
 	PRINTFORMW 「姆姆？……嘛，那样也好」
-CASE "お弁当拒否"
+CASE "便当拒否"
 	PRINTFORMW 「不好意思，%CNAME("一人称")%不擅长处理琐碎的事情」
 	PRINTFORMW 「相反，作为下仆的%CNAME("二人称")%不是应该给作为主人的%CNAME("一人称")%做饭吗？」
 ;"淫紋シール直前"or"淫紋シール"の片方を書けば十分だと思います
-CASE "淫紋シール直前"
+CASE "淫紋贴纸直前"
 	;初回
 	IF DEVENT(ARGS) == 0
 
@@ -175,7 +175,7 @@ CASE "淫紋シール直前"
 
 	ENDIF
 
-CASE "淫紋シール"
+CASE "淫紋贴纸"
 	;初回
 	IF DEVENT(ARGS) == 0
 
@@ -202,14 +202,14 @@ CASE "淫紋"
 
 	ENDSELECT
 ;悪魔、淫魔、妖狐専用
-CASE "尻尾を見せて"
+CASE "给我看尾巴"
 	PRINTFORMW 「うーん…………」
 	PRINTFORMW %CALLNAME:TARGET%捻着发梢双手抱在胸前，侧视着%CALLNAME:MASTER%沉思。
 	PRINTFORMW 「…………嘛，好吧」
 	PRINTFORMW %CALLNAME:TARGET%嘴里发出“munya munya”的声音，突然狐狸的耳朵和尾巴就出现了。
 	PRINTFORMW 「%CNAME("二人称")%是%CNAME("一人称")%第一个允许给看尾巴的人类，感到光荣吧」
 
-CASE "尻尾を見せて拒否"
+CASE "给我看尾巴拒否"
 	PRINTFORMW 「拒绝」
 	PRINTFORMW 「无论怎么想都不可能给你看的」
 
@@ -218,16 +218,16 @@ CASE "髪型変更の感想"
 	SELECTCASE CONDS("髪型の種類")
 	CASE CONDS("普段の髪型")
 		PRINTFORMW 「怎么、这个样子就行了？这不是跟私平时的发型一样吗」
-	CASE "ぱっつん", "ストレート"
+	CASE "齐刘海", "直髪"
 		PRINTFORMW 「呼……嘛、如果喜欢这种发型的话来拜托私当然是最好的呐」
 		PRINTFORMW %CALLNAME:TARGET%微笑着撩起自己的头发、展示了自己美丽柔顺的长黑发。
-	CASE "ウェーブ"
+	CASE "卷髪"
 		PRINTFORMW 「唔～～嗯……说实话、私讨厌这种发型。不过因为是%CNAME("二人称")%的愿望所以私才试着忍耐的……」
 		PRINTFORMW %CALLNAME:TARGET%似乎并不是很中意的样子。
-	CASE "ツインテール", "ポニーテール", "三つ編み"
+	CASE "双马尾", "马尾辫", "三股辫"
 		PRINTFORML 「喜欢这种?对耳朵有某种执念吗？还是说……」
 		PRINTFORMW %CALLNAME:TARGET%一边玩弄着自己的头发、悠闲地询问%CALLNAME:MASTER%的意向。
-	CASE "お団子", "編み上げ"
+	CASE "団子頭", "编起来"
 		PRINTFORML 「呼姆。……呼～姆。这种确实也很不错呢」
 		PRINTFORMW %CALLNAME:TARGET%从镜子中仔细观察着自己的杰作。
 	;その他
@@ -235,15 +235,15 @@ CASE "髪型変更の感想"
 		PRINTFORMW 「怎么？……嘛、无论要换什么发型私都可以为你做哦」
 	ENDSELECT
 ;これは普段からパンストを履く人じゃないとあんまり見る機会ないと思う
-CASE "パンスト着替え"
+CASE "连褲襪着替え"
 	;台詞を書いたら下のRETURN 1を消してください
 	RETURN 1
 	;どれに履き替えてもらったか
-	IF CHECK_OUTER("オープンパンスト")
+	IF CHECK_OUTER("開放型连褲襪")
 		PRINTFORMW 
-	ELSEIF CHECK_OUTER("網パンスト")
+	ELSEIF CHECK_OUTER("渔网连褲襪")
 		PRINTFORMW 
-	ELSEIF CHECK_OUTER("パンスト")
+	ELSEIF CHECK_OUTER("连褲襪")
 		PRINTFORMW 
 	;生足
 	ELSE

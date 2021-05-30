@@ -7,7 +7,7 @@ CALL TRAIN_MESSAGE_B
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:前回コマンド = %STR:今回コマンド%
+STR:前回指令 = %STR:今回指令%
 
 ;-------------------------------------------------
 ;射精チェック
@@ -20,7 +20,7 @@ RETURN 1
 IF TEQUIP:体位 == 0
 	CALL FLAG_COM60, 10
 ELSE
-	CALLFORM FLAG_COM{INSERT("Ｖ対応コマンド")}, 10
+	CALLFORM FLAG_COM{INSERT("Ｖ対応指令")}, 10
 ENDIF
 
 ;屈曲位だと効果がかなり高い
@@ -34,7 +34,7 @@ ENDIF
 IF TEQUIP:体位 == 0
 	CALL SOURCE_COM60, 10
 ELSE
-	CALLFORM SOURCE_COM{INSERT("Ｖ対応コマンド")}, 10
+	CALLFORM SOURCE_COM{INSERT("Ｖ対応指令")}, 10
 ENDIF
 
 ;屈曲位だと効果がかなり高い
@@ -51,18 +51,18 @@ SOURCE:0:露出 += 400
 ;ABL:Ｖ感覚とEXP:子宮口経験と子宮性感をみる
 SELECTCASE ABL:Ｖ感覚 + GET_EXP_LV(EXP:子宮口経験) + TALENT:子宮性感
 CASE IS <= 4
-	SOURCE:0:痛み += 3000
+	SOURCE:0:疼痛 += 3000
 CASE 5
-	SOURCE:0:痛み += 2000
+	SOURCE:0:疼痛 += 2000
 CASE 6
 	SOURCE:0:屈従 += 100
-	SOURCE:0:痛み += 1000
+	SOURCE:0:疼痛 += 1000
 CASE 7
 	SOURCE:0:屈従 += 200
-	SOURCE:0:痛み += 500
+	SOURCE:0:疼痛 += 500
 CASE 8
 	SOURCE:0:屈従 += 500
-	SOURCE:0:痛み += 200
+	SOURCE:0:疼痛 += 200
 CASE IS >= 9
 	SOURCE:0:屈従 += MIN(1000 * (ABL:Ｖ感覚 + TALENT:子宮性感), 10000)
 ENDSELECT
@@ -77,9 +77,9 @@ CASEELSE
 	SOURCE:0:屈従 = MULTIPLY(SOURCE:屈従, 80 + (ABL:欲望 - 10)*2)
 ENDSELECT
 
-IF TEQUIP:押し倒し
+IF TEQUIP:推倒
 	TIMES SOURCE:0:屈従, 0.50
-	TIMES SOURCE:0:痛み, 0.50
+	TIMES SOURCE:0:疼痛, 0.50
 ENDIF
 
 CALL CALC, "調教ソース", ARG
@@ -89,188 +89,188 @@ CALL CALC, "調教ソース", ARG
 ;意図せず子宮に入ってしまった
 IF COND("うっかり子宮挿入フラグ")
 	;ハードピストン
-	IF PENIS(PLAYER) && STATE("ハードスキン", PLAYER) && TEQUIP:押し倒し == 0
-		PRINTFORMW %CALLNAME:PLAYER%はガチガチのペニスで%CALLNAME:TARGET%の子宮口を虐め続けている…
+	IF PENIS(PLAYER) && STATE("ハードスキン", PLAYER) && TEQUIP:推倒 == 0
+		PRINTFORMW %CALLNAME:PLAYER%用嘎吱作響的陰莖將%CALLNAME:TARGET%的子宮口持續凌辱著……
 	;押し倒され(騎乗位)
-	ELSEIF TEQUIP:押し倒し || INSERT("騎乗位")
+	ELSEIF TEQUIP:推倒 || INSERT("騎乗位")
 		IF TALENT:子宮性感
 			IF PENIS(PLAYER) && RAND:2
-				PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%のペニスに夢中で子宮口を擦り付けて愉しんでいる…
+				PRINTFORMW %CALLNAME:TARGET%跨坐在%CALLNAME:PLAYER%的身上、將挺立的陰莖用自己的子宮口摩擦著、享受著那令人神志恍惚的極樂……
 			ELSE
-				PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%に跨ったまま、自らの大切な部分を虐めて愉しんでいる…
+				PRINTFORMW %CALLNAME:TARGET%跨坐在%CALLNAME:PLAYER%的腰肢上、盡情享受著自己最重要的地方被陰莖蹂躪而產生的快感……
 			ENDIF
 		ELSE
-			PRINTFORMW %CALLNAME:TARGET%は未知の快感に僅かに辛そうな顔を見せながらも、腰を小刻みに動かし続けている…
+			PRINTFORMW %CALLNAME:TARGET%對這超乎想像的未知快感露出了恍惚而驚慌的表情、腰肢正微弱的扭動著……
 		ENDIF
 	ELSE
-		PRINTFORM %CALLNAME:PLAYER%は\@ PENIS(PLAYER) ? 亀頭 # 先端 \@を%CALLNAME:TARGET%の子宮口に押し当てたまま、
-		IF TEQUIP:手加減
-			PRINTFORMW あえて弱めに、時折動きを止めたりしながら%TEXTR("擦りあげ/苛め/刺激し/焦らし")%続けている…
+		PRINTFORM %CALLNAME:PLAYER%將\@ PENIS(PLAYER) ? 亀頭 # 先端 \@對準%CALLNAME:TARGET%的子宮口之後、緩緩挺入、
+		IF TEQUIP:手下留情
+			PRINTFORMW 在密切地注意著神情的同時、時慢時快地溫柔%TEXTR("摩挲/欺負/刺激/挑逗")%著…
 		ELSE
-			PRINTFORMW %TEXTR("執拗に/容赦なく/徹底的に")%%TEXTR("擦りあげ/苛め/刺激し")%続けている…
+			PRINTFORMW %TEXTR("執拗地/毫不留情地/徹底地")%持續%TEXTR("摩擦/玩弄/刺激")%著…
 		ENDIF
 	ENDIF
-	PRINTFORMW と。
-	PRINTFORMW 一際深くまでペニスが呑み込まれる感触と共に、%CALLNAME:TARGET%の顔色が変わった
-	PRINTFORMW ……どうやら、快楽に緩んだ子宮口にペニスが入ってしまったようだ！
+	PRINTFORMW 隨後。
+	PRINTFORMW 隨著格外深入膣道的陰莖傳來再次被吞下的觸感、%CALLNAME:TARGET%的神情突然變得呆愣——
+	PRINTFORMW ——看來、因劇烈的快樂而溶化、鬆弛的子宮口被陰莖刺穿了……！
 	IF TALENT:子宮性感 && CUP:苦痛 < 100
 		IF COND("妊娠可能") && RAND:2
-			PRINTFORMW %CALLNAME:TARGET%は子宮に直接種付けされる期待に、とろんと蕩けた表情をしている…
+			PRINTFORMW %CALLNAME:TARGET%醒悟到接下來將是直接的子宮內中出。因快樂而溶化的表情又添上了對於受孕的期待……
 		ELSEIF TALENT:淫壷 && MARK:淫紋 >= 4
-			PRINTFORMW %CALLNAME:TARGET%は子宮を直に犯されて精液を注がれるのを想像し、とろんと蕩けた表情をしている…
+			PRINTFORMW %CALLNAME:TARGET%想像著子宮被直接侵犯、被無數精液灌滿、就連卵巢也將被精子入侵的姿態——因快感而溶化的表情顯得更加蕩漾了……
 		ELSE
-			PRINTFORMW %CALLNAME:TARGET%は自分の最も神聖な部分への挿入を、長く甘い息を吐きながら味わっている…
+			PRINTFORMW %CALLNAME:TARGET%最神聖、最重要的地方被陰莖強行侵入了。對此、她在漏出甘美而灼熱的喘息的同時、全身心地品味著這份快樂……
 		ENDIF
 	ELSE
-		PRINTFORM %CALLNAME:TARGET%は子宮への挿入という有り得ない行為に
+		PRINTFORM %CALLNAME:TARGET%的子宮被毫無顧忌的強行入侵了、
 		IF TALENT:出産経験
-			PRINTFORMW 、出産にも似た強烈な苦痛に苛まれている…
+			PRINTFORMW 與過去的出產近似的劇烈痛楚再一次席捲而來……
 		ELSE
-			PRINTFORMW 目を白黒させている…
+			PRINTFORMW 一瞬間傳來的強烈痛苦讓她瘖啞失聲的同時、泛起了白眼……
 		ENDIF
 	ENDIF
 ;前回と同じ
 ELSEIF PREVCOM == SELECTCOM && COND("前Ｔ調教者") == PLAYER
 	;ハードピストン
-	IF PENIS(PLAYER) && STATE("ハードスキン", PLAYER) && TEQUIP:押し倒し == 0
-		PRINTFORMW %CALLNAME:PLAYER%はガチガチのペニスで%CALLNAME:TARGET%の子宮を虐め続けた…
+	IF PENIS(PLAYER) && STATE("ハードスキン", PLAYER) && TEQUIP:推倒 == 0
+		PRINTFORMW %CALLNAME:PLAYER%用嘎吱作響的陰莖將%CALLNAME:TARGET%的嬌柔子宮持續凌辱著……
 	;押し倒され(騎乗位)
-	ELSEIF TEQUIP:押し倒し || INSERT("騎乗位")
+	ELSEIF TEQUIP:推倒 || INSERT("騎乗位")
 		IF TALENT:子宮性感
 			IF PENIS(PLAYER) && RAND:2
-				PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%のペニスに夢中で子宮内を擦り付けて愉しんでいる…
+				PRINTFORMW %CALLNAME:TARGET%跨坐在%CALLNAME:PLAYER%的身上、將挺立的陰莖用自己的子宮摩擦著、享受著那令人神志恍惚的極樂……
 			ELSE
-				PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%に跨ったまま、自らの大切な部分を虐めて愉しんでいる…
+				PRINTFORMW %CALLNAME:TARGET%跨坐在%CALLNAME:PLAYER%的腰肢上、盡情享受著自己最重要的地方被陰莖蹂躪而產生的快感……
 			ENDIF
 		ELSE
-			PRINTFORMW %CALLNAME:TARGET%は未知の快感に僅かに辛そうな顔を見せながらも、腰を小刻みに動かし続けている…
+			PRINTFORMW %CALLNAME:TARGET%對這超乎想像的未知快感露出了恍惚而驚慌的表情、腰肢正微弱的扭動著……
 		ENDIF
 	ELSE
 		IF CONFIG("立位")
-			PRINTFORM %CALLNAME:PLAYER%は
-			PRINTFORM \@ PENIS(PLAYER) ? 亀頭 # 双頭バイブの先端 \@を
+			PRINTFORM %CALLNAME:PLAYER%用
+			PRINTFORM \@ PENIS(PLAYER) ? 亀頭 # 双頭震动棒的前端 \@
 			IF INSERT("対面座位")
-				PRINTFORM %TEXTR("駅弁スタイルで/駅弁で/宙に浮いた")%
+				PRINTFORM %TEXTR("以火车便当体位将/以火车便当式将/将悬在空中的")%
 			ELSEIF INSERT("背面座位")
-				PRINTFORM %TEXTR("背面駅弁スタイルで/背面駅弁で/宙に浮いた")%
+				PRINTFORM %TEXTR("以背面火车便当体位将/以背面火车便当式将/将悬在空中的")%
 			ENDIF
-			PRINTFORM %CALLNAME:TARGET%の子宮に%TEXTR("潜り込ませた/侵入させた/捻じ込んだ")%まま、
-			IF TEQUIP:手加減
-				PRINTFORMW あえて弱めに、時折動きを止めたりしながら%TEXTR("擦りあげ/苛め/刺激し/焦らし")%続けた…
+			PRINTFORM %CALLNAME:TARGET%的子宮%TEXTR("对准后壓入內部/侵入其中/捻轉著")%、
+			IF TEQUIP:手下留情
+				PRINTFORMW 在密切地注意著神情的同時、時慢時快地溫柔%TEXTR("摩挲/欺負/刺激/挑逗")%著…
 			ELSE
-				PRINTFORMW %TEXTR("執拗に/容赦なく/徹底的に")%%TEXTR("擦りあげ/苛め/刺激し")%続けた…
+				PRINTFORMW %TEXTR("執拗地/毫不留情地/徹底地")%持續%TEXTR("摩擦/玩弄/刺激")%著…
 			ENDIF
 		ELSE
-			PRINTFORM %CALLNAME:PLAYER%は\@ PENIS(PLAYER) ? 亀頭 # 先端 \@を%CALLNAME:TARGET%の子宮に%TEXTR("潜り込ませた/侵入させた/捻じ込んだ")%まま、
-			IF TEQUIP:手加減
-				PRINTFORMW あえて弱めに、時折動きを止めたりしながら%TEXTR("擦りあげ/苛め/刺激し/焦らし")%続けた…
+			PRINTFORM %CALLNAME:PLAYER%將\@ PENIS(PLAYER) ? 亀頭 # 先端 \@對準%CALLNAME:TARGET%的子宮之後强硬地%TEXTR("壓入內部/侵入其中/捻轉著")%、
+			IF TEQUIP:手下留情
+				PRINTFORMW 在密切地注意著神情的同時、時慢時快地溫柔%TEXTR("摩挲/欺負/刺激/挑逗")%著…
 			ELSE
-				PRINTFORMW %TEXTR("執拗に/容赦なく/徹底的に")%%TEXTR("擦りあげ/苛め/刺激し")%続けた…
+				PRINTFORMW %TEXTR("執拗地/毫不留情地/徹底地")%持續%TEXTR("摩擦/玩弄/刺激")%著…
 			ENDIF
 		ENDIF
 	ENDIF
 ;ハードピストン
-ELSEIF PENIS(PLAYER) && STATE("ハードスキン", PLAYER) && TEQUIP:押し倒し == 0
-	PRINTFORM %CALLNAME:PLAYER%は
+ELSEIF PENIS(PLAYER) && STATE("ハードスキン", PLAYER) && TEQUIP:推倒 == 0
+	PRINTFORM %CALLNAME:PLAYER%将
 	IF TALENT:出産経験 >= 5
-		PRINT 度重なる出産によりほぐれた子宮口
+		PRINT 反復誕下孩子而被擴張的子宮口
 	ELSE
 		IF RAND:2
-			PRINTFORM %CALLNAME:TARGET%の緩んだ子宮口
+			PRINTFORM 因為激烈地開發而漸漸鬆弛的子宮口
 		ELSE
-			PRINTFORM 敏感な子宮の入り口
+			PRINTFORM 格外敏感的子宮的入口
 		ENDIF
 	ENDIF
-	PRINTFORMW へとペニスを力強く押し込んだ
-	PRINTFORM 凄まじい硬さのペニスは
+	PRINTFORMW 用灼熱而堅挺的陰莖強行闖入了。
+	PRINTFORM 因為情慾而勃起到極限的陰莖
 	IF RAND:2
-		PRINTFORM 僅かな抵抗を押し破って
+		PRINTFORM 將僅有的抵抗衝破、
 	ELSE
-		PRINTFORM 入り口をこじ開けながら
+		PRINTFORM 將入口強行撬開、
 	ENDIF
-	PRINTFORM 子宮の中まで入り込み、%CALLNAME:TARGET%を
-	IF TALENT:小柄
-		PRINT 未成熟な子宮の中まで犯される
+	PRINTFORM 闖入子宮之中、%CALLNAME:TARGET%因為
+	IF TALENT:娇小
+		PRINT 未成熟的子宮內部被強硬的侵犯
 	ELSE
-		PRINT 女体の最も神聖な部分を犯される
+		PRINT 女性身體中最神聖的部分被強行侵犯
 	ENDIF
-	PRINTFORMW 感覚に喘がせる…
+	PRINTFORMW 的感覺而失神了……
 ;押し倒され(騎乗位)
-ELSEIF TEQUIP:押し倒し || INSERT("騎乗位")
-	PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の胸に手を衝き、
+ELSEIF TEQUIP:推倒 || INSERT("騎乗位")
+	PRINTFORM %CALLNAME:TARGET%用手緊緊抓住%CALLNAME:PLAYER%的胸部、
 	IF RAND:2
-		PRINTFORMW 膣でそうするかのように子宮でスッポリと%NAMES("ペニス", PLAYER)%を呑み込んだ。
+		PRINTFORMW 像是在使用膣道套弄一樣用溶化的子宮口將%NAMES("阴茎", PLAYER)%尖端的龜頭完全嚥下。
 	ELSE
-		PRINTFORMW ゆっくりと腰を落として柔らかく緩んだ子宮で%NAMES("ペニス", PLAYER)%を咥えこんだ。
+		PRINTFORMW 慢慢将腰下落、用柔软松弛的子宫将%NAMES("阴茎", PLAYER)%含住。
 	ENDIF
-	PRINTFORM %CALLNAME:TARGET%は腰を小さく揺すりながら、
+	PRINTFORM %CALLNAME:TARGET%將腰肢小幅度的輕輕搖曳著的同時、
 	IF RAND:4 == 0
-		PRINTFORMW 子宮の奥をぐりぐりと押し上げられる感覚に酔い痴れている…
+		PRINTFORMW 正因子宮最深處的肉襞被龜頭抵住、旋轉著摩擦的劇烈快感而神志恍惚、露出完全沉浸於快樂的、牝獸的面龐……
 	ELSEIF RAND:3 == 0
-		PRINTFORMW 子宮に直接\@ COND("妊娠可能") ? 種付け # 射精 \@される期待に満ちた眼差しで%CALLNAME:PLAYER%を見つめている…
+		PRINTFORMW 也在用狂熱地渴望子宮\@ COND("妊娠可能") ? 乃至於卵巢也被健壯的精子闖入的 # 被灼熱的精子填到小腹高高鼓起的 \@下流眼神凝視著%CALLNAME:PLAYER%……
 	ELSEIF RAND:2
-		PRINTFORMW とろんと蕩けた表情で%CALLNAME:PLAYER%を見つめている…
+		PRINTFORMW 以神情蕩漾的淫靡表情凝視著%CALLNAME:PLAYER%的臉龐……
 	ELSE
-		PRINTFORMW 熱っぽく息を吐いて子宮への挿入感を味わっている…
+		PRINTFORMW 從唇角漏出灼熱而急促的喘息、細細品味著子宮傳來的插入感……
 	ENDIF
 ELSE
 	IF CONFIG("立位")
-		PRINTFORM %CALLNAME:PLAYER%は
+		PRINTFORM %CALLNAME:PLAYER%将
 		IF INSERT("対面座位")
-			PRINTFORM %TEXTR("逃げ場のない駅弁スタイルで/駅弁で繋がっている/Ｍ字開脚させられ、両足を掴まれた")%
+			PRINTFORM %TEXTR("火车便当位中无路可逃的/用火车便当位链接着的/被强迫Ｍ字開脚、両足被抓住的")%
 		ELSEIF INSERT("背面座位")
-			PRINTFORM %TEXTR("背後から駅弁で/背面駅弁で犯している/両足を背後から抑え込まれ、Ｍ字開脚させられた")%
+			PRINTFORM %TEXTR("从背後用火车便当位的/被用背面火车便当位侵犯着的/両足从背後被压住、被强迫Ｍ字開脚的")%
 		ENDIF
-		PRINTFORM %CALLNAME:TARGET%の
+		PRINTFORM %CALLNAME:TARGET%的
 	ELSE
-		PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%の
+		PRINTFORM %CALLNAME:PLAYER%將%CALLNAME:TARGET%的
 	ENDIF
 	IF TALENT:出産経験 >= 5 && RAND:2
-		PRINT 何度も出産を経験した子宮口
+		PRINT 多次誕下子嗣的柔軟子宮口
 	ELSE
-		PRINT 緩んだ子宮口
+		PRINT 在激烈開發下漸漸鬆緩的子宮口
 	ENDIF
 	IF RAND:3 == 0
-		PRINTFORM を\@ PENIS(PLAYER) ? 亀頭 # 張り型の先端 \@で抉じ開けて、そのまま
+		PRINTFORM 用\@ PENIS(PLAYER) ? 興奮地膨脹起來的龜頭 # 冰冷器具的碩大尖端 \@緩緩開闢、隨後
 	ELSE
 		SELECTCASE CONDS("体位")
 		CASE "正常位", "対面立位"
-			PRINTFORM %TEXTR("に照準を合わせて/目掛けて")%力強く腰を突き出し、%NAMES("ペニス", PLAYER)%で
-		CASE "後背位", "立ちバック", "屈曲位"
-			PRINTFORM を体重を乗せた%NAMES("ペニス", PLAYER)%で押し開き、そのまま
+			PRINTFORM %TEXTR("在瞄準了位置之後就/就迫不及待的")%用力頂起腰肢、用%NAMES("阴茎", PLAYER)%
+		CASE "後背位", "立后背位", "屈曲位"
+			PRINTFORM 舉起對方的輕盈身體然後鬆手、借助體重和慣性讓%NAMES("阴茎", PLAYER)%衝破門戶、
 		CASEELSE
 			;いきなり子宮を犯した
-			IF INSERT("Ｖインサート") == 0
-				PRINTFORM %TEXTR("に照準を合わせて/目掛けて")%力強く腰を突き出し、%NAMES("ペニス", PLAYER)%で
+			IF INSERT("Ｖ挿入") == 0
+				PRINTFORM %TEXTR("在瞄準了位置之後就/就迫不及待的")%用力頂起腰肢、用%NAMES("阴茎", PLAYER)%
 			ELSE
-				PRINTFORM に\@ PENIS(PLAYER) ? 亀頭 # 張り型の先端 \@を押し当てた後に腰を強く引き寄せて侵入させると、そのまま
+				PRINTFORM 讓\@ PENIS(PLAYER) ? 龜頭 # 尖端 \@緊緊抵住子宮的門戶之後、抓住那纖細的腰肢猛力向下一拉、使其衝破門戶、
 			ENDIF
 		ENDSELECT
 	ENDIF
-	PRINTFORMW 子宮の中まで犯した。
+	PRINTFORMW 猛烈地侵犯子宮的內側……
 
-	PRINTFORM %CALLNAME:TARGET%は
+	PRINTFORM %CALLNAME:TARGET%
 	IF TALENT:子宮性感 && CUP:苦痛 < 500
 		IF COND("妊娠可能") && RAND:3 == 0
-			PRINTFORMW 子宮に直接%TEXTR("種付けされる/精液を流し込まれる")%期待に、とろんと蕩けた表情をしている…
+			PRINTFORMW 抱著對子宮被直接%TEXTR("灌入健壯的子種/精液完全填滿")%的期待、用牝獸一般的下流表情、不斷吐出放蕩呻吟的同時、流下晶瑩而黏稠的涎水……
 		ELSEIF RAND:4 == 0
-			PRINTFORMW 自身の一番奥を抉られる苦痛と歓喜に打ち震え、半ば無意識に膣壁を蠢かせてペニスに絡みつかせている…
+			PRINTFORMW 為自身最深處被開闢所帶來的劇痛與快樂而渾身顫抖著、在幾乎無意識的時候任由膣道的柔軟肉襞將陰莖蠢動著纏繞起來……
 		ELSEIF RAND:3 == 0
-			PRINTFORMW 子宮の奥の壁を激しく突かれながら、とろんと蕩けた表情をしている…
+			PRINTFORMW 在子宮最深處的肉壁被猛烈撞擊的時候、都會在用力收緊夾住腰肢的雙腿的同時、神志恍惚的吐出嬌媚的呻吟……
 		ELSEIF RAND:2
-			PRINTFORMW 子宮そのものを揺さぶる%CALLNAME:PLAYER%の動きに狂ったように悶え、牝として最高の快楽に溺れている…
+			PRINTFORMW 的子宮隨著猛烈地衝擊而搖曳著、狂亂的迎合著%CALLNAME:PLAYER%的動作、完全地沉浸在作為雌性最高的快樂之中…
 		ELSE
-			PRINTFORMW 自分の最も神聖な部分への挿入を、長く甘い息を吐きながら味わっている…
+			PRINTFORMW 在自己最為重要與神聖的部分被強硬的玷污的時候、緊緊地擁住了%CALLNAME:PLAYER%、吐出悠長而甘美的呼吸、仔細地品味著體內的觸感……
 		ENDIF
 	ELSEIF CUP:苦痛 < 500
 		IF RAND:2
-			PRINTFORMW 余りにも深い挿入感に、目を白黒させている…
+			PRINTFORMW 因過分深入體內的插入感而喊啞了喉嚨、無意識地翻起白眼……
 		ELSE
-			PRINTFORMW 自分の最も神聖な部分への挿入を、身体を強張らせながら受け入れている…
+			PRINTFORMW 在自己最為重要與神聖的部分被強硬的玷污的時候、緊緊地擁住了%CALLNAME:PLAYER%、微微顫抖著僵直的身軀忍受著內部的衝擊……
 		ENDIF
 	ELSEIF RAND:2
-		PRINTFORMW 身体の中で最も大事な部分を犯される苦痛に喘いでいる…
+		PRINTFORMW 因為身體中最重要的部分被強行侵犯的劇烈痛苦而絮亂的喘息著……
 	ELSE
-		PRINTFORMW 子宮への挿入という暴挙に、出産にも似た強烈な苦痛に苛まれている…
+		PRINTFORMW 因子宮內部被強行插入的暴舉、而被比過去的生產經歷更甚的強烈劇痛所折磨著……
 	ENDIF
 ENDIF

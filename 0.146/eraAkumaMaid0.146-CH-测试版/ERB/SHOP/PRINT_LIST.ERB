@@ -8,18 +8,18 @@
 VARSET LOCAL
 FOR LCOUNT, 1, CHARANUM
 	SELECTCASE ARGS
-	CASE "パートナー変更", "助手変更", "顔出し頻度変更", "コス確認", "アナライズ"
+	CASE "对象変更", "助手変更", "顔出し頻度変更", "コス確認", "分析"
 		SIF LCOUNT == MASTER
 			CONTINUE
-	CASE "デート"
+	CASE "约会"
 		SIF LCOUNT == MASTER
 			CONTINUE
-		SIF COND("デート可能", LCOUNT) == 0
+		SIF COND("约会可能", LCOUNT) == 0
 			CONTINUE
-	CASE "呼び出しＨ"
+	CASE "叫出来Ｈ"
 		SIF LCOUNT == MASTER
 			CONTINUE
-		SIF COND("呼び出しＨ可能", LCOUNT) == 0
+		SIF COND("叫出来Ｈ可能", LCOUNT) == 0
 			CONTINUE
 	ENDSELECT
 	LOCAL:LCOUNT = 1
@@ -33,12 +33,12 @@ FOR LCOUNT, 1, CHARANUM
 	SELECTCASE ARGS
 	CASE "能力表示"
 		IF LCOUNT == MASTER
-			IF CONFIG("能力表示で３サイズ閲覧") == 0 || TALENT:MASTER:オトコ
+			IF CONFIG("能力表示で３围閲覧") == 0 || TALENT:MASTER:男性
 				PRINTFORM 　[{MASTER, 2}]
-				IF STATE("悪酔い", MASTER)
+				IF STATE("烂醉", MASTER)
 					SETCOLOR DEF_COLOR("青")
-				ELSEIF STATE("酔い", MASTER)
-					SETCOLOR DEF_COLOR("ハートピンク")
+				ELSEIF STATE("酔酒", MASTER)
+					SETCOLOR DEF_COLOR("爱心粉紅")
 				ENDIF
 				PRINTFORM %TEXT_LJ(NAME:MASTER, 16)%
 				RESETCOLOR
@@ -46,9 +46,9 @@ FOR LCOUNT, 1, CHARANUM
 				PRINTFORM %BL(22)%
 			ENDIF
 
-			PRINTFORM [200]\@ CONFIG("能力表示で３サイズ閲覧") ? 体力等表示 # ３size表示 \@ 
+			PRINTFORM [200]\@ CONFIG("能力表示で３围閲覧") ? 体力等表示 # ３size表示 \@ 
 
-			IF CONFIG("能力表示で３サイズ閲覧") == 0 && TALENT:MASTER:オトコ == 0
+			IF CONFIG("能力表示で３围閲覧") == 0 && TALENT:MASTER:男性 == 0
 				CALL PRINT_N, LCOUNT
 			ELSE
 				PRINTFORM %BL(15)%
@@ -58,23 +58,23 @@ FOR LCOUNT, 1, CHARANUM
 
 			PRINTL 
 			
-			IF CONFIG("能力表示で３サイズ閲覧") == 0 || TALENT:MASTER:オトコ
+			IF CONFIG("能力表示で３围閲覧") == 0 || TALENT:MASTER:男性
 				DRAWLINE
 				CONTINUE
 			ENDIF
 		ENDIF
-		IF CONFIG("能力表示で３サイズ閲覧")
-			CALL PRINT_NUM_NAME, "３サイズ閲覧", LCOUNT
+		IF CONFIG("能力表示で３围閲覧")
+			CALL PRINT_NUM_NAME, "３围閲覧", LCOUNT
 		ELSEIF CONFIG("能力表示でABLUP")
 			CALL PRINT_NUM_NAME, "ABLUP", LCOUNT
 		ELSE
 			CALL PRINT_NUM_NAME, "能力表示", LCOUNT
 		ENDIF
-	CASE "パートナー変更"
-		IF CONFIG("パートナー変更でアナライズ")
-			CALL PRINT_NUM_NAME, "アナライズ", LCOUNT
+	CASE "对象変更"
+		IF CONFIG("对象変更で分析")
+			CALL PRINT_NUM_NAME, "分析", LCOUNT
 		ELSE
-			CALL PRINT_NUM_NAME, "パートナー変更", LCOUNT
+			CALL PRINT_NUM_NAME, "对象変更", LCOUNT
 		ENDIF
 	CASEELSE
 		CALL PRINT_NUM_NAME, ARGS, LCOUNT
@@ -82,16 +82,16 @@ FOR LCOUNT, 1, CHARANUM
 NEXT
 
 SIF ARGS != "コス確認"
-	PRINTFORM  [100]戻る
+	PRINTFORM  [100]返回
 
 SELECTCASE ARGS
-CASE "能力表示", "パートナー変更", "助手変更", "顔出し頻度変更"
+CASE "能力表示", "对象変更", "助手変更", "顔出し頻度変更"
 	IF ARGS == "能力表示" && CONFIG("能力表示でABLUP") == 0
 		PRINTFORM  [101]ＬＶＵＰ
 	ELSE
 		PRINTFORM  [101]能力表示
 	ENDIF
-	IF ARGS != "パートナー変更" && CHARA_NUM("控えキャラ")
+	IF ARGS != "对象変更" && CHARA_NUM("控え角色")
 		PRINTFORM  [102]%TEXTS("対象の名称")%変更
 	ELSE
 		SETCOLOR DEF_COLOR("灰色")
@@ -121,44 +121,44 @@ PRINTL
 
 PRINTL 
 
-PRINTFORM 現在の%TEXTS("対象の名称")%は
+PRINTFORM 現在的%TEXTS("対象の名称")%是
 CALL PRINT_COLORTEXT, CALLNAME:TARGET, DEF_COLOR("黄色")
 IF ASSI:1 == TARGET
-	PRINTFORM で、%TEXTS("助手の名称")%も
+	PRINTFORM 、%TEXTS("助手の名称")%也
 	CALL PRINT_COLORTEXT, "兼任中", DEF_COLOR("緑")
-	PRINTFORML です。
+	PRINTFORML 。
 ELSEIF ASSI
-	PRINTFORM で、%TEXTS("助手の名称")%は
+	PRINTFORM 、%TEXTS("助手の名称")%是
 	CALL PRINT_COLORTEXT, CALLNAME:ASSI, DEF_COLOR("緑")
-	PRINTFORML です。
+	PRINTFORML 。
 ELSE
-	PRINTFORML で、%TEXTS("助手の名称")%は指名していません。
+	PRINTFORML 、没有指名%TEXTS("助手の名称")%。
 ENDIF
 
 SELECTCASE ARGS
 CASE "能力表示"
 	IF CONFIG("能力表示でABLUP")
-		PRINTL 誰の能力を上昇させますか？
-		CALL PRINT_STR, "イエロー_この色_で表示されている文字は、上昇可能な能力や刻印の頭文字です_L_"
+		PRINTL 要上昇誰的能力呢？
+		CALL PRINT_STR, "イエロー_这个颜色_表示的文字、是有上昇可能的能力或刻印的代表字母_L_"
 	ELSE
 		IF CHARA_NUM("性処理中")
-			CALL PRINT_STRL, "誰の能力を見ますか？（_黄色_性処理_ はクリックする事で状態を変更できます）"
+			CALL PRINT_STRL, "要看誰的能力呢？（_黄色_性処理_ ←点一下的话就可以进行状態的変更）"
 		ELSE
-			PRINTL 誰の能力を見ますか？
+			PRINTL 要看誰的能力呢？
 		ENDIF
-		PRINTL 表示画面の項目(□ 素質 □等)はクリックで出し入れでき、特別経験は詳細表示もできます
+		PRINTL 显示画面的項目(□ 素質 □等)能够点进去、看到特別経験之类的詳細显示
 	ENDIF
 CASE "助手変更"
 	IF CONFIG("助手への指示")
-		PRINTL []の数だけ指示を与えることが出来ます。
-		PRINTL 誰の指示を変更しますか？
+		PRINTL []内数字为能给出指示的数量。
+		PRINTL 要変更誰的指示？
 	ELSE
-		PRINTFORML 誰を%TEXTS("助手の名称")%にしますか？（選択済みのキャラを選ぶと%TEXTS("助手の名称")%無しになります）
-		PRINTFORML %TEXTS("助手の名称")%の能力(調合など)はクリックすることで効果の解説を見る事が出来ます
-		CALL PRINT_STR, "ちなみに", TEXTS("助手の名称"), "になって貰うには_黄色_[信頼LV5]＆[技巧LV3]_が必要となります_L"
+		PRINTFORML 要让誰作为%TEXTS("助手の名称")%？（选择已经被选中的角色的话就会脱离%TEXTS("助手の名称")%状态）
+		PRINTFORML %TEXTS("助手の名称")%的能力(調合等)点进去就能够看到効果的解説
+		CALL PRINT_STR, "顺便一提、想要变成", TEXTS("助手の名称"), "的话需要_黄色_[信頼LV5]＆[技巧LV3]__L"
 	ENDIF
 	DRAWLINE
-	LOCALS = %TEXTS("助手の名称")%なし
+	LOCALS = %TEXTS("助手の名称")%无
 	PRINTFORM 　[ 0]%TEXT_LJ(LOCALS, 16)% 
 	IF CHARA_NUM("指示可能な助手")
 		PRINTFORM [200]\@ CONFIG("助手への指示") ? 変更画面 # 指示画面 \@ 
@@ -167,31 +167,31 @@ CASE "助手変更"
 	ENDIF
 	PRINTFORM [400]%TEXTS("助手の名称")%の名称の変更
 	PRINTL 
-CASE "パートナー変更"
-	IF CONFIG("パートナー変更でアナライズ")
-		PRINTFORML 誰を%TEXTS("対象の名称")%にしますか？（強さは100点満点で、50点ならば主人と互角です）
+CASE "对象変更"
+	IF CONFIG("对象変更で分析")
+		PRINTFORML 要把誰作为%TEXTS("対象の名称")%呢？（强度是100点満点、50点的话就和主人差不多）
 		DRAWLINE
-		PRINTFORM  [200]通常表示に戻す
-		PRINTPLAINFORM 　欲求不満　 好感度　 放置　 敏感度　 攻撃力　主人基準での強さ
+		PRINTFORM  [200]返回通常表示
+		PRINTPLAINFORM 　欲求不満　 好感度　 放置　 敏感度　 攻撃力　以主人为基準的强度
 	ELSE
 		IF CHARA_NUM("性処理中")
-			CALL PRINT_STRL, @"誰を%TEXTS("対象の名称")%にしますか？（_黄色_性処理_ はクリックする事で状態を変更できます）"
+			CALL PRINT_STRL, @"要把誰作为%TEXTS("対象の名称")%呢？（_黄色_性処理_ ←点一下的话就可以进行状態的変更）"
 		ELSE
-			PRINTFORML 誰を%TEXTS("対象の名称")%にしますか？
+			PRINTFORML 要把誰作为%TEXTS("対象の名称")%？
 		ENDIF
 		DRAWLINE
-		PRINTFORM  [200]欲求不満度、好感度、放置期間、具体的な強さ…等を表示する
+		PRINTFORM  [200]显示欲求不満度、好感度、放置期間、具体的强度等…
 	ENDIF
 	PRINTL 
 CASE "顔出し頻度変更"
-	PRINTL 誰の部室への登場頻度を変更しますか？キャラを選択する事で、
-	CALL PRINT_STRL, "顔出しお願い中(デフォはこれ)……キャラ番号の左に_黄色_〇_、"
-	CALL PRINT_STRL, "好きな時にきてくれればＯＫ　……キャラ番号の左に_水色_△_、"
-	CALL PRINT_STRL, "が切り替わります。_水色_△_は登場頻度がガクッと落ちますが、発情期などにはその限りではありません。"
+	PRINTL 変更誰在活动室登場的频率？请选择角色、
+	CALL PRINT_STRL, "拜托请出现吧(默认是这个)……角色番号的左边是_黄色_〇_、"
+	CALL PRINT_STRL, "喜欢来的时候就ＯＫ　……角色番号的左边是_水色_△_、"
+	CALL PRINT_STRL, "请切换。_水色_△_的登場頻度会直线下降、但発情期是不会被限制的。"
 CASE "名前変更"
-	PRINTL 誰の名前を変更しますか？
-CASE "アナライズ"
-	PRINTL 誰をアナライズしますか？
+	PRINTL 要変更誰的名字？
+CASE "分析"
+	PRINTL 要分析誰？
 ENDSELECT
 
 ;-------------------------------------------------
@@ -220,7 +220,7 @@ ELSEIF CHOICE == 101
 	CLEARBIT FLAG:能力画面, 0
 	INVERTBIT FLAG:能力画面, 1
 	RESTART
-ELSEIF CHOICE == 102 && CHARA_NUM("控えキャラ")
+ELSEIF CHOICE == 102 && CHARA_NUM("控え角色")
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	CALL CHANGE_TARGET
 	RETURN 0
@@ -244,9 +244,9 @@ ELSEIF CHOICE == 400
 ;性処理の内容変更
 ELSEIF CHOICE >= 2002 && CHOICE < 2000 + CHARANUM && COND("性処理中", CHOICE - 2000)
 	CALL CHECK_COM_ABLE, CHOICE - 2000
-	CALL SETFLAG, "性処理でのプレイ内容", CHOICE - 2000
+	CALL SETFLAG, "性処理でのPLAY内容", CHOICE - 2000
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
-	PRINTFORML %CALLNAME:(CHOICE - 2000)%と学園内でのプレイ内容を相談しました
+	PRINTFORML 和%CALLNAME:(CHOICE - 2000)%商量学園内PLAY的内容
 	RESTART
 ELSEIF CHOICE < MASTER || CHOICE >= CHARANUM
 	GOTO INPUT_LOOP
@@ -287,70 +287,70 @@ SPLIT RESULTS, "/", CHOICES
 SELECTCASE CHOICES
 CASE "相性☆"
 	IF TARGET
-		PRINTFORML %CALLNAME:TARGET%との相性が最高に良いです！
-		PRINTFORMW (コマンドの実行値に30のボーナスが付きます)
+		PRINTFORML 和%CALLNAME:TARGET%相性最高！
+		PRINTFORMW (指令的実行値有30点的加成)
 	ENDIF
 CASE "相性◎"
 	IF TARGET
-		PRINTFORML %CALLNAME:TARGET%との相性が素晴らしく良いです！
-		PRINTFORMW (コマンドの実行値に15のボーナスが付きます)
+		PRINTFORML 和%CALLNAME:TARGET%的相性相当好
+		PRINTFORMW (指令的実行値有15点的加成)
 	ENDIF
 CASE "相性○"
 	IF TARGET
-		PRINTFORML %CALLNAME:TARGET%との相性が良いです
-		PRINTFORMW (コマンドの実行値に５のボーナスが付きます)
+		PRINTFORML 和%CALLNAME:TARGET%的相性比较好
+		PRINTFORMW (指令的実行値有5点的加成)
 	ENDIF
 CASE "３Ｐ禁止"
-	PRINTFORMW あなた以外とはＨな事をしません
+	PRINTFORMW 不会和你以外的人做Ｈ的事
 CASE "針"
-	PRINTFORMW 針コマンドの効果が上がります
+	PRINTFORMW 針指令的効果上升
 CASE "調合"
-	PRINTFORML 媚薬コマンドの効果が著しく上がります
-	PRINTFORMW また、様々な薬物を作ることができます
-CASE "サド"
-	PRINTFORMW 俗に言うＳＭにおけるＳなコマンドや行為を実行するのが得意です
+	PRINTFORML 媚薬指令的効果上升
+	PRINTFORMW 以及、可以制作各种薬物
+CASE "施虐狂"
+	PRINTFORMW 通俗点讲就是比较擅长ＳＭ里的Ｓ
 CASE "鼓舞"
-	PRINTFORML %TEXTS("助手の名称")%が、がんばれがんばれできるできると横で応援してくれます
-	PRINTFORMW (コマンドの実行値に10のボーナスが付きます)
-CASE "ふたなり"
-	PRINTFORMW ふたなりです
+	PRINTFORML %TEXTS("助手の名称")%可以在旁边応援加油
+	PRINTFORMW (指令的実行値有10点的加成)
+CASE "扶她"
+	PRINTFORMW 是扶她
 CASE "♂"
-	PRINTFORMW オトコです
+	PRINTFORMW 是男的
 ;CASE "禁断の知識"
 ;	PRINTFORML お店で危険な商品を売ってもらえるようになります
 ;	PRINTFORMW また、錬金術と同様に媚薬の効果が強くなります
 CASE "具現"
-	PRINTFORMW 女性にペニスを生やすことができます
+	PRINTFORMW 可以让女性长出阴茎
 CASE "愛撫・奉仕知識"
-	PRINTFORML 奉仕や愛撫によって与える快感を５割増しにし、恐怖や反感などのマイナスパラメータを半減させます
-	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
-CASE "教え上手"
-	PRINTFORML 奉仕される際に相手よりも技巧LVなどが高いと、相手が獲得する経験を各+１させます
-	PRINTFORML また、パートナーの獲得する奉仕快楽経験を1.5倍にします
-	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
+	PRINTFORML 奉仕或者愛撫的快感增加五成、恐怖或者反感等负面状况減半
+	PRINTFORMW 以及、需要让%TEXTS("助手の名称")%本人去調教对方的话才能起作用
+CASE "教育擅長"
+	PRINTFORML 被奉仕時如果比对方的技巧LV要高、对方獲得的経験各+１
+	PRINTFORML 以及、对象獲得的奉仕快楽経験1.5倍
+	PRINTFORMW 以及、需要让%TEXTS("助手の名称")%本人去調教对方的话才能起作用
 CASE "ＳＭ知識"
-	PRINTFORML スパンキングなど、ＳＭプレイに属するコマンドの実行時にのみ効果がある知識です
-	PRINTFORML 欲情と屈服のパラメーターを５割増しにし、恐怖や反感を半減させます
-	PRINTFORML また、相手の獲得する嗜虐快楽経験と被虐快楽経験を1.5倍にします
-	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
+	PRINTFORML 这个是只有在进行ＳＭPLAY系指令時才会有効果的知識
+	PRINTFORML 欲情与屈服等增加五成、恐怖和反感等減半
+	PRINTFORML 以及、对象獲得的嗜虐快楽経験和被虐快楽経験变为1.5倍
+	PRINTFORMW 以及、需要让%TEXTS("助手の名称")%本人去調教对方的话才能起作用
 CASE "Ａ調教知識"
-	PRINTFORML アナルを弄るコマンド実行時に快Ａや欲情のパラメーターを５割増しにし、
-	PRINTFORML 苦痛や反感などのマイナスパラメーターの発生を半減させます
-	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
+	PRINTFORML 玩弄菊花時的指令会让快Ａ和欲情等增加五成、
+	PRINTFORML 苦痛和反感等半減
+	PRINTFORMW 以及、需要让%TEXTS("助手の名称")%本人去調教对方的话才能起作用
 CASE "性器拡張知識"
-	PRINTFORML 性器を拡張させる際の苦痛や恐怖を半減させ、拡張経験の増加量にボーナスを得ます
-	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
-CASE "道具使い"
-	PRINTFORML バイブなど道具を用いたコマンド実行時に快楽や欲情のパラメーターを５割増しにし、
-	PRINTFORML 恐怖や反感などのマイナスパラメーターの発生を半減させます
-	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
+	PRINTFORML 性器被拡張時的苦痛和恐怖等減半、拡張経験的増加量获得加成
+	PRINTFORMW 以及、需要让%TEXTS("助手の名称")%本人去調教对方的话才能起作用
+CASE "道具使"
+	PRINTFORML 使用振动棒等道具系指令時快楽和欲情等增加五成、
+	PRINTFORML 恐怖和反感等減半
+	PRINTFORMW 以及、需要让%TEXTS("助手の名称")%本人去調教对方的话才能起作用
 CASE "露出知識"
-	PRINTFORML パートナーの恥情のパラメータを常に５割増しにし、露出経験と羞恥快楽経験の獲得量を増やします
-	PRINTFORMW この知識は、%TEXTS("助手の名称")%が持っているだけでも効果を発揮します
-CASE "甘い言葉"
-	PRINTFORMW 甘い言葉を囁くことができます
-CASE "手加減"
-	PRINTFORMW 手加減を行うことができます
+	PRINTFORML 对象的恥情增加五成、露出経験和羞恥快楽経験的獲得量增加
+	PRINTFORMW 这个知識、只要%TEXTS("助手の名称")%持有就可以発揮効果
+CASE "甜言蜜语"
+	PRINTFORMW 可以说甜言蜜语
+CASE "手下留情"
+	PRINTFORMW 可以手下留情
 CASEELSE
 	;アドバイザー能力？
 	IF COMMENT_ADVISER(CHOICES) != ""
@@ -365,7 +365,7 @@ CASEELSE
 			CLEARLINE LINECOUNT - MEMO_LINECOUNT
 			CALL SHOW_CHARADATA
 			RETURN 0
-		ELSEIF CHOICE == 102 && CHARA_NUM("控えキャラ")
+		ELSEIF CHOICE == 102 && CHARA_NUM("控え角色")
 			CLEARLINE LINECOUNT - MEMO_LINECOUNT
 			CALL CHANGE_TARGET
 			RETURN 0
@@ -377,17 +377,17 @@ CASEELSE
 			INVERTBIT FLAG:助手画面, 0
 			RESTART
 		ELSEIF CHOICE == 400
-			PRINTFORML いわゆる"助手"の役職名を変更します
-			PRINTFORML 現在は『%TEXTS("助手の名称")%』ですが、何に変更しますか？
-			PRINTFORML  [ 0] アドバイザー
+			PRINTFORML 换句话说就是変更"助手"的职位的名称
+			PRINTFORML 現在是『%TEXTS("助手の名称")%』、要変更为什么呢？
+			PRINTFORML  [ 0] 指导者
 			PRINTFORML  [ 1] 助手
 			PRINTFORML  [ 2] 秘書
 			PRINTFORML  [ 3] 副官
-			PRINTFORML  [ 4] メイド長
+			PRINTFORML  [ 4] 女仆長
 			PRINTFORML  [ 5] 側近
 			PRINTFORML  [ 6] 参謀
-			PRINTFORML  [99] 直接入力する
-			PRINTFORML [100] 変更しない
+			PRINTFORML  [99] 直接输入
+			PRINTFORML [100] 不変更
 
 			CALL INPUT_SELECT, 7, 99, 100
 
@@ -395,7 +395,7 @@ CASEELSE
 			CASE 100
 				RESTART
 			CASE 0
-				LOCALS = 助手の名称：アドバイザー
+				LOCALS = 助手の名称：指导者
 			CASE 1
 				LOCALS = 助手の名称：助手
 			CASE 2
@@ -403,14 +403,14 @@ CASEELSE
 			CASE 3
 				LOCALS = 助手の名称：副官
 			CASE 4
-				LOCALS = 助手の名称：メイド長
+				LOCALS = 助手の名称：女仆長
 			CASE 5
 				LOCALS = 助手の名称：側近
 			CASE 6
 				LOCALS = 助手の名称：参謀
 			CASE 99
 				CALL PRINT_STR, "黄色_※全角６文字(半角なら12文字)以内で入力してください※_L"
-				PRINTFORML 何も入力しない場合は変更しません。
+				PRINTFORML 什么都不输入的话就不会変更。
 
 				CALL INPUTS_SELECT, 16
 
@@ -425,7 +425,7 @@ CASEELSE
 			CALL DEL_CEVENT_GROUP, "助手の名称", MASTER
 			CALL SET_CEVENT, LOCALS, MASTER
 
-			PRINTFORMW 役職名を『%TEXTS("助手の名称")%』としました
+			PRINTFORMW 职位名变成『%TEXTS("助手の名称")%』了
 
 			RESTART
 		ELSEIF CHOICE == 0
@@ -472,8 +472,8 @@ FLAG:能力画面 = 0
 
 REDRAW 0
 
-CALL SHOW_CHARA_LIST_PRE, "パートナー変更"
-CALL SHOW_CHARA_LIST, "パートナー変更"
+CALL SHOW_CHARA_LIST_PRE, "对象変更"
+CALL SHOW_CHARA_LIST, "对象変更"
 
 $INPUT_LOOP
 INPUT
@@ -502,9 +502,9 @@ ELSEIF CHOICE == 200
 ;性処理の内容変更
 ELSEIF CHOICE >= 2002 && CHOICE < 2000 + CHARANUM && COND("性処理中", CHOICE - 2000)
 	CALL CHECK_COM_ABLE, CHOICE - 2000
-	CALL SETFLAG, "性処理でのプレイ内容", CHOICE - 2000
+	CALL SETFLAG, "性処理でのPLAY内容", CHOICE - 2000
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
-	PRINTFORML %CALLNAME:(CHOICE - 2000)%と学園内でのプレイ内容を相談しました
+	PRINTFORML 和%CALLNAME:(CHOICE - 2000)%商量学園内PLAY的内容
 	RESTART
 ELSEIF CHOICE <= MASTER || CHOICE >= CHARANUM
 	GOTO INPUT_LOOP
@@ -543,7 +543,7 @@ ELSEIF CHOICE == 101
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	CALL SHOW_CHARADATA
 	RETURN 0
-ELSEIF CHOICE == 102 && CHARA_NUM("控えキャラ")
+ELSEIF CHOICE == 102 && CHARA_NUM("控え角色")
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	CALL CHANGE_TARGET
 	RETURN 0
@@ -566,7 +566,7 @@ RESTART
 ;-------------------------------------------------
 @COSPLAY_LIST
 DRAWLINE
-PRINTL □ コスチューム一覧 □---------------------------------------------------------
+PRINTL □ 服装一覧 □---------------------------------------------------------
 CALL SHOW_CHARA_LIST, "コス確認"
 
 WAIT

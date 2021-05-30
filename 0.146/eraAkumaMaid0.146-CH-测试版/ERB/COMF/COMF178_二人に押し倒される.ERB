@@ -2,7 +2,7 @@
 ;二人に押し倒される
 ;一人はTARGET、もう一人はTARGET:1で管理する。もしもTARGET:1が未設定の場合には助手がTARGET:1となる
 
-PRINTL 二人に押し倒される
+PRINTL 被两人逆推
 
 ;-------------------------------------------------
 ;実行できるかの判定
@@ -10,7 +10,7 @@ PRINTL 二人に押し倒される
 CALL SHOW_COM_ORDER_COM, 178
 
 ;実行できない
-SIF TCVAR:やる気 == 0
+SIF TCVAR:干劲 == 0
 	RETURN 0
 ;-------------------------------------------------
 ;実行決定
@@ -20,9 +20,9 @@ CALL TRAIN_MESSAGE_B
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:前回コマンド = 二人に押し倒される
+STR:前回指令 = 被两人逆推
 
-CALL SETFLAG, "Ｗ押し倒し"
+CALL SETFLAG, "Ｗ推倒"
 
 RETURN 1
 
@@ -38,18 +38,18 @@ CALL CALC, "調教ソース", ARG
 
 
 @TRAIN_MESSAGE_COM178
-IF TEQUIP:押し倒し
-	PRINTFORMW %CALLNAME:TARGET%の誘いに応じて、%CALLNAME:(TARGET:1)%が%CALLNAME:PLAYER%に歩み寄る…
-	IF TARGET:1 == ASSI && TEQUIP:ビデオカメラ
-		PRINTFORMW どうやら、%CALLNAME:(TARGET:1)%は撮影を中止して一緒に楽しむことにしたようだ…
+IF TEQUIP:推倒
+	PRINTFORMW 像是為了響應%CALLNAME:TARGET%的邀請、%CALLNAME:(TARGET:1)%慢慢的靠近了%CALLNAME:PLAYER%……
+	IF TARGET:1 == ASSI && TEQUIP:攝像機
+		PRINTFORMW 顯而易見的、%CALLNAME:(TARGET:1)%決定將攝影中止一起享受快樂……
 	ELSE
-		PRINTFORMW どうやら、%CALLNAME:(TARGET:1)%も参加するようだ…
+		PRINTFORMW 顯而易見的、%CALLNAME:(TARGET:1)%決定一起享受快樂……
 	ENDIF
 ELSE
-	PRINTFORMW 妖しく微笑みながら%CALLNAME:TARGET%と%CALLNAME:(TARGET:1)%が%CALLNAME:PLAYER%に歩み寄る…
-	PRINTFORMW %CALLNAME:PLAYER%は二人がかりで押し倒されてしまった…
+	PRINTFORMW 露出妖艷笑容的%CALLNAME:TARGET%和%CALLNAME:(TARGET:1)%慢慢靠近了%CALLNAME:PLAYER%……
+	PRINTFORMW %CALLNAME:PLAYER%被兩個人推到了……
 ENDIF
-TEQUIP:ビデオカメラ = 0
+TEQUIP:攝像機 = 0
 
 
 ;@EVENTCOMでSELECTCOMに応じて決定される。
@@ -112,7 +112,7 @@ CASE 90 TO 95, 97, 104
 ENDSELECT
 
 ;インサート中なら、続行
-IF IS_INSERT:1 && FORBIDCOM(TARGET:1, "セックス", "Ｐ下半身") == 0
+IF IS_INSERT:1 && FORBIDCOM(TARGET:1, "性交", "Ｐ下半身") == 0
 	SELECTCOM:1 = PREVCOM:1
 ;泡踊りはＷ泡踊り
 ELSEIF SELECTCOM == 94 && CANCOM:94
@@ -158,15 +158,15 @@ ELSE
 	CALL CALC_COUNTER_ABL, TARGET:1
 
 	;レイプの後は連続レイプ
-	IF (PREVCOM:1 == 120 || PREVCOM:1 == 126) && ABL:(TARGET:1):レイプ && RAND:4
+	IF (PREVCOM:1 == 120 || PREVCOM:1 == 126) && ABL:(TARGET:1):强奸 && RAND:4
 		ABL:(TARGET:1):手 = 0
 		ABL:(TARGET:1):口 = 0
 		ABL:(TARGET:1):胸 = 0
 		ABL:(TARGET:1):足 = 0
-		ABL:(TARGET:1):顔面騎乗 = 0
+		ABL:(TARGET:1):面部騎乗 = 0
 		ABL:(TARGET:1):騎乗位 = 0
-		ABL:(TARGET:1):キス = 0
-		ABL:(TARGET:1):お尻責め = 0
+		ABL:(TARGET:1):接吻 = 0
+		ABL:(TARGET:1):玩弄臀部 = 0
 		ABL:(TARGET:1):素股 = 0
 	ENDIF
 
@@ -178,7 +178,7 @@ CALL SET_FORBIDCOM, TARGET:1, -1
 
 @EQUIP_COM178_2
 ;3P中
-SIF TEQUIP:Ｗ押し倒し || SELECTCOM:1 >= 0
+SIF TEQUIP:Ｗ推倒 || SELECTCOM:1 >= 0
 	CALL EQUIP_COM_3P
 
 
@@ -198,9 +198,9 @@ IF ABL:奉仕精神
 	LOCALS = %LOCALS% + 奉仕精神LV{ABL:奉仕精神}({MIN(ABL:奉仕精神, 10) * 2})
 ENDIF
 ;ABL:サドっ気
-IF ABL:サドっ気
-	LOCAL += MIN(ABL:サドっ気, 5) * 3
-	LOCALS = %LOCALS% + サドっ気LV{ABL:サドっ気}({MIN(ABL:サドっ気, 5) * 3})
+IF ABL:施虐属性
+	LOCAL += MIN(ABL:施虐属性, 5) * 3
+	LOCALS = %LOCALS% + 施虐属性LV{ABL:施虐属性}({MIN(ABL:施虐属性, 5) * 3})
 ENDIF
 
 ;強気
@@ -209,14 +209,14 @@ IF TALENT:強気
 	LOCALS = %LOCALS% + 強気(10)
 ENDIF
 ;恥じらい
-IF TALENT:恥じらい
+IF TALENT:害羞
 	LOCAL -= 10
-	LOCALS = %LOCALS% - 恥じらい(10)
+	LOCALS = %LOCALS% - 害羞(10)
 ENDIF
 ;快感の否定
-IF TALENT:快感の否定
+IF TALENT:否定快感
 	LOCAL -= 5
-	LOCALS = %LOCALS% - 快感の否定(5)
+	LOCALS = %LOCALS% - 否定快感(5)
 ENDIF
 
 ;処女

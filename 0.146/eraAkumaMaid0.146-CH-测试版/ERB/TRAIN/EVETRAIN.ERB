@@ -22,7 +22,7 @@ STR:青写真 =
 CVARSET CSTR, GETNUM(CSTR, "Ｐ汚れ")
 SAVESTR:Ｈ中の撮影履歴 = 
 
-CVARSET CFLAG, GETNUM(CFLAG, "寝起き")
+CVARSET CFLAG, GETNUM(CFLAG, "刚睡醒")
 
 ;フラグに使う現実時間を取得
 CALL GET_REALTIMEFORFLAG
@@ -36,7 +36,7 @@ IF ASSI
 	;パートナーがアドバイザー兼任の場合には能力は残すけど助手は不在扱い
 	IF TARGET == ASSI
 		ASSI = 0
-	ELSEIF COND("現在不在", ASSI) || COND("デート中") || CSTR:お誘い == "お風呂のお誘い"
+	ELSEIF COND("現在不在", ASSI) || COND("约会中") || CSTR:お誘い == "邀请一起入浴"
 		CALL SET_CEVENT, "助手設定：下がらせる", ASSI
 		ASSI = 0
 		ASSI:1 = 0
@@ -47,62 +47,62 @@ ENDIF
 PLAYER:1 = ASSI
 TARGET:1 = ASSI
 
-SIF EQUIP:Ｈなご褒美
-	FLAG:ムード += 90
+SIF EQUIP:Ｈ的奖励
+	FLAG:情緒 += 90
 
-IF EQUIP:お風呂でＨ
-	CALL SETFLAG, "お風呂プレイ"
+IF EQUIP:お浴室でＨ
+	CALL SETFLAG, "浴室PLAY"
 	CALL SETFLAG, "衣装全脱ぎ", TARGET
 ENDIF
 
 SELECTCASE CSTR:お誘い
-CASE "お風呂のお誘い"
-	CALL SETFLAG, "お風呂プレイ"
+CASE "邀请一起入浴"
+	CALL SETFLAG, "浴室PLAY"
 	CALL SETFLAG, "衣装全脱ぎ", TARGET
-	CFLAG:褒める = 2
-CASE "二人きりＨのお誘い"
-	FLAG:ムード += 60
-	CFLAG:褒める = 2
-CASE "Ｈのお誘い", "放課後Ｈのお誘い"
-	FLAG:ムード += 30
-	CFLAG:褒める = 2
-CASE "押し倒し"
+	CFLAG:夸奖 = 2
+CASE "二人きりＨ的邀请"
+	FLAG:情緒 += 60
+	CFLAG:夸奖 = 2
+CASE "Ｈ的邀请", "放課後Ｈ的邀请"
+	FLAG:情緒 += 30
+	CFLAG:夸奖 = 2
+CASE "推倒"
 	;押し倒され状態の付与
-	TEQUIP:押し倒し = 1
-	FLAG:ムード += 30
-	CFLAG:褒める = 2
+	TEQUIP:推倒 = 1
+	FLAG:情緒 += 30
+	CFLAG:夸奖 = 2
 ENDSELECT
 
 ;クリスマスツリーチェック
-SIF DAYEV("クリスマス期間")
-	FLAG:ムード += NUM("クリスマスツリー") * 30
+SIF DAYEV("圣诞节期間")
+	FLAG:情緒 += NUM("圣诞节ツリー") * 30
 ;酔いによるムード補正
-SIF STATE("酔い", TARGET)
-	FLAG:ムード += 30
+SIF STATE("酔酒", TARGET)
+	FLAG:情緒 += 30
 ;SIF STATE("酔い", MASTER)
 ;	FLAG:ムード += 45
 ;ときめき状態
-IF CFLAG:甘い言葉
-	FLAG:ムード += 60
-	TEQUIP:甘い言葉 = 5
+IF CFLAG:甜言蜜语
+	FLAG:情緒 += 60
+	TEQUIP:甜言蜜语 = 5
 ENDIF
-SIF CFLAG:ムラムラ
-	FLAG:ムード += 30
+SIF CFLAG:躁动难忍
+	FLAG:情緒 += 30
 
 ;★追加
 SELECTCASE SAVESTR:現在位置
-CASE "ラブホテル"
-	FLAG:ムード += 30
+CASE "情人旅館"
+	FLAG:情緒 += 30
 CASE "人気のない教室"
 	;立位でスタート
-	SETBIT FLAG:調教フィルタ, 10
+	SETBIT FLAG:調教过滤器, 10
 CASEELSE
 	;相手の家
-	SIF PLACE("パートナーの自宅")
-		FLAG:ムード += 30
+	SIF PLACE("对象の自宅")
+		FLAG:情緒 += 30
 	;野外は立位でスタート
 	SIF PLACE("野外")
-		SETBIT FLAG:調教フィルタ, 10
+		SETBIT FLAG:調教过滤器, 10
 ENDSELECT
 
 ;消耗品の所持数記録
@@ -138,47 +138,47 @@ DRAWLINE
 ;助手が忙しく色々準備
 CALL EVENT_ASSI_AUTO, "調教開始"
 
-IF CONFIG("下脱ぎフィルタ") && CHECK_CLO("アウター露出") && CHECK_CLO("Ｖ露出可") == 0
-	IF CONFIG("靴脱ぎフィルタ") && EQUIP:靴 && PLACE("野外") == 0
-		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の求めに応じて%OUTER(TARGET)%と%SHOES(TARGET)%を脱いだ。
+IF CONFIG("脱掉胖次过滤器") && CHECK_CLO("外套露出") && CHECK_CLO("Ｖ露出可") == 0
+	IF CONFIG("脱掉鞋子过滤器") && EQUIP:靴 && PLACE("野外") == 0
+		PRINTFORMW %CALLNAME:TARGET%按照%CALLNAME:MASTER%的要求脱去了%OUTER(TARGET)%和%SHOES(TARGET)%。
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の求めに応じて%OUTER(TARGET)%を脱いだ。
+		PRINTFORMW %CALLNAME:TARGET%依照%CALLNAME:MASTER%的要求脱下了%OUTER(TARGET)%。
 	ENDIF
-ELSEIF CONFIG("靴脱ぎフィルタ") && EQUIP:靴 && PLACE("野外") == 0
-	PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の求めに応じて%SHOES(TARGET)%を脱いだ。
+ELSEIF CONFIG("脱掉鞋子过滤器") && EQUIP:靴 && PLACE("野外") == 0
+	PRINTFORMW %CALLNAME:TARGET%按照%CALLNAME:MASTER%的要求脱去了%SHOES(TARGET)%。
 ENDIF
-IF CONFIG("下脱ぎフィルタ")
-	IF CHECK_CLO("アウター露出") && CHECK_CLO("Ｖ露出可") == 0
-		IF COND("パンツ形状確認") == 0
-			SIF CHECK_OUTER("パンスト")
+IF CONFIG("脱掉胖次过滤器")
+	IF CHECK_CLO("外套露出") && CHECK_CLO("Ｖ露出可") == 0
+		IF COND("胖次形状確認") == 0
+			SIF CHECK_OUTER("连褲襪")
 				CALL SET_OUTER, ""
-			IF EQUIP:パンツ == 0 || RAND:2
-				CALL TEXT_PANTU_CHECK, "アウター"
+			IF EQUIP:胖次 == 0 || RAND:2
+				CALL TEXT_PANTU_CHECK, "外套"
 			ELSE
 				CALL TEXT_PANTU_CHECK_SHORT
 			ENDIF
 		ENDIF
 		CALL SET_OUTER, ""
 	ENDIF
-	SIF ASSI && CHECK_CLO("アウター露出", ASSI) && CHECK_CLO("Ｖ露出可", ASSI) == 0
+	SIF ASSI && CHECK_CLO("外套露出", ASSI) && CHECK_CLO("Ｖ露出可", ASSI) == 0
 		CALL SET_OUTER, "", ASSI
 ENDIF
-IF CONFIG("靴脱ぎフィルタ") && PLACE("野外") == 0
+IF CONFIG("脱掉鞋子过滤器") && PLACE("野外") == 0
 	CALL SET_SHOES, ""
 	SIF ASSI
 		CALL SET_SHOES, "", ASSI
 ENDIF
 ;３Ｐ出来るかを表示
 IF ASSI == 0
-ELSEIF COND("Ｈはあなたとだけ") && COND("Ｈはあなたとだけ", ASSI)
+ELSEIF COND("Ｈは你とだけ") && COND("Ｈは你とだけ", ASSI)
 	DRAWLINE
-	CALL PRINT_STRW, @"黄色_※%CALLNAME:TARGET%と%CALLNAME:ASSI%は%CALLNAME:MASTER%以外とはＨをしないので、交代や３Ｐは出来ません"
-ELSEIF COND("Ｈはあなたとだけ", ASSI)
+	CALL PRINT_STRW, @"黄色_※因为%CALLNAME:TARGET%和%CALLNAME:ASSI%只和%CALLNAME:MASTER%做过、所以无法进行交代和3P指令"
+ELSEIF COND("Ｈは你とだけ", ASSI)
 	DRAWLINE
-	CALL PRINT_STRW, @"黄色_※%CALLNAME:ASSI%は%CALLNAME:MASTER%以外とはＨをしないので、交代や３Ｐは出来ません"
-ELSEIF COND("Ｈはあなたとだけ")
+	CALL PRINT_STRW, @"黄色_※因为%CALLNAME:ASSI%只和%CALLNAME:MASTER%做过、所以无法进行交代和3P指令"
+ELSEIF COND("Ｈは你とだけ")
 	DRAWLINE
-	CALL PRINT_STRW, @"黄色_※%CALLNAME:TARGET%は%CALLNAME:MASTER%以外とはＨをしないので、交代や３Ｐは出来ません"
+	CALL PRINT_STRW, @"黄色_※因为%CALLNAME:TARGET%只和%CALLNAME:MASTER%做过、所以无法进行交代和3P指令"
 ENDIF
 
 CALL SETFLAG, "調教開始前Ｃ", TARGET

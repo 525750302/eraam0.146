@@ -2,10 +2,10 @@
 ;バイブ
 ;0bit細い, 1bit普通, 2bit太い, 3bit極太, 4bit腕並み, 5bit馬型, 
 ;10bit双頭タイプ, 11bitパールタイプ
-IF TEQUIP:バイブ
-	PRINTFORML バイブを抜く
+IF TEQUIP:振動棒
+	PRINTFORML 拔出振動棒
 ELSE
-	PRINTFORML バイブ
+	PRINTFORML 振動棒
 ENDIF
 
 CALL TRAIN_MESSAGE_B
@@ -13,10 +13,10 @@ CALL TRAIN_MESSAGE_B
 SIF REFUSE_CHECK()
 	RETURN 0
 
-IF TEQUIP:バイブ == 0
-	STR:前回コマンド = バイブを抜く
+IF TEQUIP:振動棒 == 0
+	STR:前回指令 = 拔出振動棒
 ELSE
-	STR:前回コマンド = バイブ
+	STR:前回指令 = 振動棒
 ENDIF
 
 RETURN 1
@@ -30,23 +30,23 @@ RETURN 1
 VARSET LOCAL, 1
 ;逆バイブ
 IF ARG == PLAYER
-	PRINTFORML どのおもちゃ\@ TALENT:ARG:処女 ? で処女を喪失し # を使ってもらい \@ますか？
+	PRINTFORML 要使用哪種大小的振動棒來\@ TALENT:ARG:処女 ? 喪失処女 # 玩弄膣穴 \@呢？
 
 	;大きなバイブ
-	SIF  ABL:ARG:Ｖ拡張 == 0 || (ABL:ARG:Ｖ拡張 <= 1 && ABL:ARG:マゾっ気 < 3)
+	SIF  ABL:ARG:Ｖ拡張 == 0 || (ABL:ARG:Ｖ拡張 <= 1 && ABL:ARG:受虐属性 < 3)
 		LOCAL:1 = 0
 	;極太バイブ
-	SIF ABL:ARG:Ｖ拡張 <= 1 || (ABL:ARG:Ｖ拡張 <= 2 && ABL:ARG:マゾっ気 < 3)
+	SIF ABL:ARG:Ｖ拡張 <= 1 || (ABL:ARG:Ｖ拡張 <= 2 && ABL:ARG:受虐属性 < 3)
 		LOCAL:2 = 0
 	;腕並みバイブ
-	SIF ABL:ARG:Ｖ拡張 <= 2 || (ABL:ARG:Ｖ拡張 <= 3 && ABL:ARG:マゾっ気 < 3)
+	SIF ABL:ARG:Ｖ拡張 <= 2 || (ABL:ARG:Ｖ拡張 <= 3 && ABL:ARG:受虐属性 < 3)
 		LOCAL:3 = 0
 	;馬型バイブ
-	SIF ABL:ARG:Ｖ拡張 <= 3 || (ABL:ARG:Ｖ拡張 <= 4 && ABL:ARG:マゾっ気 < 3)
+	SIF ABL:ARG:Ｖ拡張 <= 3 || (ABL:ARG:Ｖ拡張 <= 4 && ABL:ARG:受虐属性 < 3)
 		LOCAL:4 = 0
 	LOCAL:10 = 0
 ELSE
-	PRINTFORML どのおもちゃ\@ TALENT:ARG:処女 ? で処女を奪い # を使い \@ますか？
+	PRINTFORML 要使用哪種大小的振動棒來\@ TALENT:ARG:処女 ? 奪取処女 # 玩弄膣穴 \@呢？
 
 	;どのバイブを使えるかを判定（双方のサドマゾ具合で変化）
 	FOR LCOUNT, 1, 5
@@ -58,11 +58,11 @@ ELSE
 			LOCAL:LCOUNT = 0
 		CASE 2
 			;大きさが２上回っているなら、サドっ気５ＬＶor（サドっ気３ＬＶに加えて相手のマゾっ気３ＬＶ）が必要
-			SIF MAX(ABL:マゾっ気, ABL:PLAYER:サドっ気) >= 5 || MIN(ABL:マゾっ気, ABL:PLAYER:サドっ気) >= 3
+			SIF MAX(ABL:受虐属性, ABL:PLAYER:施虐属性) >= 5 || MIN(ABL:受虐属性, ABL:PLAYER:施虐属性) >= 3
 				CONTINUE
 		CASE 1
 			;大きさが１上回っているなら、サドっ気３ＬＶor（サドっ気１ＬＶに加えて相手のマゾっ気１ＬＶ）が必要
-			SIF MAX(ABL:マゾっ気, ABL:PLAYER:サドっ気) >= 3 || MIN(ABL:マゾっ気, ABL:PLAYER:サドっ気) >= 1
+			SIF MAX(ABL:受虐属性, ABL:PLAYER:施虐属性) >= 3 || MIN(ABL:受虐属性, ABL:PLAYER:施虐属性) >= 1
 				CONTINUE
 		CASEELSE
 			CONTINUE
@@ -73,25 +73,25 @@ ELSE
 ENDIF
 
 ;アイテム所持による判定
-IF ITEM:バイブセット == 0
+IF ITEM:振動棒套装 == 0
 	LOCAL:0 = 0
 	LOCAL:1 = 0
 	LOCAL:10 = 0
 ENDIF
-SIF ITEM:極太バイブ == 0
+SIF ITEM:極太振動棒 == 0
 	LOCAL:2 = 0
-SIF ITEM:腕型バイブ == 0
+SIF ITEM:腕型振動棒 == 0
 	LOCAL:3 = 0
-SIF ITEM:馬型バイブ == 0
+SIF ITEM:馬型振動棒 == 0
 	LOCAL:4 = 0
 
 VARSET LOCALS
-LOCALS:0 = [ 0] 普通のバイブ
-LOCALS:1 = [\@ LOCAL:1 ? {1, 2} # × \@] 大きめのバイブ　　\@ ABL:ARG:Ｖ拡張 <= 1 ? ※初心者厳禁！ # \@
-LOCALS:2 = [\@ LOCAL:2 ? {2, 2} # × \@] 極太バイブ　　　　\@ ABL:ARG:Ｖ拡張 <= 2 ? ※上級者専用！ # \@
-LOCALS:3 = [\@ LOCAL:3 ? {3, 2} # × \@] フィストバイブ　　\@ ABL:ARG:Ｖ拡張 <= 3 ? ※超上級者専用！ # \@
-LOCALS:4 = [\@ LOCAL:4 ? {4, 2} # × \@] 馬型バイブ　　　\@ ABL:ARG:Ｖ拡張 <= 4 ? ※後戻りできない人向け # \@
-LOCALS:10 = [\@ LOCAL:10 ? 10 # × \@] 双頭バイブ
+LOCALS:0 = [ 0] 普通の振動棒
+LOCALS:1 = [\@ LOCAL:1 ? {1, 2} # × \@] 大号振動棒　　\@ ABL:ARG:Ｖ拡張 <= 1 ? ※初心者厳禁！ # \@
+LOCALS:2 = [\@ LOCAL:2 ? {2, 2} # × \@] 极粗振動棒　　\@ ABL:ARG:Ｖ拡張 <= 2 ? ※上級者専用！ # \@
+LOCALS:3 = [\@ LOCAL:3 ? {3, 2} # × \@] 拳型振動棒　　\@ ABL:ARG:Ｖ拡張 <= 3 ? ※超上級者専用！ # \@
+LOCALS:4 = [\@ LOCAL:4 ? {4, 2} # × \@] 馬型振動棒　　\@ ABL:ARG:Ｖ拡張 <= 4 ? ※面向不願回頭的人 # \@
+LOCALS:10 = [\@ LOCAL:10 ? 10 # × \@] 双頭振動棒
 
 FOR LCOUNT, 0, 20
 	SIF STRLENS(LOCALS:LCOUNT) == 0
@@ -104,27 +104,27 @@ FOR LCOUNT, 0, 20
 NEXT
 
 SIF ARGS != "強制挿入"
-	PRINTFORML [100] やめる
+	PRINTFORML [100] 不、再考慮一下吧。
 
 $INPUT_LOOP
 INPUT
 
 IF RESULT == 100 && ARGS != "強制挿入"
-	TEQUIP:ARG:バイブ = 0
-	TFLAG:コマンドキャンセル = 1
+	TEQUIP:ARG:振動棒 = 0
+	TFLAG:指令中止 = 1
 	RETURN 0
 ELSEIF RESULT == 0
-	TEQUIP:ARG:バイブ = 1p1
+	TEQUIP:ARG:振動棒 = 1p1
 ELSEIF RESULT == 1 && LOCAL:1
-	TEQUIP:ARG:バイブ = 1p2
+	TEQUIP:ARG:振動棒 = 1p2
 ELSEIF RESULT == 2 && LOCAL:2
-	TEQUIP:ARG:バイブ = 1p3
+	TEQUIP:ARG:振動棒 = 1p3
 ELSEIF RESULT == 3 && LOCAL:3
-	TEQUIP:ARG:バイブ = 1p4
+	TEQUIP:ARG:振動棒 = 1p4
 ELSEIF RESULT == 4 && LOCAL:4
-	TEQUIP:ARG:バイブ = 1p5
+	TEQUIP:ARG:振動棒 = 1p5
 ELSEIF RESULT == 10 && LOCAL:10
-	TEQUIP:ARG:バイブ = 1p1 + 1p10
+	TEQUIP:ARG:振動棒 = 1p1 + 1p10
 ELSE
 	GOTO INPUT_LOOP
 ENDIF
@@ -132,41 +132,41 @@ RETURN 1
 
 @TRAIN_MESSAGE_COM31
 ;バイブの着脱
-IF TEQUIP:バイブ
+IF TEQUIP:振動棒
 	;PRINTFORMW %CALLNAME:TARGET%\@ TEQUIP:押し倒し ? は # から \@%NAMES("バイブ", TARGET)%を引き抜いた。
 
 	;道端のメロンパン加筆分
-	PRINTFORM %TEXTS("電話中の")%%CALLNAME:TARGET%から
-	SIF SIZE("バイブ", TARGET) >= 4
-		PRINTFORM 巨大な
-	PRINTFORM バイブを引き抜くと、
-	IF ABL:Ｖ拡張 - SIZE("バイブ", TARGET) >= 2
-		PRINTFORM 物足りなさげに収縮を繰り返す
+	PRINTFORM %TEXTS("電話中の")%%CALLNAME:TARGET%中
+	SIF SIZE("振動棒", TARGET) >= 4
+		PRINTFORM 巨大的
+	PRINTFORM 振動棒拔出后、
+	IF ABL:Ｖ拡張 - SIZE("振動棒", TARGET) >= 2
+		PRINTFORM 好像在寻找缺失的东西一样反复收缩的
 	ELSE
-		SELECTCASE SIZE("バイブ", TARGET)
+		SELECTCASE SIZE("振動棒", TARGET)
 		CASE IS >= 4
-			PRINTFORM ぽっかりと開いたままの
+			PRINTFORM 洞口保持张開的
 		CASE IS >= 2
-			PRINTFORM まだ閉じ切っていない
+			PRINTFORM 尚未閉合的
 		ENDSELECT
 	ENDIF
-	PRINTFORM ヴァギナから
-	IF CHECK_STAIN(STAIN:Ｖ, "破瓜の血") && EXP_GAIN("膣内精液経験")
-		PRINTFORM 破瓜の血と精液が混ざり合った
-	ELSEIF CHECK_STAIN(STAIN:Ｖ, "破瓜の血")
-		PRINTFORM 破瓜の血と混ざり合った
+	PRINTFORM 阴道里
+	IF CHECK_STAIN(STAIN:Ｖ, "破瓜之血") && EXP_GAIN("膣内精液経験")
+		PRINTFORM 混合着破瓜之血和精液的
+	ELSEIF CHECK_STAIN(STAIN:Ｖ, "破瓜之血")
+		PRINTFORM 混合着破瓜之血的
 	ELSEIF EXP_GAIN("膣内精液経験")
-		PRINTFORM 精液と混ざり合った
+		PRINTFORM 混合着精液的
 	ENDIF
-	PRINTFORM 愛液が
+	PRINTFORM 爱液
 	IF PALAM:Ｖ潤 >= PALAMLV:4
-		PRINTFORMW こんこんと湧き出てくる…
+		PRINTFORMW 像水流一样涌了出来…
 	ELSE
-		PRINTFORMW %TEXTR("下腹部/会陰部/太もも")%を伝った…
+		PRINTFORMW 顺着%TEXTR("下腹部/会陰部/大腿内侧")%畫出了淫靡的線條…
 	ENDIF
 	;ここまで加筆分	
-	TFLAG:地の文分岐 = TEQUIP:バイブ
-	TEQUIP:バイブ = 0
+	TFLAG:地の文分岐 = TEQUIP:振動棒
+	TEQUIP:振動棒 = 0
 	CALL CALC, "調教ソースの計算"
 	RETURN 0
 ENDIF
@@ -178,7 +178,7 @@ CALL SELECT_VIB, TARGET
 SIF REFUSE_CHECK()
 	RETURN 0
 
-IF TEQUIP:バイブ == 0
+IF TEQUIP:振動棒 == 0
 	TFLAG:地の文分岐 = 1
 	GOTO SELECT_VIB
 ENDIF
@@ -193,239 +193,239 @@ SIF TFLAG:地の文スキップ
 	RETURN 0
 
 ;[恋慕かV感覚3LV]、[淫乱]、[ラミア]、[縄]、[PLAYERがサド]等で変化します
-PRINTFORM %CALLNAME:PLAYER%は
+PRINTFORM %CALLNAME:PLAYER%将
 ;シックスナイン
-IF TEQUIP:シックスナイン
+IF TEQUIP:六九式
 	PRINTFORM %TEXTS("６９")%
 ELSE
 	;縛られてますか？
 	IF TEQUIP:拘束
-		PRINT 恥ずかしい格好で縛られている
+		PRINT 在被拘束具束縛成羞恥的姿勢的同時、
 	ELSEIF PREVCOM == 13
 		SIF TEQUIP:電話中
-			PRINTFORM %TEXTS("彼氏")%%TEXTR("との電話を続けつつ/と電話で会話したまま/と電話したまま")%%TEXTR("＿/片手で/片手で器用に")%
+			PRINTFORM %TEXTR(@"继続和%TEXTS("彼氏")%的電話/保持着和%TEXTS("彼氏")%在電話中会話/保持着和%TEXTS("彼氏")%的電話")%%TEXTR("＿/单手/单手灵巧地")%
 		IF RAND:3 == 0
-			PRINTFORM %TEXTS("アソコ：視覚")%を開いて見せつけながら、
+			PRINTFORM 打開%TEXTS("阴部：視覚")%暴露着的同时、
 		ELSEIF RAND:2 == 0
-			PRINTFORM %TEXTS("アソコ：視覚")%を二本の指で押し広げて見せ付けながら、
+			PRINTFORM 将%TEXTS("阴部：視覚")%用两只手指広開展示的同时、
 		ELSE
-			PRINTFORM %TEXTS("アソコ：視覚")%を両手で広げてみせながら、
+			PRINTFORM 将%TEXTS("阴部：視覚")%用両手広開展示的同时、
 		ENDIF
 		;前後の文のつながりがおかしいので手直ししておく
 		;PRINT ぐいっと押し広げたままで
 	;恋慕かV感覚3LV以上で平気そうなバイブだと積極的
-	ELSEIF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3) && CHECK("バイブ")
+	ELSEIF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3) && CHECK("振動棒")
 		SIF TEQUIP:電話中
-			PRINTFORM %TEXTS("彼氏")%%TEXTR("との電話を続けながら/と電話で会話しながら/と電話したまま")%、
+			PRINTFORM %TEXTR(@"继続和%TEXTS("彼氏")%的電話的同时/和%TEXTS("彼氏")%在電話中会話的同时/保持着和%TEXTS("彼氏")%的電話")%、
 		IF RAND:2
 			;恥じらいだと
-			IF TALENT:恥じらい && RAND:3 == 0
-				PRINT 頬を染めて
+			IF TALENT:害羞 && RAND:3 == 0
+				PRINT 臉頰染上慾望與羞澀的紅暈、
 			ELSE
 				IF (TALENT:高慢 || TALENT:淫乱 || TALENT:強気) && RAND:3 == 0
-					PRINT 不敵に
-				ELSEIF TALENT:恥じらい && RAND:3 == 0
-					PRINT 頬を染めて
+					PRINT 在大膽的
+				ELSEIF TALENT:害羞 && RAND:3 == 0
+					PRINT 臉頰染上慾望與羞澀的紅暈、
 				ELSEIF TALENT:小悪魔 && RAND:3 == 0
-					PRINT ニヤニヤと
-				ELSEIF TALENT:小柄 && RAND:3 == 0
-					PRINT にっこりと
+					PRINT 無聲的視奸著的同時、
+				ELSEIF TALENT:娇小 && RAND:3 == 0
+					PRINT 在可愛的
 				;淫乱or欲情4LV以上
 				ELSEIF (TALENT:淫乱 || PALAM:欲情 >= PALAMLV:4) && RAND:2 == 0
-					PRINT 妖艶に
+					PRINT 在妖艶的
 				ELSEIF RAND:2 == 0
-					PRINT 嬉しそうに
+					PRINT 滿臉幸福快樂的
 				ELSE
-					PRINT 楽しそうに
+					PRINT 好像很開心
 				ENDIF
-				PRINT 微笑みながら
+				PRINT 微笑着一邊
 			ENDIF
 		ELSE
 			IF COND("脚が無い") == 0 && RAND:4 == 0
 				SIF TALENT:淫乱
-					PRINT 大胆に
-				PRINT 脚を開いて
+					PRINT 大膽地
+				PRINT 張開著雙腿的同時、
 			ELSEIF RAND:3 == 0
-				SIF TALENT:小柄
-					PRINT 小さな
-				PRINT 指で小陰唇を
+				SIF TALENT:娇小
+					PRINT 小小的
+				PRINT 陰唇用指尖
 				SIF TALENT:淫乱
-					PRINT 大きく
-				PRINT 拡げて
+					PRINT 用力地
+				PRINT 展開的同時、
 			ELSEIF RAND:2 == 0
 				SIF TALENT:淫乱
-					PRINT グッと
-				PRINT 腰を突き出して
+					PRINT 格外突出地
+				PRINT 將腰肢挺起的同時、
 			ELSE
-				PRINT アソコを突き出すように腰を浮かして
+				PRINT 在為了更加的凸顯出陰部而半懸著腰肢的同時、
 			ENDIF
 		ENDIF
 	ENDIF
-	IF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3) && CHECK("バイブ") && TEQUIP:拘束 == 0
+	IF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3) && CHECK("振動棒") && TEQUIP:拘束 == 0
 		IF RAND:2 == 0
-			PRINT 誘っている
+			PRINT 輕聲發起邀請的
 		ELSE
-			PRINT おねだりしている
+			PRINT 死乞白賴的懇求著的
 		ENDIF
 	ENDIF
 ENDIF
-PRINTFORM %CALLNAME:TARGET%の
+PRINTFORM %CALLNAME:TARGET%的
 ;穴開きでないパンツをはいていて、ずらされていないなら、必ずずらす
 IF !CHECK_CLO("Ｖ露出")
-	CALL SETFLAG, "ボトムを露出：テキスト有り", TARGET
+	CALL SETFLAG, "ボトムを露出：テ接吻ト有些", TARGET
 	PRINT 、
 ENDIF
-IF TALENT:小柄 && RAND:2 == 0
-	PRINT 子供っぽい
+IF TALENT:娇小 && RAND:2 == 0
+	PRINT 孩子一樣幼嫩的
 ELSEIF TALENT:淫乱 && ABL:Ｖ感覚 >= 4 && RAND:3 == 0
-	PRINT 敏感な
+	PRINT 敏感而淫亂的
 ELSEIF TALENT:淫乱 && ABL:Ｖ感覚 >= 4 && RAND:2 == 0
-	PRINT 匂いたつ
+	PRINT 不斷散發出淫靡氣味
 ;Ｖ潤Lv2以上
 ELSEIF PALAM:Ｖ潤 >= PALAMLV:5
-	PRINT ビショビショの
+	PRINT 被愛液徹底浸濕的
 ELSEIF PALAM:Ｖ潤 >= PALAMLV:2
-	PRINT 濡れた
+	PRINT 被愛液浸濕的
 ELSE
-	PRINT 濡れてない
+	PRINT 依然十分干燥的
 ENDIF
 
-PRINTFORM アソコに\@ COND("ボトムを露出させた") ? # 、 \@
+PRINTFORM 陰部\@ COND("ボトムを露出させた") ? # 、 \@用
 
-IF COND("双頭バイブ")
-	PRINT 両端とも挿入しやすい形の
+IF COND("双頭振動棒")
+	PRINT 兩端都很容易插入的雙頭
 ELSE
-	SELECTCASE SIZE("バイブ", TARGET)
+	SELECTCASE SIZE("振動棒", TARGET)
 	CASE 5
-		PRINT 冗談みたいな大きさの
+		PRINT 幾乎不可能進入的馬型
 	CASE 4
-		PRINT 男の腕をかたどった
+		PRINT 成年男性手腕粗細的
 	CASE 3
-		PRINT 極太の
+		PRINT 兇惡的
 	CASE 2
-		PRINT 大きな
+		PRINT 粗大的
 	ENDSELECT
 ENDIF
-PRINT バイブを
+PRINT 振動棒
 ;拡張不足
-IF ABL:Ｖ拡張 < SIZE("バイブ", TARGET)
-	PRINTFORMW %TEXTR("力任せに/強引に/無理矢理に/抉るように/肉を押しのける感触を味わいながら/抵抗をものともせずに")%捻じ込んだ。
+IF ABL:Ｖ拡張 < SIZE("振動棒", TARGET)
+	PRINTFORMW %TEXTR("用力地/強硬的/毫不留情地/在不斷開闢膣道的同時/在將肉體強硬推開的感觸仔細品味著的同時/將所有的抵抗毫不在意地無視的同時")%塞滿了。
 ELSE
-	IF ABL:PLAYER:サドっ気 >= 3 && RAND:2 == 0
-		PRINT 力任せに
-	ELSEIF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3 || ABL:PLAYER:サドっ気 >= 3) && RAND:3 == 0
-		PRINT 深々と
+	IF ABL:PLAYER:施虐属性 >= 3 && RAND:2 == 0
+		PRINT 用力地
+	ELSEIF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3 || ABL:PLAYER:施虐属性 >= 3) && RAND:3 == 0
+		PRINT 深深地
 	ELSEIF TALENT:恋慕 && RAND:3 == 0
-		PRINT 優しく
-	ELSEIF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3 || ABL:PLAYER:サドっ気 >= 3) && RAND:2 == 0
-		PRINT 一気に
+		PRINT 温柔地
+	ELSEIF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3 || ABL:PLAYER:施虐属性 >= 3) && RAND:2 == 0
+		PRINT 一口気
 	ELSE
-		PRINT ゆっくりと
+		PRINT 溫柔緩慢地
 	ENDIF
-	IF ABL:PLAYER:サドっ気 >= 3 && RAND:2 == 0
-		PRINTW 捻じ込んだ。
-	ELSEIF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3 || ABL:PLAYER:サドっ気 >= 3) && RAND:3 == 0
-		PRINTW 押し込んだ。
-	ELSEIF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3 || ABL:PLAYER:サドっ気 >= 3) && RAND:2 == 0
-		PRINTW 突っ込んだ。
+	IF ABL:PLAYER:施虐属性 >= 3 && RAND:2 == 0
+		PRINTW 衝入其中。
+	ELSEIF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3 || ABL:PLAYER:施虐属性 >= 3) && RAND:3 == 0
+		PRINTW 壓入其中。
+	ELSEIF (TALENT:恋慕 || ABL:Ｖ感覚 >= 3 || ABL:PLAYER:施虐属性 >= 3) && RAND:2 == 0
+		PRINTW 刺入其中。
 	ELSE
-		PRINTW 挿入した。
+		PRINTW 挿入其中。
 	ENDIF
 ENDIF
 ;拡張十分
-IF CHECK("バイブ") && RAND:3
-	PRINTFORM %CALLNAME:TARGET%の
-	IF TALENT:小柄 && EXP:Ｖ経験 < 100 && ABL:Ｖ拡張 <= 1
-		PRINT 幼い
-	ELSEIF TALENT:小柄 && ABL:Ｖ拡張 >= 2
-		SIF ABL:Ｖ拡張 > SIZE("バイブ", TARGET)
-			PRINT 十分に
-		PRINT 拡張された
-	ELSEIF EXP:Ｖ経験 >= 300 && EXP:Ｖ性交経験 >= 100 && ABL:Ｖ拡張 >= MAX(SIZE("バイブ", TARGET), 2) && RAND:3 == 0
-		PRINT 使い込まれた
+IF CHECK("振動棒") && RAND:3
+	PRINTFORM %CALLNAME:TARGET%的
+	IF TALENT:娇小 && EXP:Ｖ経験 < 100 && ABL:Ｖ拡張 <= 1
+		PRINT 幼嫩的
+	ELSEIF TALENT:娇小 && ABL:Ｖ拡張 >= 2
+		SIF ABL:Ｖ拡張 > SIZE("振動棒", TARGET)
+			PRINT 完全
+		PRINT 被充分擴張的
+	ELSEIF EXP:Ｖ経験 >= 300 && EXP:Ｖ性交経験 >= 100 && ABL:Ｖ拡張 >= MAX(SIZE("振動棒", TARGET), 2) && RAND:3 == 0
+		PRINT 被充分使用過的
 	ELSEIF EXP:Ｖ経験 >= 100 && RAND:3 == 0
-		PRINT 経験豊富な
-	ELSEIF ABL:Ｖ拡張 >= SIZE("バイブ", TARGET) && RAND:2 == 0
-		PRINT 柔らかな
+		PRINT 経験豊富的
+	ELSEIF ABL:Ｖ拡張 >= SIZE("振動棒", TARGET) && RAND:2 == 0
+		PRINT 十分柔軟的
 	ENDIF
 	IF RAND:2 && AGE(TARGET) >= 3
-		PRINT 肉の穴は
+		PRINT 肉穴
 	ELSE
-		PRINT 膣は
+		PRINT 膣穴
 	ENDIF
-	IF EXP:Ｖ経験 >= 100 && ABL:Ｖ拡張 > SIZE("バイブ", TARGET) && RAND:2
-		PRINT 入ってくるモノの形に合わせて大きく広がり、
+	IF EXP:Ｖ経験 >= 100 && ABL:Ｖ拡張 > SIZE("振動棒", TARGET) && RAND:2
+		PRINT 貪婪地緊緊糾纏住插入體內的淫具的同時、將
 	ELSEIF PALAM:Ｖ潤 >= PALAMLV:2
-		PRINT 愛液を零しながら、
+		PRINT 顫抖著噴灑出愛液的同時、將
 	ELSE
-		PRINT 周辺の肉を巻き込みながら、
+		PRINT 將週邊的媚肉一併捲入其中的同時、將
 	ENDIF
 
-	PRINTFORM %NAMES("バイブ", TARGET)%を
+	PRINTFORM %NAMES("振動棒", TARGET)%
 
-	IF ABL:Ｖ拡張 > SIZE("バイブ", TARGET)
+	IF ABL:Ｖ拡張 > SIZE("振動棒", TARGET)
 		IF RAND:2
-			PRINT 何の抵抗もなく
+			PRINT 毫無抵抗地
 		ELSE
-			PRINT 吸い込むように
+			PRINT 就像是在主動吮吸一樣地
 		ENDIF
-		IF SIZE("バイブ", TARGET) >= 2 && (CHOSECOM(SELECTCOM) == 0 || RAND:2)
+		IF SIZE("振動棒", TARGET) >= 2 && (CHOSECOM(SELECTCOM) == 0 || RAND:2)
 			LOCAL = (ABL:Ｖ拡張*4/5)*5
 			PRINTFORM {MIN(LOCAL - 5, 20)}cm…{LOCAL}cm…と
 		ELSEIF RAND:2
-			PRINTFORM 根元まで
+			PRINTFORM 直到根部
 		ENDIF
 	ELSE
-		IF ABL:Ｖ拡張 >= 3 && SIZE("バイブ", TARGET) >= 2 && (CHOSECOM(SELECTCOM) == 0 || RAND:2)
+		IF ABL:Ｖ拡張 >= 3 && SIZE("振動棒", TARGET) >= 2 && (CHOSECOM(SELECTCOM) == 0 || RAND:2)
 			LOCAL = (ABL:Ｖ拡張*4/5)*5
 			PRINTFORM {MIN(LOCAL - 5, 20)}cm…{LOCAL}cm…と
 		ELSEIF EXP:Ｖ経験 >= 100 || EXP:Ｖ性交経験 >= 20
-			PRINTFORM %TEXTR("ズブズブと/奥底まで苦もなく")%
+			PRINTFORM %TEXTR("逆著不斷湧出的愛液整個/輕易抵達最深處的")%
 		ELSE
-			PRINT なんとか
+			PRINT 磕磕碰碰地
 		ENDIF
 	ENDIF
-	PRINTW 呑み込んでいく…
-ELSEIF CHECK("バイブ") == 0 && SIZE("バイブ", TARGET) >= 2
-	PRINTFORM 凶暴なバイブは%CALLNAME:TARGET%の
-	SIF SIZE("バイブ", TARGET) >= 3 - TALENT:小柄
-		PRINT 恥骨を軋ませ、
-	SIF TALENT:小柄 && EXP:Ｖ経験 < 100 && ABL:Ｖ拡張 <= 1
-		PRINT 幼い
-	SELECTCASE SIZE("バイブ", TARGET) - ABL:Ｖ拡張
+	PRINTW 吞入體內……
+ELSEIF CHECK("振動棒") == 0 && SIZE("振動棒", TARGET) >= 2
+	PRINTFORM 過於兇惡的振動棒將%CALLNAME:TARGET%的
+	SIF SIZE("振動棒", TARGET) >= 3 - TALENT:娇小
+		PRINT 恥骨碾壓著發出嘎吱的響聲、將
+	SIF TALENT:娇小 && EXP:Ｖ経験 < 100 && ABL:Ｖ拡張 <= 1
+		PRINT 幼嫩的
+	SELECTCASE SIZE("振動棒", TARGET) - ABL:Ｖ拡張
 	CASE IS >= 3
-		PRINTW 膣を無残に引き裂いていく…
+		PRINTW 膣道殘忍地撕裂著……
 	CASE 2
-		PRINTW 膣を壊しそうなほど一杯に拡げていく…
+		PRINTW 膣道毫不留情地擴張、直到變成幾乎快要壞掉的模樣才肯罷休……
 	CASEELSE
-		PRINTW 膣をパンパンに拡げていく…
+		PRINTW 膣道撐開到無法繼續擴張為止……
 	ENDSELECT
-ELSEIF CHECK("バイブ")
-	PRINTFORMW 振動するバイブのもたらす快感に、%CALLNAME:TARGET%は甘く切ない快楽の声を漏らした…
+ELSEIF CHECK("振動棒")
+	PRINTFORMW 在膣道中激烈震盪著的振動棒所帶來的快感、讓%CALLNAME:TARGET%無法抑制的漏出了格外甜美的嬌柔呻吟……
 	;道端のメロンパン加筆分
-	SIF ABL:Ｖ拡張 - SIZE("バイブ", TARGET) >= 2
-		PRINTFORMW しかし%CALLNAME:TARGET%にはこのバイブは小さすぎるようで、その声にはどこか物足りなさげな色が浮かんでいる…
+	SIF ABL:Ｖ拡張 - SIZE("振動棒", TARGET) >= 2
+		PRINTFORMW 但是这种振動棒对%CALLNAME:TARGET%来说太小了、从那声音中能听出一丝遗憾的神色…
 ELSE
-	PRINTFORMW 膣を震わす慣れない刺激に%CALLNAME:TARGET%は眉を歪めて身を震わせる…
+	PRINTFORMW 膣道中傳來的還不習慣的震動感以及刺激、讓%CALLNAME:TARGET%露出了苦悶的表情、顫抖著身體……
 ENDIF
 
 @FLAG_COM31, ARG
-CALL FLAG_INSERTION, "バイブ", ARG, 100
+CALL FLAG_INSERTION, "振動棒", ARG, 100
 ;アソコを露出させる
 SIF CHECK_CLO("Ｖ露出") == 0
-	CALL SETFLAG, "ボトムを露出：テキスト無し", TARGET
+	CALL SETFLAG, "ボトムを露出：テ接吻ト没有", TARGET
 
 @SOURCE_COM31, ARG
-IF TEQUIP:バイブ
-	CALL SOURCE_INSERTION, "バイブ", ARG, 100
+IF TEQUIP:振動棒
+	CALL SOURCE_INSERTION, "振動棒", ARG, 100
 ELSE
-	CALL SOURCE_INSERTION, "バイブ", ARG, 30
+	CALL SOURCE_INSERTION, "振動棒", ARG, 30
 ENDIF
 
 
 @EQUIP_COM31
 ;バイブ挿入中
-SIF TEQUIP:バイブ == 0
+SIF TEQUIP:振動棒 == 0
 	RETURN 0
 SIF SELECTCOM == 31 || SELECTCOM == 201
 	RETURN 0
@@ -437,15 +437,15 @@ RETURN 1
 
 @EQUIP_COM31_2
 ;バイブ挿入中
-SIF TEQUIP:バイブ == 0
+SIF TEQUIP:振動棒 == 0
 	RETURN 0
 SIF SELECTCOM == 31 || SELECTCOM == 201
 	RETURN 0
 LOCALS = 
-IF COND("双頭バイブ")
+IF COND("双頭振動棒")
 	LOCALS = %LOCALS%双頭
 ELSE
-	SELECTCASE SIZE("バイブ", TARGET)
+	SELECTCASE SIZE("振動棒", TARGET)
 	CASE 6
 		LOCALS = %LOCALS%規格外
 	CASE 5
@@ -456,14 +456,14 @@ ELSE
 		LOCALS = %LOCALS%極太
 	ENDSELECT
 ENDIF
-LOCALS = %LOCALS%バイブ
+LOCALS = %LOCALS%振動棒
 
 PRINTFORML ＜%LOCALS%挿入中＞
 
 LOCAL = 1
 ;自慰実行時は経験＋１
 IF SELECTCOM == 3
-	SIF ABL:Ｖ拡張 < SIZE("バイブ", TARGET)
+	SIF ABL:Ｖ拡張 < SIZE("振動棒", TARGET)
 		LOCAL += 1
 ENDIF
 
@@ -473,8 +473,8 @@ PRINTFORML Ｖ経験＋{LOCAL}
 VARSET LOCAL
 ;Ｖ拡張経験
 IF SELECTCOM == 3 || SELECTCOM == 8
-	SIF SIZE("バイブ", TARGET) >= 2
-		LOCAL = MAX(SIZE("バイブ", TARGET) - ABL:Ｖ拡張 + 1, SIZE("バイブ", TARGET)/3)
+	SIF SIZE("振動棒", TARGET) >= 2
+		LOCAL = MAX(SIZE("振動棒", TARGET) - ABL:Ｖ拡張 + 1, SIZE("振動棒", TARGET)/3)
 ENDIF
 
 IF LOCAL

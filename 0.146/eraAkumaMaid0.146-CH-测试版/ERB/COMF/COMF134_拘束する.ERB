@@ -7,7 +7,7 @@ CALL TRAIN_MESSAGE_B
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:前回コマンド = %STR:今回コマンド%
+STR:前回指令 = %STR:今回指令%
 
 RETURN 1
 
@@ -32,23 +32,23 @@ SIF GETBIT(TEQUIP:拘束, 24)
 SIF GETBIT(TEQUIP:拘束, 25)
 	SOURCE:0:Ｃ快楽 = CALCF("Ｃ刺激", 0, 10)
 
-SOURCE:0:痛み = 100
-SOURCE:0:恐れ = 100
+SOURCE:0:疼痛 = 100
+SOURCE:0:恐惧 = 100
 SOURCE:0:露出 = 500
 SOURCE:0:屈従 = 1000
 SOURCE:0:逸脱 = 500
 
 ;0bit 苦痛を伴う, 1bit 強い苦痛を伴う, 2bit 非常に強い苦痛を伴う 
 IF GETBIT(TEQUIP:拘束, 0)
-	SOURCE:0:痛み += 500
+	SOURCE:0:疼痛 += 500
 	SOURCE:0:屈従 += 500
 	SOURCE:0:逸脱 += 500
 ELSEIF GETBIT(TEQUIP:拘束, 1)
-	SOURCE:0:痛み += 2000
+	SOURCE:0:疼痛 += 2000
 	SOURCE:0:屈従 += 1500
 	SOURCE:0:逸脱 += 1500
 ELSEIF GETBIT(TEQUIP:拘束, 2)
-	SOURCE:0:痛み += 6000
+	SOURCE:0:疼痛 += 6000
 	SOURCE:0:屈従 += 3000
 	SOURCE:0:逸脱 += 3000
 ENDIF
@@ -70,21 +70,21 @@ ENDIF
 
 ;6bit 恐怖を伴う, 7bit 強い恐怖を伴う, 8bit 非常に強い恐怖を伴う
 IF GETBIT(TEQUIP:拘束, 6)
-	SOURCE:0:恐れ += 500
+	SOURCE:0:恐惧 += 500
 	SOURCE:0:屈従 += 500
 	SOURCE:0:逸脱 += 500
 ELSEIF GETBIT(TEQUIP:拘束, 7)
-	SOURCE:0:恐れ += 2000
+	SOURCE:0:恐惧 += 2000
 	SOURCE:0:屈従 += 1500
 	SOURCE:0:逸脱 += 1500
 ELSEIF GETBIT(TEQUIP:拘束, 8)
-	SOURCE:0:恐れ += 6000
+	SOURCE:0:恐惧 += 6000
 	SOURCE:0:屈従 += 3000
 	SOURCE:0:逸脱 += 3000
 ENDIF
 
 ;ABL:マゾっ気をみる
-SELECTCASE ABL:マゾっ気
+SELECTCASE ABL:受虐属性
 CASE 0
 CASE 1
 	TIMES SOURCE:0:逸脱, 0.80
@@ -189,7 +189,7 @@ CASE "Ｍ字開脚"
 		LOCAL = 1p5 + 1p6 + 1p21 + 1p22 + 1p50 + 1p53
 		RETURNF LOCAL
 	ENDIF
-CASE "ベッド"
+CASE "床"
 	IF ARG >= 0
 		SIF GETBIT(ARG, 54)
 			RETURNF 1
@@ -225,8 +225,8 @@ ELSEIF BIND("縄", TEQUIP:拘束)
 	LOCALS = 縄で緊縛中
 ELSEIF BIND("四つん這い", TEQUIP:拘束)
 	LOCALS = 拘束テーブル
-ELSEIF BIND("ベッド", TEQUIP:拘束)
-	LOCALS = 拘束ベッド
+ELSEIF BIND("床", TEQUIP:拘束)
+	LOCALS = 拘束床
 ELSEIF BIND("Ｍ字開脚", TEQUIP:拘束)
 	LOCALS = Ｍ字拘束中
 ELSEIF BIND("吊り", TEQUIP:拘束)
@@ -242,184 +242,184 @@ RETURNF LOCALS
 IF TEQUIP:拘束
 	TFLAG:地の文分岐 = TEQUIP:拘束
 	IF BIND("手枷", TEQUIP:拘束)
-		PRINTFORMW %CALLNAME:TARGET%の手枷を外した
+		PRINTFORMW %CALLNAME:TARGET%的手枷被取下了……
 	ELSEIF BIND("縄", TEQUIP:拘束)
-		PRINTFORMW %CALLNAME:TARGET%から縄をほどいた
+		PRINTFORMW %CALLNAME:TARGET%的繩子被解開了……
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%の拘束を解いた
+		PRINTFORMW %CALLNAME:TARGET%的拘束被解除了……
 	ENDIF
 	TEQUIP:拘束 = 0
 ;拘束
 ELSE
-	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%を…
-	PRINTFORML  [ 0] 縄で縛る　　　　　(身動きできないように緊縛)
-	PRINTFORML  [ 1] ミスリルアイアン　(手枷で両腕を拘束)
-	PRINTFORML  [ 2] ミスリルチェーン　(手を鎖で縛り、吊るす)
-	PRINTFORML  [ 3] カースドテーブル　(脚を開いて拘束≒分娩台)
-	PRINTFORML  [ 4] カースドベッド　　(ベッドに仰向けに寝かせ、手足を拘束)
-	PRINTFORML  [ 5] ミスリルテーブル　(四つん這いにさせて、足も拘束)
-	PRINTFORML [100] 拘束するのは止める
+	PRINTFORML %CALLNAME:PLAYER%在規劃對於%CALLNAME:TARGET%的束縛方式…
+	PRINTFORML  [ 0] 繩縛　　　　　　　(以身體不能活動為目的的緊縛)
+	PRINTFORML  [ 1] 秘銀手銬　　　　　(用手枷將雙手拘束)
+	PRINTFORML  [ 2] 秘銀鎖鏈　　　　　(將手腕用鎖鏈束縛、吊起身体)
+	PRINTFORML  [ 3] 秘銀高台　　　　　(分開雙腿的拘束≒分娩台)
+	PRINTFORML  [ 4] 秘銀床鋪　　　　　(仰面躺在床上、固定住手腳)
+	PRINTFORML  [ 5] 秘銀桌檯　　　　　(四肢著地的趴跪、固定雙腿)
+	PRINTFORML [100] 不、再考慮一下吧。
 
 	CALL INPUT_SELECT, 6, 100
 
 	IF RESULT == 100
-		TFLAG:コマンドキャンセル = 1
+		TFLAG:指令中止 = 1
 		RETURN 0
 	ELSEIF RESULT == 0
 		IF COND("脚が無い")
-			PRINTFORM %CALLNAME:TARGET%を
+			PRINTFORM %CALLNAME:TARGET%
 			IF RAND:2 == 0
-				PRINTFORMW 身動き出来ないように縄で縛った
+				PRINTFORMW 繩索緊緊束縛住、身體完全動彈不得了。
 			ELSE
-				PRINTFORMW 抵抗出来ないように縄で縛った
+				PRINTFORMW 繩索緊緊束縛住、絕對不可能抵抗了。
 			ENDIF
 			TEQUIP:拘束 = BIND("縄", -1)
 		ELSE
-			PRINTFORML 縛り方は…
-			PRINTFORML  [ 0] 手首足首縛り　(手首と足首を縛り合わせる)
-			PRINTFORML  [ 1] 亀甲縛り　　　(全身を縄で締め付け、胸や恥丘などを強調する縛り)
-			PRINTFORML  [ 2] 逆海老責め　　(両手足を背面で縛り合わせ、海老反りの状態を強制する縛り)
-			PRINTFORML  [ 3] 足吊り　　　　(上半身を拘束し、片足だけ吊って性器を隠せなくする縛り)
-			PRINTFORML [100] 拘束するのは止める
+			PRINTFORML 具體的束縛方法是……
+			PRINTFORML  [ 0] 手首足首縛　　(將手腕和腳腕互相束縛到一起)
+			PRINTFORML  [ 1] 亀甲縛　　　　(將全身用繩索緊緊捆住、將胸部和恥丘格外凸顯出來的情色束縛法)
+			PRINTFORML  [ 2] 逆海老責　　　(將雙手雙腳在背面相互束縛住、用彎曲的蝦一樣的姿勢強行束縛住)
+			PRINTFORML  [ 3] 足吊　　　　　(將上半身拘束、只將一隻腳吊起、無法隱藏性器官的情色束縛法)
+			PRINTFORML [100] 不、再考慮一下吧。
 			CALL INPUT_SELECT, 4, 100
 			IF RESULT == 100
-				TFLAG:コマンドキャンセル = 1
+				TFLAG:指令中止 = 1
 				RETURN 0
 			ELSEIF RESULT == 0
 				IF RAND:2 == 0
-					PRINTFORM %CALLNAME:TARGET%の股間を全開にさせて、
+					PRINTFORM %CALLNAME:TARGET%的股間被完全打開、
 				ELSE
-					PRINTFORM %CALLNAME:TARGET%の脚をＭ字に開いて、
+					PRINTFORM %CALLNAME:TARGET%的雙腿以Ｍ字的姿勢張開、
 				ENDIF
 				IF RAND:2 == 0
-					PRINTFORM 手首を足首に固定し、
+					PRINTFORM 手腕被固定在腳腕上、
 					IF RAND:2 == 0
-						PRINTFORMW 身動き出来ないように縄で縛った
+						PRINTFORMW 繩索緊緊束縛住、身體完全動彈不得了。
 					ELSE
-						PRINTFORMW 抵抗出来ないように縄で縛った
+						PRINTFORMW 繩索緊緊束縛住、絕對不可能抵抗了。
 					ENDIF
 				ELSE
-					PRINTFORM 手首と足首を縛り付け、
+					PRINTFORM 手腕和腳腕被完美地捆綁在一起、
 					IF RAND:2 == 0
-						PRINTFORMW 身動き出来ないようにした
+						PRINTFORMW 身體動彈不得了。
 					ELSE
-						PRINTFORMW 抵抗出来ないようにした
+						PRINTFORMW 無法再抵抗了。
 					ENDIF
 				ENDIF
 				TEQUIP:拘束 = BIND("縄：手首足首縛り", -1)
 			ELSEIF RESULT == 1
-				PRINTFORM %CALLNAME:TARGET%の首にかけた縄から
+				PRINTFORM 以%CALLNAME:TARGET%頭部以下的脖頸為繩索的起點、
 				IF RAND:2 == 0
-					PRINTFORM 何箇所か結び目を作りながら
+					PRINTFORM 在嬌嫩身體的敏感部分作出了數個粗糙的繩結、
 				ELSE
-					PRINTFORM 胸、みぞおち、下腹部に結び目を作りながら
+					PRINTFORM 在胸部、胸口以及下腹部留下美麗的繩結、
 				ENDIF
-				PRINTFORMW 股の間を通して背中まで縄を通す
-				PRINTFORM そのまま背中まで通した縄を首にかけた縄にひっかけ、
+				PRINTFORMW 向下抵達股間並順勢向著背後翻越、
+				PRINTFORM 穿過背後預先留下的空洞與掛在脖頸上的繩圈系成繩結、
 				IF RAND:2 == 0
-					PRINTFORMW 結び目と結び目の間に縄を通していく…
+					PRINTFORMW 讓繩結與繩結之間的繩索恰到好處地勒出重要的部分……
 				ELSE
-					PRINTFORMW 結び目にひっかけながら菱形の網目を形作る…
+					PRINTFORMW 讓繩結與繩索貼緊在身上、構造出近似菱形的圖案……
 				ENDIF
 				IF RAND:2 == 0
-					PRINTFORMW さらに、両手を後ろ手に拘束して胸を強調する姿勢をとらせた…
+					PRINTFORMW 同時、雙手也以背著手的姿勢被緊緊拘束住、讓整體的姿態將胸前明顯的強調出來……
 				ELSE
-					PRINTFORMW さらに、両手を後ろ手に縛り上げて胸を張る姿勢をさせた…
+					PRINTFORMW 同時、雙手也以背著手的姿勢被繩索捆綁、整體來說构成了向前挺起胸脯的姿勢……
 				ENDIF
-				PRINTFORM 縛り終えてみると、%CALLNAME:TARGET%の
+				PRINTFORM 在摸索著完成了龜甲縛之後、%CALLNAME:TARGET%的
 				IF RAND:3 == 0
 					IF TALENT:巨乳
-						PRINTFORMW ふくよかな胸がさらに強調するかのように絞り上げられ、淫靡な縄による美しさを魅せている…
+						PRINTFORMW 本就格外豐腴的成熟果實在繩索勒緊之後被更加的凸顯出來、在淫靡的繩藝之下散發出妖艷的魅力……
 					ELSEIF TALENT:貧乳
-						PRINTFORMW 縛り上げられ僅かに膨らんだ乳房が痛々しく、それでいて甘美な嗜虐心をそそらせている…
+						PRINTFORMW 在繩索繃緊之後才稍稍鼓起的乳房顯得非常可憐、卻又激起了甜美的嗜虐之心……
 					ELSE
-						PRINTFORMW ほどよく張りのある乳房が絞り上げられ、健康的な美しさと緊縛による背徳感の絶妙な彩りを魅せている…
+						PRINTFORMW 柔軟而具有彈性的胸部被繩索緊緊勒住、在彰顯出健康美感的同時卻又因緊繃的繩索而添上背德感所帶來的絕妙而魅惑的色彩……
 					ENDIF
 				ELSEIF RAND:2 == 0
-					IF TALENT:長身
-						PRINTFORMW 長身な身体は、規則的な縄の模様がよく映えるキャンパスとして縄と女体の美しさをよく引き立てている…
-					ELSEIF TALENT:小柄
-						PRINTFORMW 未成熟な身体が複雑に絡み合う縄の餌食になっており、%CALLNAME:PLAYER%の嗜虐心をよく満たしている…
+					IF TALENT:高大
+						PRINTFORMW 高大的身體、作為繩索有規律的纏繞的對象、十分完美地將繩藝的魅力與女性身體的美感展現出來了……
+					ELSEIF TALENT:娇小
+						PRINTFORMW 尚未成熟的幼稚身體、變作相互纏繞的複雜繩索的餌食的淫靡模樣、將%CALLNAME:PLAYER%的嗜虐心理充分地滿足了……
 					ELSE
-						PRINTFORMW 健康的な身体には、食い込む縄とそれによって寄せ上げられた肉が縄によってのみ表現できる彩りを魅せている…
+						PRINTFORMW 健康的身體、被繃緊的繩索深入肌膚、卻反過來彰顯出這具身體的肉感與豐腴。這隻有在繩索幫助下才能表現出來的奇妙色彩、真是叫人著迷啊……
 					ENDIF
 				ELSE
-					PRINTFORM 股間の縄は
+					PRINTFORM 胯股之间緊繃的繩索、
 					;ボトム直履きの場合は未対応
-					IF EQUIP:パンツ && CHECK_PANTIES("Ｖ露出") == 0
-						PRINTFORMW %PANTIES(TARGET)%%TEXTR("＿/越しに股間")%に%TEXTR("食い込む様に引き絞られ/深く食い込み")%、%CALLNAME:TARGET%が僅かでも動くと%TEXTR("縄が擦れて強い刺激を与えてくるようになっている/縄で拘束されている事を否応なく感じてしまうようになっている")%…
+					IF EQUIP:胖次 && CHECK_PANTIES("Ｖ露出") == 0
+						PRINTFORMW %PANTIES(TARGET)%%TEXTR("＿/越しに股間")%に%TEXTR("食い込む様に引き絞られ/深く勒紧的")%、%CALLNAME:TARGET%が僅かでも動くと%TEXTR("縄が擦れて很强刺激を与えてくるようになっている/縄で拘束されている事を否応なく感じてしまうようになっている")%…
 					ELSE
-						IF TALENT:オンナ
-							PRINTFORMW 女性器の中心部を避けて通してあるが、縄が大陰唇を外から引っ張って広げる形になっているおかげで正面からはクリトリスがまる見えになっている…
-						ELSEIF TALENT:ふたなり
-							PRINTFORMW ペニスを縛りつつ、それでいて陰唇を広げる形になっており、膣口などは外気に晒されるがままになっている…
+						IF TALENT:女性
+							PRINTFORMW 姑且避開了艷麗性器最嬌嫩的中心部位、但又從外緣處將陰唇大大地拉扯開來、讓內部那微微顫動的粘膜以及可愛的小小淫豆都能從正面一覽無餘……
+						ELSEIF TALENT:扶她
+							PRINTFORMW 將碩大的扶她肉棒緊緊束縛住的同時、也將肥美的大陰唇拉扯開來、讓不斷滲透出粘液的膣口在外側的空氣中漸漸乾燥……
 						ELSE
-							PRINTFORMW ペニスの根本を縛り付け、ペニスを硬い一本の棒としての直立を維持しつつ、それでいて射精の妨げをするようになっている…
+							PRINTFORMW 將陰莖的各處尤其是根部緊緊地捆綁住、讓它像是附著上粗糙線條的灼熱鐵棍一樣直立著、同時也防止了它將精液浪費在不必要的地方……
 						ENDIF
 					ENDIF
 				ENDIF
 				TEQUIP:拘束 = BIND("縄：亀甲縛り", -1)
 			ELSEIF RESULT == 2
-				PRINTFORMW %CALLNAME:TARGET%の両手と両足をそれぞれ縛り上げ、さらに手足を背中で合わせた状態で緊縛する
-				PRINTFORMW すると、%CALLNAME:TARGET%は海老反りの格好をせざるを得なくなった
-				PRINTFORM %CALLNAME:TARGET%は縄による緊縛感と、負担のかかる格好を強制され続けることに
-				IF ABL:マゾっ気 >= 3
-					PRINTFORMW よる苦痛の喘ぎ声をあげながらも、どこか恍惚とした表情が見て取れる…
+				PRINTFORMW %CALLNAME:TARGET%的雙手以及雙腿各自被牢固的繩索折疊起來、然後又用繩索將手腳向背後拉扯並強行合在一起、然後緊緊束縛起來。
+				PRINTFORMW 於是、%CALLNAME:TARGET%就不得不像是一只煮熟的大蝦一樣誇張地向後彎曲著腰肢。
+				PRINTFORM %CALLNAME:TARGET%因為堅固繩索所帶來的緊縛感、以及強迫達成的痛苦姿勢而積累下很多的負擔、
+				IF ABL:受虐属性 >= 3
+					PRINTFORMW 儘管從唇角不斷溢出痛苦的喘息聲、但那幾乎為快樂所溶化的面孔依然能看出最真實的情緒……
 				ELSE
-					PRINTFORMW 苦悶の表情を見せている…
+					PRINTFORMW 無法抑制的顯露出苦悶而痛苦的模樣……
 				ENDIF
 				TEQUIP:拘束 = BIND("縄：逆海老", -1)
 			ELSEIF RESULT == 3
-				PRINTFORM %CALLNAME:TARGET%の
+				PRINTFORM %CALLNAME:TARGET%的
 				IF TALENT:巨乳
-					PRINTFORMW 大きな胸を、そのまま母乳が吹き出しそうなくらいに縄でパンパンに絞り上げつつ縛り上げた
+					PRINTFORMW 那过分成熟的豐腴果實、在过度的勒紧下简直就像是要喷洒出母乳一様夸张地膨胀起来、而紧绷的绳索也早已拉扯到最极限的地步。
 				ELSEIF TALENT:貧乳
-					PRINTFORMW 僅かな膨らみを無理やり寄せ上げ、痛々しいくらいに縄を食い込ませつつ縛り上げた
+					PRINTFORMW 僅有的小小膨脹被毫不留情勒緊、向外突出著、在那貧瘠胸膛上更加明顯的淤青之痕讓人不禁升起些微的憐憫之心。
 				ELSE
-					PRINTFORMW 胸の谷間とアンダーバストが強調するように大きく絞り上げつつ縛り上げた
+					PRINTFORMW 胸前的山谷在繩索的壓榨下充分彰顯了自身的優秀彈性、同時也在拉扯中變得更加挺立了。
 				ENDIF
-				PRINTFORMW さらに背中から伸びる縄を用いて%CALLNAME:TARGET%の手を後手に縛り上げる
-				PRINTFORM このままでもなかなか見栄えはよいが、さらに%CALLNAME:PLAYER%はサプライズとして片足の足首を縛り、
+				PRINTFORMW 將層層包裹住胸部的繩索向背後拉出、將%CALLNAME:TARGET%無力的胡亂揮舞著的雙手反綁在身後。
+				PRINTFORM 就算僅僅只是這樣也已經是一幕絕境了、但更令人興奮的是、%CALLNAME:PLAYER%將一隻腳的腳腕捆住、將另一頭係在
 				IF COND("人里")
-					PRINT 街頭
+					PRINT 阴暗小巷中的外置空调上
 				ELSEIF COND("森林")
-					PRINT 木の枝
-				ELSEIF TEQUIP:野外プレイ
-					PRINT 近く
-				ELSEIF TEQUIP:室内露出プレイ
-					PRINT 階段の手すり
+					PRINT 高度合适的树枝上
+				ELSEIF TEQUIP:野外PLAY
+					PRINT 附近的高处
+				ELSEIF TEQUIP:室内露出PLAY
+					PRINT 楼梯的扶手上
 				ELSE
-					PRINT コート掛け
+					PRINT 吊灯的灯架上
 				ENDIF
-				PRINTFORMW に縄を引っ掛けた…
-				PRINTFORM 足を大きく開かされながら片足立ちすることを強制された%CALLNAME:TARGET%は、
-				IF TALENT:オンナ
+				PRINTFORMW 被绳子挂了起来……
+				PRINTFORM 在繩索的牽扯下、不得不做出單腳站立姿勢的%CALLNAME:TARGET%那被迫張開的股間中、悄然溢出蜜液的陰部
+				IF TALENT:女性
 					PRINT 女性器
 				ELSE
-					PRINT ペニス
+					PRINT 阴茎
 				ENDIF
-				IF TALENT:恥じらい == 0 && ABL:露出癖 >= 3
-					PRINTFORMW が丸見えのせいか興奮した様子で甘い吐息を漏らしている…
+				IF TALENT:害羞 == 0 && ABL:露出癖 >= 3
+					PRINTFORMW 也被清楚地暴露著、但她卻完全不感到羞澀、反而以一副興奮的模樣不住地漏出甘甜而灼熱的喘息……
 				ELSE
-					PRINTFORMW を隠せない羞恥心からか顔を真っ赤に染めている…
+					PRINTFORMW 完全無法被隱藏而激起了她的羞恥心、讓她的臉頰飛快的被紅潮席捲……
 				ENDIF
 				TEQUIP:拘束 = BIND("縄：足吊り", -1)
 			ENDIF
 		ENDIF
 	ELSEIF RESULT == 1
-		PRINTFORMW %CALLNAME:TARGET%の両手を揃えて、アイアンで拘束した
+		PRINTFORMW %CALLNAME:TARGET%的雙手並到一起、被鐵架與手枷拘束了……
 		TEQUIP:拘束 = BIND("手枷", -1)
 	ELSEIF RESULT == 2
-		PRINTFORMW %CALLNAME:TARGET%の手をチェーンで縛り上げ、吊るす事にした
+		PRINTFORMW %CALLNAME:TARGET%的一隻手被扣上帶有鏈條的枷鎖、整個人都被吊了起來……
 		TEQUIP:拘束 = BIND("吊り", -1)
 	ELSEIF RESULT == 3
-		PRINTFORMW %CALLNAME:TARGET%を拘束台にのせ、足をＭ字に開かせ固定した
+		PRINTFORMW %CALLNAME:TARGET%被放倒在拘束台上、雙腿以Ｍ字開腿的姿勢被固定在架台上了……
 		TEQUIP:拘束 = BIND("Ｍ字開脚", -1)
 	ELSEIF RESULT == 4
-		PRINTFORMW %CALLNAME:TARGET%をベッドに寝かせ、手足を大の字で拘束した
-		TEQUIP:拘束 = BIND("ベッド", -1)
+		PRINTFORMW %CALLNAME:TARGET%仰臥在床上、手腕和腳腕被拴上鏈條、以大字形被拘束著……
+		TEQUIP:拘束 = BIND("床", -1)
 	ELSEIF RESULT == 5
-		PRINTFORMW %CALLNAME:TARGET%を四つん這いにさせて、足を拘束した
+		PRINTFORMW %CALLNAME:TARGET%四肢著地的趴跪在地上、雙腳被拘束著……
 		TEQUIP:拘束 = BIND("四つん這い", -1)
 	ENDIF
 ENDIF
@@ -452,5 +452,5 @@ LOCAL = MAX(LOCAL, 1)
 EXP:拘束経験 += LOCAL
 PRINTFORML 拘束経験＋{LOCAL}
 
-SIF ASSIPLAY == 0 && ABL:マゾっ気 >= 2
-	TFLAG:好感度ボーナス += 1
+SIF ASSIPLAY == 0 && ABL:受虐属性 >= 2
+	TFLAG:好感度BOUNS += 1

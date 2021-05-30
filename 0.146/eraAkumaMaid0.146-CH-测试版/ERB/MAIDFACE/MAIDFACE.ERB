@@ -10,7 +10,7 @@
 #DIM ACTOR, 5
 #DIM NUM_ACTOR
 
-SIF CONFIG("顔グラＯＦＦ") || TFLAG:顔グラスキップ
+SIF CONFIG("颜绘ＯＦＦ") || TFLAG:颜绘スキップ
 	RETURN 0
 
 MEMO_REDRAW = CURRENTREDRAW()
@@ -21,7 +21,7 @@ VARSET ACTOR
 FOR LCOUNT, 0, 5
 	SIF LCOUNT >= 1 && ARG:LCOUNT <= 0
 		BREAK
-	SIF CFLAG:(ARG:LCOUNT):顔グラ == 0
+	SIF CFLAG:(ARG:LCOUNT):颜绘 == 0
 		CONTINUE
 
 	ACTOR:NUM_ACTOR = ARG:LCOUNT
@@ -32,7 +32,7 @@ LOCALS = <nobr>
 FOR LCOUNT, 0, 5
 	SIF ACTOR:LCOUNT <= 0
 		BREAK
-	IF TFLAG:顔グラアニメ中
+	IF TFLAG:颜绘动画中
 		LOCALS += @"%MAIDFACE_ANIME(ACTOR:LCOUNT, LCOUNT + 1)%"
 	ELSE
 		LOCALS += @"%MAIDFACE(ACTOR:LCOUNT, LCOUNT + 1)%"
@@ -40,7 +40,7 @@ FOR LCOUNT, 0, 5
 NEXT
 
 IF LOCALS != "<nobr>"
-	IF COND("キャラ紹介中")
+	IF COND("角色介绍中")
 		SIF MARK:ARG:淫紋
 			LOCALS += @"%CUTIN("淫紋", ARG, 2)%"
 		;LOCALS += @"%CUTIN("パンツ", ARG, 2)%"
@@ -51,7 +51,7 @@ IF LOCALS != "<nobr>"
 	FOR LCOUNT, 1, 100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")/100
 		PRINTL 
 	NEXT
-	TFLAG:顔グラ表示中 = LINECOUNT
+	TFLAG:颜绘表示中 = LINECOUNT
 ENDIF
 REDRAW MEMO_REDRAW
 
@@ -75,7 +75,7 @@ RETURNF LOCAL
 #FUNCTION
 RETURNF PICSIZE(175)
 
-SELECTCASE CONFIG("顔グラサイズ")
+SELECTCASE CONFIG("颜绘サイズ")
 CASE 0
 	RETURNF PICSIZE(150)
 CASEELSE
@@ -171,7 +171,7 @@ OVER =
 BAG = 
 IS_MOESODE = 0
 
-SIF CFLAG:ARG:顔グラ == 0
+SIF CFLAG:ARG:颜绘 == 0
 	RETURNF ""
 
 FSIZE = 100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")
@@ -181,12 +181,12 @@ FPOS = (ARG:1 - 1) * (FSIZE + 30)
 ;背景
 IF NO:ARG == 99
 	BG = <button value='{CFLAG:ARG:優先順位 + 10}' pos='{FPOS}'><img src='0e' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></button>
-ELSEIF COND("キャラメイク中")
-	BG = <button value='{CFLAG:ARG:優先順位 + 10}' pos='{FPOS}' title='[%CSTR:ARG:肩書%]%NAME:ARG% (%CSTR:ARG:学年%)'><img src='0e' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></button>
+ELSEIF COND("角色メイク中")
+	BG = <button value='{CFLAG:ARG:優先順位 + 10}' pos='{FPOS}' title='[%CSTR:ARG:称号%]%NAME:ARG% (%CSTR:ARG:学年%)'><img src='0e' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></button>
 ELSE
-	TEXT_TITLE = [%CSTR:ARG:肩書%]%NAME:ARG% (%CSTR:ARG:学年%)
-	SIF CFLAG:ARG:ムラムラ
-		TEXT_TITLE += "ムラムラしている"
+	TEXT_TITLE = [%CSTR:ARG:称号%]%NAME:ARG% (%CSTR:ARG:学年%)
+	SIF CFLAG:ARG:躁动难忍
+		TEXT_TITLE += "躁动难忍している"
 
 	IF PLACE("部室")
 		SELECTCASE ARG:1
@@ -204,7 +204,7 @@ ELSE
 		CASEELSE
 			TEXT_PLACE = 0部室
 		ENDSELECT
-	ELSEIF PLACE("ラブホテル")
+	ELSEIF PLACE("情人旅館")
 		TEXT_PLACE = 0e
 	ELSEIF PLACE("Ｈ目的")
 		TEXT_PLACE = 0部室
@@ -215,9 +215,9 @@ ELSE
 		CASEELSE
 			TEXT_PLACE = 0b1
 		ENDSELECT
-	ELSEIF COND("帰り道")
+	ELSEIF COND("归途")
 		;雨に降られた
-		IF STRCOUNT(SAVESTR:現在位置, "にわか雨")
+		IF STRCOUNT(SAVESTR:現在位置, "阵雨")
 			TEXT_PLACE = 0f2
 		ELSE
 			TEXT_PLACE = 0f1
@@ -238,10 +238,10 @@ ELSE
 			ENDIF
 		ENDSELECT
 	ENDIF
-	IF CFLAG:ARG:コスプレ中
-		IF CHECK_BODYS("バニー", ARG)
+	IF CFLAG:ARG:Cosplay中
+		IF CHECK_BODYS("兔", ARG)
 			TEXT_PLACE = 0h%TOSTR(RAND:4)%
-		ELSEIF CHECK_SHIRT("チャイナドレス", ARG)
+		ELSEIF CHECK_SHIRT("旗袍", ARG)
 			TEXT_PLACE = 0g
 		ENDIF
 	ENDIF
@@ -257,246 +257,246 @@ ELSEIF COND("種族：天使", ARG)
 	HEAD_BACK = <nonbutton pos='{FPOS}'><img src='2a' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDIF
 
-SELECTCASE CONDS("髪の長さ", ARG)
-CASE "ショート"
+SELECTCASE CONDS("髪長", ARG)
+CASE "短"
 	HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "ボブ"
-	SELECTCASE CONDS("後ろ髪", ARG)
-	CASE "ナチュラル"
+CASE "巻髪"
+	SELECTCASE CONDS("後髪", ARG)
+	CASE "自然"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Se%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "ストレート"
+	CASE "直髪"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "外ハネ"
+	CASE "外八"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sc%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "ウェーブ"
+	CASE "卷髪"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sd%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-CASE "ミディアム"
-	SELECTCASE CONDS("後ろ髪", ARG)
-	CASE "ナチュラル"
+CASE "中等長度"
+	SELECTCASE CONDS("後髪", ARG)
+	CASE "自然"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Ma%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "ストレート"
+	CASE "直髪"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Mb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "外ハネ"
+	CASE "外八"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Mc%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "ウェーブ"
+	CASE "卷髪"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Mg%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-CASE "セミロング"
-	SELECTCASE CONDS("後ろ髪", ARG)
-	CASE "ナチュラル"
+CASE "披肩"
+	SELECTCASE CONDS("後髪", ARG)
+	CASE "自然"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4SLb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "ストレート"
+	CASE "直髪"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Mb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "外ハネ"
+	CASE "外八"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Mc%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "ウェーブ"
+	CASE "卷髪"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4SLd%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-CASE "ロング", "超ロング"
-	SELECTCASE CONDS("後ろ髪", ARG)
-	CASE "ナチュラル"
+CASE "長", "超長"
+	SELECTCASE CONDS("後髪", ARG)
+	CASE "自然"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4La%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "ストレート"
+	CASE "直髪"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Lb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "外ハネ"
+	CASE "外八"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Lc%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "ウェーブ"
+	CASE "卷髪"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Ld%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 ENDSELECT
 
-SELECTCASE CONDS("アレンジ", ARG)
-CASE "ロングツインテ"
+SELECTCASE CONDS("改髪", ARG)
+CASE "長双马尾"
 	HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Tb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_MIDDLE = <nonbutton pos='{FPOS}'><img src='6Tb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "ツインテール"
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "ロング", "超ロング"
+CASE "双马尾"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "長", "超長"
 	CASEELSE
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 	HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Td%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_MIDDLE = <nonbutton pos='{FPOS}'><img src='6Td%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "ショートツインテ"
+CASE "短双马尾"
 	HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Ta%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_MIDDLE = <nonbutton pos='{FPOS}'><img src='6Ta%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "ウェーブツインテ"
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "ロング", "超ロング"
+CASE "卷双马尾"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "長", "超長"
 	CASEELSE
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 	HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Tf%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_MIDDLE = <nonbutton pos='{FPOS}'><img src='6Tf%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "ドリルツインテ"
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "ロング", "超ロング"
+CASE "钻头双马尾"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "長", "超長"
 	CASEELSE
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 	HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Te%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_MIDDLE = <nonbutton pos='{FPOS}'><img src='6Te%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "お団子ツインテ"
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "ロング", "超ロング"
+CASE "团子头双马尾"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "長", "超長"
 	CASEELSE
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 	HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Tg2%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_MIDDLE = <nonbutton pos='{FPOS}'><img src='6Tg2%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
-CASE "サイドテール"
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "ショート", "ボブ"
+CASE "侧马尾"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "短", "巻髪"
 		HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Ta%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "ミディアム", "セミロング"
-		SELECTCASE CONDS("後ろ髪", ARG)
-		CASE "編み上げ"
+	CASE "中等長度", "披肩"
+		SELECTCASE CONDS("後髪", ARG)
+		CASE "编起来"
 			HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='3Sb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 			HAIR_LENGTH = %HAIR_LENGTH%<nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "ナチュラル"
+		CASE "自然"
 			HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Se%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "ストレート"
+		CASE "直髪"
 			HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "外ハネ"
+		CASE "外八"
 			HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sc%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "ウェーブ"
+		CASE "卷髪"
 			HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sd%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDSELECT
 		HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Td%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
 		HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Tb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-CASE "ポニーテール"
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "ロング", "超ロング"
+CASE "马尾辫"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "長", "超長"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Sd%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-CASE "おさげ"
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "ロング", "超ロング"
+CASE "麻花辫"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "長", "超長"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Lh%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4SLh%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-CASE "一つ結び"
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "ロング", "超ロング"
+CASE "单辫"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "長", "超長"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Se%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Sf%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-CASE "二つ結び"
+CASE "双辫"
 	HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Le%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "三つ編み"
+CASE "三股辫"
 	HAIR_LENGTH = %HAIR_LENGTH%<nonbutton pos='{FPOS}'><img src='6Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "でか三つ編み"
+CASE "大三股辫"
 	HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Lg%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "お団子"
+CASE "団子頭"
 	HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Tc%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_MIDDLE = <nonbutton pos='{FPOS}'><img src='6Tc%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "編み上げ"
+CASE "编起来"
 	HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Sb%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "シニヨン"
+CASE "盘头"
 	HAIR_BACK = <nonbutton pos='{FPOS}'><img src='3Sc%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sa%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "サイドシニヨン"
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "ショート", "ボブ"
+CASE "侧盘头"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "短", "巻髪"
 		HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Sf%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "ミディアム", "セミロング"
-		SELECTCASE CONDS("後ろ髪", ARG)
-		CASE "ウェーブ"
+	CASE "中等長度", "披肩"
+		SELECTCASE CONDS("後髪", ARG)
+		CASE "卷髪"
 			HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Mf1%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASEELSE
 			HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Mf%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDSELECT
 	CASEELSE
-		SELECTCASE CONDS("後ろ髪", ARG)
-		CASE "ウェーブ"
+		SELECTCASE CONDS("後髪", ARG)
+		CASE "卷髪"
 			HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Lf1%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASEELSE
 			HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Lf%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDSELECT
 	ENDSELECT
-CASE "バレッタ留め"
+CASE "简易扎发"
 	HAIR_LENGTH = <nonbutton pos='{FPOS}'><img src='4Li%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDSELECT
 
 HAIR_FRONT = <nonbutton pos='{FPOS}'><img src='16%CONDS("前髪", ARG)%%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 SELECTCASE CONDS("前髪", ARG)
-CASE "かきあげ", "編み込み", "外ハネバング", "デコ出し"
+CASE "撩刘海", "編髪", "外八刘海", "露额头"
 	SIF TALENT:ARG:動物耳
 		HAIR_FRONT = <nonbutton pos='{FPOS}'><img src='16%CONDS("前髪", ARG)%1%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "ボサボサ２"
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "ロング", "超ロング"
-		HAIR_FRONT = <nonbutton pos='{FPOS}'><img src='16%CONDS("前髪", ARG)%ロング%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "乱髪２"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "長", "超長"
+		HAIR_FRONT = <nonbutton pos='{FPOS}'><img src='16%CONDS("前髪", ARG)%長%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 ENDSELECT
 
-SELECTCASE CONDS("アホ毛", ARG)
-CASE "アホ毛", "アホ毛２", "アホ毛３", "触角"
-	HAIR_AHOGE = <nonbutton pos='{FPOS}'><img src='19%CONDS("アホ毛", ARG)%%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+SELECTCASE CONDS("呆毛", ARG)
+CASE "呆毛", "呆毛２", "呆毛３", "触角"
+	HAIR_AHOGE = <nonbutton pos='{FPOS}'><img src='19%CONDS("呆毛", ARG)%%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDSELECT
 
-SELECTCASE CONDS("リボン", ARG)
-CASE "リボンなし"
-CASE "頭上リボン"
+SELECTCASE CONDS("蝴蝶結", ARG)
+CASE "无蝴蝶結"
+CASE "頭上蝴蝶結"
 	SELECTCASE CONDS("髪色の種類", ARG)
 	CASE "青"
-		HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15頭上リボン黄' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15頭上蝴蝶結黄' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASE "黒", "銀", "緑"
-		HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15頭上リボン赤' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15頭上蝴蝶結赤' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASE "赤", "茶", "桃"
-		HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15頭上リボン白' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15頭上蝴蝶結白' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASE "金"
-		HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15頭上リボン青' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15頭上蝴蝶結青' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
-		HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15頭上リボン黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15頭上蝴蝶結黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-CASE "後ろリボン"
+CASE "頭後蝴蝶結"
 	SELECTCASE CONDS("髪色の種類", ARG)
 	CASE "赤", "桃", "紫"
-		RIBBON = <nonbutton pos='{FPOS}'><img src='1%CONDS("リボン", ARG)%白' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		RIBBON = <nonbutton pos='{FPOS}'><img src='1%CONDS("蝴蝶結", ARG)%白' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASE "青", "緑"
-		RIBBON = <nonbutton pos='{FPOS}'><img src='1%CONDS("リボン", ARG)%黄' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		RIBBON = <nonbutton pos='{FPOS}'><img src='1%CONDS("蝴蝶結", ARG)%黄' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
-		RIBBON = <nonbutton pos='{FPOS}'><img src='1%CONDS("リボン", ARG)%赤' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		RIBBON = <nonbutton pos='{FPOS}'><img src='1%CONDS("蝴蝶結", ARG)%赤' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-CASE "片側リボン２"
-	RIBBON_FRONT = <nonbutton pos='{FPOS}'><img src='1%CONDS("リボン", ARG)%%CLOCOLOR_MAIDFACE(CONDS("リボン", ARG), "", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "单側蝴蝶結２"
+	RIBBON_FRONT = <nonbutton pos='{FPOS}'><img src='1%CONDS("蝴蝶結", ARG)%%CLOCOLOR_MAIDFACE(CONDS("蝴蝶結", ARG), "", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 CASEELSE
-	SELECTCASE CONDS("アレンジ", ARG)
-	CASE "お団子", "お団子ツインテ"
-		RIBBON_MIDDLE = <nonbutton pos='{FPOS}'><img src='1%CONDS("リボン", ARG)%お団子%CLOCOLOR_MAIDFACE(@"%CONDS("リボン", ARG)%お団子", "", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "サイドテール"
-		IF CONDS("リボン", ARG) == "片側リボン" && CONDS("髪の長さ", ARG) == "ロング" && CONDS("後ろ髪", ARG) == "ナチュラル"
-			RIBBON_MIDDLE = <nonbutton pos='{FPOS}'><img src='1片側リボンサイドテール' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	SELECTCASE CONDS("改髪", ARG)
+	CASE "団子頭", "团子头双马尾"
+		RIBBON_MIDDLE = <nonbutton pos='{FPOS}'><img src='1%CONDS("蝴蝶結", ARG)%団子頭%CLOCOLOR_MAIDFACE(@"%CONDS("蝴蝶結", ARG)%団子頭", "", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	CASE "侧马尾"
+		IF CONDS("蝴蝶結", ARG) == "单側蝴蝶結" && CONDS("髪長", ARG) == "長" && CONDS("後髪", ARG) == "自然"
+			RIBBON_MIDDLE = <nonbutton pos='{FPOS}'><img src='1单側蝴蝶結侧马尾' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ELSE
-			RIBBON = <nonbutton pos='{FPOS}'><img src='1%CONDS("リボン", ARG)%%CLOCOLOR_MAIDFACE(CONDS("リボン", ARG), "", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			RIBBON = <nonbutton pos='{FPOS}'><img src='1%CONDS("蝴蝶結", ARG)%%CLOCOLOR_MAIDFACE(CONDS("蝴蝶結", ARG), "", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDIF
 	CASEELSE
-		RIBBON = <nonbutton pos='{FPOS}'><img src='1%CONDS("リボン", ARG)%%CLOCOLOR_MAIDFACE(CONDS("リボン", ARG), "", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		RIBBON = <nonbutton pos='{FPOS}'><img src='1%CONDS("蝴蝶結", ARG)%%CLOCOLOR_MAIDFACE(CONDS("蝴蝶結", ARG), "", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 ENDSELECT
-SIF CHECK_OTHER("かんざし", ARG) || STRCOUNT(STR:顔グラ衣装, "振袖")
-	RIBBON = <nonbutton pos='{FPOS}'><img src='1かんざし' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+SIF CHECK_OTHER("簪子", ARG) || STRCOUNT(STR:颜绘衣装, "振袖")
+	RIBBON = <nonbutton pos='{FPOS}'><img src='1簪子' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
 ;顔
 FACE = <nonbutton pos='{FPOS}'><img src='7a%CONDS("顔の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ;頬化粧
 SELECTCASE CONDS("頬化粧", ARG)
-CASE "隈取赤", "隈取青", "戦化粧"
+CASE "脸谱赤", "脸谱青", "战妆"
 	MAKEUP = <nonbutton pos='{FPOS}'><img src='8%CONDS("頬化粧", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDSELECT
 ;頬傷や頬絆創膏
@@ -506,12 +506,12 @@ SIF STRCOUNT(CSTR:ARG:頬, "頬傷右")
 	HOHO += @"<nonbutton pos='{FPOS}'><img src='8頬傷右%CONDS("顔の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
 SIF STRCOUNT(CSTR:ARG:頬, "頬傷鼻")
 	HOHO += @"<nonbutton pos='{FPOS}'><img src='8頬傷鼻%CONDS("顔の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
-SIF STRCOUNT(CSTR:ARG:頬, "頬絆創膏左")
-	HOHO += @"<nonbutton pos='{FPOS}'><img src='8頬絆創膏左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
-SIF STRCOUNT(CSTR:ARG:頬, "頬絆創膏右")
-	HOHO += @"<nonbutton pos='{FPOS}'><img src='8頬絆創膏右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
-SIF STRCOUNT(CSTR:ARG:頬, "頬絆創膏鼻")
-	HOHO += @"<nonbutton pos='{FPOS}'><img src='8頬絆創膏鼻' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+SIF STRCOUNT(CSTR:ARG:頬, "頬創口貼左")
+	HOHO += @"<nonbutton pos='{FPOS}'><img src='8頬創口貼左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+SIF STRCOUNT(CSTR:ARG:頬, "頬創口貼右")
+	HOHO += @"<nonbutton pos='{FPOS}'><img src='8頬創口貼右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+SIF STRCOUNT(CSTR:ARG:頬, "頬創口貼鼻")
+	HOHO += @"<nonbutton pos='{FPOS}'><img src='8頬創口貼鼻' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
 
 ;口
 IF COND("種族：獣人", ARG)
@@ -521,48 +521,48 @@ ELSEIF COND("種族：吸血鬼", ARG) + COND("種族：竜人", ARG)
 ELSE
 	NUM_FANG = 0
 ENDIF
-SELECTCASE CONDS("口の形", ARG)
-CASE "大口", "ワ", "半開き"
-	MOUTH = <nonbutton pos='{FPOS}'><img src='9%CONDS("口の形", ARG)%%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+SELECTCASE CONDS("嘴形", ARG)
+CASE "大口", "ワ", "半開"
+	MOUTH = <nonbutton pos='{FPOS}'><img src='9%CONDS("嘴形", ARG)%%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 CASEELSE
-	MOUTH = <nonbutton pos='{FPOS}'><img src='9%CONDS("口の形", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	MOUTH = <nonbutton pos='{FPOS}'><img src='9%CONDS("嘴形", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDSELECT
 
-SELECTCASE CONDS("左目の形", ARG)
+SELECTCASE CONDS("左眼形", ARG)
 ;色が関係ない目
-CASE "糸目", "にっこり", "瞑り", "〇〇", "＞＜"
-	LEYE = <nonbutton pos='{FPOS}'><img src='11%CONDS("左目の形", ARG)%左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "眯眯眼", "にっこり", "瞑り", "〇〇", "＞＜"
+	LEYE = <nonbutton pos='{FPOS}'><img src='11%CONDS("左眼形", ARG)%左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 CASEELSE
-	LEYE = <nonbutton pos='{FPOS}'><img src='11%CONDS("左目の形", ARG)%%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	LEYE = <nonbutton pos='{FPOS}'><img src='11%CONDS("左眼形", ARG)%%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDSELECT
-SELECTCASE CONDS("右目の形", ARG)
+SELECTCASE CONDS("右眼形", ARG)
 ;色が関係ない目
-CASE "糸目", "にっこり", "瞑り", "〇〇", "＞＜"
-	REYE = <nonbutton pos='{FPOS}'><img src='11%CONDS("右目の形", ARG)%右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "眯眯眼", "にっこり", "瞑り", "〇〇", "＞＜"
+	REYE = <nonbutton pos='{FPOS}'><img src='11%CONDS("右眼形", ARG)%右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 CASEELSE
-	REYE = <nonbutton pos='{FPOS}'><img src='11%CONDS("右目の形", ARG)%%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	REYE = <nonbutton pos='{FPOS}'><img src='11%CONDS("右眼形", ARG)%%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDSELECT
 
 IF TALENT:ARG:動物耳
 	IF COND("種族：兎", ARG)
 		ANIMAL_EARS = <nonbutton pos='{FPOS}'><img src='12兎耳%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ELSEIF TALENT:ARG:動物耳 == 2
-		ANIMAL_EARS = <nonbutton pos='{FPOS}'><img src='12動物タレ耳%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		ANIMAL_EARS = <nonbutton pos='{FPOS}'><img src='12動物耷拉耳%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ELSE
 		ANIMAL_EARS = <nonbutton pos='{FPOS}'><img src='12動物耳%CONDS("髪色の種類", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDIF
-ELSEIF TALENT:ARG:エルフ耳
+ELSEIF TALENT:ARG:精灵耳
 	FACE = %FACE%<nonbutton pos='{FPOS}'><img src='12%CONDS("耳の形", ARG)%%CONDS("顔の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ELSE
 	;髪型次第では人間耳は隠れる
-	SELECTCASE CONDS("髪の長さ", ARG)
-	CASE "セミロング", "ロング", "超ロング"
+	SELECTCASE CONDS("髪長", ARG)
+	CASE "披肩", "長", "超長"
 		SELECTCASE CONDS("前髪", ARG)
-		CASE "かきあげ", "編み込み", "外ハネバング", "デコ出し", "ぱっつん", "アシメ", "Ｍ字バング"
+		CASE "撩刘海", "編髪", "外八刘海", "露额头", "齐刘海", "不对称", "Ｍ字刘海"
 			FACE = %FACE%<nonbutton pos='{FPOS}'><img src='12%CONDS("耳の形", ARG)%%CONDS("顔の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASEELSE
-			SELECTCASE CONDS("アレンジ", ARG)
-			CASE "編み上げ", "シニヨン", "ツインテール", "ショートツインテ", "ロングツインテ", "ウェーブツインテ", "ドリルツインテ", "お団子ツインテ", "ポニーテール", "一つ結び"
+			SELECTCASE CONDS("改髪", ARG)
+			CASE "编起来", "盘头", "双马尾", "短双马尾", "長双马尾", "卷双马尾", "钻头双马尾", "团子头双马尾", "马尾辫", "单辫"
 				FACE = %FACE%<nonbutton pos='{FPOS}'><img src='12%CONDS("耳の形", ARG)%%CONDS("顔の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 			ENDSELECT
 		ENDSELECT
@@ -571,50 +571,50 @@ ELSE
 	ENDSELECT
 ENDIF
 ;眉
-MAYU = <nonbutton pos='{FPOS}'><img src='18%CONDS("眉の形", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+MAYU = <nonbutton pos='{FPOS}'><img src='18%CONDS("眉形", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
 ;服の下につける
-IF CHECK_OTHER("赤い鈴付き首輪", ARG)
-	CLOTHES_FACE = <nonbutton pos='{FPOS}'><img src='20赤い鈴付き首輪' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-ELSEIF CHECK_OTHER("黒い鈴付き首輪", ARG)
-	CLOTHES_FACE = <nonbutton pos='{FPOS}'><img src='20黒い鈴付き首輪' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-ELSEIF CHECK_OTHER("鈴付き首輪", ARG)
-	CLOTHES_FACE = <nonbutton pos='{FPOS}'><img src='20鈴付き首輪' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-ELSEIF CHECK_OTHER("黒いチョーカー", ARG)
-	CLOTHES_FACE = <nonbutton pos='{FPOS}'><img src='20黒いチョーカー' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+IF CHECK_OTHER("赤い鈴付き项圈", ARG)
+	CLOTHES_FACE = <nonbutton pos='{FPOS}'><img src='20赤い鈴付き项圈' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+ELSEIF CHECK_OTHER("黑色鈴付き项圈", ARG)
+	CLOTHES_FACE = <nonbutton pos='{FPOS}'><img src='20黑色鈴付き项圈' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+ELSEIF CHECK_OTHER("鈴付き项圈", ARG)
+	CLOTHES_FACE = <nonbutton pos='{FPOS}'><img src='20鈴付き项圈' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+ELSEIF CHECK_OTHER("黒色颈环", ARG)
+	CLOTHES_FACE = <nonbutton pos='{FPOS}'><img src='20黒色颈环' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDIF
 
-SELECTCASE CLO("顔グラ衣装", ARG)
-CASE "", "ハダカ"
-	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("チークカラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+SELECTCASE CLO("颜绘衣装", ARG)
+CASE "", "裸体"
+	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("脸颊カラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 CASEELSE
-	SIF STRCOUNT(CLO("顔グラ衣装", ARG), "下着") && CHECK_CLO("水着姿", ARG) == 0 && CFLAG:ARG:睡眠 + CFLAG:ARG:寝起き + TALENT:ARG:恥薄い == 0
-		CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("チークカラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	SIF STRCOUNT(CLO("颜绘衣装", ARG), "内衣") && CHECK_CLO("泳装姿", ARG) == 0 && CFLAG:ARG:睡眠 + CFLAG:ARG:刚睡醒 + TALENT:ARG:不知羞恥 == 0
+		CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("脸颊カラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
 	;重ね着するもの
-	SIF STRCOUNT(CLO("顔グラ衣装", ARG), "シャツ無しパーカー") && CLO("顔グラ衣装：下着と水着", ARG) != ""
-		CLOTHES_FACE += @"<nonbutton pos='{FPOS}'><img src='13%CLO("顔グラ衣装：下着と水着", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+	SIF STRCOUNT(CLO("颜绘衣装", ARG), "恤没有連帽風衣") && CLO("颜绘衣装：内衣と泳装", ARG) != ""
+		CLOTHES_FACE += @"<nonbutton pos='{FPOS}'><img src='13%CLO("颜绘衣装：内衣と泳装", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
 
-	CLOTHES_FACE += @"<nonbutton pos='{FPOS}'><img src='13%CLO("顔グラ衣装", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+	CLOTHES_FACE += @"<nonbutton pos='{FPOS}'><img src='13%CLO("颜绘衣装", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
 ENDSELECT
 ;サスペンダー
-IF CHECK_CLO("フリルサスペンダー", ARG)
-	CLOTHES_FACE += @"<nonbutton pos='{FPOS}'><img src='13フリルサスペンダー%CLOCOLOR_MAIDFACE("フリルサスペンダー", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "サスペンダー") ), ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
-ELSEIF CHECK_CLO("サスペンダー", ARG)
-	CLOTHES_FACE += @"<nonbutton pos='{FPOS}'><img src='13サスペンダー%CLOCOLOR_MAIDFACE("サスペンダー", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "サスペンダー") ), ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+IF CHECK_CLO("褶边裙吊带", ARG)
+	CLOTHES_FACE += @"<nonbutton pos='{FPOS}'><img src='13褶边裙吊带%CLOCOLOR_MAIDFACE("褶边裙吊带", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "裤吊带") ), ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+ELSEIF CHECK_CLO("裤吊带", ARG)
+	CLOTHES_FACE += @"<nonbutton pos='{FPOS}'><img src='13裤吊带%CLOCOLOR_MAIDFACE("裤吊带", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "裤吊带") ), ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
 ENDIF
 ;変な柄のＴシャツ
-IF CHECK_SHIRT("変な柄のＴシャツ", ARG)
+IF CHECK_SHIRT("怪图案Ｔ恤", ARG)
 	CLOTHES_FACE += @"<nonbutton pos='{FPOS}'><img src='13%CONDS("変Ｔの文字", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
 ENDIF
 
 
 ;STR:顔グラ衣装とあなたの衣装用
-IF STR:顔グラ衣装 != ""
-	IF STRCOUNT(STR:顔グラ衣装, "/")
+IF STR:颜绘衣装 != ""
+	IF STRCOUNT(STR:颜绘衣装, "/")
 		VARSET LOCALS
-		SPLIT STR:顔グラ衣装, "/", LOCALS
-		FOR LCOUNT, 1, STRCOUNT(STR:顔グラ衣装, "/") + 1
+		SPLIT STR:颜绘衣装, "/", LOCALS
+		FOR LCOUNT, 1, STRCOUNT(STR:颜绘衣装, "/") + 1
 			SIF LOCALS:LCOUNT == ""
 				CONTINUE
 			CLOTHES_FACE += @"<nonbutton pos='{FPOS}'><img src='13%LOCALS:LCOUNT%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
@@ -634,62 +634,62 @@ ENDIF
 
 ;会話中は吹き出しON
 SIF TFLAG:交流中 || CFLAG:ARG:交流中
-	EMOTE = <nonbutton pos='{FPOS}'><img src='21ワイワイ' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	EMOTE = <nonbutton pos='{FPOS}'><img src='21兴奋' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
 ;精神状態で少し変化
-SELECTCASE CONDS("顔グラコンディション", ARG)
+SELECTCASE CONDS("颜绘コンディション", ARG)
 CASE "睡眠"
 	LEYE = <nonbutton pos='{FPOS}'><img src='11瞑り左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	REYE = <nonbutton pos='{FPOS}'><img src='11瞑り右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
-	SELECTCASE CONDS("口の形", ARG)
-	CASE "への字", "大口", "ワ", "ふくれっ面"
-		MOUTH = <nonbutton pos='{FPOS}'><img src='9半開き%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	SELECTCASE CONDS("嘴形", ARG)
+	CASE "へ字", "大口", "ワ", "嘟嘴"
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9半開%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASE "嘲笑"
-		MOUTH = <nonbutton pos='{FPOS}'><img src='9への字' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9へ字' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASE "笑顔"
 		MOUTH = <nonbutton pos='{FPOS}'><img src='9微笑' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
 	SIF EXP_GAIN("睡眠姦経験", ARG)
-		CHEEK = <nonbutton pos='{FPOS}'><img src='8赤面%CONDS("チークカラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CHEEK = <nonbutton pos='{FPOS}'><img src='8赤面%CONDS("脸颊カラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
-	SELECTCASE CONDS("眉の形", ARG)
-	CASE "怒り眉", "怒り眉短"
+	SELECTCASE CONDS("眉形", ARG)
+	CASE "憤怒眉", "短憤怒眉"
 		MAYU = <nonbutton pos='{FPOS}'><img src='18通常眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
-	EMOTE = <nonbutton pos='{FPOS}'><img src='21眠り' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "寝起き"
-	SELECTCASE CONDS("目の形", ARG)
-	CASE "糸目"
+	EMOTE = <nonbutton pos='{FPOS}'><img src='21睡眠' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "刚睡醒"
+	SELECTCASE CONDS("眼形", ARG)
+	CASE "眯眯眼"
 	CASEELSE
-		LEYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		REYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		LEYE = <nonbutton pos='{FPOS}'><img src='11斜眼%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		REYE = <nonbutton pos='{FPOS}'><img src='11斜眼%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
-	SELECTCASE CONDS("口の形", ARG)
-	CASE "への字", "大口", "ワ", "笑顔", "ふくれっ面"
-		MOUTH = <nonbutton pos='{FPOS}'><img src='9半開き%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CASE "微笑", "への字", "嘲笑"
+	SELECTCASE CONDS("嘴形", ARG)
+	CASE "へ字", "大口", "ワ", "笑顔", "嘟嘴"
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9半開%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	CASE "微笑", "へ字", "嘲笑"
 		MOUTH = <nonbutton pos='{FPOS}'><img src='9△' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
-	EMOTE = <nonbutton pos='{FPOS}'><img src='21寝ぼけ' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	EMOTE = <nonbutton pos='{FPOS}'><img src='21困倦' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	;萌え袖
 	SIF CHECK_SHIRT("萌え袖", ARG)
 		IS_MOESODE = 1
-CASE "不機嫌"
-	SELECTCASE CONDS("目の形", ARG)
-	CASE "三白眼", "ジト三白眼"
-		LEYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		REYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "心情差"
+	SELECTCASE CONDS("眼形", ARG)
+	CASE "三白眼", "重度三白眼"
+		LEYE = <nonbutton pos='{FPOS}'><img src='11重度三白眼%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		REYE = <nonbutton pos='{FPOS}'><img src='11重度三白眼%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
-		LEYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		REYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		LEYE = <nonbutton pos='{FPOS}'><img src='11斜眼%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		REYE = <nonbutton pos='{FPOS}'><img src='11斜眼%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
-	SELECTCASE CONDS("口の形", ARG)
+	SELECTCASE CONDS("嘴形", ARG)
 	CASE "微笑", "笑顔", "大口", "ワ", "無口系"
 		MOUTH = <nonbutton pos='{FPOS}'><img src='9△' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASE "△", "ω", "嘲笑"
@@ -700,161 +700,161 @@ CASE "不機嫌"
 	SIF CFLAG:ARG:交流中 == 0
 		EMOTE = 
 	;EMOTE = <nonbutton pos='{FPOS}'><img src='21怒り' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "怒り"
-	SELECTCASE CONDS("目の形", ARG)
-	CASE "ジト三白眼"
-		LEYE = <nonbutton pos='{FPOS}'><img src='11三白眼%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		REYE = <nonbutton pos='{FPOS}'><img src='11三白眼%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "憤怒"
+	SELECTCASE CONDS("眼形", ARG)
+	CASE "重度三白眼"
+		LEYE = <nonbutton pos='{FPOS}'><img src='11三白眼%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		REYE = <nonbutton pos='{FPOS}'><img src='11三白眼%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
-	SELECTCASE CONDS("口の形", ARG)
+	SELECTCASE CONDS("嘴形", ARG)
 	CASE "ω", "ワ"
-		MOUTH = <nonbutton pos='{FPOS}'><img src='9ふくれっ面' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9嘟嘴' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
 		MOUTH = <nonbutton pos='{FPOS}'><img src='9△' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
-	SELECTCASE CONDS("眉の形", ARG)
+	SELECTCASE CONDS("眉形", ARG)
 	CASE "麻呂眉"
 	CASEELSE
-		MAYU = <nonbutton pos='{FPOS}'><img src='18怒り眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		MAYU = <nonbutton pos='{FPOS}'><img src='18憤怒眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 	CHEEK = 
-	EMOTE = <nonbutton pos='{FPOS}'><img src='21怒り' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "甘い言葉"
-	IF TALENT:ARG:気品 + TALENT:ARG:冷静 + TALENT:ARG:清楚
-		IF CFLAG:ARG:褒める && CFLAG:ARG:ムラムラ == 0
-			LEYE = <nonbutton pos='{FPOS}'><img src='11糸目左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-			REYE = <nonbutton pos='{FPOS}'><img src='11糸目右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	EMOTE = <nonbutton pos='{FPOS}'><img src='21憤怒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "甜言蜜语"
+	IF TALENT:ARG:高贵 + TALENT:ARG:冷静 + TALENT:ARG:清楚
+		IF CFLAG:ARG:夸奖 && CFLAG:ARG:躁动难忍 == 0
+			LEYE = <nonbutton pos='{FPOS}'><img src='11眯眯眼左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11眯眯眼右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDIF
 
-		SELECTCASE CONDS("口の形", ARG)
-		CASE "大口", "半開き"
+		SELECTCASE CONDS("嘴形", ARG)
+		CASE "大口", "半開"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9ω' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASE "笑顔"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9ワ%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "△", "への字", "無口系", "嘲笑"
+		CASE "△", "へ字", "無口系", "嘲笑"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9微笑' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDSELECT
 	ELSE
-		IF CFLAG:ARG:褒める && CFLAG:ARG:ムラムラ == 0
+		IF CFLAG:ARG:夸奖 && CFLAG:ARG:躁动难忍 == 0
 			LEYE = <nonbutton pos='{FPOS}'><img src='11にっこり左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 			REYE = <nonbutton pos='{FPOS}'><img src='11にっこり右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDIF
-		SELECTCASE CONDS("口の形", ARG)
-		CASE "半開き", "嘲笑"
+		SELECTCASE CONDS("嘴形", ARG)
+		CASE "半開", "嘲笑"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9ω' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "△", "への字", "無口系"
+		CASE "△", "へ字", "無口系"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9微笑' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDSELECT
 	ENDIF
-	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("チークカラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	IF TALENT:ARG:反抗的 == 0 && (TALENT:ARG:恋慕 || CFLAG:ARG:褒める || CFLAG:ARG:ムラムラ) && TFLAG:交流中 == 0 && CFLAG:ARG:交流中 == 0
-		EMOTE = <nonbutton pos='{FPOS}'><img src='21ハート' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("脸颊カラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	IF TALENT:ARG:叛逆 == 0 && (TALENT:ARG:恋慕 || CFLAG:ARG:夸奖 || CFLAG:ARG:躁动难忍) && TFLAG:交流中 == 0 && CFLAG:ARG:交流中 == 0
+		EMOTE = <nonbutton pos='{FPOS}'><img src='21爱心' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		;恋慕or淫乱＆ムラムラならハート目に
-		SIF TALENT:ARG:恋慕 + TALENT:ARG:淫乱 && CFLAG:ARG:ムラムラ && STRCOUNT(CSTR:ARG:顔グラ変化, "ハート目") == 0
-			CSTR:ARG:顔グラ変化 += "/ハート目"
+		SIF TALENT:ARG:恋慕 + TALENT:ARG:淫乱 && CFLAG:ARG:躁动难忍 && STRCOUNT(CSTR:ARG:颜绘変化, "爱心眼") == 0
+			CSTR:ARG:颜绘変化 += "/爱心眼"
 	ENDIF
-CASE "褒める"
-	SELECTCASE CONDS("眉の形", ARG)
-	CASE "困り眉", "困り眉短"
-		MAYU = <nonbutton pos='{FPOS}'><img src='18たれ眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "夸奖"
+	SELECTCASE CONDS("眉形", ARG)
+	CASE "困扰眉", "短困扰眉"
+		MAYU = <nonbutton pos='{FPOS}'><img src='18斜眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
-	IF TALENT:ARG:気品 + TALENT:ARG:冷静 + TALENT:ARG:清楚
-		LEYE = <nonbutton pos='{FPOS}'><img src='11糸目左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		REYE = <nonbutton pos='{FPOS}'><img src='11糸目右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	IF TALENT:ARG:高贵 + TALENT:ARG:冷静 + TALENT:ARG:清楚
+		LEYE = <nonbutton pos='{FPOS}'><img src='11眯眯眼左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		REYE = <nonbutton pos='{FPOS}'><img src='11眯眯眼右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
-		SELECTCASE CONDS("口の形", ARG)
-		CASE "大口", "半開き"
+		SELECTCASE CONDS("嘴形", ARG)
+		CASE "大口", "半開"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9ω' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASE "笑顔"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9ワ%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "△", "への字", "無口系"
+		CASE "△", "へ字", "無口系"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9微笑' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDSELECT
 	ELSE
 		LEYE = <nonbutton pos='{FPOS}'><img src='11にっこり左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		REYE = <nonbutton pos='{FPOS}'><img src='11にっこり右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
-		SELECTCASE CONDS("口の形", ARG)
-		CASE "半開き"
+		SELECTCASE CONDS("嘴形", ARG)
+		CASE "半開"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9ω' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "△", "への字", "無口系"
+		CASE "△", "へ字", "無口系"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9微笑' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDSELECT
 	ENDIF
-	SIF TALENT:ARG:冷静 + TALENT:ARG:感情乏しい == 0
-		CHEEK = <nonbutton pos='{FPOS}'><img src='8頬染%CONDS("チークカラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	SIF TALENT:ARG:冷静 + TALENT:ARG:感情缺乏 == 0
+		CHEEK = <nonbutton pos='{FPOS}'><img src='8红晕%CONDS("脸颊カラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	SIF TFLAG:交流中 == 0 && CFLAG:ARG:交流中 == 0
-		EMOTE = <nonbutton pos='{FPOS}'><img src='21満開' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "反抗的"
-	SELECTCASE CONDS("口の形", ARG)
+		EMOTE = <nonbutton pos='{FPOS}'><img src='21開心' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "叛逆"
+	SELECTCASE CONDS("嘴形", ARG)
 	CASE "微笑", "笑顔", "大口", "ω", "ワ"
-		MOUTH = <nonbutton pos='{FPOS}'><img src='9への字' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9へ字' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-	MAYU = <nonbutton pos='{FPOS}'><img src='18怒り眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	MAYU = <nonbutton pos='{FPOS}'><img src='18憤怒眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CHEEK = 
-CASE "ムラムラ"
-	SELECTCASE CONDS("口の形", ARG)
+CASE "躁动难忍"
+	SELECTCASE CONDS("嘴形", ARG)
 	CASE "笑顔"
 		MOUTH = <nonbutton pos='{FPOS}'><img src='9△' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("チークカラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	IF TALENT:ARG:反抗的 == 0 && COND("発情中", ARG)
-		SELECTCASE CONDS("眉の形", ARG)
+	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("脸颊カラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	IF TALENT:ARG:叛逆 == 0 && COND("発情中", ARG)
+		SELECTCASE CONDS("眉形", ARG)
 		CASE "麻呂眉"
 		CASEELSE
-			MAYU = <nonbutton pos='{FPOS}'><img src='18困り眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			MAYU = <nonbutton pos='{FPOS}'><img src='18困扰眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDSELECT
-		MOUTH = <nonbutton pos='{FPOS}'><img src='9半開き%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9半開%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		;EMOTE = <nonbutton pos='{FPOS}'><img src='21ハート' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDIF
-CASE "恥じらい"
-	SELECTCASE CONDS("眉の形", ARG)
-	CASE "麻呂眉", "怒り眉", "怒り眉短"
+CASE "害羞"
+	SELECTCASE CONDS("眉形", ARG)
+	CASE "麻呂眉", "憤怒眉", "短憤怒眉"
 	CASEELSE
-		MAYU = <nonbutton pos='{FPOS}'><img src='18困り眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		MAYU = <nonbutton pos='{FPOS}'><img src='18困扰眉%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
-	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("チークカラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("脸颊カラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	;萌え袖
 	SIF CHECK_SHIRT("萌え袖", ARG)
 		IS_MOESODE = 1
-CASE "びっくり"
+CASE "惊嚇"
 	LEYE = <nonbutton pos='{FPOS}'><img src='11〇〇左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	REYE = <nonbutton pos='{FPOS}'><img src='11〇〇右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
-	SELECTCASE CONDS("口の形", ARG)
-	CASE "微笑", "への字", "笑顔", "大口", "ω", "ワ", "嘲笑"
+	SELECTCASE CONDS("嘴形", ARG)
+	CASE "微笑", "へ字", "笑顔", "大口", "ω", "ワ", "嘲笑"
 		MOUTH = <nonbutton pos='{FPOS}'><img src='9△' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
 	CHEEK = 
-	EMOTE = <nonbutton pos='{FPOS}'><img src='21驚き' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	EMOTE = <nonbutton pos='{FPOS}'><img src='21惊讶' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 CASE "小悪魔"
-	SELECTCASE CONDS("目の形", ARG)
+	SELECTCASE CONDS("眼形", ARG)
 	CASE "三白眼"
-		LEYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		REYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		LEYE = <nonbutton pos='{FPOS}'><img src='11重度三白眼%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		REYE = <nonbutton pos='{FPOS}'><img src='11重度三白眼%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
 	MOUTH = <nonbutton pos='{FPOS}'><img src='9微笑' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("チークカラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("脸颊カラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	;萌え袖
 	SIF CHECK_SHIRT("萌え袖", ARG)
 		IS_MOESODE = 1
-CASE "頬染め呆れ"
-	SELECTCASE CONDS("目の形", ARG)
-	CASE "三白眼", "ジト三白眼"
-		LEYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		REYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "红潮恍惚"
+	SELECTCASE CONDS("眼形", ARG)
+	CASE "三白眼", "重度三白眼"
+		LEYE = <nonbutton pos='{FPOS}'><img src='11重度三白眼%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		REYE = <nonbutton pos='{FPOS}'><img src='11重度三白眼%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
-		LEYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		REYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		LEYE = <nonbutton pos='{FPOS}'><img src='11斜眼%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		REYE = <nonbutton pos='{FPOS}'><img src='11斜眼%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDSELECT
 
 	MOUTH = <nonbutton pos='{FPOS}'><img src='9△' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("チークカラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	CHEEK = <nonbutton pos='{FPOS}'><img src='8紅潮%CONDS("脸颊カラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 CASE "目陰"
 	FACE = %FACE%<nonbutton pos='{FPOS}'><img src='22目陰%CONDS("顔の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	LEYE = 
@@ -871,7 +871,7 @@ ENDSELECT
 
 IF CEVENT("正体偽装", ARG) == 0
 	;角は髪とかの色で色が変わる
-	IF TALENT:ARG:ツノ
+	IF TALENT:ARG:角
 		IF COND("種族：竜人", ARG)
 			SELECTCASE CONDS("髪色の種類", ARG)
 			CASE "青"
@@ -920,26 +920,26 @@ IF CEVENT("正体偽装", ARG) == 0
 ENDIF
 
 SELECTCASE CONDS("眼鏡", ARG)
-CASE "", "眼鏡なし"
-CASE "目隠し黒", "目隠し白"
+CASE "", "无眼鏡"
+CASE "眼罩黒", "眼罩白"
 	MEGANE = <nonbutton pos='{FPOS}'><img src='20%CONDS("眼鏡", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	LEYE = <nonbutton pos='{FPOS}'><img src='11糸目左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-	REYE = <nonbutton pos='{FPOS}'><img src='11糸目右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-CASE "サングラス"
-	MEGANE = <nonbutton pos='{FPOS}'><img src='20サングラス' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	LEYE = <nonbutton pos='{FPOS}'><img src='11眯眯眼左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	REYE = <nonbutton pos='{FPOS}'><img src='11眯眯眼右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "太阳鏡"
+	MEGANE = <nonbutton pos='{FPOS}'><img src='20太阳鏡' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 CASEELSE
-	SELECTCASE CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "眼鏡") )
+	SELECTCASE CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "眼鏡") )
 	CASE "黒", "赤", "青"
-		CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20%CONDS("眼鏡", ARG)%%CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "眼鏡") )%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20%CONDS("眼鏡", ARG)%%CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "眼鏡") )%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
-		IF STRCOUNT(CSTR:ARG:好きな色, "黒")
+		IF STRCOUNT(CSTR:ARG:喜欢的颜色, "黒")
 			MEGANE = <nonbutton pos='{FPOS}'><img src='20%CONDS("眼鏡", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		ELSEIF STRCOUNT(CSTR:ARG:好きな色, "赤")
+		ELSEIF STRCOUNT(CSTR:ARG:喜欢的颜色, "赤")
 			MEGANE = <nonbutton pos='{FPOS}'><img src='20%CONDS("眼鏡", ARG)%赤' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		ELSEIF STRCOUNT(CSTR:ARG:好きな色, "青")
+		ELSEIF STRCOUNT(CSTR:ARG:喜欢的颜色, "青")
 			MEGANE = <nonbutton pos='{FPOS}'><img src='20%CONDS("眼鏡", ARG)%青' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ELSE
-			SELECTCASE CONDS("肌の色", ARG)
+			SELECTCASE CONDS("肤色", ARG)
 			CASE "普通"
 				;SELECTCASE CONDS("右目の色", ARG)
 				;CASE "黒"
@@ -948,14 +948,14 @@ CASEELSE
 					MEGANE = <nonbutton pos='{FPOS}'><img src='20%CONDS("眼鏡", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 				;ENDSELECT
 			CASE "褐色肌"
-				SELECTCASE CONDS("右目の色", ARG)
+				SELECTCASE CONDS("右瞳色", ARG)
 				CASE "赤"
 					MEGANE = <nonbutton pos='{FPOS}'><img src='20%CONDS("眼鏡", ARG)%青' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 				CASEELSE
 					MEGANE = <nonbutton pos='{FPOS}'><img src='20%CONDS("眼鏡", ARG)%赤' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 				ENDSELECT
 			CASEELSE
-				SELECTCASE CONDS("右目の色", ARG)
+				SELECTCASE CONDS("右瞳色", ARG)
 				CASE "赤"
 					MEGANE = <nonbutton pos='{FPOS}'><img src='20%CONDS("眼鏡", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 				CASEELSE
@@ -968,39 +968,39 @@ ENDSELECT
 ;三白眼はメガネ形状に合わせる
 IF MEGANE != ""
 	SELECTCASE CONDS("眼鏡", ARG)
-	CASE "ブロー眼鏡", "フルリム眼鏡", "サングラス"
-		SELECTCASE CONDS("目の形", ARG)
+	CASE "专家眼鏡", "黑框眼鏡", "太阳鏡"
+		SELECTCASE CONDS("眼形", ARG)
 		CASE "三白眼"
-			LEYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-			REYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			LEYE = <nonbutton pos='{FPOS}'><img src='11重度三白眼%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11重度三白眼%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDSELECT
 	ENDSELECT
 ENDIF
 
-SIF CHECK_OTHER("ウェディングベール", ARG) || STRCOUNT(STR:顔グラ衣装, "ウェディングドレス")
+SIF CHECK_OTHER("ウェディングベール", ARG) || STRCOUNT(STR:颜绘衣装, "婚纱礼服")
     HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15ウェディングベール' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-SIF CHECK_SHIRT("チアユニフォーム", ARG) || STRCOUNT(STR:顔グラ衣装, "チアユニフォーム")
+SIF CHECK_SHIRT("啦啦队制服", ARG) || STRCOUNT(STR:颜绘衣装, "啦啦队制服")
 	OTHER = <nonbutton pos='{FPOS}'><img src='22ponpon' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-IF CHECK_OTHER("マフラー", ARG) && PLACE("野外")
-	SELECTCASE CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "マフラー") )
+IF CHECK_OTHER("围巾", ARG) && PLACE("野外")
+	SELECTCASE CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "围巾") )
 	CASE "藤の花", "緑色", "橙色", "紫", "赤", "黄色", "青", "白"
-		CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20マフラー%CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "マフラー") )%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20围巾%CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "围巾") )%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	CASEELSE
-		SELECTCASE CONDS("右目の色", ARG)
+		SELECTCASE CONDS("右瞳色", ARG)
 		CASE "赤", "紫"
-			CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20マフラー%CONDS("右目の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20围巾%CONDS("右瞳色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASE "緑", "黄"
-			CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20マフラー%CONDS("右目の色", ARG)%色' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20围巾%CONDS("右瞳色", ARG)%色' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASEELSE
 			SELECTCASE CONDS("髪色の種類", ARG)
 			CASE "黒", "茶"
-				CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20マフラー赤' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+				CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20围巾赤' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 			CASE "金", "銀", "青", "緑"
-				CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20マフラー橙色' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+				CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20围巾橙色' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 			CASE "赤", "紫"
-				CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20マフラー緑色' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+				CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20围巾緑色' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 			CASEELSE
-				CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20マフラー青' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+				CLOTHES_FACE = %CLOTHES_FACE%<nonbutton pos='{FPOS}'><img src='20围巾青' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 			ENDSELECT
 		ENDSELECT
 	ENDSELECT
@@ -1031,8 +1031,8 @@ SIF CHECK_STAIN(STAIN:ARG:Ｂ, "精液")
 	BUKKAKE = %BUKKAKE%<nonbutton pos='{FPOS}'><img src='22精液Ｂ' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 
 ;帽子系。吹き出しを除く他全ての前に描写するタイプの物はOVERを用いる
-IF CHECK_OTHER("シスターベール", ARG) || STRCOUNT(STR:顔グラ衣装, "修道服")
-    OVER = <nonbutton pos='{FPOS}'><img src='15シスターベール' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+IF CHECK_OTHER("修女帽", ARG) || STRCOUNT(STR:颜绘衣装, "修道服")
+    OVER = <nonbutton pos='{FPOS}'><img src='15修女帽' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	;アレンジ、リボン、アホ毛、動物耳、ツノ、翼などはおかしなことになるので無くす
 	HAIR_ACCE = 
 	TUNO = 
@@ -1044,135 +1044,135 @@ IF CHECK_OTHER("シスターベール", ARG) || STRCOUNT(STR:顔グラ衣装, "�
 	HAIR_AHOGE = 
 	HAIR_BACK = 
 	HAIR_MIDDLE = 
-ELSEIF CHECK_OTHER("うさ耳", ARG) || STRCOUNT(STR:顔グラ衣装, "バニー")
+ELSEIF CHECK_OTHER("兔耳", ARG) || STRCOUNT(STR:颜绘衣装, "兔")
 	IF TALENT:ARG:動物耳 == 0
-		SELECTCASE CLO("顔グラ衣装の色", ARG)
+		SELECTCASE CLO("颜绘衣装の色", ARG)
 		CASE "黒", "紫", "赤", "青", "白"
-			HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15d%CLO("顔グラ衣装の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15d%CLO("颜绘衣装の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASEELSE
 			HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15d赤' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		ENDSELECT
 	ENDIF
-ELSEIF CHECK_OTHER("ナースキャップ", ARG) || STRCOUNT(STR:顔グラ衣装, "ナース服")
-    HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15ナースキャップ' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+ELSEIF CHECK_OTHER("护士帽", ARG) || STRCOUNT(STR:颜绘衣装, "护士服")
+    HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15护士帽' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_AHOGE = 
-ELSEIF CHECK_OTHER("ティアラ", ARG) || STRCOUNT(STR:顔グラ衣装, "ウェディングドレス")
-    HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15ティアラ' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+ELSEIF CHECK_OTHER("头冠", ARG) || STRCOUNT(STR:颜绘衣装, "婚纱礼服")
+    HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15头冠' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_AHOGE = 
-ELSEIF CHECK_OTHER("メイドキャップ", ARG) || (STRCOUNT(STR:顔グラ衣装, "メイド服") && CONFIG("メイドキャップ") )
-	HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15メイドキャップ' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+ELSEIF CHECK_OTHER("女仆帽", ARG) || (STRCOUNT(STR:颜绘衣装, "女仆装") && CONFIG("女仆帽") )
+	HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15女仆帽' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_AHOGE = 
 	HAIR_BACK = 
 	HAIR_MIDDLE = 
 	ANIMAL_EARS = 
-ELSEIF CHECK_OTHER("ヘッドドレス", ARG) || STRCOUNT(STR:顔グラ衣装, "メイド服")
+ELSEIF CHECK_OTHER("礼服头花", ARG) || STRCOUNT(STR:颜绘衣装, "女仆装")
 	HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15a白' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_AHOGE = 
-ELSEIF CHECK_OTHER("頭上サングラス", ARG)
-	OVER = <nonbutton pos='{FPOS}'><img src='15頭上サングラス' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+ELSEIF CHECK_OTHER("頭上太阳鏡", ARG)
+	OVER = <nonbutton pos='{FPOS}'><img src='15頭上太阳鏡' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_AHOGE = 
-ELSEIF CHECK_OTHER("カチューシャ", ARG)
+ELSEIF CHECK_OTHER("髮箍", ARG)
 	HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='15b赤' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDIF
 
 IF CHECK_OTHER("魔女の帽子", ARG)
 	OVER = <nonbutton pos='{FPOS}'><img src='5魔女の帽子' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	HAIR_AHOGE = 
-ELSEIF CHECK_OTHER("キャスケット帽", ARG)
-	HAIR_FRONT += @"<nonbutton pos='{FPOS}'><img src='5キャスケット帽%CLOCOLOR_MAIDFACE("キャスケット帽", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "帽子") ), ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+ELSEIF CHECK_OTHER("鸭舌帽", ARG)
+	HAIR_FRONT += @"<nonbutton pos='{FPOS}'><img src='5鸭舌帽%CLOCOLOR_MAIDFACE("鸭舌帽", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "帽子") ), ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
 	ANIMAL_EARS = 
 	HAIR_AHOGE = 
-ELSEIF CHECK_OTHER("麦わら帽子", ARG)
-	HAIR_FRONT += @"<nonbutton pos='{FPOS}'><img src='5麦わら帽子' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+ELSEIF CHECK_OTHER("草帽", ARG)
+	HAIR_FRONT += @"<nonbutton pos='{FPOS}'><img src='5草帽' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
 	ANIMAL_EARS = 
 	HAIR_AHOGE = 
-ELSEIF CHECK_OTHER("ベレー帽", ARG)
-	HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='5ベレー帽%CLOCOLOR_MAIDFACE("ベレー帽", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "帽子") ), ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+ELSEIF CHECK_OTHER("贝雷帽", ARG)
+	HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='5贝雷帽%CLOCOLOR_MAIDFACE("贝雷帽", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "帽子") ), ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ANIMAL_EARS = 
 	HAIR_AHOGE = 
 ENDIF
 
 ;顔グラ変化あり？
-IF CSTR:ARG:顔グラ変化 != ""
+IF CSTR:ARG:颜绘変化 != ""
 	VARSET LOCALS
-	SPLIT CSTR:ARG:顔グラ変化, "/", LOCALS
+	SPLIT CSTR:ARG:颜绘変化, "/", LOCALS
 	FOR LCOUNT, 0, 10
 		SELECTCASE LOCALS:LCOUNT
 		;CASE ""
 		;	BREAK
-		CASE "通常目", "通常目２", "ツリ目", "ツリ目２", "たれ目", "たれ目２", "ジト目", "ジト目２", "ぱっちり", "縦長目", "三白眼", "ジト三白眼"
-			LEYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-			REYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "糸目", "にっこり", "瞑り", "〇〇", "＞＜"
+		CASE "普通眼", "普通眼２", "吊眼", "吊眼２", "垂眼", "垂眼２", "斜眼", "斜眼２", "水灵眼", "縦長目", "三白眼", "重度三白眼"
+			LEYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CASE "眯眯眼", "にっこり", "瞑り", "〇〇", "＞＜"
 			LEYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 			REYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "左通常目", "左通常目２", "左ツリ目", "左ツリ目２", "左たれ目", "左たれ目２", "左ジト目", "左ジト目２",  "左ぱっちり", "左縦長目", "左三白眼", "左ジト三白眼"
+		CASE "左普通眼", "左普通眼２", "左吊眼", "左吊眼２", "左垂眼", "左垂眼２", "左斜眼", "左斜眼２",  "左水灵眼", "左縦長目", "左三白眼", "左重度三白眼"
 			LOCALS:LCOUNT = %SUBSTRINGU(LOCALS:LCOUNT, 1, -1)%
-			LEYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "左糸目", "左にっこり", "左瞑り", "左〇〇", "左＞＜"
+			LEYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CASE "左眯眯眼", "左にっこり", "左瞑り", "左〇〇", "左＞＜"
 			LOCALS:LCOUNT = %SUBSTRINGU(LOCALS:LCOUNT, 1, -1)%
 			LEYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "右通常目", "右通常目２", "右ツリ目", "右ツリ目２", "右たれ目", "右たれ目２", "右ジト目", "右ジト目２", "右ぱっちり", "右縦長目", "右三白眼", "右ジト三白眼"
+		CASE "右普通眼", "右普通眼２", "右吊眼", "右吊眼２", "右垂眼", "右垂眼２", "右斜眼", "右斜眼２", "右水灵眼", "右縦長目", "右三白眼", "右重度三白眼"
 			LOCALS:LCOUNT = %SUBSTRINGU(LOCALS:LCOUNT, 1, -1)%
-			REYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "右糸目", "右にっこり", "右瞑り", "右〇〇", "右＞＜"
+			REYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CASE "右眯眯眼", "右にっこり", "右瞑り", "右〇〇", "右＞＜"
 			LOCALS:LCOUNT = %SUBSTRINGU(LOCALS:LCOUNT, 1, -1)%
 			REYE = <nonbutton pos='{FPOS}'><img src='11%LOCALS:LCOUNT%右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "ハート目"
+		CASE "爱心眼"
 			SELECTCASE CHECK_TYPE(REYE)
-			CASE "通常目", "ツリ目", "たれ目", "ジト目", "ぱっちり", "縦長目", "三白眼"
-				SELECTCASE CONDS("右目の色", ARG)
+			CASE "普通眼", "吊眼", "垂眼", "斜眼", "水灵眼", "縦長目", "三白眼"
+				SELECTCASE CONDS("右瞳色", ARG)
 				CASE "焦茶", "赤", "茶"
-					REYE_OVER = <nonbutton pos='{FPOS}'><img src='白ハート%CHECK_TYPE(REYE)%右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+					REYE_OVER = <nonbutton pos='{FPOS}'><img src='白爱心%CHECK_TYPE(REYE)%右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 				CASEELSE
-					REYE_OVER = <nonbutton pos='{FPOS}'><img src='ハート%CHECK_TYPE(REYE)%右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+					REYE_OVER = <nonbutton pos='{FPOS}'><img src='爱心%CHECK_TYPE(REYE)%右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 				ENDSELECT
 			ENDSELECT
 
 			SELECTCASE CHECK_TYPE(LEYE)
-			CASE "通常目", "ツリ目", "たれ目", "ジト目", "ぱっちり", "縦長目", "三白眼"
-				SELECTCASE CONDS("左目の色", ARG)
+			CASE "普通眼", "吊眼", "垂眼", "斜眼", "水灵眼", "縦長目", "三白眼"
+				SELECTCASE CONDS("左瞳色", ARG)
 				CASE "焦茶", "赤", "茶"
-					LEYE_OVER = <nonbutton pos='{FPOS}'><img src='白ハート%CHECK_TYPE(LEYE)%左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+					LEYE_OVER = <nonbutton pos='{FPOS}'><img src='白爱心%CHECK_TYPE(LEYE)%左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 				CASEELSE
-					LEYE_OVER = <nonbutton pos='{FPOS}'><img src='ハート%CHECK_TYPE(LEYE)%左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+					LEYE_OVER = <nonbutton pos='{FPOS}'><img src='爱心%CHECK_TYPE(LEYE)%左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 				ENDSELECT
 			ENDSELECT
-		CASE "通常眉", "怒り眉", "たれ眉", "困り眉", "麻呂眉"
+		CASE "通常眉", "憤怒眉", "斜眉", "困扰眉", "麻呂眉"
 			MAYU = <nonbutton pos='{FPOS}'><img src='18%LOCALS:LCOUNT%%CONDS("眉の長さ", ARG)%黒' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "大口", "ワ", "半開き"
+		CASE "大口", "ワ", "半開"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9%LOCALS:LCOUNT%%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "微笑", "への字", "笑顔", "△", "無口系", "ω", "嘲笑", "小口", "ふくれっ面"
+		CASE "微笑", "へ字", "笑顔", "△", "無口系", "ω", "嘲笑", "小口", "嘟嘴"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9%LOCALS:LCOUNT%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "隈取赤", "隈取青", "戦化粧"
+		CASE "脸谱赤", "脸谱青", "战妆"
 			MAKEUP = <nonbutton pos='{FPOS}'><img src='8%LOCALS:LCOUNT%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASE "赤面"
 			CHEEK = <nonbutton pos='{FPOS}'><img src='8%LOCALS:LCOUNT%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "楕円", "頬染", "丸ほっぺ", "紅潮"
-			CHEEK = <nonbutton pos='{FPOS}'><img src='8%LOCALS:LCOUNT%%CONDS("チークカラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CASE "楕円", "红晕", "婴儿红晕", "紅潮"
+			CHEEK = <nonbutton pos='{FPOS}'><img src='8%LOCALS:LCOUNT%%CONDS("脸颊カラー", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASE "頬傷左", "頬傷鼻", "頬傷右"
 			HOHO += @"<nonbutton pos='{FPOS}'><img src='8%LOCALS:LCOUNT%%CONDS("顔の色", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
-		CASE "頬絆創膏左", "頬絆創膏鼻", "頬絆創膏右"
+		CASE "頬創口貼左", "頬創口貼鼻", "頬創口貼右"
 			HOHO += @"<nonbutton pos='{FPOS}'><img src='8%LOCALS:LCOUNT%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
-		CASE "返り血"
-			CHEEK = <nonbutton pos='{FPOS}'><img src='22返り血' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CASE "血迹"
+			CHEEK = <nonbutton pos='{FPOS}'><img src='22血迹' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		;鞄
-		CASE "スクールバッグ"
+		CASE "挎包"
 			BAG = <nonbutton pos='{FPOS}'><img src='22%LOCALS:LCOUNT%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		;小物
-		CASE "お茶", "みかん", "本"
+		CASE "茶", "橘子", "本"
 			OTHER = <nonbutton pos='{FPOS}'><img src='22%LOCALS:LCOUNT%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "頭上みかん"
-			HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='22頭上みかん' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>%HAIR_ACCE%
-		CASE "頭上サングラス"
-			SIF CHECK_OTHER("頭上サングラス", ARG) == 0
-				OVER = <nonbutton pos='{FPOS}'><img src='15頭上サングラス' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CASE "頭上橘子"
+			HAIR_ACCE = <nonbutton pos='{FPOS}'><img src='22頭上橘子' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>%HAIR_ACCE%
+		CASE "頭上太阳鏡"
+			SIF CHECK_OTHER("頭上太阳鏡", ARG) == 0
+				OVER = <nonbutton pos='{FPOS}'><img src='15頭上太阳鏡' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		;口に咥えるもの
-		CASE "タバコ", "アイス", "ココアシガレット", "食パン", "フランスパン"
+		CASE "烟", "冰", "pocky", "面包", "法棍"
 			MOUTH = <nonbutton pos='{FPOS}'><img src='9無口系' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 			OTHER += @"<nonbutton pos='{FPOS}'><img src='22%LOCALS:LCOUNT%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
-		CASE "ゴム"
-			SELECTCASE CONDS("口の形", ARG)
+		CASE "避孕套"
+			SELECTCASE CONDS("嘴形", ARG)
 			CASE "微笑", "無口系"
 			CASEELSE
 				MOUTH = <nonbutton pos='{FPOS}'><img src='9無口系' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
@@ -1184,12 +1184,12 @@ IF CSTR:ARG:顔グラ変化 != ""
 			OTHER = <nonbutton pos='{FPOS}'><img src='22扇子富士山' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 		CASE "萌え袖"
 			IS_MOESODE = 1
-		CASE "ふきだし怒り", "ふきだし汗", "ふきだしハート", "ふきだしワイワイ", "ふきだし驚き", "ふきだし眠り", "ふきだし寝ぼけ", "ふきだし満開", "ふきだし・・・", "ふきだし？", "ふきだし！"
+		CASE "对话框憤怒", "对话框汗", "对话框爱心", "对话框兴奋", "对话框惊讶", "对话框睡眠", "对话框困倦", "对话框開心", "对话框・・・", "对话框？", "对话框！"
 			LOCALS:LCOUNT = %SUBSTRINGU(LOCALS:LCOUNT, 4, -1)%
 			EMOTE = <nonbutton pos='{FPOS}'><img src='21%LOCALS:LCOUNT%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-		CASE "ハート大量", "ふきだしハート大量"
-			EMOTE = <nonbutton pos='{FPOS}'><img src='21ハート' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
-			EMOTE += @"<nonbutton pos='{FPOS}'><img src='22ハート大量' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+		CASE "爱心大量", "对话框爱心大量"
+			EMOTE = <nonbutton pos='{FPOS}'><img src='21爱心' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			EMOTE += @"<nonbutton pos='{FPOS}'><img src='22爱心大量' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
 		ENDSELECT
 
 		IF STRCOUNT(LOCALS:LCOUNT, "BG=")
@@ -1201,23 +1201,23 @@ ENDIF
 
 ;萌え袖
 IF OTHER == "" && IS_MOESODE && CHECK_CLO("萌え袖可能", ARG)
-	IF STRCOUNT(CLO("顔グラ衣装", ARG), "＆")
-		OTHER = <nonbutton pos='{FPOS}'><img src='22%EXTSTR(CLO("顔グラ衣装", ARG), "＆", "")%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	IF STRCOUNT(CLO("颜绘衣装", ARG), "＆")
+		OTHER = <nonbutton pos='{FPOS}'><img src='22%EXTSTR(CLO("颜绘衣装", ARG), "＆", "")%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ELSE
-		OTHER = <nonbutton pos='{FPOS}'><img src='22%CLO("顔グラ衣装", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		OTHER = <nonbutton pos='{FPOS}'><img src='22%CLO("颜绘衣装", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 	ENDIF
 ENDIF
 
 ;目の形に２とかをその都度付けるのがバグの元なので最後に一回だけ見る
 SELECTCASE CHECK_TYPE(REYE)
-CASE "通常目", "ツリ目", "たれ目", "ジト目"
-	SIF STRCOUNT(CONDS("右目の形", ARG), "２")
-		REYE = <nonbutton pos='{FPOS}'><img src='11%CHECK_TYPE(REYE)%２%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "普通眼", "吊眼", "垂眼", "斜眼"
+	SIF STRCOUNT(CONDS("右眼形", ARG), "２")
+		REYE = <nonbutton pos='{FPOS}'><img src='11%CHECK_TYPE(REYE)%２%CONDS("右瞳色", ARG)%右%CONDS("右白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDSELECT
 SELECTCASE CHECK_TYPE(LEYE)
-CASE "通常目", "ツリ目", "たれ目", "ジト目"
-	SIF STRCOUNT(CONDS("左目の形", ARG), "２")
-		LEYE = <nonbutton pos='{FPOS}'><img src='11%CHECK_TYPE(LEYE)%２%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+CASE "普通眼", "吊眼", "垂眼", "斜眼"
+	SIF STRCOUNT(CONDS("左眼形", ARG), "２")
+		LEYE = <nonbutton pos='{FPOS}'><img src='11%CHECK_TYPE(LEYE)%２%CONDS("左瞳色", ARG)%左%CONDS("左白眼", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
 ENDSELECT
 
 ;アニメーション用の変数に記録

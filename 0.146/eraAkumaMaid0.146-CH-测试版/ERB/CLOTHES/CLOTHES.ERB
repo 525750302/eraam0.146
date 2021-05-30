@@ -14,19 +14,19 @@ CALL STAIN_CALC_COSPLAY, ARG
 DRESS = 
 
 IF EQUIP:ARG:服
-	DRESS = %DRESS%%SHIRT(ARG)%\@ CHECK_SHIRT("はだけた", ARG) ? (はだけ) # \@\@ CHECK_STAIN(STAIN:ARG:服, "精液") ? <精> # \@
-	IF CHECK_SHIRT("上下セット", ARG) && EQUIP:ARG:スカート == 0
-		SIF CHECK_OUTER("ズボン", ARG) == 0
-			DRESS += "(スカートなし)"
+	DRESS = %DRESS%%SHIRT(ARG)%\@ CHECK_SHIRT("半脱的", ARG) ? (半脱) # \@\@ CHECK_STAIN(STAIN:ARG:服, "精液") ? <精> # \@
+	IF CHECK_SHIRT("两件套", ARG) && EQUIP:ARG:裙 == 0
+		SIF CHECK_OUTER("長褲", ARG) == 0
+			DRESS += "(裙无)"
 	ELSEIF CHECK_SHIRT("つなぎ")
-		IF CHECK_OUTER("破いた", ARG)
+		IF CHECK_OUTER("破開的", ARG)
 			DRESS += "(破)"
-		ELSEIF CHECK_OUTER("ずらした", ARG)
-			DRESS += "(ずれ)"
-		ELSEIF CHECK_OUTER("ファスナー開", ARG)
+		ELSEIF CHECK_OUTER("移開的", ARG)
+			DRESS += "(移開)"
+		ELSEIF CHECK_OUTER("带拉链的開", ARG)
 			DRESS += "(開)"
-		ELSEIF CHECK_OUTER("スリット", ARG)
-			DRESS += "(スリット)"
+		ELSEIF CHECK_OUTER("開衩", ARG)
+			DRESS += "(開衩)"
 		ELSEIF CHECK_OUTER("ＶＡ露出", ARG)
 			DRESS += "(穴開き)"
 		ELSEIF CHECK_OUTER("Ａ露出", ARG)
@@ -34,15 +34,15 @@ IF EQUIP:ARG:服
 		ELSEIF CHECK_OUTER("Ｖ露出", ARG)
 			DRESS += "(Ｖ穴開き)"
 		ELSEIF ARGS != "衣装表示"
-			SIF CHECK_CLO("アウター直穿き", ARG)
+			SIF CHECK_CLO("外套直穿き", ARG)
 				DRESS += "(直穿き)"
 			;汚れ
 			IF !CHECK_CLO("Ｖ露出", ARG)
-				IF CHECK_STAIN(STAIN:ARG:アウター, "尿")
+				IF CHECK_STAIN(STAIN:ARG:外套, "尿")
 					DRESS += "<尿>"
-				ELSEIF CHECK_STAIN(STAIN:ARG:アウター, "濡れ")
+				ELSEIF CHECK_STAIN(STAIN:ARG:外套, "湿的")
 					DRESS += "<濡>"
-				ELSEIF CHECK_STAIN(STAIN:ARG:アウター, "蒸れ")
+				ELSEIF CHECK_STAIN(STAIN:ARG:外套, "闷热的")
 					DRESS += "<蒸>"
 				ENDIF
 				;SIF CHECK_STAIN(STAIN:ARG:アウター, "精液")
@@ -53,14 +53,14 @@ IF EQUIP:ARG:服
 	DRESS += "/"
 ENDIF
 
-IF EQUIP:ARG:ボディスーツ
+IF EQUIP:ARG:贴身制服
 	DRESS = %DRESS%%BODYS(ARG)%
-	IF CHECK_BODYS("ずらした", ARG)
-		DRESS += "(ずれ)"
-	ELSEIF CHECK_BODYS("ファスナー開", ARG)
+	IF CHECK_BODYS("移開的", ARG)
+		DRESS += "(移開)"
+	ELSEIF CHECK_BODYS("带拉链的開", ARG)
 		DRESS += "(開)"
-	ELSEIF CHECK_BODYS("ファスナー", ARG)
-		DRESS += "(ファスナー)"
+	ELSEIF CHECK_BODYS("带拉链的", ARG)
+		DRESS += "(带拉链的)"
 	ELSEIF CHECK_BODYS("ＶＡ露出", ARG)
 		DRESS += "(穴開き)"
 	ELSEIF CHECK_BODYS("Ａ露出", ARG)
@@ -69,63 +69,63 @@ IF EQUIP:ARG:ボディスーツ
 		DRESS += "(Ｖ穴開き)"
 	;汚れ
 	ELSEIF ARGS != "衣装表示"
-		IF CHECK_STAIN(STAIN:ARG:ボディスーツボトム, "尿")
+		IF CHECK_STAIN(STAIN:ARG:贴身制服ボトム, "尿")
 			DRESS += "<尿>"
-		ELSEIF CHECK_STAIN(STAIN:ARG:ボディスーツボトム, "濡れ")
+		ELSEIF CHECK_STAIN(STAIN:ARG:贴身制服ボトム, "湿的")
 			DRESS += "<濡>"
-		ELSEIF CHECK_STAIN(STAIN:ARG:ボディスーツボトム, "蒸れ")
+		ELSEIF CHECK_STAIN(STAIN:ARG:贴身制服ボトム, "闷热的")
 			DRESS += "<蒸>"
 		ENDIF
-		SIF CHECK_STAIN(STAIN:ARG:ボディスーツボトム, "精液")
+		SIF CHECK_STAIN(STAIN:ARG:贴身制服ボトム, "精液")
 			DRESS += "<精>"
 	ENDIF
 	DRESS += "/"
 ENDIF
 
-SIF EQUIP:ARG:スカート && CHECK_SHIRT("ワンピース", ARG) == 0
+SIF EQUIP:ARG:裙 && CHECK_SHIRT("連衣裙", ARG) == 0
 	DRESS = %DRESS%%SKIRT(ARG)%/
 
 ;上半身の状態チェック
-SIF CHECK_CLO("トップレス", ARG)
-	DRESS += "トップレス/"
+SIF CHECK_CLO("没穿外衣", ARG)
+	DRESS += "没穿外衣/"
 
 ;ブラは、上に何か着ていたりする時などは非表示
-SIF EQUIP:ARG:ブラ && (ARGS != "短縮表示" || COND("ブラ透け", ARG) || CHECK_CLO("谷間露出", ARG) || CHECK_SHIRT("シースルー", ARG) || EQUIP:ARG:服 + EQUIP:ARG:ボディスーツ == 0)
-	DRESS = %DRESS%%BRA(ARG)%\@ CHECK_BRA("ずらした", ARG) ? (ずれ) # \@/
+SIF EQUIP:ARG:胸罩 && (ARGS != "短縮表示" || COND("胸罩透け", ARG) || CHECK_CLO("谷間露出", ARG) || CHECK_SHIRT("透明", ARG) || EQUIP:ARG:服 + EQUIP:ARG:贴身制服 == 0)
+	DRESS = %DRESS%%BRA(ARG)%\@ CHECK_BRA("移開的", ARG) ? (移開) # \@/
 
-IF EQUIP:ARG:アウター && CHECK_OUTER("つなぎ") == 0 && CHECK_CLO("アウター未確認", ARG) == 0
+IF EQUIP:ARG:外套 && CHECK_OUTER("つなぎ") == 0 && CHECK_CLO("外套未確認", ARG) == 0
 	DRESS = %DRESS%%OUTER(ARG)%
-	IF CHECK_OUTER("破いた", ARG)
+	IF CHECK_OUTER("破開的", ARG)
 		DRESS += "(破)"
-	ELSEIF CHECK_OUTER("ずらした", ARG)
-		DRESS += "(ずれ)"
-	ELSEIF CHECK_CLO("ボディスーツ露出", ARG)
+	ELSEIF CHECK_OUTER("移開的", ARG)
+		DRESS += "(移開)"
+	ELSEIF CHECK_CLO("贴身制服露出", ARG)
 
-	ELSEIF CHECK_OUTER("ファスナー開", ARG)
+	ELSEIF CHECK_OUTER("带拉链的開", ARG)
 		DRESS += "(開)"
-	ELSEIF CHECK_OUTER("ファスナー", ARG)
-		DRESS += "(ファスナー)"
-	ELSEIF CHECK_OUTER("スリット", ARG)
-		DRESS += "(スリット)"
-	ELSEIF CHECK_OUTER("ＶＡ露出", ARG) && CHECK_OUTER("オープン", ARG) == 0
+	ELSEIF CHECK_OUTER("带拉链的", ARG)
+		DRESS += "(带拉链的)"
+	ELSEIF CHECK_OUTER("開衩", ARG)
+		DRESS += "(開衩)"
+	ELSEIF CHECK_OUTER("ＶＡ露出", ARG) && CHECK_OUTER("開放型", ARG) == 0
 		DRESS += "(穴開き)"
-	ELSEIF CHECK_OUTER("Ａ露出", ARG) && CHECK_OUTER("オープン", ARG) == 0
+	ELSEIF CHECK_OUTER("Ａ露出", ARG) && CHECK_OUTER("開放型", ARG) == 0
 		DRESS += "(Ａ穴開き)"
-	ELSEIF CHECK_OUTER("Ｖ露出", ARG) && CHECK_OUTER("オープン", ARG) == 0
+	ELSEIF CHECK_OUTER("Ｖ露出", ARG) && CHECK_OUTER("開放型", ARG) == 0
 		DRESS += "(Ｖ穴開き)"
 	ELSEIF ARGS != "衣装表示"
-		SIF CHECK_CLO("アウター直穿き", ARG) && CHECK_CLO("パンツ未確認", ARG) == 0 && CHECK_OUTER("オープン", ARG) == 0
+		SIF CHECK_CLO("外套直穿き", ARG) && CHECK_CLO("胖次未確認", ARG) == 0 && CHECK_OUTER("開放型", ARG) == 0
 			DRESS += "(直穿き)"
 		;汚れ
 		IF !CHECK_CLO("Ｖ露出", ARG)
-			IF CHECK_STAIN(STAIN:ARG:アウター, "尿")
+			IF CHECK_STAIN(STAIN:ARG:外套, "尿")
 				DRESS += "<尿>"
-			ELSEIF CHECK_STAIN(STAIN:ARG:アウター, "濡れ")
+			ELSEIF CHECK_STAIN(STAIN:ARG:外套, "湿的")
 				DRESS += "<濡>"
-			ELSEIF CHECK_STAIN(STAIN:ARG:アウター, "蒸れ")
+			ELSEIF CHECK_STAIN(STAIN:ARG:外套, "闷热的")
 				DRESS += "<蒸>"
 			ENDIF
-			SIF CHECK_STAIN(STAIN:ARG:アウター, "精液")
+			SIF CHECK_STAIN(STAIN:ARG:外套, "精液")
 				DRESS += "<精>"
 		ENDIF
 	ENDIF
@@ -133,62 +133,62 @@ IF EQUIP:ARG:アウター && CHECK_OUTER("つなぎ") == 0 && CHECK_CLO("アウ�
 ENDIF
 
 ;パンツは未確認の時には表示しない
-IF CSTR:ARG:脱いだパンツ != ""
-	SWAP CSTR:ARG:パンツ, CSTR:ARG:脱いだパンツ
+IF CSTR:ARG:脱掉的胖次 != ""
+	SWAP CSTR:ARG:胖次, CSTR:ARG:脱掉的胖次
 	DRESS = %DRESS%%PANTIES(ARG)%(足首)\/
-	SWAP CSTR:ARG:パンツ, CSTR:ARG:脱いだパンツ
-ELSEIF EQUIP:ARG:パンツ && CHECK_CLO("パンツ未確認", ARG) == 0
+	SWAP CSTR:ARG:胖次, CSTR:ARG:脱掉的胖次
+ELSEIF EQUIP:ARG:胖次 && CHECK_CLO("胖次未確認", ARG) == 0
 	DRESS = %DRESS%%PANTIES(ARG)%
-	IF CHECK_PANTIES("ずらした", ARG)
-		DRESS += "(ずれ)"
-	ELSEIF CHECK_PANTIES("ファスナー開", ARG)
+	IF CHECK_PANTIES("移開的", ARG)
+		DRESS += "(移開)"
+	ELSEIF CHECK_PANTIES("带拉链的開", ARG)
 		DRESS += "(開)"
 	ELSEIF CHECK_PANTIES("ＶＡ露出", ARG)
-		SIF CHECK_PANTIES("オープンクロッチ", ARG) == 0
+		SIF CHECK_PANTIES("開放型開洞", ARG) == 0
 			DRESS += "(穴開き)"
 	ELSEIF CHECK_PANTIES("Ａ露出", ARG)
-		SIF CHECK_PANTIES("Ｏバック", ARG) == 0
+		SIF CHECK_PANTIES("後開型", ARG) == 0
 			DRESS += "(Ａ穴開き)"
 	ELSEIF CHECK_PANTIES("Ｖ露出", ARG)
-		SIF CHECK_PANTIES("オープンクロッチ", ARG) == 0
+		SIF CHECK_PANTIES("開放型開洞", ARG) == 0
 			DRESS += "(Ｖ穴開き)"
 	ELSEIF ARGS != "衣装表示"
 		;SIF CHECK_PANTIES("クロッチ染み", ARG)
 		;	DRESS += "<染み>"
-		IF CHECK_STAIN(STAIN:ARG:パンツ, "尿")
+		IF CHECK_STAIN(STAIN:ARG:胖次, "尿")
 			DRESS += "<尿>"
-		ELSEIF CHECK_STAIN(STAIN:ARG:パンツ, "濡れ")
+		ELSEIF CHECK_STAIN(STAIN:ARG:胖次, "湿的")
 			DRESS += "<濡>"
-		ELSEIF CHECK_STAIN(STAIN:ARG:パンツ, "汗")
+		ELSEIF CHECK_STAIN(STAIN:ARG:胖次, "汗")
 			DRESS += "<汗>"
-		ELSEIF CHECK_STAIN(STAIN:ARG:パンツ, "蒸れ")
+		ELSEIF CHECK_STAIN(STAIN:ARG:胖次, "闷热的")
 			DRESS += "<蒸>"
 		ENDIF
-		SIF CHECK_STAIN(STAIN:ARG:パンツ, "精液")
+		SIF CHECK_STAIN(STAIN:ARG:胖次, "精液")
 			DRESS += "<精>"
 	ENDIF
 	DRESS += "/"
 ;色だけ分かっている場合
-ELSEIF EQUIP:ARG:パンツ && COND("パンツ色確認", ARG)
-	DRESS += @"%CLOCOLOR(CSTR:ARG:パンツ, "形容詞")%パンツ？\/"
+ELSEIF EQUIP:ARG:胖次 && COND("胖次色確認", ARG)
+	DRESS += @"%CLOCOLOR(CSTR:ARG:胖次, "形容詞")%胖次？\/"
 ENDIF
 
-IF CHECK_CLO("ハダカ", ARG)
-	DRESS += "ハダカ/"
-ELSEIF CHECK_CLO("ボトムレス", ARG)
-	DRESS += "ボトムレス/"
-ELSEIF CHECK_CLO("ノーパン", ARG)
-	SIF ARGS != "衣装表示" && CHECK_CLO("パンツ未確認", ARG) == 0 && EQUIP:ARG:ボディスーツ == 0
-		DRESS += "ノーパン/"
+IF CHECK_CLO("裸体", ARG)
+	DRESS += "裸体/"
+ELSEIF CHECK_CLO("没穿下衣", ARG)
+	DRESS += "没穿下衣/"
+ELSEIF CHECK_CLO("没穿内褲", ARG)
+	SIF ARGS != "衣装表示" && CHECK_CLO("胖次未確認", ARG) == 0 && EQUIP:ARG:贴身制服 == 0
+		DRESS += "没穿内褲/"
 ENDIF
 
-IF ARGS == "拡大表示" && EQUIP:ARG:服 && EQUIP:ARG:パンツ && EQUIP:ARG:ブラ
+IF ARGS == "拡大表示" && EQUIP:ARG:服 && EQUIP:ARG:胖次 && EQUIP:ARG:胸罩
 	CALL PRINT_LIST, DRESS, ARGS
 	DRESS = 
 ENDIF
 
-SIF EQUIP:ARG:靴下
-	DRESS = %DRESS%%SOCKS(ARG)%\@ CHECK_STAIN(STAIN:ARG:靴下, "精液") ? <精> # \@/
+SIF EQUIP:ARG:襪子
+	DRESS = %DRESS%%SOCKS(ARG)%\@ CHECK_STAIN(STAIN:ARG:襪子, "精液") ? <精> # \@/
 
 SIF EQUIP:ARG:靴
 	DRESS = %DRESS%%SHOES(ARG)%\@ CHECK_STAIN(STAIN:ARG:靴, "精液") ? <精> # \@/
@@ -196,11 +196,11 @@ SIF EQUIP:ARG:靴
 SIF EQUIP:ARG:手袋
 	DRESS = %DRESS%%GLOVE(ARG)%\@ CHECK_STAIN(STAIN:ARG:靴, "精液") ? <精> # \@/
 
-IF EQUIP:ARG:アクセサリ
-	IF STRCOUNT(CSTR:ARG:アクセサリ, "黒いチョーカー")
-		DRESS = %DRESS%黄色\/%CSTR:ARG:アクセサリ%\/
+IF EQUIP:ARG:飾品
+	IF STRCOUNT(CSTR:ARG:飾品, "黒色颈环")
+		DRESS = %DRESS%黄色\/%CSTR:ARG:飾品%\/
 	ELSE
-		DRESS = %DRESS%%CSTR:ARG:アクセサリ%\/
+		DRESS = %DRESS%%CSTR:ARG:飾品%\/
 	ENDIF
 ENDIF
 IF ARG != MASTER && ARGS != "衣装表示"
@@ -208,20 +208,20 @@ IF ARG != MASTER && ARGS != "衣装表示"
 		SIF COND("腋毛", ARG) && CHECK_CLO("腋露出", ARG)
 			DRESS += @"%TEXTS("腋")%毛:%CONDS("腋毛")%\/"
 		IF COND("陰毛", ARG) && (CHECK_CLO("陰毛露出", ARG) || CHECK_CLO("Ｖ露出") )
-			IF CONDS("陰毛", ARG) == "お手入れ済" && CEVENTS("陰毛の名称", ARG) != ""
+			IF CONDS("陰毛", ARG) == "保养完毕" && CEVENTS("陰毛の名称", ARG) != ""
 				DRESS += @"陰毛:%CONDS("陰毛", ARG)%(%CEVENTS("陰毛の名称", ARG)%)\/"
 			ELSE
 				DRESS += @"陰毛:%CONDS("陰毛", ARG)%\/"
 			ENDIF
 		ENDIF
 	ELSE
-		IF COND("パンツ詳細確認", ARG)
-			SIF TALENT:ARG:常時Ｖバイブ
-				DRESS += "Ｖバイブ/"
-			SIF TALENT:ARG:常時Ａプラグ
-				DRESS += "Ａプラグ/"
-			SIF TALENT:ARG:常時尿道プラグ
-				DRESS += "尿道プラグ/"
+		IF COND("胖次詳細確認", ARG)
+			SIF TALENT:ARG:常時Ｖ振動棒
+				DRESS += "Ｖ振動棒/"
+			SIF TALENT:ARG:常時Ａ肛塞
+				DRESS += "Ａ塞子/"
+			SIF TALENT:ARG:常時尿道塞
+				DRESS += "尿道塞子/"
 		ENDIF
 	ENDIF
 ENDIF
@@ -229,7 +229,7 @@ ENDIF
 SIF DRESS == ""
 	RETURN 0
 
-SIF ARGS == "拡大表示" && EQUIP:ARG:服 && EQUIP:ARG:パンツ && EQUIP:ARG:ブラ
+SIF ARGS == "拡大表示" && EQUIP:ARG:服 && EQUIP:ARG:胖次 && EQUIP:ARG:胸罩
 	PRINTL 
 
 CALL PRINT_LIST, DRESS, ARGS
@@ -255,58 +255,58 @@ SIF ARG == 0 && TARGET
 	ARG = TARGET
 SELECTCASE ARGS
 CASE "股間"
-	IF CHECK_CLO("ボディスーツ露出", ARG)
+	IF CHECK_CLO("贴身制服露出", ARG)
 		LOCALS = %BODYS(ARG, "略")%
-	ELSEIF CHECK_CLO("アウター露出", ARG)
+	ELSEIF CHECK_CLO("外套露出", ARG)
 		LOCALS = %OUTER(ARG, "略")%
-	ELSEIF CHECK_CLO("パンツ露出", ARG)
+	ELSEIF CHECK_CLO("胖次露出", ARG)
 		LOCALS = %PANTIES(ARG, "略")%
 	ENDIF
 CASE "お尻"
-	IF CHECK_CLO("Ｔバックヒップ", ARG)
-		IF EQUIP:ARG:パンツ && CHECK_CLO("パンツ視認可能", ARG)
-			IF CHECK_PANTIES("Ｃストリング", ARG) || CHECK_PANTIES("Ｇストリング", ARG) || CHECK_PANTIES("褌", ARG)
+	IF CHECK_CLO("Ｔ字褲臀圍", ARG)
+		IF EQUIP:ARG:胖次 && CHECK_CLO("胖次視認可能", ARG)
+			IF CHECK_PANTIES("Ｃ胖次", ARG) || CHECK_PANTIES("丁字褲", ARG) || CHECK_PANTIES("兜襠布", ARG)
 				RETURNF PANTIES(ARG)
-			ELSEIF CHECK_PANTIES("Ｔバック", ARG)
-				LOCALS = Ｔバックの
+			ELSEIF CHECK_PANTIES("Ｔ字褲", ARG)
+				LOCALS = Ｔ字褲の
 			ENDIF
-		ELSEIF CHECK_OUTER("Ｔバック", ARG) || CHECK_BODYS("Ｔバック", ARG)
-			LOCALS = Ｔバックの
+		ELSEIF CHECK_OUTER("Ｔ字褲", ARG) || CHECK_BODYS("Ｔ字褲", ARG)
+			LOCALS = Ｔ字褲の
 		ENDIF
 	ENDIF
-	IF CHECK_CLO("ボディスーツ露出", ARG)
+	IF CHECK_CLO("贴身制服露出", ARG)
 		LOCALS += @"%BODYS(ARG, "略")%"
-	ELSEIF CHECK_CLO("アウター露出", ARG)
+	ELSEIF CHECK_CLO("外套露出", ARG)
 		LOCALS += @"%OUTER(ARG, "略")%"
-	ELSEIF CHECK_CLO("パンツ露出", ARG)
+	ELSEIF CHECK_CLO("胖次露出", ARG)
 		LOCALS += @"%PANTIES(ARG, "略")%"
 	ENDIF
-CASE "ぱんつコキ"
-	IF EQUIP:ARG:アウター && !CHECK_OUTER("コキ不可", ARG)
+CASE "内褲冲"
+	IF EQUIP:ARG:外套 && !CHECK_OUTER("不可手交", ARG)
 		LOCALS = %OUTER(ARG, "略")%
-	ELSEIF EQUIP:ARG:パンツ && !CHECK_PANTIES("コキ不可", ARG)
+	ELSEIF EQUIP:ARG:胖次 && !CHECK_PANTIES("不可手交", ARG)
 		LOCALS = %PANTIES(ARG, "略")%
 	ENDIF
-CASE "スカートめくり", "スカートめくり：詳細"
+CASE "掀起裙子", "掀起裙子：詳細"
 	SELECTCASE SKIRT(ARG, "略")
-	CASE "裾"
-		IF EQUIP:ARG:服 && ARGS == "スカートめくり：詳細"
-			LOCALS = %SHIRT(ARG, "略")%の裾
+	CASE "下摆"
+		IF EQUIP:ARG:服 && ARGS == "掀起裙子：詳細"
+			LOCALS = %SHIRT(ARG, "略")%の下摆
 		ELSE
 			LOCALS = %SKIRT(ARG)%
 		ENDIF
 	CASEELSE
 		LOCALS = %SKIRT(ARG, "略")%
 	ENDSELECT
-CASE "顔グラ衣装の色"
-	LOCALS = %CLO("顔グラ衣装", ARG)%
+CASE "颜绘衣装の色"
+	LOCALS = %CLO("颜绘衣装", ARG)%
 	RETURNF SUBSTRINGU(LOCALS, STRLENSU(LOCALS) - 1, 1)
-CASE "顔グラ衣装"
-	IF STR:顔グラ衣装 != ""
-		IF STRCOUNT(STR:顔グラ衣装, "/")
-			RETURNF SUBSTRING( STR:顔グラ衣装, 0, STRFIND(STR:顔グラ衣装, "/") )
+CASE "颜绘衣装"
+	IF STR:颜绘衣装 != ""
+		IF STRCOUNT(STR:颜绘衣装, "/")
+			RETURNF SUBSTRING( STR:颜绘衣装, 0, STRFIND(STR:颜绘衣装, "/") )
 		ELSE
-			RETURNF STR:顔グラ衣装
+			RETURNF STR:颜绘衣装
 		ENDIF
 	ELSEIF ARG == MASTER
 		IF STRCOUNT(CLOTH_MAIDFACE_MASTER(), "/")
@@ -316,286 +316,286 @@ CASE "顔グラ衣装"
 		ENDIF
 	ENDIF
 	;アクセサリの外套その他枠をまず見る
-	IF CHECK_OTHER("バスタオル", ARG) && EQUIP:ARG:服 == 0
-		LOCALS = バスタオル
-	ELSEIF CHECK_OTHER("ダッフルコート", ARG)
-		LOCALS = ダッフルコート%CLOCOLOR_MAIDFACE("ダッフルコート", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "外套") ), ARG )%
-		SIF CHECK_SHIRT("セーラー", ARG)
-			LOCALS = セーラー%CLOCOLOR_MAIDFACE("セーラー", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%＆%LOCALS%
-	ELSEIF CHECK_OTHER("コート", ARG)
+	IF CHECK_OTHER("浴衣", ARG) && EQUIP:ARG:服 == 0
+		LOCALS = 浴衣
+	ELSEIF CHECK_OTHER("粗呢外套", ARG)
+		LOCALS = 粗呢外套%CLOCOLOR_MAIDFACE("粗呢外套", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "外套") ), ARG )%
+		SIF CHECK_SHIRT("水手", ARG)
+			LOCALS = 水手%CLOCOLOR_MAIDFACE("水手", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%＆%LOCALS%
+	ELSEIF CHECK_OTHER("外套", ARG)
 		IF EQUIP:ARG:服 == 0
-			LOCALS = 裸コート%CLOCOLOR_MAIDFACE("コート", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "外套") ), ARG )%
+			LOCALS = 裸外套%CLOCOLOR_MAIDFACE("外套", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "外套") ), ARG )%
 		ELSE
-			LOCALS = コート%CLOCOLOR_MAIDFACE("コート", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "外套") ), ARG )%
+			LOCALS = 外套%CLOCOLOR_MAIDFACE("外套", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "外套") ), ARG )%
 		ENDIF
-	ELSEIF CHECK_OTHER("前開きパーカー", ARG)
+	ELSEIF CHECK_OTHER("前開連帽風衣", ARG)
 		IF EQUIP:ARG:服 == 0
-			LOCALS = シャツ無しパーカー%CLOCOLOR_MAIDFACE("パーカー", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "外套") ), ARG )%
+			LOCALS = 恤没有連帽風衣%CLOCOLOR_MAIDFACE("連帽風衣", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "外套") ), ARG )%
 		ELSE
-			LOCALS = 前開きパーカー%CLOCOLOR_MAIDFACE("パーカー", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "外套") ), ARG )%
+			LOCALS = 前開連帽風衣%CLOCOLOR_MAIDFACE("連帽風衣", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "外套") ), ARG )%
 		ENDIF
-	ELSEIF CHECK_OTHER("パーカー", ARG)
-		LOCALS = パーカー%CLOCOLOR_MAIDFACE("パーカー", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "外套") ), ARG )%
-	ELSEIF CHECK_OTHER("どてら", ARG)
-		LOCALS = どてら%CLOCOLOR_MAIDFACE("どてら", CHECK_CLOCOLOR(OTHER(CSTR:ARG:アクセサリ, "外套") ), ARG )%
+	ELSEIF CHECK_OTHER("連帽風衣", ARG)
+		LOCALS = 連帽風衣%CLOCOLOR_MAIDFACE("連帽風衣", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "外套") ), ARG )%
+	ELSEIF CHECK_OTHER("褞袍", ARG)
+		LOCALS = 褞袍%CLOCOLOR_MAIDFACE("褞袍", CHECK_CLOCOLOR(OTHER(CSTR:ARG:飾品, "外套") ), ARG )%
 
 	;次いで服
-	ELSEIF CHECK_SHIRT("Ｔシャツ", ARG)
-		LOCALS = Ｔシャツ%CLOCOLOR_MAIDFACE("Ｔシャツ", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("Ｔ恤", ARG)
+		LOCALS = Ｔ恤%CLOCOLOR_MAIDFACE("Ｔ恤", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 	ELSEIF CHECK_SHIRT("巫女服", ARG)
 		LOCALS = 巫女服
-	ELSEIF CHECK_SHIRT("汚れたワンピース", ARG)
-		LOCALS = 汚れたワンピース
-	ELSEIF CHECK_SHIRT("白と金の装飾のされた民族衣装", ARG)
+	ELSEIF CHECK_SHIRT("弄脏的連衣裙", ARG)
+		LOCALS = 弄脏的連衣裙
+	ELSEIF CHECK_SHIRT("白色和金色装饰的民族衣装", ARG)
 		IF CHECK_SHIRT("腋露出", ARG)
-			LOCALS = 白と金の装飾のされた民族衣装夏服
+			LOCALS = 白色和金色装饰的民族衣装夏服
 		ELSE
-			LOCALS = 白と金の装飾のされた民族衣装
+			LOCALS = 白色和金色装饰的民族衣装
 		ENDIF
-	ELSEIF CHECK_SHIRT("赤黒いノースリーブパーカー", ARG)
-		LOCALS = 赤黒いノースリーブパーカー
-	ELSEIF CHECK_SHIRT("エプロン", ARG)
-		LOCALS = エプロン
-	ELSEIF CHECK_SHIRT("コート", ARG)
+	ELSEIF CHECK_SHIRT("红黑色无袖連帽風衣", ARG)
+		LOCALS = 红黑色无袖連帽風衣
+	ELSEIF CHECK_SHIRT("圍裙", ARG)
+		LOCALS = 圍裙
+	ELSEIF CHECK_SHIRT("外套", ARG)
 		IF EQUIP:ARG:服 == 0
-			LOCALS = 裸コート%CLOCOLOR_MAIDFACE("コート", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+			LOCALS = 裸外套%CLOCOLOR_MAIDFACE("外套", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 		ELSE
-			LOCALS = コート%CLOCOLOR_MAIDFACE("コート", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+			LOCALS = 外套%CLOCOLOR_MAIDFACE("外套", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 		ENDIF
-	ELSEIF CHECK_SHIRT("パジャマ", ARG)
-		LOCALS = パジャマ%CLOCOLOR_MAIDFACE("パジャマ", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("前開きパーカー", ARG)
-		LOCALS = 前開きパーカー%CLOCOLOR_MAIDFACE("パーカー", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("パーカー", ARG)
-		LOCALS = パーカー%CLOCOLOR_MAIDFACE("パーカー", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("どてら", ARG)
-		LOCALS = どてら%CLOCOLOR_MAIDFACE("どてら", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("だぼだぼＴシャツ", ARG)
-		LOCALS = だぼだぼＴシャツ
-	ELSEIF CHECK_SHIRT("キャミソール", ARG)
-		LOCALS = キャミソール%CLOCOLOR_MAIDFACE("キャミソール", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("ウェディングドレス", ARG)
-		LOCALS = ウェディングドレス
+	ELSEIF CHECK_SHIRT("睡衣", ARG)
+		LOCALS = 睡衣%CLOCOLOR_MAIDFACE("睡衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("前開連帽風衣", ARG)
+		LOCALS = 前開連帽風衣%CLOCOLOR_MAIDFACE("連帽風衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("連帽風衣", ARG)
+		LOCALS = 連帽風衣%CLOCOLOR_MAIDFACE("連帽風衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("褞袍", ARG)
+		LOCALS = 褞袍%CLOCOLOR_MAIDFACE("褞袍", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("宽大的Ｔ恤", ARG)
+		LOCALS = 宽大的Ｔ恤
+	ELSEIF CHECK_SHIRT("吊帯衫", ARG)
+		LOCALS = 吊帯衫%CLOCOLOR_MAIDFACE("吊帯衫", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("婚纱礼服", ARG)
+		LOCALS = 婚纱礼服
 	ELSEIF CHECK_SHIRT("修道服", ARG)
 		LOCALS = 修道服
-	ELSEIF CHECK_SHIRT("ナース服", ARG)
-		LOCALS = ナース服
-	ELSEIF CHECK_SHIRT("ニットオフショル", ARG)
-		LOCALS = ニットオフショル
+	ELSEIF CHECK_SHIRT("护士服", ARG)
+		LOCALS = 护士服
+	ELSEIF CHECK_SHIRT("针织露肩衣", ARG)
+		LOCALS = 针织露肩衣
 	ELSEIF CHECK_SHIRT("オフショル", ARG)
-		LOCALS = オフショルダー%CLOCOLOR_MAIDFACE("オフショルダー", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("ノースリーブセーター", ARG)
-		LOCALS = ノースリーブセーター
-	ELSEIF CHECK_SHIRT("ニットセーター", ARG)
-		LOCALS = ニットセーター%CLOCOLOR_MAIDFACE("ニットセーター", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("縦セーター", ARG)
-		LOCALS = 縦セーター%CLOCOLOR_MAIDFACE("縦セーター", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("胸開きタートルネック", ARG)
-		LOCALS = 胸開きタートルネック
-	ELSEIF CHECK_SHIRT("タートルネック", ARG)
-		LOCALS = タートルネック
-	ELSEIF CHECK_SHIRT("セーター", ARG)
-		LOCALS = 縦セーター%CLOCOLOR_MAIDFACE("縦セーター", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("ゴスロリドレス", ARG)
-		LOCALS = ゴスロリドレス%CLOCOLOR_MAIDFACE("ゴスロリドレス", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("サマードレス", ARG)
-		LOCALS = サマードレス%CLOCOLOR_MAIDFACE("サマードレス", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("白いワンピース", ARG)
-		LOCALS = 白いワンピース
-	ELSEIF CHECK_SHIRT("ゴシックドレス", ARG)
-		LOCALS = ゴシックドレス
-	ELSEIF CHECK_SHIRT("ゴシックワンピース", ARG)
-		LOCALS = ゴシックワンピース
-	ELSEIF CHECK_SHIRT("甘ロリワンピース", ARG)
-		LOCALS = 甘ロリワンピース
-	ELSEIF CHECK_SHIRT("中世チュニック", ARG)
-		LOCALS = 中世チュニック赤
-	ELSEIF CHECK_SHIRT("チュニック", ARG)
-		LOCALS = チュニック%CLOCOLOR_MAIDFACE("チュニック", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("シャツジャケット", ARG)
-		LOCALS = シャツジャケット%CLOCOLOR_MAIDFACE("シャツジャケット", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("前開きシャツ", ARG)
-		LOCALS = 前開きシャツ%CLOCOLOR_MAIDFACE("前開きシャツ", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("学ラン", ARG)
+		LOCALS = 露肩外衣%CLOCOLOR_MAIDFACE("露肩外衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("无袖毛衣", ARG)
+		LOCALS = 无袖毛衣
+	ELSEIF CHECK_SHIRT("针织毛衣", ARG)
+		LOCALS = 针织毛衣%CLOCOLOR_MAIDFACE("针织毛衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("縦毛衣", ARG)
+		LOCALS = 縦毛衣%CLOCOLOR_MAIDFACE("縦毛衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("開胸高領毛衣", ARG)
+		LOCALS = 開胸高領毛衣
+	ELSEIF CHECK_SHIRT("高領毛衣", ARG)
+		LOCALS = 高領毛衣
+	ELSEIF CHECK_SHIRT("毛衣", ARG)
+		LOCALS = 縦毛衣%CLOCOLOR_MAIDFACE("縦毛衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("哥特蘿莉礼服", ARG)
+		LOCALS = 哥特蘿莉礼服%CLOCOLOR_MAIDFACE("哥特蘿莉礼服", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("夏日礼服", ARG)
+		LOCALS = 夏日礼服%CLOCOLOR_MAIDFACE("夏日礼服", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("白色連衣裙", ARG)
+		LOCALS = 白色連衣裙
+	ELSEIF CHECK_SHIRT("哥特礼服", ARG)
+		LOCALS = 哥特礼服
+	ELSEIF CHECK_SHIRT("哥特連衣裙", ARG)
+		LOCALS = 哥特連衣裙
+	ELSEIF CHECK_SHIRT("洛丽塔連衣裙", ARG)
+		LOCALS = 洛丽塔連衣裙
+	ELSEIF CHECK_SHIRT("中世紧身高袍", ARG)
+		LOCALS = 中世紧身高袍赤
+	ELSEIF CHECK_SHIRT("紧身高袍", ARG)
+		LOCALS = 紧身高袍%CLOCOLOR_MAIDFACE("紧身高袍", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("恤夹克", ARG)
+		LOCALS = 恤夹克%CLOCOLOR_MAIDFACE("恤夹克", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("前開的衬衫", ARG)
+		LOCALS = 前開的衬衫%CLOCOLOR_MAIDFACE("前開的衬衫", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("校服", ARG)
 		SELECTCASE CSTR:ARG:学年
 		CASE "初等部", "中等部"
-			LOCALS = 学ランＡ
+			LOCALS = 校服Ａ
 		CASEELSE
-			LOCALS = 学ランＢ
+			LOCALS = 校服Ｂ
 		ENDSELECT
-	ELSEIF CHECK_SHIRT("セーラー", ARG)
-		IF CHECK_OTHER("ジャージ", ARG)
-			LOCALS = セーラー%CLOCOLOR_MAIDFACE("セーラー", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%＆ジャージ%CLOCOLOR_MAIDFACE("ジャージ", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("水手", ARG)
+		IF CHECK_OTHER("运动衫", ARG)
+			LOCALS = 水手%CLOCOLOR_MAIDFACE("水手", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%＆运动衫%CLOCOLOR_MAIDFACE("运动衫", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 		ELSEIF CHECK_SHIRT("腋露出", ARG)
-			LOCALS = ノースリーブセーラー%CLOCOLOR_MAIDFACE("セーラー", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+			LOCALS = 无袖水手%CLOCOLOR_MAIDFACE("水手", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 		ELSE
-			LOCALS = セーラー%CLOCOLOR_MAIDFACE("セーラー", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+			LOCALS = 水手%CLOCOLOR_MAIDFACE("水手", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 		ENDIF
-	ELSEIF CHECK_SHIRT("ベスト", ARG)
-		LOCALS = ベスト%CLOCOLOR_MAIDFACE("ベスト", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("カーディガン", ARG)
-		LOCALS = カーディガン%CLOCOLOR_MAIDFACE("カーディガン", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("ブレザー", ARG)
-		LOCALS = ブレザー%CLOCOLOR_MAIDFACE("ブレザー", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("フリルブラウス", ARG)
-		LOCALS = フリルブラウス%CLOCOLOR_MAIDFACE("フリルブラウス", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("ノースリーブブラウス", ARG)
-		IF CHECK_OTHER("肩出しジャケット", ARG)
-			LOCALS = ノースリーブブラウス＆肩出しジャケット%CLOCOLOR_MAIDFACE("肩出しジャケット", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-		ELSEIF CHECK_SHIRT("ノースリーブブラウスＡ", ARG)
-			LOCALS = ノースリーブブラウスＡ
-		ELSEIF CHECK_SHIRT("ノースリーブブラウスＢ", ARG) || AGE(ARG) >= 3
-			LOCALS = ノースリーブブラウスＢ
+	ELSEIF CHECK_SHIRT("背心", ARG)
+		LOCALS = 背心%CLOCOLOR_MAIDFACE("背心", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("V领毛衣", ARG)
+		LOCALS = V领毛衣%CLOCOLOR_MAIDFACE("V领毛衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("西装外衣", ARG)
+		LOCALS = 西装外衣%CLOCOLOR_MAIDFACE("西装外衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("褶边女式衬衫", ARG)
+		LOCALS = 褶边女式衬衫%CLOCOLOR_MAIDFACE("褶边女式衬衫", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("无袖女式衬衫", ARG)
+		IF CHECK_OTHER("肩出し夹克", ARG)
+			LOCALS = 无袖女式衬衫＆肩出し夹克%CLOCOLOR_MAIDFACE("肩出し夹克", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+		ELSEIF CHECK_SHIRT("无袖女式衬衫Ａ", ARG)
+			LOCALS = 无袖女式衬衫Ａ
+		ELSEIF CHECK_SHIRT("无袖女式衬衫Ｂ", ARG) || AGE(ARG) >= 3
+			LOCALS = 无袖女式衬衫Ｂ
 		ELSE
-			LOCALS = ノースリーブブラウスＡ
+			LOCALS = 无袖女式衬衫Ａ
 		ENDIF
-	ELSEIF CHECK_SHIRT("ルーズブラウス", ARG) || CHECK_SHIRT("ボタンのはじけたブラウス", ARG) || CHECK_SHIRT(@"%CALLNAME:MASTER%のＹシャツ", ARG)
-		LOCALS = ルーズブラウス
-	ELSEIF CHECK_SHIRT("スーツ", ARG)
-		IF TALENT:ARG:オトコ
-			LOCALS = ネクタイブラウス黒
+	ELSEIF CHECK_SHIRT("宽松女式衬衫", ARG) || CHECK_SHIRT("没系扣子的女式衬衫", ARG) || CHECK_SHIRT(@"%CALLNAME:MASTER%の衬衫", ARG)
+		LOCALS = 宽松女式衬衫
+	ELSEIF CHECK_SHIRT("制服", ARG)
+		IF TALENT:ARG:男性
+			LOCALS = 領帯女式衬衫黒
 		ELSE
-			LOCALS = ブレザー灰色
+			LOCALS = 西装外衣灰色
 		ENDIF
-	ELSEIF CHECK_SHIRT("ネクタイブラウス", ARG)
-		LOCALS = ネクタイブラウス%CLOCOLOR_MAIDFACE("ネクタイブラウス", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("Ｙシャツ", ARG) || CHECK_SHIRT("ブラウス", ARG)
-		IF CHECK_OTHER("リボンタイ", ARG)
-			LOCALS = リボンブラウス%CLOCOLOR_MAIDFACE("リボンブラウス", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("領帯女式衬衫", ARG)
+		LOCALS = 領帯女式衬衫%CLOCOLOR_MAIDFACE("領帯女式衬衫", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("衬衫", ARG) || CHECK_SHIRT("女式衬衫", ARG)
+		IF CHECK_OTHER("蝴蝶結領帯丝巾", ARG)
+			LOCALS = 蝴蝶結女式衬衫%CLOCOLOR_MAIDFACE("蝴蝶結女式衬衫", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 		ELSE
-			LOCALS = ブラウス白
+			LOCALS = 女式衬衫白
 		ENDIF
 	ELSEIF CHECK_SHIRT("学生服", ARG)
-		LOCALS = ネクタイブラウス赤
-	ELSEIF CHECK_SHIRT("ジャージ", ARG) || CHECK_SHIRT("体操服", ARG)
-		IF DAYEV("夏服期間") || CHECK_SHIRT("体操服", ARG) || CHECK_PANTIES("ブルマ", ARG) || CHECK_OUTER("ブルマ", ARG) || CEVENTS("着替えをした", ARG) == "水着"
-			LOCALS = ジャージ%CLOCOLOR_MAIDFACE("ジャージ", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+		LOCALS = 領帯女式衬衫赤
+	ELSEIF CHECK_SHIRT("运动衫", ARG) || CHECK_SHIRT("体操服", ARG)
+		IF DAYEV("夏服期間") || CHECK_SHIRT("体操服", ARG) || CHECK_PANTIES("布鲁马", ARG) || CHECK_OUTER("布鲁马", ARG) || CEVENTS("着替えをした", ARG) == "泳装"
+			LOCALS = 运动衫%CLOCOLOR_MAIDFACE("运动衫", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 		ELSE
-			LOCALS = 詰襟ジャージ%CLOCOLOR_MAIDFACE("詰襟ジャージ", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+			LOCALS = 詰襟运动衫%CLOCOLOR_MAIDFACE("詰襟运动衫", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 		ENDIF
 	ELSEIF CHECK_SHIRT("執事服", ARG)
 		LOCALS = 執事服%CLOCOLOR_MAIDFACE("執事服", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("メイド服", ARG)
-		LOCALS = メイド服%CLOCOLOR_MAIDFACE("メイド服", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("胸開きチャイナドレス", ARG)
-		LOCALS = 胸開きチャイナドレス%CLOCOLOR_MAIDFACE("胸開きチャイナドレス", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("チャイナドレス", ARG)
-		LOCALS = チャイナドレス%CLOCOLOR_MAIDFACE("チャイナドレス", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("ベビードール")
-		LOCALS = ベビードール%CLOCOLOR_MAIDFACE("ベビードール", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("ネグリジェ")
-		LOCALS = ネグリジェ%CLOCOLOR_MAIDFACE("ネグリジェ", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("女仆装", ARG)
+		LOCALS = 女仆装%CLOCOLOR_MAIDFACE("女仆装", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("胸開き旗袍", ARG)
+		LOCALS = 胸開き旗袍%CLOCOLOR_MAIDFACE("胸開き旗袍", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("旗袍", ARG)
+		LOCALS = 旗袍%CLOCOLOR_MAIDFACE("旗袍", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("情趣内衣")
+		LOCALS = 情趣内衣%CLOCOLOR_MAIDFACE("情趣内衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CHECK_SHIRT("晨衣")
+		LOCALS = 晨衣%CLOCOLOR_MAIDFACE("晨衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 	ELSEIF CHECK_SHIRT("振袖", ARG)
 		LOCALS = 振袖%CLOCOLOR_MAIDFACE("振袖", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
 	ELSEIF CHECK_SHIRT("浴衣", ARG)
 		LOCALS = 浴衣%CLOCOLOR_MAIDFACE("浴衣", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("着物", ARG) || CHECK_SHIRT("和服", ARG)
+	ELSEIF CHECK_SHIRT("和服", ARG) || CHECK_SHIRT("和服", ARG)
 		LOCALS = 和服%CLOCOLOR_MAIDFACE("和服", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CHECK_SHIRT("チアユニフォーム", ARG)
-		LOCALS = チアユニフォーム
-	ELSEIF CHECK_SHIRT("タンクトップ", ARG)
-		LOCALS = タンクトップ%CLOCOLOR_MAIDFACE("タンクトップ", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
-	ELSEIF CLO("顔グラ衣装：下着と水着", ARG) != ""
-		LOCALS = %CLO("顔グラ衣装：下着と水着", ARG)%
-	ELSEIF EQUIP:ARG:服 || EQUIP:ARG:ボディスーツ
-		LOCALS = シャツ
+	ELSEIF CHECK_SHIRT("啦啦队制服", ARG)
+		LOCALS = 啦啦队制服
+	ELSEIF CHECK_SHIRT("吊帯背心", ARG)
+		LOCALS = 吊帯背心%CLOCOLOR_MAIDFACE("吊帯背心", CHECK_CLOCOLOR(CSTR:ARG:服), ARG)%
+	ELSEIF CLO("颜绘衣装：内衣と泳装", ARG) != ""
+		LOCALS = %CLO("颜绘衣装：内衣と泳装", ARG)%
+	ELSEIF EQUIP:ARG:服 || EQUIP:ARG:贴身制服
+		LOCALS = 恤
 	ENDIF
-CASE "顔グラ衣装：下着と水着"
-	IF CHECK_BODYS("ボンデージ", ARG)
-		LOCALS = ボンデージ%CLOCOLOR_MAIDFACE("ボンデージ", CHECK_CLOCOLOR(CSTR:ARG:ボディスーツ), ARG)%
-	ELSEIF CHECK_BODYS("バニー", ARG)
-		LOCALS = バニースーツ%CLOCOLOR_MAIDFACE("バニースーツ", CHECK_CLOCOLOR(CSTR:ARG:ボディスーツ), ARG)%
-	ELSEIF CHECK_BODYS("競泳水着", ARG)
-		LOCALS = 競泳%CLOCOLOR_MAIDFACE("競泳水着", CHECK_CLOCOLOR(CSTR:ARG:ボディスーツ), ARG)%
-	ELSEIF CHECK_BODYS("スク水", ARG)
+CASE "颜绘衣装：内衣と泳装"
+	IF CHECK_BODYS("拘束衣", ARG)
+		LOCALS = 拘束衣%CLOCOLOR_MAIDFACE("拘束衣", CHECK_CLOCOLOR(CSTR:ARG:贴身制服), ARG)%
+	ELSEIF CHECK_BODYS("兔", ARG)
+		LOCALS = 兔女郎制服%CLOCOLOR_MAIDFACE("兔女郎制服", CHECK_CLOCOLOR(CSTR:ARG:贴身制服), ARG)%
+	ELSEIF CHECK_BODYS("競泳泳装", ARG)
+		LOCALS = 競泳%CLOCOLOR_MAIDFACE("競泳泳装", CHECK_CLOCOLOR(CSTR:ARG:贴身制服), ARG)%
+	ELSEIF CHECK_BODYS("死库水", ARG)
 		SELECTCASE CSTR:ARG:学年
 		CASE "初等部", "中等部"
-			LOCALS = 新スク紺色
+			LOCALS = 新死库水紺色
 		CASEELSE
-			LOCALS = スク水青
+			LOCALS = 死库水青
 		ENDSELECT
-	ELSEIF CHECK_BODYS("ワンピース水着", ARG) || CHECK_BODYS("ボンデージ", ARG) || CHECK_BODYS("レオタード", ARG)
-		LOCALS = ワンピ水着黒
-	ELSEIF CHECK_BODYS("水着", ARG)
-		LOCALS = チューブトップ赤
-	ELSEIF EQUIP:ARG:ブラ && EQUIP:ARG:服 == 0
-		IF CHECK_BRA("キャミソール", ARG)
-			SELECTCASE CLOCOLOR(CSTR:ARG:ブラ)
+	ELSEIF CHECK_BODYS("連体泳装", ARG) || CHECK_BODYS("拘束衣", ARG) || CHECK_BODYS("緊身内衣", ARG)
+		LOCALS = 连体泳装黒
+	ELSEIF CHECK_BODYS("泳装", ARG)
+		LOCALS = 抹胸赤
+	ELSEIF EQUIP:ARG:胸罩 && EQUIP:ARG:服 == 0
+		IF CHECK_BRA("吊帯衫", ARG)
+			SELECTCASE CLOCOLOR(CSTR:ARG:胸罩)
 			CASE "真紅", "赤", "薄桃色"
-				LOCALS = ベビードール赤
+				LOCALS = 情趣内衣赤
 			CASE "緑色", "薄緑"
-				LOCALS = ベビードール緑色
-			CASE "黒", "紺色", "豹柄"
-				LOCALS = ベビードール黒
+				LOCALS = 情趣内衣緑色
+			CASE "黒", "紺色", "豹纹"
+				LOCALS = 情趣内衣黒
 			CASE "黄色", "橙色"
-				LOCALS = 下着橙
+				LOCALS = 内衣橙
 			CASE "紫", "青", "薄青色"
-				LOCALS = 下着青
+				LOCALS = 内衣青
 			CASEELSE
-				LOCALS = 下着白
+				LOCALS = 内衣白
 			ENDSELECT
-		ELSEIF CHECK_BRA("タンクトップ", ARG)
-			SELECTCASE CLOCOLOR(CSTR:ARG:ブラ)
+		ELSEIF CHECK_BRA("吊帯背心", ARG)
+			SELECTCASE CLOCOLOR(CSTR:ARG:胸罩)
 			CASE "真紅", "赤", "薄桃色"
-				LOCALS = タンクトップ赤
+				LOCALS = 吊帯背心赤
 			CASE "紫", "青", "薄青色", "紺色"
-				LOCALS = タンクトップ青
+				LOCALS = 吊帯背心青
 			CASE "白", "純白"
-				LOCALS = タンクトップ白
+				LOCALS = 吊帯背心白
 			CASEELSE
-				LOCALS = タンクトップ灰色
+				LOCALS = 吊帯背心灰色
 			ENDSELECT
 		ELSE
-			SELECTCASE CLOCOLOR(CSTR:ARG:ブラ)
-			CASE "黒", "豹柄"
-				LOCALS = 下着黒
+			SELECTCASE CLOCOLOR(CSTR:ARG:胸罩)
+			CASE "黒", "豹纹"
+				LOCALS = 内衣黒
 			CASE "真紅", "赤", "薄桃色"
-				LOCALS = 下着桃
+				LOCALS = 内衣桃
 			CASE "緑色", "薄緑"
-				LOCALS = 下着緑色
+				LOCALS = 内衣緑色
 			CASE "黄色", "橙色"
-				LOCALS = 下着橙
+				LOCALS = 内衣橙
 			CASE "紫", "青", "薄青色", "紺色"
-				LOCALS = 下着青
+				LOCALS = 内衣青
 			CASEELSE
-				LOCALS = 下着白
+				LOCALS = 内衣白
 			ENDSELECT
 		ENDIF
 	ENDIF
 ;@CLO_ABOUTと近いが、こちらは可能な限り短く出力する
-CASE "現在の格好"
+CASE "現在的格好"
 	IF CHECK_OTHER("外套", ARG)
-		LOCALS = %OTHER(CSTR:ARG:アクセサリ, "外套")%姿
+		LOCALS = %OTHER(CSTR:ARG:飾品, "外套")%姿
 	ELSEIF CHECK_CLO("学生服姿", ARG)
 		LOCALS = 制服姿
 	ELSEIF CHECK_CLO("体操服姿", ARG)
 		LOCALS = 体操服姿
-	ELSEIF CHECK_CLO("ビキニ姿", ARG)
-		IF CHECK_CLO("マイクロビキニ姿", ARG)
-			LOCALS = マイクロビキニ姿
+	ELSEIF CHECK_CLO("比基尼姿", ARG)
+		IF CHECK_CLO("Micro比基尼姿", ARG)
+			LOCALS = Micro比基尼姿
 		ELSE
-			LOCALS = ビキニ姿
+			LOCALS = 比基尼姿
 		ENDIF
-	ELSEIF CHECK_CLO("水着姿", ARG)
-		LOCALS = 水着姿
-	ELSEIF CHECK_CLO("下着姿", ARG)
-		LOCALS = 下着姿
-	ELSEIF CHECK_CLO("ハダカ", ARG)
-		LOCALS = ハダカ
-	ELSEIF CFLAG:ARG:コスプレ中
+	ELSEIF CHECK_CLO("泳装姿", ARG)
+		LOCALS = 泳装姿
+	ELSEIF CHECK_CLO("内衣姿", ARG)
+		LOCALS = 内衣姿
+	ELSEIF CHECK_CLO("裸体", ARG)
+		LOCALS = 裸体
+	ELSEIF CFLAG:ARG:Cosplay中
 		IF EQUIP:ARG:服
 			IF CHECK_SHIRT("の服", ARG)
 				LOCALS = %EXTSTR(SHIRT(ARG), "", "の服")%姿
 			ELSE
 				LOCALS = %SHIRT(ARG)%姿
 			ENDIF
-		ELSEIF EQUIP:ARG:ボディスーツ
+		ELSEIF EQUIP:ARG:贴身制服
 			LOCALS = %BODYS(ARG)%姿
 		ENDIF
 	ENDIF
-CASE "現在の格好＆の"
-	SIF CLO("現在の格好", ARG) != ""
-		LOCALS = %CLO("現在の格好", ARG)%の
+CASE "現在的格好＆の"
+	SIF CLO("現在的格好", ARG) != ""
+		LOCALS = %CLO("現在的格好", ARG)%の
 ENDSELECT
 RETURNF LOCALS
 
@@ -611,91 +611,91 @@ SIF ARG == 0 && TARGET
 SELECTCASE ARGS
 CASE "萌え袖可能"
 	;詰襟ジャージは無しにしておく
-	SIF STRCOUNTS(STR:顔グラ衣装, "詰襟ジャージ") || CHECK_SHIRT("詰襟ジャージ", ARG)
+	SIF STRCOUNTS(STR:颜绘衣装, "詰襟运动衫") || CHECK_SHIRT("詰襟运动衫", ARG)
 		RETURNF 0
 
-	SIF STRCOUNTS(STR:顔グラ衣装, "カーディガン", "ジャージ", "パジャマ", "肩出しジャケット")
+	SIF STRCOUNTS(STR:颜绘衣装, "V领毛衣", "运动衫", "睡衣", "肩出し夹克")
 		RETURNF 1
-	SIF CHECK_SHIRT("カーディガン", ARG) || CHECK_SHIRT("ジャージ", ARG) || CHECK_SHIRT("パジャマ", ARG)
+	SIF CHECK_SHIRT("V领毛衣", ARG) || CHECK_SHIRT("运动衫", ARG) || CHECK_SHIRT("睡衣", ARG)
 		RETURNF 1
-	SIF CHECK_SHIRT("ノースリーブブラウス", ARG) && CHECK_OTHER("肩出しジャケット", ARG)
+	SIF CHECK_SHIRT("无袖女式衬衫", ARG) && CHECK_OTHER("肩出し夹克", ARG)
 		RETURNF 1
 
-CASE "CIP汎用正面アウター"
-	SIF CHECK_OUTER("ブルマ", ARG)
+CASE "CIP汎用正面外套"
+	SIF CHECK_OUTER("布鲁马", ARG)
 		RETURNF 1
-CASE "CIP汎用正面ボディスーツ"
-	SIF CHECK_BODYS("バニー", ARG) || CHECK_BODYS("競泳水着", ARG)
+CASE "CIP汎用正面贴身制服"
+	SIF CHECK_BODYS("兔", ARG) || CHECK_BODYS("競泳泳装", ARG)
 		RETURNF 1
-CASE "CIP汎用正面パンツ"
-	SELECTCASE PANTIES(ARG, "CIPフロント")
-	CASE "ショーツ", "パンティ", "フリル", "マイクロショーツ", "ハイレグ", "ローライズ", "ローレグ", "褌", "ボーイレッグ", "葉っぱパンツ", "ハイレグブルマ", "ドロワーズ"
+CASE "CIP汎用正面胖次"
+	SELECTCASE PANTIES(ARG, "CIP正面")
+	CASE "內褲", "三角胖次", "褶边", "Micro內褲", "高開衩", "低腰", "超低腰", "兜襠布", "四角内褲", "叶子胖次", "高開衩布鲁马", "襯褲"
 		RETURNF 1
 	ENDSELECT
 CASE "CIPすじ"
-	SELECTCASE PANTIES(ARG, "CIPフロント")
-	CASE "前貼り", "すじ"
+	SELECTCASE PANTIES(ARG, "CIP正面")
+	CASE "前貼", "すじ"
 		RETURNF 1
 	ENDSELECT
 CASE "ＣＩＰ発生"
 	SIF CFLAG:ARG:ＣＩＰ発生済
 		RETURNF 0
-	SIF EQUIP:ARG:スカート
+	SIF EQUIP:ARG:裙
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CFLAG:ARG:コスプレ中 == 0
+	SIF EQUIP:ARG:贴身制服 && CFLAG:ARG:Cosplay中 == 0
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("パンスト", ARG) == 0
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("连褲襪", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ && CHECK_PANTIES("男物", ARG)
+	SIF EQUIP:ARG:胖次 && CHECK_PANTIES("男物", ARG)
 		RETURNF 0
 	RETURNF 1
 CASE "自分の服"
-	SIF COND("普段着に着替えた", ARG)
+	SIF COND("便装に着替えた", ARG)
 		RETURNF 1
-CASE "トップレス"
-	SIF EQUIP:ARG:パンツ + EQUIP:ARG:スカート + EQUIP:ARG:アウター && EQUIP:ARG:ブラ + EQUIP:ARG:服 + EQUIP:ARG:ボディスーツ == 0
+CASE "没穿外衣"
+	SIF EQUIP:ARG:胖次 + EQUIP:ARG:裙 + EQUIP:ARG:外套 && EQUIP:ARG:胸罩 + EQUIP:ARG:服 + EQUIP:ARG:贴身制服 == 0
 		RETURNF 1
 ;上にはブラなど、セットたりえるもの必須
-CASE "ボトムレス"
-	SIF EQUIP:ARG:服 + EQUIP:ARG:ブラ && EQUIP:ARG:パンツ + EQUIP:ARG:スカート + EQUIP:ARG:ボディスーツ + EQUIP:ARG:アウター == 0
+CASE "没穿下衣"
+	SIF EQUIP:ARG:服 + EQUIP:ARG:胸罩 && EQUIP:ARG:胖次 + EQUIP:ARG:裙 + EQUIP:ARG:贴身制服 + EQUIP:ARG:外套 == 0
 		RETURNF 1
 ;何かを脱いでトップレス状態になれるか
-CASE "トップレス可能"
+CASE "没穿外衣可能"
 	;ワンピースの場合は脱いだ後にパンツかズボンが必要
-	IF CHECK_SHIRT("ワンピース", ARG)
-		SIF EQUIP:ARG:パンツ + EQUIP:ARG:アウター
+	IF CHECK_SHIRT("連衣裙", ARG)
+		SIF EQUIP:ARG:胖次 + EQUIP:ARG:外套
 			RETURNF 1
 	ELSE
-		SIF EQUIP:ARG:ブラ + EQUIP:ARG:服 == 0
+		SIF EQUIP:ARG:胸罩 + EQUIP:ARG:服 == 0
 			RETURNF 0
-		SIF EQUIP:ARG:パンツ + EQUIP:ARG:スカート + EQUIP:ARG:アウター
+		SIF EQUIP:ARG:胖次 + EQUIP:ARG:裙 + EQUIP:ARG:外套
 			RETURNF 1
 	ENDIF
-CASE "ボトムレス可能"
+CASE "没穿下衣可能"
 	;ワンピースの場合は脱いだ後にブラが必要
-	IF CHECK_SHIRT("ワンピース", ARG)
-		SIF EQUIP:ARG:ブラ
+	IF CHECK_SHIRT("連衣裙", ARG)
+		SIF EQUIP:ARG:胸罩
 			RETURNF 1
 	ELSE
-		SIF EQUIP:ARG:パンツ + EQUIP:ARG:スカート + EQUIP:ARG:アウター == 0
+		SIF EQUIP:ARG:胖次 + EQUIP:ARG:裙 + EQUIP:ARG:外套 == 0
 			RETURNF 0
-		SIF EQUIP:ARG:ブラ + EQUIP:ARG:服
+		SIF EQUIP:ARG:胸罩 + EQUIP:ARG:服
 			RETURNF 1
 	ENDIF
-CASE "スカート脱衣可能"
-	SIF CHECK_SHIRT("ワンピース", ARG)
+CASE "裙脱衣可能"
+	SIF CHECK_SHIRT("連衣裙", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:スカート
+	SIF EQUIP:ARG:裙
 		RETURNF 1
 ;スカートなど、パンツが見えない状態必須。ノーパン＆パンストならOKとする
-CASE "ノーパン"
-	SIF EQUIP:ARG:服 + EQUIP:ARG:スカート == 0
+CASE "没穿内褲"
+	SIF EQUIP:ARG:服 + EQUIP:ARG:裙 == 0
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ
+	SIF EQUIP:ARG:胖次
 		RETURNF 0
-	IF EQUIP:ARG:アウター
+	IF EQUIP:ARG:外套
 		;パンスト
-		SIF CHECK_OUTER("パンスト", ARG) || CHECK_OUTER("クロッチ", ARG) == 0
+		SIF CHECK_OUTER("连褲襪", ARG) || CHECK_OUTER("開洞", ARG) == 0
 			RETURNF 1
 	ELSE
 		RETURNF 1
@@ -704,19 +704,19 @@ CASE "ノーパン"
 CASE "全裸"
 	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ + EQUIP:ARG:ブラ + EQUIP:ARG:服 + EQUIP:ARG:スカート + EQUIP:ARG:ボディスーツ + EQUIP:ARG:アウター
+	SIF EQUIP:ARG:胖次 + EQUIP:ARG:胸罩 + EQUIP:ARG:服 + EQUIP:ARG:裙 + EQUIP:ARG:贴身制服 + EQUIP:ARG:外套
 		RETURNF 0
-	SIF EQUIP:ARG:靴下 + EQUIP:ARG:靴 + EQUIP:ARG:手袋
+	SIF EQUIP:ARG:襪子 + EQUIP:ARG:靴 + EQUIP:ARG:手袋
 		RETURNF 0
 	RETURNF 1
-CASE "ハダカ"
+CASE "裸体"
 	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ + EQUIP:ARG:ブラ + EQUIP:ARG:服 + EQUIP:ARG:スカート + EQUIP:ARG:ボディスーツ + EQUIP:ARG:アウター
+	SIF EQUIP:ARG:胖次 + EQUIP:ARG:胸罩 + EQUIP:ARG:服 + EQUIP:ARG:裙 + EQUIP:ARG:贴身制服 + EQUIP:ARG:外套
 		RETURNF 0
 	RETURNF 1
-CASE "下着姿"
-	SIF EQUIP:ARG:パンツ + EQUIP:ARG:ブラ && EQUIP:ARG:服 + EQUIP:ARG:スカート + EQUIP:ARG:ボディスーツ + EQUIP:ARG:アウター == 0
+CASE "内衣姿"
+	SIF EQUIP:ARG:胖次 + EQUIP:ARG:胸罩 && EQUIP:ARG:服 + EQUIP:ARG:裙 + EQUIP:ARG:贴身制服 + EQUIP:ARG:外套 == 0
 		RETURNF 1
 CASE "ランジェリー姿"
 	SIF CHECK_SHIRT("ランジェリー", ARG)
@@ -727,311 +727,311 @@ CASE "ランジェリー姿"
 	ENDIF
 ;スカートの下にズボン類を履いていて、それが周りからも分かる状態。ボトムレイヤード。
 CASE "埴輪ルック"
-	SIF CHECK_SKIRT("スカート", ARG) == 0
+	SIF CHECK_SKIRT("裙", ARG) == 0
 		RETURNF 0
-	SIF CHECK_OUTER("丈長ズボン", ARG)
+	SIF CHECK_OUTER("丈長長褲", ARG)
 		RETURNF 1
 ;スカート履いてないとか色々です
-CASE "パンツが見える格好"
-	SIF EQUIP:ARG:パンツ == 0
+CASE "胖次が見える格好"
+	SIF EQUIP:ARG:胖次 == 0
 		RETURNF 0
-	SIF CHECK_PANTIES("水着", ARG)
+	SIF CHECK_PANTIES("泳装", ARG)
 		RETURNF 0
-	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("コート", ARG)
+	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:スカート
+	SIF EQUIP:ARG:裙
 		RETURNF 0
-	SIF CHECK_CLO("パンツ露出", ARG) == 0
+	SIF CHECK_CLO("胖次露出", ARG) == 0
 		RETURNF 0
 	RETURNF 1
-CASE "ブラが見える格好"
-	SIF EQUIP:ARG:ブラ == 0
+CASE "胸罩が見える格好"
+	SIF EQUIP:ARG:胸罩 == 0
 		RETURNF 0
-	SIF CHECK_PANTIES("水着", ARG)
+	SIF CHECK_PANTIES("泳装", ARG)
 		RETURNF 0
 	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
 	SIF EQUIP:ARG:服
 		RETURNF 0
 	RETURNF 1
-CASE "サスペンダー", "フリルサスペンダー"
+CASE "裤吊带", "褶边裙吊带"
 	SIF CHECK_SHIRT(ARGS, ARG) || CHECK_OUTER(ARGS, ARG) || CHECK_OTHER(ARGS, ARG)
 		RETURNF 1
 CASE "学生服姿"
-	SIF CHECK_SHIRT("学生服", ARG) || CHECK_SHIRT("セーラー", ARG) || CHECK_SHIRT("ブレザー", ARG)
+	SIF CHECK_SHIRT("学生服", ARG) || CHECK_SHIRT("水手", ARG) || CHECK_SHIRT("西装外衣", ARG)
 		RETURNF 1
 CASE "体操服姿"
-	SIF EQUIP:ARG:スカート && CHECK_SKIRT("スカート", ARG)
+	SIF EQUIP:ARG:裙 && CHECK_SKIRT("裙", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("水着", ARG)
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("泳装", ARG)
 		RETURNF 0
-	SIF CHECK_SHIRT("体操服", ARG) || CHECK_SHIRT("ジャージ", ARG)
+	SIF CHECK_SHIRT("体操服", ARG) || CHECK_SHIRT("运动衫", ARG)
 		RETURNF 1
-CASE "水着姿"
-	SIF EQUIP:ARG:服 + EQUIP:ARG:スカート + EQUIP:ARG:アウター
+CASE "泳装姿"
+	SIF EQUIP:ARG:服 + EQUIP:ARG:裙 + EQUIP:ARG:外套
 		RETURNF 0
-	IF EQUIP:ARG:ボディスーツ && CHECK_BODYS("水着", ARG)
+	IF EQUIP:ARG:贴身制服 && CHECK_BODYS("泳装", ARG)
 		RETURNF 1
-	ELSEIF EQUIP:ARG:パンツ
-		SIF EQUIP:ARG:ブラ && CHECK_BRA("水着", ARG) == 0
+	ELSEIF EQUIP:ARG:胖次
+		SIF EQUIP:ARG:胸罩 && CHECK_BRA("泳装", ARG) == 0
 			RETURNF 0
-		SIF CHECK_PANTIES("水着", ARG)
+		SIF CHECK_PANTIES("泳装", ARG)
 			RETURNF 1
-	ELSEIF EQUIP:ARG:ブラ
-		SIF CHECK_BRA("水着", ARG)
+	ELSEIF EQUIP:ARG:胸罩
+		SIF CHECK_BRA("泳装", ARG)
 			RETURNF 1
 	ENDIF
-CASE "ビキニ姿"
-	SIF EQUIP:ARG:服 + EQUIP:ARG:スカート + EQUIP:ARG:ボディスーツ + EQUIP:ARG:アウター
+CASE "比基尼姿"
+	SIF EQUIP:ARG:服 + EQUIP:ARG:裙 + EQUIP:ARG:贴身制服 + EQUIP:ARG:外套
 		RETURNF 0
-	IF EQUIP:ARG:パンツ
-		SIF EQUIP:ARG:ブラ && CHECK_BRA("水着", ARG) == 0
+	IF EQUIP:ARG:胖次
+		SIF EQUIP:ARG:胸罩 && CHECK_BRA("泳装", ARG) == 0
 			RETURNF 0
-		SIF CHECK_PANTIES("水着", ARG)
+		SIF CHECK_PANTIES("泳装", ARG)
 			RETURNF 1
-	ELSEIF EQUIP:ARG:ブラ
-		SIF CHECK_BRA("水着", ARG)
+	ELSEIF EQUIP:ARG:胸罩
+		SIF CHECK_BRA("泳装", ARG)
 			RETURNF 1
 	ENDIF
-CASE "マイクロビキニ姿"
-	SIF CHECK_CLO("ビキニ姿", ARG) == 0
+CASE "Micro比基尼姿"
+	SIF CHECK_CLO("比基尼姿", ARG) == 0
 		RETURNF 0
-	SIF CHECK_BRA("マイクロ", ARG) && CHECK_PANTIES("マイクロ", ARG)
+	SIF CHECK_BRA("Micro", ARG) && CHECK_PANTIES("Micro", ARG)
 		RETURNF 1
-CASE "アウター直穿き"
-	SIF EQUIP:ARG:アウター && EQUIP:ARG:パンツ == 0
+CASE "外套直穿き"
+	SIF EQUIP:ARG:外套 && EQUIP:ARG:胖次 == 0
 		RETURNF 1
 CASE "上下が揃ってない"
-	SIF CHECK_CLO("ボトムレス", ARG) || CHECK_CLO("トップレス", ARG)
+	SIF CHECK_CLO("没穿下衣", ARG) || CHECK_CLO("没穿外衣", ARG)
 		RETURNF 1
-	SIF EQUIP:ARG:服 && CHECK_CLO("パンツが見える格好", ARG)
+	SIF EQUIP:ARG:服 && CHECK_CLO("胖次が見える格好", ARG)
 		RETURNF 1
-	SIF EQUIP:ARG:服 == 0 && EQUIP:ARG:ブラ && EQUIP:ARG:スカート + EQUIP:ARG:アウター
+	SIF EQUIP:ARG:服 == 0 && EQUIP:ARG:胸罩 && EQUIP:ARG:裙 + EQUIP:ARG:外套
 		RETURNF 1
 
-CASE "電源ボックス保持可能"
-	IF EQUIP:ARG:アウター
+CASE "電源BOX保持可能"
+	IF EQUIP:ARG:外套
 		;クロッチありパンスト着用時は無理
- 		SIF CHECK_OUTER("パンスト", ARG) && CHECK_OUTER("クロッチ", ARG)
+ 		SIF CHECK_OUTER("连褲襪", ARG) && CHECK_OUTER("開洞", ARG)
 			RETURNF 0
-		SIF CHECK_OUTER("ズボン", ARG) && CHECK_OUTER("隙間チラ可", ARG) == 0
+		SIF CHECK_OUTER("長褲", ARG) && CHECK_OUTER("可从缝隙偷窥的", ARG) == 0
 			RETURNF 0
 	ENDIF
-	SIF CHECK_SOCKS("太ももまで", ARG) || CHECK_OTHER("キャットガーター", ARG)
+	SIF CHECK_SOCKS("直到大腿", ARG) || CHECK_OTHER("腿环", ARG)
 		RETURNF 1
 
-CASE "クロッチ見せ可能"
-	SIF EQUIP:ARG:パンツ == 0 || TALENT:ARG:オトコ
+CASE "開洞見せ可能"
+	SIF EQUIP:ARG:胖次 == 0 || TALENT:ARG:男性
 		RETURNF 0
-	SIF CHECK_PANTIES("男物", ARG) || CHECK_PANTIES("クロッチ", ARG) == 0 || CHECK_PANTIES("水着", ARG) || CHECK_PANTIES("半脱ぎ時太もも保持可能", ARG) == 0
+	SIF CHECK_PANTIES("男物", ARG) || CHECK_PANTIES("開洞", ARG) == 0 || CHECK_PANTIES("泳装", ARG) || CHECK_PANTIES("半脱ぎ時太もも保持可能", ARG) == 0
 		RETURNF 0
 	RETURNF 1
-CASE "ぱんつコキ", "パンツコキ"
-	SIF EQUIP:ARG:ボディスーツ
+CASE "内褲冲", "胖次コキ"
+	SIF EQUIP:ARG:贴身制服
 		RETURNF 0
-	IF EQUIP:ARG:アウター
-		SIF !CHECK_OUTER("コキ不可", ARG)
+	IF EQUIP:ARG:外套
+		SIF !CHECK_OUTER("不可手交", ARG)
 			RETURNF 1
-	ELSEIF EQUIP:ARG:パンツ && !CHECK_PANTIES("コキ不可", ARG)
+	ELSEIF EQUIP:ARG:胖次 && !CHECK_PANTIES("不可手交", ARG)
 		RETURNF 1
 	ENDIF
-CASE "蒸れ"
-	IF EQUIP:ARG:ボディスーツ && CHECK_BODYS("蒸れ", ARG)
+CASE "闷热的"
+	IF EQUIP:ARG:贴身制服 && CHECK_BODYS("闷热的", ARG)
 		RETURNF 1
-	ELSEIF EQUIP:ARG:アウター && CHECK_OUTER("蒸れ", ARG)
+	ELSEIF EQUIP:ARG:外套 && CHECK_OUTER("闷热的", ARG)
 		RETURNF 1
-	ELSEIF EQUIP:ARG:パンツ && CHECK_PANTIES("蒸れ", ARG)
+	ELSEIF EQUIP:ARG:胖次 && CHECK_PANTIES("闷热的", ARG)
 		RETURNF 1
 	ENDIF
-CASE "染み", "濡れ"
-	IF EQUIP:ARG:ボディスーツ
-		SIF CHECK_BODYS("染み", ARG)
+CASE "带污迹的", "湿的"
+	IF EQUIP:ARG:贴身制服
+		SIF CHECK_BODYS("带污迹的", ARG)
 			RETURNF 1
-	ELSEIF EQUIP:ARG:アウター
-		SIF CHECK_OUTER("染み", ARG)
+	ELSEIF EQUIP:ARG:外套
+		SIF CHECK_OUTER("带污迹的", ARG)
 			RETURNF 1
-	ELSEIF EQUIP:ARG:パンツ
-		SIF CHECK_PANTIES("染み", ARG)
+	ELSEIF EQUIP:ARG:胖次
+		SIF CHECK_PANTIES("带污迹的", ARG)
 			RETURNF 1
 	ENDIF
 ;ブラなど、胸を覆うものは"はだけ"る
-CASE "はだけ可"
-	IF EQUIP:ARG:服 && CHECK_SHIRT("はだけ可", ARG)
+CASE "半脱可"
+	IF EQUIP:ARG:服 && CHECK_SHIRT("半脱可", ARG)
 		RETURNF 1
-	ELSEIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("はだけ可", ARG)
+	ELSEIF EQUIP:ARG:贴身制服 && CHECK_BODYS("半脱可", ARG)
 		RETURNF 1
-	ELSEIF EQUIP:ARG:ブラ && CHECK_BRA("はだけ可", ARG)
-		SIF EQUIP:ARG:服 && CHECK_SHIRT("はだけ不可", ARG)
+	ELSEIF EQUIP:ARG:胸罩 && CHECK_BRA("半脱可", ARG)
+		SIF EQUIP:ARG:服 && CHECK_SHIRT("半脱不可", ARG)
 			RETURNF 0
-		SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("はだけ不可", ARG)
+		SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("半脱不可", ARG)
 			RETURNF 0
 		RETURNF 1
 	ENDIF
 CASE "谷間露出"
 	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:服 && !CHECK_SHIRT("はだけた", ARG) && !CHECK_SHIRT("谷間露出", ARG)
+	SIF EQUIP:ARG:服 && !CHECK_SHIRT("半脱的", ARG) && !CHECK_SHIRT("谷間露出", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && !CHECK_BODYS("はだけた", ARG) && !CHECK_BODYS("谷間露出", ARG)
+	SIF EQUIP:ARG:贴身制服 && !CHECK_BODYS("半脱的", ARG) && !CHECK_BODYS("谷間露出", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ブラ && !CHECK_BRA("はだけた", ARG) && !CHECK_BRA("谷間露出", ARG)
+	SIF EQUIP:ARG:胸罩 && !CHECK_BRA("半脱的", ARG) && !CHECK_BRA("谷間露出", ARG)
 		RETURNF 0
 	RETURNF 1
 CASE "乳輪露出"
 	;乳首露出なら当然ＯＫ
-	SIF CHECK_CLO("乳首露出", ARG)
+	SIF CHECK_CLO("乳頭露出", ARG)
 		RETURNF 1
 	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
 	;以下は巨乳輪でないと起きない
 	SIF COND("巨乳輪", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:服 && !CHECK_SHIRT("はだけた", ARG)
+	SIF EQUIP:ARG:服 && !CHECK_SHIRT("半脱的", ARG)
 		RETURNF 0
-	IF EQUIP:ARG:ボディスーツ && !CHECK_BODYS("はだけた", ARG)
-		SIF CHECK_BODYS("ハーフカップ", ARG)
+	IF EQUIP:ARG:贴身制服 && !CHECK_BODYS("半脱的", ARG)
+		SIF CHECK_BODYS("半杯", ARG)
 			RETURNF 1
 	ENDIF
-	IF EQUIP:ARG:ブラ && !CHECK_BRA("はだけた", ARG)
-		SIF CHECK_BRA("ハーフカップ", ARG) || CHECK_BRA("マイクロ", ARG)
+	IF EQUIP:ARG:胸罩 && !CHECK_BRA("半脱的", ARG)
+		SIF CHECK_BRA("半杯", ARG) || CHECK_BRA("Micro", ARG)
 			RETURNF 1
 	ENDIF
 	RETURNF 0
-CASE "乳首露出"
+CASE "乳頭露出"
 	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:服 && !CHECK_SHIRT("はだけた", ARG) && !CHECK_SHIRT("乳首露出", ARG)
+	SIF EQUIP:ARG:服 && !CHECK_SHIRT("半脱的", ARG) && !CHECK_SHIRT("乳頭露出", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && !CHECK_BODYS("はだけた", ARG) && !CHECK_BODYS("乳首露出", ARG)
+	SIF EQUIP:ARG:贴身制服 && !CHECK_BODYS("半脱的", ARG) && !CHECK_BODYS("乳頭露出", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ブラ && !CHECK_BRA("はだけた", ARG) && !CHECK_BRA("乳首露出", ARG)
+	SIF EQUIP:ARG:胸罩 && !CHECK_BRA("半脱的", ARG) && !CHECK_BRA("乳頭露出", ARG)
 		RETURNF 0
 	RETURNF 1
 CASE "ずらし可", "ずらせる"
-	IF EQUIP:ARG:ボディスーツ
+	IF EQUIP:ARG:贴身制服
 		SIF CHECK_BODYS("ずらせる", ARG)
 			RETURNF 1
-	ELSEIF EQUIP:ARG:アウター
+	ELSEIF EQUIP:ARG:外套
 		SIF CHECK_OUTER("ずらせる", ARG)
 			RETURNF 1
-	ELSEIF EQUIP:ARG:パンツ
+	ELSEIF EQUIP:ARG:胖次
 		SIF CHECK_PANTIES("ずらせる", ARG)
 			RETURNF 1
 	ENDIF
-CASE "ブルマ露出"
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG)
+CASE "布鲁马露出"
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG)
 		RETURNF 0
-	IF EQUIP:ARG:アウター
-		SIF CHECK_OUTER("ブルマ", ARG) && CHECK_OUTER("クロッチ", ARG)
+	IF EQUIP:ARG:外套
+		SIF CHECK_OUTER("布鲁马", ARG) && CHECK_OUTER("開洞", ARG)
 			RETURNF 1
 	ELSE
-		SIF CHECK_PANTIES("ブルマ", ARG) && CHECK_PANTIES("クロッチ", ARG)
+		SIF CHECK_PANTIES("布鲁马", ARG) && CHECK_PANTIES("開洞", ARG)
 			RETURNF 1
 	ENDIF
-CASE "ブルマはみパン可能"
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG)
+CASE "布鲁马はみ胖次可能"
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG)
 		RETURNF 0
-	IF EQUIP:ARG:アウター && CHECK_OUTER("ブルマ", ARG) && CHECK_OUTER("クロッチ", ARG)
-		SIF CHECK_OUTER("ハイレグブルマ", ARG)
+	IF EQUIP:ARG:外套 && CHECK_OUTER("布鲁马", ARG) && CHECK_OUTER("開洞", ARG)
+		SIF CHECK_OUTER("高開衩布鲁马", ARG)
 			RETURNF 0
-		SIF EQUIP:ARG:パンツ && CHECK_PANTIES("はみパン可能", ARG)
+		SIF EQUIP:ARG:胖次 && CHECK_PANTIES("はみ胖次可能", ARG)
 			RETURNF 1
 	ENDIF
-CASE "アウター露出"
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG)
+CASE "外套露出"
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG)
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG)
 		RETURNF 1
-CASE "ボディスーツ露出"
-	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("コート", ARG)
-		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG)
-		RETURNF 1
-CASE "パンスト露出"
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG)
-		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("パンスト", ARG) && CHECK_OUTER("クロッチ", ARG)
-		RETURNF 1
-CASE "ブラ露出"
+CASE "贴身制服露出"
 	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:服 && !CHECK_SHIRT("はだけた", ARG)
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG)
+		RETURNF 1
+CASE "连褲襪露出"
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG)
+		RETURNF 0
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("连褲襪", ARG) && CHECK_OUTER("開洞", ARG)
+		RETURNF 1
+CASE "胸罩露出"
+	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
+		RETURNF 0
+	SIF EQUIP:ARG:服 && !CHECK_SHIRT("半脱的", ARG)
 		RETURNF 0
 	RETURNF 1
-CASE "パンツ露出"
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG)
+CASE "胖次露出"
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG)
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ
+	SIF EQUIP:ARG:胖次
 		RETURNF 1
-CASE "パンツ視認可能"
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG)
+CASE "胖次視認可能"
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG) && CHECK_OUTER("パンスト", ARG) == 0
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG) && CHECK_OUTER("连褲襪", ARG) == 0
 		RETURNF 0
 	RETURNF 1
-CASE "パンツを脱ぐのが難儀"
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG)
+CASE "胖次を脱掉のが難儀"
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG)
 		RETURNF 1
-CASE "パンツを脱いだらＶ露出"
-	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("コート", ARG)
+CASE "胖次を脱いだらＶ露出"
+	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG)
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:スカート
+	SIF EQUIP:ARG:裙
 		RETURNF 0
 	RETURNF 1
 
 ;例えば裾長めのシャツを着ていて下がズボン、など
-CASE "スカートめくりの価値なし"
-	SIF CHECK_SKIRT("裾", ARG) && CHECK_OUTER("ズボン", ARG)
+CASE "掀起裙子の価値无"
+	SIF CHECK_SKIRT("下摆", ARG) && CHECK_OUTER("長褲", ARG)
 		RETURNF 1
 	SIF CHECK_CLO("埴輪ルック", ARG)
 		RETURNF 1
 ;未確認は調教中は使わない
-CASE "アウター未確認"
+CASE "外套未確認"
 	SIF CFLAG:ARG:股間確認済
 		RETURNF 0
 	;パンストとズボンは例外
-	SIF CHECK_OUTER("パンスト", ARG) || CHECK_OUTER("レギンス", ARG) || CHECK_OUTER("ズボン", ARG)
+	SIF CHECK_OUTER("连褲襪", ARG) || CHECK_OUTER("打底褲", ARG) || CHECK_OUTER("長褲", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:スカート
+	SIF EQUIP:ARG:裙
 		RETURNF 1
-CASE "パンツ未確認"
-	SIF COND("パンツ形状確認", ARG)
+CASE "胖次未確認"
+	SIF COND("胖次形状確認", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG)
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG)
 		RETURNF 1
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG)
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG)
 		RETURNF 1
-	SIF EQUIP:ARG:スカート && CHECK_SKIRT("シースルー", ARG) == 0
+	SIF EQUIP:ARG:裙 && CHECK_SKIRT("透明", ARG) == 0
 		RETURNF 1
-CASE "ブラ未確認"
-	SIF COND("ブラ形状確認", ARG)
+CASE "胸罩未確認"
+	SIF COND("胸罩形状確認", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:服 && !CHECK_SHIRT("はだけた", ARG) && !CHECK_SHIRT("谷間露出", ARG) && CHECK_SHIRT("シースルー", ARG) == 0
+	SIF EQUIP:ARG:服 && !CHECK_SHIRT("半脱的", ARG) && !CHECK_SHIRT("谷間露出", ARG) && CHECK_SHIRT("透明", ARG) == 0
 		RETURNF 1
-	SIF EQUIP:ARG:ボディスーツ && !CHECK_BODYS("はだけた", ARG) && !CHECK_BODYS("谷間露出", ARG)
+	SIF EQUIP:ARG:贴身制服 && !CHECK_BODYS("半脱的", ARG) && !CHECK_BODYS("谷間露出", ARG)
 		RETURNF 1
 
 ;ボディスーツやパンツでは陰毛が隠しきれていません
-CASE "ハミ毛", "ハミ毛：スカート無視"
+CASE "ハミ毛", "ハミ毛：裙無視"
 	SELECTCASE ARGS
-	CASE "ハミ毛：スカート無視"
+	CASE "ハミ毛：裙無視"
 	CASEELSE
-		SIF COND("調教中", ARG) == 0 && CHECK_OTHER("コート", ARG)
+		SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 			RETURNF 0
-		SIF EQUIP:ARG:スカート
+		SIF EQUIP:ARG:裙
 			RETURNF 0
 	ENDSELECT
 
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG)
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG)
 		RETURNF 0
 	;ここでの陰毛はモサモサ度依存なので外見年齢が若い場合は若干考慮される
-	IF EQUIP:ARG:ボディスーツ
+	IF EQUIP:ARG:贴身制服
 		;ハイレグ＆(ナチュラルor生え放題)
-		IF CHECK_BODYS("ハイレグ", ARG)
+		IF CHECK_BODYS("高開衩", ARG)
 			SELECTCASE COND("陰毛", ARG)
 			CASE IS >= 7
 				RETURNF 1
@@ -1041,16 +1041,16 @@ CASE "ハミ毛", "ハミ毛：スカート無視"
 					RETURNF 1
 			ENDSELECT
 		ENDIF
-	ELSEIF EQUIP:ARG:パンツ
+	ELSEIF EQUIP:ARG:胖次
 		;生え放題は常時はみ毛
 		SIF COND("陰毛", ARG) >= 7
 			RETURNF 1
 
 		;マイクロは生えてたら見える
-		IF CHECK_PANTIES("マイクロ", ARG)
+		IF CHECK_PANTIES("Micro", ARG)
 			RETURNF MAX(COND("陰毛", ARG) - 3, 0)
 		;ローライズは整えている程度だと見える
-		ELSEIF CHECK_PANTIES("ローライズ", ARG) || CHECK_PANTIES("Ｃストリング", ARG)
+		ELSEIF CHECK_PANTIES("低腰", ARG) || CHECK_PANTIES("Ｃ胖次", ARG)
 			SELECTCASE COND("陰毛", ARG)
 			CASE 5, 6
 				;お姉さん以上なら見える
@@ -1058,7 +1058,7 @@ CASE "ハミ毛", "ハミ毛：スカート無視"
 					RETURNF 1
 			ENDSELECT
 		;ハイレグは剃ってないと見える
-		ELSEIF CHECK_PANTIES("ハイレグ", ARG) || CHECK_PANTIES("ティアドロップ", ARG)
+		ELSEIF CHECK_PANTIES("高開衩", ARG) || CHECK_PANTIES("淚珠泳衣", ARG)
 			SELECTCASE COND("陰毛", ARG)
 			CASE 6
 				;お姉さん以上なら見える
@@ -1067,18 +1067,18 @@ CASE "ハミ毛", "ハミ毛：スカート無視"
 			ENDSELECT
 		ENDIF
 	ENDIF
-CASE "パンツハミ毛"
-	SIF EQUIP:ARG:パンツ == 0
+CASE "胖次ハミ毛"
+	SIF EQUIP:ARG:胖次 == 0
 		RETURNF 0
 	;生え放題は常時はみ毛
 	SIF COND("陰毛", ARG) >= 7
 		RETURNF 1
 
 	;マイクロは生えてたら見える
-	IF CHECK_PANTIES("マイクロ", ARG)
+	IF CHECK_PANTIES("Micro", ARG)
 		RETURNF MAX(COND("陰毛", ARG) - 3, 0)
 	;ローライズは整えている程度だと見える
-	ELSEIF CHECK_PANTIES("ローライズ", ARG) || CHECK_PANTIES("Ｃストリング", ARG)
+	ELSEIF CHECK_PANTIES("低腰", ARG) || CHECK_PANTIES("Ｃ胖次", ARG)
 		SELECTCASE COND("陰毛", ARG)
 		CASE 5, 6
 			;お姉さん以上なら見える
@@ -1086,7 +1086,7 @@ CASE "パンツハミ毛"
 				RETURNF 1
 		ENDSELECT
 	;ハイレグは剃ってないと見える
-	ELSEIF CHECK_PANTIES("ハイレグ", ARG) || CHECK_PANTIES("ティアドロップ", ARG)
+	ELSEIF CHECK_PANTIES("高開衩", ARG) || CHECK_PANTIES("淚珠泳衣", ARG)
 		SELECTCASE COND("陰毛", ARG)
 		CASE 6
 			;お姉さん以上なら見える
@@ -1101,16 +1101,16 @@ CASE "透け毛"
 	;ハミ毛ならそっち優先
 	SIF CHECK_CLO("ハミ毛", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:スカート
+	SIF EQUIP:ARG:裙
 		RETURNF 0
-	IF EQUIP:ARG:ボディスーツ
-		SIF CHECK_BODYS("シースルー", ARG)
+	IF EQUIP:ARG:贴身制服
+		SIF CHECK_BODYS("透明", ARG)
 			RETURNF 1
-	ELSEIF EQUIP:ARG:アウター
-		SIF CHECK_OUTER("パンスト", ARG) && EQUIP:ARG:パンツ == 0
+	ELSEIF EQUIP:ARG:外套
+		SIF CHECK_OUTER("连褲襪", ARG) && EQUIP:ARG:胖次 == 0
 			RETURNF 1
-	ELSEIF EQUIP:ARG:パンツ
-		SIF CHECK_PANTIES("シースルー", ARG)
+	ELSEIF EQUIP:ARG:胖次
+		SIF CHECK_PANTIES("透明", ARG)
 			RETURNF 1
 	ENDIF
 	RETURNF 0
@@ -1122,72 +1122,72 @@ CASE "陰毛露出"
 	;ハミ毛や透け毛状態ならそっち優先
 	SIF CHECK_CLO("ハミ毛", ARG) || CHECK_CLO("透け毛", ARG)
 		RETURNF 0
-	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("コート", ARG)
+	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:スカート || EQUIP:ARG:ボディスーツ || EQUIP:ARG:パンツ || EQUIP:ARG:アウター
+	SIF EQUIP:ARG:裙 || EQUIP:ARG:贴身制服 || EQUIP:ARG:胖次 || EQUIP:ARG:外套
 		RETURNF 0
 	RETURNF 1
-CASE "食い込み"
+CASE "勒紧的"
 	;オトコだと食い込みは無理かなぁ
-	SIF TALENT:ARG:オトコ
+	SIF TALENT:ARG:男性
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ + EQUIP:ARG:ボディスーツ + EQUIP:ARG:アウター == 0
+	SIF EQUIP:ARG:胖次 + EQUIP:ARG:贴身制服 + EQUIP:ARG:外套 == 0
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("食い込み", ARG) == 0
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("勒紧的", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("食い込み", ARG) == 0
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("勒紧的", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ && CHECK_PANTIES("食い込み", ARG) == 0
+	SIF EQUIP:ARG:胖次 && CHECK_PANTIES("勒紧的", ARG) == 0
 		RETURNF 0
 	RETURNF 1
 ;Ｖ露出とは異なるのに注意
 CASE "大陰唇露出"
-	SIF TALENT:ARG:オトコ
+	SIF TALENT:ARG:男性
 		RETURNF 0
-	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("コート", ARG)
+	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ + EQUIP:ARG:ボディスーツ + EQUIP:ARG:アウター == 0
+	SIF EQUIP:ARG:胖次 + EQUIP:ARG:贴身制服 + EQUIP:ARG:外套 == 0
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("食い込み", ARG) == 0
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("勒紧的", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("食い込み", ARG) == 0
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("勒紧的", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ && CHECK_PANTIES("食い込み", ARG) == 0
+	SIF EQUIP:ARG:胖次 && CHECK_PANTIES("勒紧的", ARG) == 0
 		RETURNF 0
 	RETURNF 1
 ;ボディスーツやパンツでは鼠径部が隠しきれていません
 CASE "鼠径部露出"
-	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("コート", ARG)
+	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:スカート
+	SIF EQUIP:ARG:裙
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG) && CHECK_OUTER("ハイレグ", ARG) == 0
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG) && CHECK_OUTER("高開衩", ARG) == 0
 		RETURNF 0
-	IF EQUIP:ARG:ボディスーツ
-		SIF CHECK_BODYS("ハイレグ", ARG)
+	IF EQUIP:ARG:贴身制服
+		SIF CHECK_BODYS("高開衩", ARG)
 			RETURNF 1
-	ELSEIF EQUIP:ARG:パンツ
-		SIF CHECK_PANTIES("マイクロ", ARG) || CHECK_PANTIES("ハイレグ", ARG) || CHECK_PANTIES("Ｃストリング", ARG)
+	ELSEIF EQUIP:ARG:胖次
+		SIF CHECK_PANTIES("Micro", ARG) || CHECK_PANTIES("高開衩", ARG) || CHECK_PANTIES("Ｃ胖次", ARG)
 			RETURNF 1
 	ENDIF
 ;下腹部から下が全部見えていて、明らかに何も着けていないとみて分かる状態です
 CASE "股間露出"
 	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:スカート
+	SIF EQUIP:ARG:裙
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ
+	SIF EQUIP:ARG:贴身制服
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG)
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ && CHECK_PANTIES("クロッチ", ARG)
+	SIF EQUIP:ARG:胖次 && CHECK_PANTIES("開洞", ARG)
 		RETURNF 0
 	RETURNF 1
 ;ガーターやオープンパンスト、ニーソックスなどです
 CASE "股間だけ露出"
-	SIF CHECK_SOCKS("太ももまで", ARG)
+	SIF CHECK_SOCKS("直到大腿", ARG)
 		RETURNF 1
-	SIF CHECK_OUTER("パンスト", ARG) && CHECK_OUTER("Ｖ露出", ARG)
+	SIF CHECK_OUTER("连褲襪", ARG) && CHECK_OUTER("Ｖ露出", ARG)
 		RETURNF 1
 ;淫紋が見えている状態です
 CASE "淫紋露出"
@@ -1196,107 +1196,107 @@ CASE "淫紋露出"
 		RETURNF 0
 	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ || EQUIP:ARG:スカート
+	SIF EQUIP:ARG:贴身制服 || EQUIP:ARG:裙
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("ローライズ", ARG) == 0
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("低腰", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:服 && CHECK_SHIRT("へそ露出", ARG) == 0
+	SIF EQUIP:ARG:服 && CHECK_SHIRT("露脐", ARG) == 0
 		RETURNF 0
 	RETURNF 1
-CASE "淫紋露出：スカート無視"
+CASE "淫紋露出：裙無視"
 	;淫紋が無ければ勿論駄目
 	SIF MARK:ARG:淫紋 == 0
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ
+	SIF EQUIP:ARG:贴身制服
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("ローライズ", ARG) == 0
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("低腰", ARG) == 0
 		RETURNF 0
 	RETURNF 1
-CASE "へそ露出"
+CASE "露脐"
 	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:服 && CHECK_SHIRT("へそ露出", ARG) == 0
+	SIF EQUIP:ARG:服 && CHECK_SHIRT("露脐", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("へそ露出", ARG) == 0
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("露脐", ARG) == 0
 		RETURNF 0
 	RETURNF 1
 ;ローライズなアウター（一般にはズボン）を履いていて、お尻の上半分が見えている状態です。パンツは加味しない
-CASE "ローライズヒップ"
-	SIF EQUIP:ARG:アウター == 0 || CHECK_OUTER("ローライズ", ARG) == 0
+CASE "低腰臀圍"
+	SIF EQUIP:ARG:外套 == 0 || CHECK_OUTER("低腰", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:アクセサリ && CHECK_OTHER("コート", ARG)
+	SIF EQUIP:ARG:飾品 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
 	RETURNF 1
-CASE "Ｔバックヒップ"
-	IF EQUIP:ARG:アウター
-		SIF CHECK_OUTER("Ｔバック", ARG) == 0
+CASE "Ｔ字褲臀圍"
+	IF EQUIP:ARG:外套
+		SIF CHECK_OUTER("Ｔ字褲", ARG) == 0
 			RETURNF 0
 	ENDIF
-	IF EQUIP:ARG:ボディスーツ
-		SIF CHECK_BODYS("Ｔバック", ARG) == 0
+	IF EQUIP:ARG:贴身制服
+		SIF CHECK_BODYS("Ｔ字褲", ARG) == 0
 			RETURNF 0
 	ENDIF
-	IF EQUIP:ARG:パンツ
-		SIF CHECK_PANTIES("Ｔバック", ARG) == 0
+	IF EQUIP:ARG:胖次
+		SIF CHECK_PANTIES("Ｔ字褲", ARG) == 0
 			RETURNF 0
 	ENDIF
-	SIF CHECK_OUTER("Ｔバック", ARG) || CHECK_BODYS("Ｔバック", ARG) || CHECK_PANTIES("Ｔバック", ARG)
+	SIF CHECK_OUTER("Ｔ字褲", ARG) || CHECK_BODYS("Ｔ字褲", ARG) || CHECK_PANTIES("Ｔ字褲", ARG)
 		RETURNF 1
-CASE "Ｏバックヒップ"
-	IF EQUIP:ARG:アウター
-		SIF CHECK_OUTER("Ｏバック", ARG) == 0 && CHECK_OUTER("パンスト", ARG) == 0
+CASE "後開型臀圍"
+	IF EQUIP:ARG:外套
+		SIF CHECK_OUTER("後開型", ARG) == 0 && CHECK_OUTER("连褲襪", ARG) == 0
 			RETURNF 0
 	ENDIF
-	IF EQUIP:ARG:ボディスーツ
-		SIF CHECK_BODYS("Ｏバック", ARG) == 0
+	IF EQUIP:ARG:贴身制服
+		SIF CHECK_BODYS("後開型", ARG) == 0
 			RETURNF 0
 	ENDIF
-	IF EQUIP:ARG:パンツ
-		SIF CHECK_PANTIES("Ｏバック", ARG) == 0
+	IF EQUIP:ARG:胖次
+		SIF CHECK_PANTIES("後開型", ARG) == 0
 			RETURNF 0
 	ENDIF
-	SIF CHECK_OUTER("Ｏバック", ARG) || CHECK_BODYS("Ｏバック", ARG) || CHECK_PANTIES("Ｏバック", ARG)
+	SIF CHECK_OUTER("後開型", ARG) || CHECK_BODYS("後開型", ARG) || CHECK_PANTIES("後開型", ARG)
 		RETURNF 1
 ;主に"アソコのチラ見せ撮影"の判定で使う
 CASE "めくり可能"
-	SIF EQUIP:ARG:パンツ + EQUIP:ARG:アウター + EQUIP:ARG:ボディスーツ == 0
+	SIF EQUIP:ARG:胖次 + EQUIP:ARG:外套 + EQUIP:ARG:贴身制服 == 0
 		RETURNF 0
 	SIF CHECK_CLO("Ｖ露出", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("めくり可能", ARG) == 0
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("めくり可能", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("めくり可能", ARG) == 0
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("めくり可能", ARG) == 0
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ && CHECK_PANTIES("めくり可能", ARG) == 0
+	SIF EQUIP:ARG:胖次 && CHECK_PANTIES("めくり可能", ARG) == 0
 		RETURNF 0
 	RETURNF 1
-CASE "ファスナーＶ露出可能"
+CASE "带拉链的Ｖ露出可能"
 	;すでに露出していたら駄目
 	SIF CHECK_CLO("Ｖ露出", ARG)
 		RETURNF 0
-	SIF CHECK_BODYS("ファスナー", ARG) || CHECK_OUTER("ファスナー", ARG) || CHECK_PANTIES("ファスナー", ARG)
+	SIF CHECK_BODYS("带拉链的", ARG) || CHECK_OUTER("带拉链的", ARG) || CHECK_PANTIES("带拉链的", ARG)
 		RETURNF 1
 
 CASE "Ｐ露出"
 	SIF PENIS(ARG) == 0
 		RETURNF 0
-	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("コート", ARG)
+	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG)
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG)
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ && CHECK_PANTIES("クロッチ", ARG)
+	SIF EQUIP:ARG:胖次 && CHECK_PANTIES("開洞", ARG)
 		RETURNF 0
 	RETURNF 1
 CASE "Ｖ露出"
-	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("コート", ARG)
+	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG)
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("クロッチ", ARG)
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ && CHECK_PANTIES("クロッチ", ARG)
+	SIF EQUIP:ARG:胖次 && CHECK_PANTIES("開洞", ARG)
 		RETURNF 0
 	RETURNF 1
 ;これはＶ露出を含む
@@ -1304,21 +1304,21 @@ CASE "Ｖ露出可"
 	;調教外ならＯＫとする
 	SIF COND("調教中", ARG) == 0 && CHECK_PANTIES("脱衣不可", ARG) == 0
 		RETURNF 1
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("クロッチ", ARG) && !CHECK_BODYS("ずらせる", ARG)
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("開洞", ARG) && !CHECK_BODYS("ずらせる", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && !CHECK_OUTER("パンスト", ARG) && CHECK_OUTER("クロッチ", ARG) && !CHECK_OUTER("ずらせる", ARG)
+	SIF EQUIP:ARG:外套 && !CHECK_OUTER("连褲襪", ARG) && CHECK_OUTER("開洞", ARG) && !CHECK_OUTER("ずらせる", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ && CHECK_PANTIES("クロッチ", ARG) && !CHECK_PANTIES("ずらせる", ARG)
+	SIF EQUIP:ARG:胖次 && CHECK_PANTIES("開洞", ARG) && !CHECK_PANTIES("ずらせる", ARG)
 		RETURNF 0
 	RETURNF 1
 CASE "Ａ露出"
-	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("コート", ARG)
+	SIF COND("調教中", ARG) == 0 && CHECK_OTHER("外套", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("Ａクロッチ", ARG)
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("Ａ開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && CHECK_OUTER("Ａクロッチ", ARG)
+	SIF EQUIP:ARG:外套 && CHECK_OUTER("Ａ開洞", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ && CHECK_PANTIES("Ａクロッチ", ARG)
+	SIF EQUIP:ARG:胖次 && CHECK_PANTIES("Ａ開洞", ARG)
 		RETURNF 0
 	RETURNF 1
 ;これはＡ露出を含む
@@ -1326,20 +1326,20 @@ CASE "Ａ露出可"
 	;調教外ならＯＫとする
 	SIF COND("調教中", ARG) == 0 && CHECK_PANTIES("貞操帯", ARG) == 0
 		RETURNF 1
-	SIF EQUIP:ARG:ボディスーツ && CHECK_BODYS("Ａクロッチ", ARG) && !CHECK_BODYS("ずらせる", ARG)
+	SIF EQUIP:ARG:贴身制服 && CHECK_BODYS("Ａ開洞", ARG) && !CHECK_BODYS("ずらせる", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:アウター && !CHECK_OUTER("パンスト", ARG) && CHECK_OUTER("Ａクロッチ", ARG) && !CHECK_OUTER("ずらせる", ARG)
+	SIF EQUIP:ARG:外套 && !CHECK_OUTER("连褲襪", ARG) && CHECK_OUTER("Ａ開洞", ARG) && !CHECK_OUTER("ずらせる", ARG)
 		RETURNF 0
-	SIF EQUIP:ARG:パンツ && CHECK_PANTIES("Ａクロッチ", ARG) && !CHECK_PANTIES("ずらせる", ARG)
+	SIF EQUIP:ARG:胖次 && CHECK_PANTIES("Ａ開洞", ARG) && !CHECK_PANTIES("ずらせる", ARG)
 		RETURNF 0
 	RETURNF 1
 
-CASE "ずらした"
-	IF EQUIP:ARG:ボディスーツ && CHECK_BODYS("ずらした", ARG)
+CASE "移開的"
+	IF EQUIP:ARG:贴身制服 && CHECK_BODYS("移開的", ARG)
 		RETURNF 1
-	ELSEIF EQUIP:ARG:アウター && CHECK_OUTER("ずらした", ARG)
+	ELSEIF EQUIP:ARG:外套 && CHECK_OUTER("移開的", ARG)
 		RETURNF 1
-	ELSEIF EQUIP:ARG:パンツ && CHECK_PANTIES("ずらした", ARG)
+	ELSEIF EQUIP:ARG:胖次 && CHECK_PANTIES("移開的", ARG)
 		RETURNF 1
 	ENDIF
 CASE "腋露出"
@@ -1351,7 +1351,7 @@ CASE "腋露出"
 CASE "足露出"
 	SIF EQUIP:ARG:靴
 		RETURNF 0
-	SIF EQUIP:ARG:靴下 && CHECK_SOCKS("足露出", ARG) == 0
+	SIF EQUIP:ARG:襪子 && CHECK_SOCKS("足露出", ARG) == 0
 		RETURNF 0
 	RETURNF 1
 ENDSELECT
@@ -1382,11 +1382,11 @@ SIF ARGS == "" || STRCOUNT(ARGS, "共通属性追加済")
 COLOR_ABOUT = %CHECK_CLOCOLOR(ARGS)%
 ;色グループからの選択設定があるかを見る
 SELECTCASE COLOR_ABOUT
-CASE "縞々色", "水玉色", "豹柄", "子供パンツカラー"
+CASE "條紋色", "水玉色", "豹纹", "儿童胖次颜色"
 	COLOR_ABOUT = %SET_CLOCOLOR(COLOR_ABOUT, ARGS)%
-CASE "おとなしい色", "Ｈな色", "ランダムカラー", "ギャル", "男物の色"
-	IF CSTR:ARG:好きな色 != "" && RAND:3
-		COLOR_ABOUT = %SET_CLOCOLOR(TEXTR(CSTR:ARG:好きな色), ARGS)%
+CASE "淡色", "Ｈ的颜色", "隨機顏色", "辣妹", "男式色"
+	IF CSTR:ARG:喜欢的颜色 != "" && RAND:3
+		COLOR_ABOUT = %SET_CLOCOLOR(TEXTR(CSTR:ARG:喜欢的颜色), ARGS)%
 	ELSE
 		COLOR_ABOUT = %SET_CLOCOLOR(COLOR_ABOUT, ARGS)%
 	ENDIF
@@ -1405,17 +1405,17 @@ CLONAME = %LOCALS%
 ;特殊な衣装の時の処理（長いので特別に分割）。これらは名前自体が変わる
 SELECTCASE LOCALS
 ;夏服がある
-CASE "セーラー服"
+CASE "水手服"
 	SELECTCASE TEXTS("季節詳細")
 	;夏服
 	CASE "初夏", "夏", "初秋", "秋"
-		CLONAME = セーラー夏服
-		STR_ADD = 汗透け/
+		CLONAME = 水手夏服
+		STR_ADD = 汗水浸湿的/
 	ENDSELECT
-CASE "ブレザー"
+CASE "西装外衣"
 	SELECTCASE TEXTS("季節詳細")
 	CASE "初夏", "夏", "初秋", "秋"
-		CLONAME = ネクタイブラウス
+		CLONAME = 領帯女式衬衫
 
 		SELECTCASE COLOR_ABOUT
 		CASE "青", "黒", "赤"
@@ -1423,21 +1423,21 @@ CASE "ブレザー"
 			COLOR_ABOUT = 赤
 		ENDSELECT
 
-		STR_ADD = 汗透け/
+		STR_ADD = 汗水浸湿的/
 	ENDSELECT
-CASE "男子ブレザー"
+CASE "男子西装外衣"
 	SELECTCASE TEXTS("季節詳細")
 	CASE "初夏", "夏", "初秋", "秋"
-		CLONAME = Ｙシャツ
-		STR_ADD = 汗透け/
+		CLONAME = 衬衫
+		STR_ADD = 汗水浸湿的/
 	ENDSELECT
-CASE "学ラン"
+CASE "校服"
 	SELECTCASE TEXTS("季節詳細")
 	CASE "初夏", "夏", "初秋", "秋"
-		CLONAME = シャツジャケット
+		CLONAME = 恤夹克
 	ENDSELECT
-CASE "Ｈな下着"
-	STR_ADD = Ｈな下着/
+CASE "Ｈ的内衣"
+	STR_ADD = Ｈ的内衣/
 	;名称に影響あるので、これだけ先に判定する
 	SIF RAND:3 == 0
 		STR_ADD = %STR_ADD%紐/
@@ -1449,83 +1449,83 @@ CASE "Ｈな下着"
 	CASE IS >= 9
 		IF PENIS(ARG)
 			IF RAND:2
-				CLONAME = Ｇストリング
+				CLONAME = 丁字褲
 			ELSE
-				CLONAME = マイクロ\@ STRCOUNT(STR_ADD, "紐") ? 紐パン # ショーツ \@
+				CLONAME = Micro\@ STRCOUNT(STR_ADD, "紐") ? 繩系胖次 # 內褲 \@
 			ENDIF
 		ELSE
-			CLONAME = オープンクロッチ\@ STRCOUNT(STR_ADD, "紐") ? 紐パン # パンツ \@
+			CLONAME = 開放型開洞\@ STRCOUNT(STR_ADD, "紐") ? 繩系胖次 # 胖次 \@
 		ENDIF
 	CASE 8
-		CLONAME = Ｏバック\@ STRCOUNT(STR_ADD, "紐") ? 紐パン # \@
+		CLONAME = 後開型\@ STRCOUNT(STR_ADD, "紐") ? 繩系胖次 # \@
 	CASE 7
-		CLONAME = ティアドロップ
+		CLONAME = 淚珠泳衣
 	CASE 6
-		CLONAME = Ｇストリング
+		CLONAME = 丁字褲
 	CASE 5
-		CLONAME = レースの\@ STRCOUNT(STR_ADD, "紐") ? 紐パン # パンツ \@
+		CLONAME = 蕾丝的\@ STRCOUNT(STR_ADD, "紐") ? 繩系胖次 # 胖次 \@
 	CASE 4
-		CLONAME = マイクロ\@ STRCOUNT(STR_ADD, "紐") ? 紐パン # ショーツ \@
+		CLONAME = Micro\@ STRCOUNT(STR_ADD, "紐") ? 繩系胖次 # 內褲 \@
 	CASE 3
-		CLONAME = ハイレグ\@ STRCOUNT(STR_ADD, "紐") ? 紐パン #  パンツ \@
+		CLONAME = 高開衩\@ STRCOUNT(STR_ADD, "紐") ? 繩系胖次 #  胖次 \@
 	CASE 2
-		CLONAME = Ｔバック\@ STRCOUNT(STR_ADD, "紐") ? 紐パン #  \@
+		CLONAME = Ｔ字褲\@ STRCOUNT(STR_ADD, "紐") ? 繩系胖次 #  \@
 	CASE 1
-		CLONAME = ローレグ\@ STRCOUNT(STR_ADD, "紐") ? 紐パン #  \@
+		CLONAME = 超低腰\@ STRCOUNT(STR_ADD, "紐") ? 繩系胖次 #  \@
 	CASEELSE
-		CLONAME = シースルー\@ STRCOUNT(STR_ADD, "紐") ? 紐パン # パンツ \@
+		CLONAME = 透明\@ STRCOUNT(STR_ADD, "紐") ? 繩系胖次 # 胖次 \@
 	ENDSELECT
 
 	;ランダムにエロい属性選択
-	IF STRCOUNT(CLONAME, "オープンクロッチ")
+	IF STRCOUNT(CLONAME, "開放型開洞")
 		SIF RAND:3 == 0
-			STR_ADD = %STR_ADD%%TEXTR("ローライズ/ローレグ")%/
+			STR_ADD = %STR_ADD%%TEXTR("低腰/超低腰")%/
 		SIF RAND:3 == 0
-			STR_ADD = %STR_ADD%レース/
+			STR_ADD = %STR_ADD%蕾丝/
 		STR_ADD = %STR_ADD%Ｖ露出/Ａ露出/
-	ELSEIF STRCOUNT(CLONAME, "Ｏバック")
+	ELSEIF STRCOUNT(CLONAME, "後開型")
 		SIF RAND:3 == 0
-			STR_ADD = %STR_ADD%%TEXTR("ローライズ/ローレグ")%/
+			STR_ADD = %STR_ADD%%TEXTR("低腰/超低腰")%/
 		SIF RAND:3 == 0
-			STR_ADD = %STR_ADD%レース/
+			STR_ADD = %STR_ADD%蕾丝/
 		STR_ADD = %STR_ADD%Ａ露出/
 	ELSE
-		SIF RAND:3 == 0 && STRCOUNT(CLONAME, "レース") == 0
-			STR_ADD = %STR_ADD%レース/
-		SIF RAND:3 == 0 && STRCOUNT(CLONAME, "シースルー") == 0
-			STR_ADD = %STR_ADD%シースルー/
-		SIF RAND:3 == 0 && STRCOUNT(CLONAME, "Ｔバック") == 0 && STRCOUNT(CLONAME, "ハイレグ") == 0
-			STR_ADD = %STR_ADD%Ｔバック/
+		SIF RAND:3 == 0 && STRCOUNT(CLONAME, "蕾丝") == 0
+			STR_ADD = %STR_ADD%蕾丝/
+		SIF RAND:3 == 0 && STRCOUNT(CLONAME, "透明") == 0
+			STR_ADD = %STR_ADD%透明/
+		SIF RAND:3 == 0 && STRCOUNT(CLONAME, "Ｔ字褲") == 0 && STRCOUNT(CLONAME, "高開衩") == 0
+			STR_ADD = %STR_ADD%Ｔ字褲/
 		;SIF RAND:3 == 0 || STR_ADD == ""
 		;	STR_ADD = %STR_ADD%%TEXTR("ファスナー/スリット")%/
 	ENDIF
-CASE "Ｈなブラ"
+CASE "Ｈ的胸罩"
 	;ジャンル選択
 	SELECTCASE RAND:6
 	;CASE 5
 	;	CLONAME = シルクブラ
 	CASE 5
-		CLONAME = オープンブラ
+		CLONAME = 開放型胸罩
 	CASE 4
-		CLONAME = シェルフブラ
+		CLONAME = １／４杯胸罩
 	CASE 3
-		CLONAME = レースのブラ
+		CLONAME = 蕾丝胸罩
 	CASE 2
-		CLONAME = ハーフカップブラ
+		CLONAME = 半杯胸罩
 	CASE 1
-		CLONAME = マイクロブラ
+		CLONAME = Micro胸罩
 	CASEELSE
-		CLONAME = シースルーブラ
+		CLONAME = 透明胸罩
 	ENDSELECT
 
-	STR_ADD = Ｈなブラ/
+	STR_ADD = Ｈ的胸罩/
 	;ランダムにエロい属性選択
 	SIF RAND:3 == 0
 		STR_ADD = %STR_ADD%紐/
-	SIF RAND:3 == 0 && STRCOUNT(CLONAME, "レース") == 0
-		STR_ADD = %STR_ADD%レース/
-	SIF RAND:3 == 0 && STRCOUNT(CLONAME, "シースルー") == 0
-		STR_ADD = %STR_ADD%シースルー/
+	SIF RAND:3 == 0 && STRCOUNT(CLONAME, "蕾丝") == 0
+		STR_ADD = %STR_ADD%蕾丝/
+	SIF RAND:3 == 0 && STRCOUNT(CLONAME, "透明") == 0
+		STR_ADD = %STR_ADD%透明/
 ENDSELECT
 
 ;変更された名前を取得
@@ -1536,43 +1536,43 @@ FOR LCOUNT, 0, 100
 	SIF LOCALS:LCOUNT == ""
 		BREAK
 
-	SIF STRCOUNT(LOCALS:LCOUNT, "レザー") || STRCOUNT(LOCALS:LCOUNT, "革")
-		STR_ADD += "通気性無し/ずれ不可/コキ不可/"
-	SIF STRCOUNT(LOCALS:LCOUNT, "ビキニ")
-		STR_ADD += "水着/"
-	SIF STRCOUNT(LOCALS:LCOUNT, "バニー")
+	SIF STRCOUNT(LOCALS:LCOUNT, "皮革") || STRCOUNT(LOCALS:LCOUNT, "革")
+		STR_ADD += "通気性没有/不可移開/不可手交/"
+	SIF STRCOUNT(LOCALS:LCOUNT, "比基尼")
+		STR_ADD += "泳装/"
+	SIF STRCOUNT(LOCALS:LCOUNT, "兔")
 		STR_ADD += "谷間露出/腋露出/"
-	SIF STRCOUNT(LOCALS:LCOUNT, "ノースリーブ")
+	SIF STRCOUNT(LOCALS:LCOUNT, "无袖")
 		STR_ADD += "腋露出/"
-	SIF STRCOUNT(LOCALS:LCOUNT, "マイクロ") && STRCOUNT(LOCALS:LCOUNT, "ブラ") == 0
-		STR_ADD += "ハイレグ/Ｔバック/ローレグ/"
+	SIF STRCOUNT(LOCALS:LCOUNT, "Micro") && STRCOUNT(LOCALS:LCOUNT, "胸罩") == 0
+		STR_ADD += "高開衩/Ｔ字褲/超低腰/"
 	;パンツの形状
-	IF STRCOUNT(LOCALS:LCOUNT, "Ｃストリング")
-		STR_ADD += "Ｔバック/コキ不可/ずれ不可/"
-	ELSEIF STRCOUNT(LOCALS:LCOUNT, "前貼り")
-		STR_ADD += "Ａ露出/コキ不可/ずれ不可/"
-	ELSEIF STRCOUNT(LOCALS:LCOUNT, "Ｇストリング")
-		STR_ADD += "ハイレグ/Ｔバック/"
-	ELSEIF STRCOUNT(LOCALS:LCOUNT, "ティアドロップ")
-		STR_ADD += "Ｔバック/マイクロ/"
+	IF STRCOUNT(LOCALS:LCOUNT, "Ｃ胖次")
+		STR_ADD += "Ｔ字褲/不可手交/不可移開/"
+	ELSEIF STRCOUNT(LOCALS:LCOUNT, "前貼")
+		STR_ADD += "Ａ露出/不可手交/不可移開/"
+	ELSEIF STRCOUNT(LOCALS:LCOUNT, "丁字褲")
+		STR_ADD += "高開衩/Ｔ字褲/"
+	ELSEIF STRCOUNT(LOCALS:LCOUNT, "淚珠泳衣")
+		STR_ADD += "Ｔ字褲/Micro/"
 	ELSEIF STRCOUNT(LOCALS:LCOUNT, "貞操帯")
-		STR_ADD += "通気性無し/ずれ不可/コキ不可/脱衣不可/Ａ露出/"
+		STR_ADD += "通気性没有/不可移開/不可手交/脱衣不可/Ａ露出/"
 	ENDIF
 
-	SIF STRCOUNT(LOCALS:LCOUNT, "ブラウス") == 0 && STRCOUNT(LOCALS:LCOUNT, "ブラ") && STRCOUNT(LOCALS:LCOUNT, "スポーツ") == 0
+	SIF STRCOUNT(LOCALS:LCOUNT, "女式衬衫") == 0 && STRCOUNT(LOCALS:LCOUNT, "胸罩") && STRCOUNT(LOCALS:LCOUNT, "スポーツ") == 0
 		STR_ADD += "谷間露出/"
 	;SIF STRCOUNT(LOCALS:LCOUNT, "ハーフカップ")
 	;	STR_ADD += "乳首露出/"
-	SIF STRCOUNT(LOCALS:LCOUNT, "シェルフブラ") || STRCOUNT(LOCALS:LCOUNT, "オープンブラ")
-		STR_ADD += "乳首露出/"
+	SIF STRCOUNT(LOCALS:LCOUNT, "１／４杯胸罩") || STRCOUNT(LOCALS:LCOUNT, "開放型胸罩")
+		STR_ADD += "乳頭露出/"
 
 	SELECTCASE LOCALS:LCOUNT
-	CASE "フロントリボン"
-		LOCALS:LCOUNT = フロントリボン%TEXTR("紐/三角")%%TEXTR("赤/黒/青/黄/白")%
-	CASE "フロントリボン紐"
-		LOCALS:LCOUNT = フロントリボン紐%TEXTR("赤/黒/青/黄/白")%
-	CASE "フロントリボン三角"
-		LOCALS:LCOUNT = フロントリボン三角%TEXTR("赤/黒/青/黄/白")%
+	CASE "正面蝴蝶結"
+		LOCALS:LCOUNT = 正面蝴蝶結%TEXTR("紐/三角")%%TEXTR("赤/黒/青/黄/白")%
+	CASE "正面蝴蝶結紐"
+		LOCALS:LCOUNT = 正面蝴蝶結紐%TEXTR("赤/黒/青/黄/白")%
+	CASE "正面蝴蝶結三角"
+		LOCALS:LCOUNT = 正面蝴蝶結三角%TEXTR("赤/黒/青/黄/白")%
 	ENDSELECT
 
 	;衣装を再構成
@@ -1606,26 +1606,26 @@ SIF ARG == 0 && TARGET > 0
 	ARG = TARGET
 
 ;コモンフラグを設定する
-CSTR:ARG:パンツ = %SET_CLO_COMMON(CSTR:ARG:パンツ, ARG)%
-CSTR:ARG:ブラ = %SET_CLO_COMMON(CSTR:ARG:ブラ, ARG)%
+CSTR:ARG:胖次 = %SET_CLO_COMMON(CSTR:ARG:胖次, ARG)%
+CSTR:ARG:胸罩 = %SET_CLO_COMMON(CSTR:ARG:胸罩, ARG)%
 CSTR:ARG:服 = %SET_CLO_COMMON(CSTR:ARG:服, ARG)%
-CSTR:ARG:ボディスーツ = %SET_CLO_COMMON(CSTR:ARG:ボディスーツ, ARG)%
-CSTR:ARG:アウター = %SET_CLO_COMMON(CSTR:ARG:アウター, ARG)%
+CSTR:ARG:贴身制服 = %SET_CLO_COMMON(CSTR:ARG:贴身制服, ARG)%
+CSTR:ARG:外套 = %SET_CLO_COMMON(CSTR:ARG:外套, ARG)%
 
 ;EQUIPを再計算する
-EQUIP:ARG:パンツ = STRLENS(CSTR:ARG:パンツ)
-EQUIP:ARG:ブラ = STRLENS(CSTR:ARG:ブラ)
+EQUIP:ARG:胖次 = STRLENS(CSTR:ARG:胖次)
+EQUIP:ARG:胸罩 = STRLENS(CSTR:ARG:胸罩)
 EQUIP:ARG:服 = STRLENS(CSTR:ARG:服)
-EQUIP:ARG:スカート = STRLENS(CSTR:ARG:スカート)
-EQUIP:ARG:ボディスーツ = STRLENS(CSTR:ARG:ボディスーツ)
-EQUIP:ARG:アウター = STRLENS(CSTR:ARG:アウター)
-EQUIP:ARG:靴下 = STRLENS(CSTR:ARG:靴下)
+EQUIP:ARG:裙 = STRLENS(CSTR:ARG:裙)
+EQUIP:ARG:贴身制服 = STRLENS(CSTR:ARG:贴身制服)
+EQUIP:ARG:外套 = STRLENS(CSTR:ARG:外套)
+EQUIP:ARG:襪子 = STRLENS(CSTR:ARG:襪子)
 EQUIP:ARG:靴 = STRLENS(CSTR:ARG:靴)
 EQUIP:ARG:手袋 = STRLENS(CSTR:ARG:手袋)
-EQUIP:ARG:アクセサリ = STRLENS(CSTR:ARG:アクセサリ)
+EQUIP:ARG:飾品 = STRLENS(CSTR:ARG:飾品)
 
-SIF CONFIG("メイドキャップ") && CHECK_SHIRT("メイド服", ARG) && CHECK_OTHER("ヘッドドレス", ARG)
-	CALL SET_OTHER, "メイドキャップ", ARG
+SIF CONFIG("女仆帽") && CHECK_SHIRT("女仆装", ARG) && CHECK_OTHER("礼服头花", ARG)
+	CALL SET_OTHER, "女仆帽", ARG
 
 ;-------------------------------------------------
 ;キャラARGの服装の汚れやずらしなどを直して、初期状態に戻す
@@ -1637,7 +1637,7 @@ SIF CONFIG("メイドキャップ") && CHECK_SHIRT("メイド服", ARG) && CHECK
 #DIM LCOUNT2
 
 SELECTCASE ARGS
-CASE "ずらした"
+CASE "移開的"
 	FOR LCOUNT, 40, 49
 		SIF EQUIP:ARG:LCOUNT == 0
 			CONTINUE
@@ -1659,7 +1659,7 @@ CASE "ずらした"
 	NEXT
 CASEELSE
 	SELECTCASE ARGS
-	CASE "汚れはそのまま"
+	CASE "汚れは就这様"
 	CASEELSE
 		FOR LCOUNT, 10, 19
 			STAIN:ARG:LCOUNT = 0
@@ -1679,7 +1679,7 @@ CASEELSE
 			SELECTCASE LOCALS:LCOUNT2
 			CASE ""
 				BREAK
-			CASE "はだけた", "ずらした", "ファスナー開", "破いた"
+			CASE "半脱的", "移開的", "带拉链的開", "破開的"
 				CONTINUE
 			ENDSELECT
 			CSTR:ARG:LCOUNT = %CSTR:ARG:LCOUNT%%LOCALS:LCOUNT2%/
@@ -1710,11 +1710,11 @@ RETURNF 0
 
 VARSET LOCALS
 IF CHECK_OTHER("外套", ARG)
-	LOCALS = %OTHER(CSTR:ARG:アクセサリ, "外套")%姿
+	LOCALS = %OTHER(CSTR:ARG:飾品, "外套")%姿
 ELSEIF EQUIP:ARG:服
 	;特殊な名称になるセット
-	IF CHECK_SHIRT("アメスク", ARG) && CHECK_SKIRT("スカート", ARG)
-		LOCALS = アメスク
+	IF CHECK_SHIRT("美式校服", ARG) && CHECK_SKIRT("裙", ARG)
+		LOCALS = 美式校服
 	ELSE
 		;柄がある？
 		IF SHIRT(ARG, "柄") != ""
@@ -1722,94 +1722,94 @@ ELSEIF EQUIP:ARG:服
 		ELSE
 			LOCALS = %SHIRT(ARG)%
 		ENDIF
-		IF CHECK_SKIRT("スカート", ARG)
-			IF CHECK_SHIRT("ワンピース", ARG)
-				IF CHECK_SKIRT("超ミニ", ARG)
-					LOCALS = 超ミニ%LOCALS%
-				ELSEIF CHECK_SKIRT("ミニ", ARG)
-					LOCALS = ミニスカ%LOCALS%
+		IF CHECK_SKIRT("裙", ARG)
+			IF CHECK_SHIRT("連衣裙", ARG)
+				IF CHECK_SKIRT("超短迷你", ARG)
+					LOCALS = 超短迷你%LOCALS%
+				ELSEIF CHECK_SKIRT("迷你", ARG)
+					LOCALS = 露脐装超短裙%LOCALS%
 				ENDIF
 			ELSE
 				LOCALS = %LOCALS%＆%SKIRT(ARG)%
 			ENDIF
 			SIF CHECK_CLO("埴輪ルック", ARG)
 				LOCALS += "(はにわルック)"
-		ELSEIF EQUIP:ARG:ボディスーツ
+		ELSEIF EQUIP:ARG:贴身制服
 			LOCALS = %LOCALS%＆%BODYS(ARG)%
-		ELSEIF EQUIP:ARG:アウター
+		ELSEIF EQUIP:ARG:外套
 			SIF STRCOUNT(OUTER(ARG, "略"), SHIRT(ARG, "略") ) == 0
 				LOCALS = %LOCALS%＆%OUTER(ARG)%
-		ELSEIF CHECK_CLO("パンツが見える格好", ARG)
+		ELSEIF CHECK_CLO("胖次が見える格好", ARG)
 			LOCALS = %LOCALS%＆%PANTIES(ARG)%
 		ENDIF
 	ENDIF
-ELSEIF EQUIP:ARG:ボディスーツ
+ELSEIF EQUIP:ARG:贴身制服
 	LOCALS = %BODYS(ARG)%
 ELSEIF CHECK_OTHER("外套", ARG)
-	LOCALS = %OTHER(CSTR:ARG:アクセサリ, "外套")%
+	LOCALS = %OTHER(CSTR:ARG:飾品, "外套")%
 ;以下は上半身が下着or裸
-ELSEIF EQUIP:ARG:アウター && CHECK_OUTER("パンスト", ARG) == 0
-	IF EQUIP:ARG:ブラ
+ELSEIF EQUIP:ARG:外套 && CHECK_OUTER("连褲襪", ARG) == 0
+	IF EQUIP:ARG:胸罩
 		LOCALS = %BRA(ARG)%＆%OUTER(ARG)%
 	ELSE
 		LOCALS = %OUTER(ARG)%
 	ENDIF
 
-ELSEIF CHECK_CLO("水着姿", ARG)
-	IF EQUIP:ARG:パンツ
+ELSEIF CHECK_CLO("泳装姿", ARG)
+	IF EQUIP:ARG:胖次
 		LOCALS = %PANTIES(ARG)%
 	ELSE
 		LOCALS = %BRA(ARG)%
 	ENDIF
-ELSEIF CHECK_CLO("下着姿", ARG)
-	IF CHECK_PANTIES("肉球プリントパンツ", ARG) && CHECK_BRA("猫型ブラ", ARG)
-		LOCALS = ネコランジェリー
-	ELSEIF EQUIP:ARG:パンツ && EQUIP:ARG:ブラ
-		IF CHECK_PANTIES("レース", ARG) && CHECK_BRA("レース", ARG)
-			LOCALS = レースの
-		ELSEIF CHECK_PANTIES("フリル", ARG) && CHECK_BRA("フリル", ARG)
-			LOCALS = フリルの
-		ELSEIF CHECK_PANTIES("シースルー", ARG) && CHECK_BRA("シースルー", ARG)
-			LOCALS = シースルーの
-		ELSEIF CHECK_PANTIES("レザー", ARG) && CHECK_BRA("レザー", ARG)
-			LOCALS = ボンデージ風の
+ELSEIF CHECK_CLO("内衣姿", ARG)
+	IF CHECK_PANTIES("肉球印花胖次", ARG) && CHECK_BRA("猫型胸罩", ARG)
+		LOCALS = 猫ランジェリー
+	ELSEIF EQUIP:ARG:胖次 && EQUIP:ARG:胸罩
+		IF CHECK_PANTIES("蕾丝", ARG) && CHECK_BRA("蕾丝", ARG)
+			LOCALS = 蕾丝的
+		ELSEIF CHECK_PANTIES("褶边", ARG) && CHECK_BRA("褶边", ARG)
+			LOCALS = 褶边の
+		ELSEIF CHECK_PANTIES("透明", ARG) && CHECK_BRA("透明", ARG)
+			LOCALS = 透明の
+		ELSEIF CHECK_PANTIES("皮革", ARG) && CHECK_BRA("皮革", ARG)
+			LOCALS = 拘束衣風の
 		ENDIF
 
 		IF CHECK_PANTIES("Ｖ露出", ARG)
-			LOCALS += "穴開き下着"
+			LOCALS += "穴開き内衣"
 		ELSEIF CHECK_PANTIES("Ａ露出", ARG)
-			LOCALS += "Ｏバック下着"
-		ELSEIF CHECK_PANTIES("Ｃストリング", ARG)|| CHECK_PANTIES("Ｇストリング", ARG)|| CHECK_PANTIES("ティアドロップ", ARG) || CHECK_BRA("シェルフブラ", ARG)
-			LOCALS += "エロ下着"
-		ELSEIF CHECK_PANTIES("Ｔバック", ARG)
-			LOCALS += "Ｔバック下着"
-		ELSEIF CHECK_PANTIES("ローレグ", ARG)
-			LOCALS += "ローレグ下着"
-		ELSEIF CHECK_PANTIES("セクシー", ARG) || CHECK_BRA("セクシー", ARG)
-			LOCALS += "エロ下着"
+			LOCALS += "後開型内衣"
+		ELSEIF CHECK_PANTIES("Ｃ胖次", ARG)|| CHECK_PANTIES("丁字褲", ARG)|| CHECK_PANTIES("淚珠泳衣", ARG) || CHECK_BRA("１／４杯胸罩", ARG)
+			LOCALS += "エロ内衣"
+		ELSEIF CHECK_PANTIES("Ｔ字褲", ARG)
+			LOCALS += "Ｔ字褲内衣"
+		ELSEIF CHECK_PANTIES("超低腰", ARG)
+			LOCALS += "超低腰内衣"
+		ELSEIF CHECK_PANTIES("性感", ARG) || CHECK_BRA("性感", ARG)
+			LOCALS += "エロ内衣"
 		ELSE
-			LOCALS += "下着姿"
+			LOCALS += "内衣姿"
 		ENDIF
 
 		;色描写
-		IF CLOCOLOR(CSTR:ARG:ブラ) == CLOCOLOR(CSTR:ARG:パンツ)
-			IF CHECK_PANTIES("縞々", ARG)
-				LOCALS = 縞々模様の%LOCALS%
+		IF CLOCOLOR(CSTR:ARG:胸罩) == CLOCOLOR(CSTR:ARG:胖次)
+			IF CHECK_PANTIES("條紋", ARG)
+				LOCALS = 條紋模様の%LOCALS%
 			ELSEIF CHECK_PANTIES("水玉模様", ARG)
 				LOCALS = 水玉模様の%LOCALS%
-			ELSEIF CHECK_PANTIES("豹柄", ARG)
-				LOCALS = 豹柄の%LOCALS%
+			ELSEIF CHECK_PANTIES("豹纹", ARG)
+				LOCALS = 豹纹の%LOCALS%
 			ELSE
-				LOCALS = %CLOCOLOR(CSTR:ARG:パンツ, "形容詞")%%LOCALS%
+				LOCALS = %CLOCOLOR(CSTR:ARG:胖次, "形容詞")%%LOCALS%
 			ENDIF
 		ENDIF
-	ELSEIF EQUIP:ARG:ブラ
+	ELSEIF EQUIP:ARG:胸罩
 		LOCALS = %BRA(ARG)%
 	ELSE
 		LOCALS = %PANTIES(ARG)%
 	ENDIF
-ELSEIF CHECK_SKIRT("スカート", ARG)
-	IF EQUIP:ARG:ブラ
+ELSEIF CHECK_SKIRT("裙", ARG)
+	IF EQUIP:ARG:胸罩
 		LOCALS = %BRA(ARG)%＆%SKIRT(ARG)%
 	ELSE
 		LOCALS = %SKIRT(ARG)%
@@ -1820,13 +1820,13 @@ ELSEIF CHECK_SKIRT("スカート", ARG)
 ELSEIF CHECK_CLO("全裸", ARG)
 	LOCALS = 全裸
 ELSE
-	IF CHECK_OUTER("パンスト", ARG)
-		LOCALS += "パンスト"
-		SIF EQUIP:ARG:靴下 || EQUIP:ARG:靴 || EQUIP:ARG:手袋
+	IF CHECK_OUTER("连褲襪", ARG)
+		LOCALS += "连褲襪"
+		SIF EQUIP:ARG:襪子 || EQUIP:ARG:靴 || EQUIP:ARG:手袋
 			LOCALS += "、"
 	ENDIF
-	IF EQUIP:ARG:靴下
-		LOCALS += "靴下"
+	IF EQUIP:ARG:襪子
+		LOCALS += "襪子"
 		SIF EQUIP:ARG:靴 || EQUIP:ARG:手袋
 			LOCALS += "、"
 	ENDIF
