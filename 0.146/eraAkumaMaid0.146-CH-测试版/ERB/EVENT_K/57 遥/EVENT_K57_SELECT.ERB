@@ -1,69 +1,69 @@
+﻿;-------------------------------------------------
+;ここに記述する事で各コマンドの選択肢を増やすことができる
+;X1はキャラ番号に置換してください
 ;-------------------------------------------------
-;�����ɋL�q���鎖�Ŋe�R�}���h�̑I�����𑝂₷���Ƃ��ł���
-;X1�̓L�����ԍ��ɒu�����Ă�������
-;-------------------------------------------------
-;���肢�E����ł̑I������ǉ��B�ԍ���60�`89���g���Ă悢
-;������ TFLAG:����\ = 1 �Ƃ���ƁA�g�̍Œ��ł������̑I�������o�܂�
+;お願い・取引での選択肢を追加。番号は60～89を使ってよい
+;ここで TFLAG:取引可能 = 1 とすると、Ｈの最中でもここの選択肢が出ます
 @WISH_K57_ADDSELECT
-;����or�j���Ɏp��ς��邨�肢
-;�m�m����̏��������̂܂܈ڐA��������
-IF CEVENT("�������K")
-	IF CEVENT("����")
-		STR:�I���� = %STR:�I����% [60] %TEXT_LJ("����߂���", 16)% �c %CALLNAME:TARGET%�̕���߂��Ă��炢�܂�/
+;女装or男装に姿を変えるお願い
+;ノノくんの女装をそのまま移植したもの
+IF CEVENT("女装教習")
+	IF CEVENT("女装")
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("服を戻して", 16)% … %CALLNAME:TARGET%の服を戻してもらいます/
 	ELSE
-		STR:�I���� = %STR:�I����% [60] %TEXT_LJ("��������", 16)% �c %CALLNAME:TARGET%�ɏ������Ă��炢�܂�/
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("女装して", 16)% … %CALLNAME:TARGET%に女装してもらいます/
 	ENDIF
 ENDIF
 
-;���肢�E����ő��₵���I�����̒n�̕��Ƒ䎌
+;お願い・取引で増やした選択肢の地の文と台詞
 @KOJO_WISH_K57_ADDSELECT, ARGS
 SELECTCASE ARGS
-CASE "����߂���"
-	IF CFLAG:�������C�x >= 30
-		PRINTFORMW �u���H�@���������̂��H�v
+CASE "服を戻して"
+	IF CFLAG:女装乗り気度 >= 30
+		PRINTFORMW 「え？　もういいのか？」
 	ELSE
-		PRINTFORMW �u��A����ƏI������c�c�v
+		PRINTFORMW 「や、やっと終わった……」
 	ENDIF
 	PRINTL 
-	PRINTFORMW %CALLNAME:TARGET%�͖�������j���̕��𒅂ĕ����ɗV�тɂ���悤�ɂȂ�܂����B
-	CALL DEL_CEVENT, "����"
+	PRINTFORMW %CALLNAME:TARGET%は明日から男物の服を着て部室に遊びにくるようになりました。
+	CALL DEL_CEVENT, "女装"
 	CALL K57_CLOTHCHANGE
-	;�t���O��M��ꍇ�͂���������ōs��
-CASE "��������"
-	CALL PRINT_STRW, @"�u��A�킩�����c�c_H_�v"
+	;フラグを弄る場合はそれもここで行う
+CASE "女装して"
+	CALL PRINT_STRW, @"「わ、わかった……_H_」"
 	PRINTL 
-	PRINTFORMW %CALLNAME:TARGET%�͖������珗�����ĕ����ɗV�тɂ���悤�ɂȂ�܂����B
-	CALL SET_CEVENT, "����"
+	PRINTFORMW %CALLNAME:TARGET%は明日から女装して部室に遊びにくるようになりました。
+	CALL SET_CEVENT, "女装"
 	CALL K57_CLOTHCHANGE
-	;�t���O��M��ꍇ�͂���������ōs��
+	;フラグを弄る場合はそれもここで行う
 ENDSELECT
 
 ;-------------------------------------------------
-;�g�[�N�R�}���h�̑I������ǉ�
+;トークコマンドの選択肢を追加
 @DAILY1_K57_ADDSELECT
-SIF CEVENT("����")
-	STR:�I���� += "������J�߂�/"
+SIF CEVENT("女装")
+	STR:選択肢 += "女装を褒める/"
 
-;�g�[�N�R�}���h�ő��₵���I�����̒n�̕��Ƒ䎌
+;トークコマンドで増やした選択肢の地の文と台詞
 @KOJO_DAILY1_K57_ADDSELECT, ARGS
 SELECTCASE ARGS
-CASE "������J�߂�"
-	PRINTFORMW %CALLNAME:MASTER%��%CALLNAME:TARGET%�̏�����J�߂�
+CASE "女装を褒める"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の女装を褒めた
 	PRINTL 
-	SELECTCASE CFLAG:�������C�x
+	SELECTCASE CFLAG:女装乗り気度
 	CASE IS >= 30
-		PRINTFORMW �u�t�b�t�b�t�A��������[�H�v
-		PRINTFORMW %CALLNAME:TARGET%�͊����������c�c�B
+		PRINTFORMW 「フッフッフ、そうだろー？」
+		PRINTFORMW %CALLNAME:TARGET%は嬉しそうだ……。
 	CASE IS >= 15
-		PRINTFORMW �u���A�������ȁc�c�w�w�w�c�c�v
-		PRINTFORMW %CALLNAME:TARGET%�͊��Ԃ�߂Ă���c�c�B
+		PRINTFORMW 「そ、そうかな……ヘヘヘ……」
+		PRINTFORMW %CALLNAME:TARGET%は顔を赤らめている……。
 	CASE IS >= 5
-		PRINTFORMW �u�c�c���A����ȂɎ������Ă�̂��c�c�H�v
-		PRINTFORMW %CALLNAME:TARGET%�͂܂񂴂�ł��Ȃ��������c�c�B
+		PRINTFORMW 「……そ、そんなに似合ってるのか……？」
+		PRINTFORMW %CALLNAME:TARGET%はまんざらでもなさそうだ……。
 	CASEELSE
-		PRINTFORMW �u���[�H�@����Ȃ��ƂȂ�����[�H�v
-		PRINTFORMW %CALLNAME:TARGET%�͉��b�����Ȏ�����%CALLNAME:MASTER%�ɂ悱���Ă���c�c�B
+		PRINTFORMW 「えー？　そんなことないだろー？」
+		PRINTFORMW %CALLNAME:TARGET%は怪訝そうな視線を%CALLNAME:MASTER%によこしている……。
 	ENDSELECT
-	SIF CFLAG:�������C�x <= 999
-		CFLAG:�������C�x++
+	SIF CFLAG:女装乗り気度 <= 999
+		CFLAG:女装乗り気度++
 ENDSELECT

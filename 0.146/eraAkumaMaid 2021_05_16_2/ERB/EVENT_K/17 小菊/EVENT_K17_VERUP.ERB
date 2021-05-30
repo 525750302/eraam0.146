@@ -1,34 +1,34 @@
+﻿;-------------------------------------------------
+;小菊口上データ修正パッチ
 ;-------------------------------------------------
-;���e����f�[�^�C���p�b�`
-;-------------------------------------------------
-;@K17_VERUP��EVENT_K17_DAILY.ERB��165�s��
-;���C����ʑ䎌�����`��������Ăяo���Ă��܂��B
+;@K17_VERUPはEVENT_K17_DAILY.ERBの165行目
+;メイン画面台詞処理冒頭部から呼び出しています。
 ;-------------------------------------------------
 @K17_VERUP
 
 IF FINDCHARA(NO, 17) > 0
 	LOCAL = FINDCHARA(NO, 17)
-	IF !TALENT:LOCAL:�p����
-		;���b�X���F�ς�Ȃ���TALENT:�p�����������Ă���ꍇ�A�����ƃt���O��ݒ肷��
-		IF !CEVENT("���b�X���F�ς��", LOCAL)
-			CSTR:LOCAL:�D���ȃp���c = �V���[�c/�ȁX�p���c/�t�����̃p���c
-			CSTR:LOCAL:�D���ȃu�� = �L���~�\�[��
-			CALL SET_CEVENT, "���b�X���F�ς��", LOCAL
-			CALL DEL_CEVENT, "�C�x���g�F�͂��ĂȂ�", LOCAL
-			CALL SET_CEVENT, "���b�X���F�͂��炢", LOCAL
-			CALL DEL_CEVENT, "�C�x���g�F�͂��炤�H", LOCAL
+	IF !TALENT:LOCAL:恥薄い
+		;レッスン：ぱんつなしでTALENT:恥薄いを失っている場合、下着とフラグを設定する
+		IF !CEVENT("レッスン：ぱんつ", LOCAL)
+			CSTR:LOCAL:好きなパンツ = ショーツ/縞々パンツ/フリルのパンツ
+			CSTR:LOCAL:好きなブラ = キャミソール
+			CALL SET_CEVENT, "レッスン：ぱんつ", LOCAL
+			CALL DEL_CEVENT, "イベント：はいてない", LOCAL
+			CALL SET_CEVENT, "レッスン：はじらい", LOCAL
+			CALL DEL_CEVENT, "イベント：はじらう？", LOCAL
 
-		;���b�X���F�͂��炢�Ȃ���TALENT:�p�����������Ă���ꍇ�A���b�X���I���t���O��ݒ肵�Ă���
-		ELSEIF !CEVENT("���b�X���F�͂��炢", LOCAL)
-			CALL SET_CEVENT, "���b�X���F�͂��炢", LOCAL
-			CALL DEL_CEVENT, "�C�x���g�F�͂��炤�H", LOCAL
+		;レッスン：はじらいなしでTALENT:恥薄いを失っている場合、レッスン終了フラグを設定しておく
+		ELSEIF !CEVENT("レッスン：はじらい", LOCAL)
+			CALL SET_CEVENT, "レッスン：はじらい", LOCAL
+			CALL DEL_CEVENT, "イベント：はじらう？", LOCAL
 
 		ENDIF
 	ENDIF
 
-	;���b�X���F�͂��炢�ƃC�x���g�F�͂����������ς�ł��炸�A���ӁF�A�\�R�`�F�b�N�������Ă��Ȃ���΍��ӁF�A�\�R�`�F�b�N��ݒ肷��
-	SIF TALENT:LOCAL:�p���� && !CEVENT("���b�X���F�͂��炢", LOCAL) && !STRCOUNT(CSTR:LOCAL:����, "�A�\�R�`�F�b�N")
-		CALL SET_GOUI, "�A�\�R�`�F�b�N"
+	;レッスン：はじらいとイベント：はずかしいが済んでおらず、合意：アソコチェックを持っていなければ合意：アソコチェックを設定する
+	SIF TALENT:LOCAL:恥薄い && !CEVENT("レッスン：はじらい", LOCAL) && !STRCOUNT(CSTR:LOCAL:合意, "アソコチェック")
+		CALL SET_GOUI, "アソコチェック"
 
 ENDIF
 

@@ -1,35 +1,35 @@
-@COM6
-;�L�X
+﻿@COM6
+;キス
 CALL PRINT_TRAIN_NAME(SELECTCOM)
 
 ;-------------------------------------------------
-;���s�ł��邩�̔���
+;実行できるかの判定
 ;-------------------------------------------------
 CALL SHOW_COM_ORDER_COM, 6
 
-;���s�ł��Ȃ�
-SIF TCVAR:���C == 0
+;実行できない
+SIF TCVAR:やる気 == 0
 	RETURN 0
 ;-------------------------------------------------
-;���s����
+;実行決定
 ;-------------------------------------------------
 CALL TRAIN_MESSAGE_B
 
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:�O��R�}���h = %STR:����R�}���h%
+STR:前回コマンド = %STR:今回コマンド%
 
 ;-------------------------------------------------
-;�ː��`�F�b�N
+;射精チェック
 ;-------------------------------------------------
 CALL SAMEN_CHECK
 
 RETURN 1
 
 @FLAG_COM6, ARG
-;�Ώۂ̌��̒����҂̌��̉��ꂪ�ړ�
-CALL EQ_STAIN, TARGET, "�l", PLAYER, "�l"
+;対象の口⇔調教者の口の汚れが移動
+CALL EQ_STAIN, TARGET, "Ｍ", PLAYER, "Ｍ"
 
 
 @SOURCE_COM6, ARG
@@ -37,181 +37,181 @@ CALL VARSET_COMF
 
 CALL SOURCE_DOWNBASE_HP, 6
 
-;����f�[�^�����ɂ���
-SOURCE:0:�s�� = COM_ORDER_STAIN("�l", "�l")*100 + 100
+;汚れデータを元にする
+SOURCE:0:不潔 = COM_ORDER_STAIN("Ｍ", "Ｍ")*100 + 100
 
-SOURCE:0:���] = 100
-SOURCE:0:� = 300
-SOURCE:0:���s�� = 300
-SOURCE:0:�B���� = 300
+SOURCE:0:屈従 = 100
+SOURCE:0:情愛 = 300
+SOURCE:0:性行動 = 300
+SOURCE:0:達成感 = 300
 
-;ABL:�l���o���݂�
-SOURCE:0:�l���y = CALCF("�l�h��", 1)
-;�����҂̐�g�����݂�
-SOURCE:0:�l���y = SOURCE_EXABL(SOURCE:0:�l���y, "��g��", PLAYER)
+;ABL:Ｍ感覚をみる
+SOURCE:0:Ｍ快楽 = CALCF("Ｍ刺激", 1)
+;調教者の舌使いをみる
+SOURCE:0:Ｍ快楽 = SOURCE_EXABL(SOURCE:0:Ｍ快楽, "舌使い", PLAYER)
 
-;�e���_�[�L�b�X
-IF CHECK_COM("�e���_�[�L�X")
-	TIMES SOURCE:0:�l���y, 0.10
-	SOURCE:0:� += 700
+;テンダーキッス
+IF CHECK_COM("テンダーキス")
+	TIMES SOURCE:0:Ｍ快楽, 0.10
+	SOURCE:0:情愛 += 700
 ENDIF
 
-;�L�X���ǂ̂��炢���������Ń{�[�i�X
-SOURCE:0:� += 200 * TEQUIP:�L�X
-SOURCE:0:���s�� += 200 * TEQUIP:�L�X
-SOURCE:0:�B���� += 100 * TEQUIP:�L�X
-SOURCE:0:���] += 100 * TEQUIP:�L�X
+;キスをどのぐらい続けたかでボーナス
+SOURCE:0:情愛 += 200 * TEQUIP:キス
+SOURCE:0:性行動 += 200 * TEQUIP:キス
+SOURCE:0:達成感 += 100 * TEQUIP:キス
+SOURCE:0:屈従 += 100 * TEQUIP:キス
 
-SIF TALENT:�l����
-	CALL CALC, "�D�݂̃v���C", SOURCE:0:�l���y
+SIF TALENT:Ｍ性向
+	CALL CALC, "好みのプレイ", SOURCE:0:Ｍ快楽
 
-CALL CALC, "�����\�[�X", ARG
+CALL CALC, "調教ソース", ARG
 
 
 @TRAIN_MESSAGE_COM6
-;�e���_�[�L�b�X
-IF CHECK_COM("�e���_�[�L�X")
-	IF TEQUIP:�����|��
-		PRINTFORM %CALLNAME:TARGET%��%CALLNAME:PLAYER%�̖j�Ɏ��Y���āA�D����
+;テンダーキッス
+IF CHECK_COM("テンダーキス")
+	IF TEQUIP:押し倒し
+		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の頬に手を添えて、優しく
 	ELSE
 		SIF PLAYER != MASTER
-			PRINTFORM %CALLNAME:PLAYER%��
-		;���v����
-		IF TALENT:���v���� &&  PLAYER == MASTER && RAND:3 == 0
-			PRINTFORM %CALLNAME:TARGET%�Ɉ��𚑂��Ȃ���D����
-		ELSEIF TALENT:���� && RAND:2 == 0
-			PRINTFORM %CALLNAME:TARGET%�̓��𕏂łȂ���A������
+			PRINTFORM %CALLNAME:PLAYER%は
+		;相思相愛
+		IF TALENT:相思相愛 &&  PLAYER == MASTER && RAND:3 == 0
+			PRINTFORM %CALLNAME:TARGET%に愛を囁きながら優しく
+		ELSEIF TALENT:小柄 && RAND:2 == 0
+			PRINTFORM %CALLNAME:TARGET%の頭を撫でながら、そっと
 		ELSE
-			PRINTFORM %CALLNAME:TARGET%������񂹂āA�D����
+			PRINTFORM %CALLNAME:TARGET%を抱き寄せて、優しく
 		ENDIF
 	ENDIF
 	IF RAND:2 == 0
-		PRINTFORMW �L�X�������c
+		PRINTFORMW キスをした…
 	ELSE
-		PRINTFORMW �O���d�˂��c
+		PRINTFORMW 唇を重ねた…
 	ENDIF
-;�����|����
-ELSEIF TEQUIP:�����|��
-	PRINTFORM %CALLNAME:TARGET%��
-	;���肪�O��Ɠ����s��(�Ⴄ�s���̎��́A�����łȂ��AEQUIP_COM32�ŋL�q)
-	SIF TEQUIP:�v�����|�� && SELECTCOM:1 == PREVCOM:1 && SELECTCOM:1 >= 0
-		PRINTFORM %TEXTS("�v�����|����")%
-	IF TEQUIP:�L�X
-		IF TEQUIP:�v�����|�� == 0
-			PRINTFORMW ��C�����߂Ěb��%CALLNAME:PLAYER%�̐O�𓦂����A�ĂуL�X�Ō����ǂ��ł��܂��c
+;押し倒し中
+ELSEIF TEQUIP:押し倒し
+	PRINTFORM %CALLNAME:TARGET%は
+	;助手が前回と同じ行動(違う行動の時は、ここでなく、EQUIP_COM32で記述)
+	SIF TEQUIP:Ｗ押し倒し && SELECTCOM:1 == PREVCOM:1 && SELECTCOM:1 >= 0
+		PRINTFORM %TEXTS("Ｗ押し倒し中")%
+	IF TEQUIP:キス
+		IF TEQUIP:Ｗ押し倒し == 0
+			PRINTFORMW 空気を求めて喘ぐ%CALLNAME:PLAYER%の唇を逃さず、再びキスで口を塞いでしまう…
 		ELSE
-			PRINTFORMW %CALLNAME:PLAYER%�Ɩ����ŃL�X�����Ă���c
+			PRINTFORMW %CALLNAME:PLAYER%と夢中でキスをしている…
 		ENDIF
-	ELSEIF INSERT("���̒�") && TEQUIP:�v�����|�� == 0
-		PRINTFORM %TEXTS("���̒�", TARGET)%
-		IF (ABL:�~�] >= 4 || TALENT:���C) && RAND:2
-			PRINTFORMW %CALLNAME:PLAYER%�̐O��D���Ă����c
+	ELSEIF INSERT("合体中") && TEQUIP:Ｗ押し倒し == 0
+		PRINTFORM %TEXTS("合体中", TARGET)%
+		IF (ABL:欲望 >= 4 || TALENT:強気) && RAND:2
+			PRINTFORMW %CALLNAME:PLAYER%の唇を奪ってきた…
 		ELSE
-			PRINTFORMW %CALLNAME:PLAYER%�ɃL�X�����Ă����c
+			PRINTFORMW %CALLNAME:PLAYER%にキスをしてきた…
 		ENDIF
 	ELSE
-		PRINTFORM %CALLNAME:PLAYER%�̐O��D���A
-		IF PREVPLAY("���A") && CHECK_STAIN(STAIN:�l, "�A") && ABL:�T�h���C >= 3
-			PRINTFORMW �������̂���ƌ����΂���ɔA������̑��t�𗬂�����ł����c
-		ELSEIF (PREVCOM == 91 || PREVCOM == 99 || PREVCOM == 140) && CHECK_STAIN(STAIN:�l, "���t") && ABL:�T�h���C >= 3
-			PRINTFORMW ��𗍂߂Ȃ�����ɒ��߂����t�����ڂ��ň��܂��Ă����c
+		PRINTFORM %CALLNAME:PLAYER%の唇を奪い、
+		IF PREVPLAY("飲尿") && CHECK_STAIN(STAIN:Ｍ, "尿") && ABL:サドっ気 >= 3
+			PRINTFORMW さっきのお礼と言わんばかりに尿混じりの唾液を流し込んできた…
+		ELSEIF (PREVCOM == 91 || PREVCOM == 99 || PREVCOM == 140) && CHECK_STAIN(STAIN:Ｍ, "精液") && ABL:サドっ気 >= 3
+			PRINTFORMW 舌を絡めながら口に貯めた精液を口移しで飲ませてきた…
 		ELSE
 			IF RAND:2 == 0
-				PRINTFORMW ��𗍂߂��Â��Ă����c
+				PRINTFORMW 舌を絡めて貪ってきた…
 			ELSE
-				PRINTFORMW ���t�𗬂�����ł����c
+				PRINTFORMW 唾液を流し込んできた…
 			ENDIF
 		ENDIF
 	ENDIF
-;�L�X�p����
-ELSEIF TEQUIP:�L�X && COND("�O�s������") == PLAYER
-	PRINTFORM %CALLNAME:PLAYER%��%TEXTS("�d�b����")%%CALLNAME:TARGET%
-	IF INSERT("�����")
-		PRINTFORM �ɍ����������Ȃ���A��ނ悤��
-	ELSEIF INSERT("�Ζʍ���")
-		PRINTFORM �ƕ����������܂܁A����h����Ȃ���
+;キス継続中
+ELSEIF TEQUIP:キス && COND("前Ｔ調教者") == PLAYER
+	PRINTFORM %CALLNAME:PLAYER%は%TEXTS("電話中の")%%CALLNAME:TARGET%
+	IF INSERT("正常位")
+		PRINTFORM に腰を押しつけながら、啄むような
+	ELSEIF INSERT("対面座位")
+		PRINTFORM と抱きあったまま、腰を揺すりながら
 	ELSE
-		IF TALENT:���v���� && PLAYER == MASTER && RAND:2
-			PRINTFORM �ƈ����m���ߍ����悤��
+		IF TALENT:相思相愛 && PLAYER == MASTER && RAND:2
+			PRINTFORM と愛を確かめ合うように
 		ELSE
-			PRINTFORM ������񂹁A
+			PRINTFORM を抱き寄せ、
 			IF RAND:3 == 0
-				PRINT ���݂��̌���������r�߉񂵂Ȃ���
+				PRINT お互いの口内を舌先で舐め回しながら
 			ELSEIF RAND:2
-				PRINT ��𗍂߂đ��t�������������悤��
+				PRINT 舌を絡めて唾液を交換し合うような
 			ELSE
-				PRINT ���̎�����x�^�x�^�ɂ��Ȃ���
+				PRINT 口の周りをベタベタにしながら
 			ENDIF
 		ENDIF
 	ENDIF
-	PRINTFORMW �L�X�𑱂����c
-;�C���T�[�g��
-ELSEIF INSERT("���̒�")
-	PRINTFORM %CALLNAME:PLAYER%��%TEXTS("���̒�", PLAYER)%
-	IF EX:�u���o�� == 1 && PREVPLAY("�����o������", PLAYER) && PREVPLAY("�u�}����", PLAYER)
-		PRINTFORM %TEXTR("�S���ː��̗]�C�ɐZ���Ă���/�����o�����󂯓���Ă��ꂽ/�������ƌċz���đ��𐮂��Ă���")%%CALLNAME:TARGET%
+	PRINTFORMW キスを続けた…
+;インサート中
+ELSEIF INSERT("合体中")
+	PRINTFORM %CALLNAME:PLAYER%は%TEXTS("合体中", PLAYER)%
+	IF EX:Ｖ中出し == 1 && PREVPLAY("生中出しした", PLAYER) && PREVPLAY("Ｖ挿入中", PLAYER)
+		PRINTFORM %TEXTR("膣内射精の余韻に浸っている/生中出しを受け入れてくれた/ゆっくりと呼吸して息を整えている")%%CALLNAME:TARGET%
 	ELSE
-		PRINTFORM %CALLNAME:TARGET%%TEXTS("�ɓd�b�������܂܁A")%
+		PRINTFORM %CALLNAME:TARGET%%TEXTS("に電話させたまま、")%
 	ENDIF
-	IF INSERT("�}����") && CONDS("�̈�", PLAYER) != "�R���"
-		PRINTFORMW �ɃL�X���˂������c
+	IF INSERT("挿入中") && CONDS("体位", PLAYER) != "騎乗位"
+		PRINTFORMW にキスをねだった…
 	ELSE
-		PRINTFORMW ��%TEXTR("�O���ǂ����t�𗬂�����/���o�����X�܂��r�߉񂵂�/�O��D����")%�c
+		PRINTFORMW の%TEXTR("唇を塞ぎ唾液を流し込んだ/口腔を隅々まで舐め回した/唇を奪った")%…
 	ENDIF
 ELSE
-	PRINTFORM %CALLNAME:PLAYER%��
-	IF PREVPLAY("���A")
-		PRINTFORM ���A�v���C����ŃI�V�b�R�L������f���Ȃ���ċz�𐮂��Ă���
-	ELSEIF COND("�O��t�F��")
-		PRINTFORM �y�j�X������Ԃ点��̂𒆒f������ƁA
-	ELSEIF COND("�O�s������") == PLAYER && (PREVCOM == 98 || PREVCOM == 99)
-		PRINTFORM �A�\�R�ւ̕�d�𒆒f������ƁA
-	ELSEIF COND("�O�s������") == PLAYER && PREVCOM == 96
-		PRINTFORM ���K�̌��ւ̕�d�����Ă���
-	ELSEIF TEQUIP:�d�b��
-		PRINTFORM %TEXTS("�d�b����")%
+	PRINTFORM %CALLNAME:PLAYER%は
+	IF PREVPLAY("飲尿")
+		PRINTFORM 飲尿プレイ直後でオシッコ臭い息を吐きながら呼吸を整えていた
+	ELSEIF COND("前回フェラ")
+		PRINTFORM ペニスをしゃぶらせるのを中断させると、
+	ELSEIF COND("前Ｔ調教者") == PLAYER && (PREVCOM == 98 || PREVCOM == 99)
+		PRINTFORM アソコへの奉仕を中断させると、
+	ELSEIF COND("前Ｔ調教者") == PLAYER && PREVCOM == 96
+		PRINTFORM お尻の穴への奉仕をしていた
+	ELSEIF TEQUIP:電話中
+		PRINTFORM %TEXTS("電話中の")%
 	ENDIF
 	PRINTFORM %CALLNAME:TARGET%
 	IF PREVCOM == 285
-		PRINTFORM ��������߂Ȃ���
-	ELSEIF RAND:3 == 0 && (COND("�O��t�F��") || (COND("�O�s������") == PLAYER && (PREVCOM == 96 || PREVCOM == 98 || PREVCOM == 99)) )
-		PRINTFORM �̐�g����J�߁A�D����
+		PRINTFORM を抱きしめながら
+	ELSEIF RAND:3 == 0 && (COND("前回フェラ") || (COND("前Ｔ調教者") == PLAYER && (PREVCOM == 96 || PREVCOM == 98 || PREVCOM == 99)) )
+		PRINTFORM の舌使いを褒め、優しく
 	ELSE
-		PRINTFORM %TEXTR("������񂹂�/�̓��𕏂łȂ���/�̔���G��Ȃ���/�̊�Ɏ��Y����")%
+		PRINTFORM %TEXTR("を抱き寄せて/の頭を撫でながら/の髪を触りながら/の顔に手を添えて")%
 	ENDIF
-	PRINTFORMW �L�X�������B
+	PRINTFORMW キスをした。
 ENDIF
 
-IF INSERT("�C���T�[�g") && (ABL:�M�� >= 5 || ABL:�~�] >= 5) && ABL:�u���o >= 5 && PREVCOM >= 66 && PREVCOM <= 68
-	PRINTFORM %CALLNAME:TARGET%�͕q���ȏꏊ��%TEXTR("�P�������ɕ@�����r��/�U�߂���x�ɊÂ������R��")%���Ȃ���A
-	IF TEQUIP:�����|�� || RAND:3 == 0
-		PRINTFORMW ��M�I��%CALLNAME:PLAYER%�����߂Ă���c
+IF INSERT("インサート") && (ABL:信頼 >= 5 || ABL:欲望 >= 5) && ABL:Ｖ感覚 >= 5 && PREVCOM >= 66 && PREVCOM <= 68
+	PRINTFORM %CALLNAME:TARGET%は敏感な場所を%TEXTR("襲う快感に鼻息を荒く/攻められる度に甘い呻き声を漏ら")%しながら、
+	IF TEQUIP:押し倒し || RAND:3 == 0
+		PRINTFORMW 情熱的に%CALLNAME:PLAYER%を求めている…
 	ELSEIF RAND:2
-		PRINTFORMW ��𗍂߂Ă���c
+		PRINTFORMW 舌を絡めてくる…
 	ELSE
-		PRINTFORMW �L�X�ɉ����Ă���c
+		PRINTFORMW キスに応じている…
 	ENDIF
-ELSEIF TEQUIP:�����|�� == 0 && ABL:�M�� >= 3 && (ABL:�M�� >= 5 || ABL:�l���o + ABL:PLAYER:��g�� >= 3)
-	PRINTFORM %CALLNAME:TARGET%��
-	;�e���_�[�L�X
-	IF CHECK_COM("�e���_�[�L�X")
+ELSEIF TEQUIP:押し倒し == 0 && ABL:信頼 >= 3 && (ABL:信頼 >= 5 || ABL:Ｍ感覚 + ABL:PLAYER:舌使い >= 3)
+	PRINTFORM %CALLNAME:TARGET%は
+	;テンダーキス
+	IF CHECK_COM("テンダーキス")
 		IF RAND:3 == 0
-			PRINTFORMW %TEXTR("�ڂ����/�������f����R�炵�Ȃ���")%�A%CALLNAME:PLAYER%�ɐg���ς˂Ă���c
+			PRINTFORMW %TEXTR("目を閉じて/小さく吐息を漏らしながら")%、%CALLNAME:PLAYER%に身を委ねている…
 		ELSEIF RAND:2 == 0
-			PRINTFORMW �ڂ���āA�j��Ԃ����߂Ȃ���%CALLNAME:PLAYER%�ɉ����Ă���c
+			PRINTFORMW 目を閉じて、頬を赤く染めながら%CALLNAME:PLAYER%に応えている…
 		ELSE
-			PRINTFORMW %TEXTR("�ڂ����/�������f����R�炵�Ȃ���")%�����Ƃ�Ƃ��Ă���c
+			PRINTFORMW %TEXTR("目を閉じて/小さく吐息を漏らしながら")%うっとりとしている…
 		ENDIF
-	ELSEIF TALENT:���� && TALENT:PLAYER:���g && INSERT("�C���T�[�g") + INSERT("�}����") == 0 && RAND:2
-		PRINTFORMW �g������ܐ旧���łՂ�Ղ邵�Ȃ���₢�A%CALLNAME:PLAYER%�ɉ����ĐϋɓI�ɐ�𗍂߂Ă���c
+	ELSEIF TALENT:小柄 && TALENT:PLAYER:長身 && INSERT("インサート") + INSERT("挿入中") == 0 && RAND:2
+		PRINTFORMW 身長差を爪先立ちでぷるぷるしながら補いつつ、%CALLNAME:PLAYER%に応えて積極的に舌を絡めている…
 	ELSE
-		PRINTFORMW %CALLNAME:PLAYER%�ɉ�����悤�ɁA�ϋɓI�ɐ�𗍂߂Ă���c
+		PRINTFORMW %CALLNAME:PLAYER%に応えるように、積極的に舌を絡めている…
 	ENDIF
 ENDIF
 
 
 @EQUIP_COM6
-SIF TEQUIP:�L�X == 0 || COND("�ǉ��L�X�t���O") == 0
+SIF TEQUIP:キス == 0 || COND("追加キスフラグ") == 0
 	RETURN 0
 
 CALL SOURCE_COM6, 30
@@ -220,81 +220,81 @@ CALL FLAG_COM6, 30
 RETURN 1
 
 @EQUIP_COM6_2
-SIF TEQUIP:�L�X == 0 || COND("�ǉ��L�X�t���O") == 0
+SIF TEQUIP:キス == 0 || COND("追加キスフラグ") == 0
 	RETURN 0
 
-PRINTFORML ��������΃L�X����
+PRINTFORML ＜隙あらばキス中＞
 
-IF TEQUIP:�����|��
-	LOCAL = MIN(LIMIT(TEQUIP:�L�X - 1, 0, ABL:��g��) + TALENT:���O, 4) / 2
+IF TEQUIP:押し倒し
+	LOCAL = MIN(LIMIT(TEQUIP:キス - 1, 0, ABL:舌使い) + TALENT:蕩唇, 4) / 2
 ELSE
-	LOCAL = MIN(LIMIT(TEQUIP:�L�X - 1, 0, ABL:PLAYER:��g��) + TALENT:���O, 4) / 2
+	LOCAL = MIN(LIMIT(TEQUIP:キス - 1, 0, ABL:PLAYER:舌使い) + TALENT:蕩唇, 4) / 2
 ENDIF
 
-EXP:�L�X�o�� += 1 + LOCAL
-EXP:PLAYER:�L�X�o�� += 1 + LOCAL
-PRINTFORML �L�X�o���{{1 + LOCAL}
-PRINTFORML �L�X�o���{{1 + LOCAL}�i%CALLNAME:PLAYER%�j
+EXP:キス経験 += 1 + LOCAL
+EXP:PLAYER:キス経験 += 1 + LOCAL
+PRINTFORML キス経験＋{1 + LOCAL}
+PRINTFORML キス経験＋{1 + LOCAL}（%CALLNAME:PLAYER%）
 
 @COM_ORDER_COM6, ARG
 VARSET LOCAL
 LOCALS = 
 
-;���ׂĂ̖��߂ɋ��ʂ̗v�f���l��
-;(�M���������Ɩ��߂ɏ]���₷���Ȃ�)
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
 CALL COM_ORDER, ARG
 
 LOCAL = RESULT
 
-;ABL:��d���_
-IF ABL:��d���_
-	LOCAL += MIN(ABL:��d���_, 10) * 2
-	LOCALS = %LOCALS% + ��d���_LV{ABL:��d���_}({MIN(ABL:��d���_, 10) * 2})
+;ABL:奉仕精神
+IF ABL:奉仕精神
+	LOCAL += MIN(ABL:奉仕精神, 10) * 2
+	LOCALS = %LOCALS% + 奉仕精神LV{ABL:奉仕精神}({MIN(ABL:奉仕精神, 10) * 2})
 ENDIF
-;�呀���ڒ�
-IF TALENT:�呀���ڒ�
+;貞操無頓着
+IF TALENT:貞操無頓着
 	LOCAL += 20
-	LOCALS = %LOCALS% + �呀���ڒ�(20)
+	LOCALS = %LOCALS% + 貞操無頓着(20)
 ENDIF
-;�p���炢
-IF TALENT:�p���炢
+;恥じらい
+IF TALENT:恥じらい
 	LOCAL -= 3
-	LOCALS = %LOCALS% - �p���炢(3)
+	LOCALS = %LOCALS% - 恥じらい(3)
 ENDIF
-;���g�I
-IF TALENT:���g
+;献身的
+IF TALENT:献身
 	LOCAL += 6
-	LOCALS = %LOCALS% + ���g(6)
+	LOCALS = %LOCALS% + 献身(6)
 ENDIF
-;�����̔ے�
-IF TALENT:�����̔ے�
+;快感の否定
+IF TALENT:快感の否定
 	LOCAL -= 1
-	LOCALS = %LOCALS% - �����̔ے�(1)
+	LOCALS = %LOCALS% - 快感の否定(1)
 ENDIF
-;����
-IF TALENT:���� && ASSIPLAY == 0
+;恋慕
+IF TALENT:恋慕 && ASSIPLAY == 0
 	LOCAL += 5
-	LOCALS = %LOCALS% + ����(5)
+	LOCALS = %LOCALS% + 恋慕(5)
 ENDIF
-;�l����
-IF TALENT:�l����
+;Ｍ性向
+IF TALENT:Ｍ性向
 	LOCAL += 10
-	LOCALS = %LOCALS% + �l����(10)
+	LOCALS = %LOCALS% + Ｍ性向(10)
 ENDIF
 
-;���ꂠ��
-IF COM_ORDER_STAIN("�l", "�l")
-	LOCAL -= COM_ORDER_STAIN("�l", "�l")
-	LOCALS = %LOCALS% - ���ꂠ��
-	;���L�݊�
-	SIF TALENT:���L�݊� || TALENT:���L�q��
-		LOCALS = %LOCALS%�A\@TALENT:���L�݊� ? ���L�݊� # ���L�q��\@
-	SIF COND("����")
-		LOCALS = %LOCALS%�A�����Ŕ���
-	LOCALS = %LOCALS%({COM_ORDER_STAIN("�l", "�l")})
+;汚れあり
+IF COM_ORDER_STAIN("Ｍ", "Ｍ")
+	LOCAL -= COM_ORDER_STAIN("Ｍ", "Ｍ")
+	LOCALS = %LOCALS% - 汚れあり
+	;汚臭鈍感
+	SIF TALENT:汚臭鈍感 || TALENT:汚臭敏感
+		LOCALS = %LOCALS%、\@TALENT:汚臭鈍感 ? 汚臭鈍感 # 汚臭敏感\@
+	SIF COND("陶酔")
+		LOCALS = %LOCALS%、陶酔で半減
+	LOCALS = %LOCALS%({COM_ORDER_STAIN("Ｍ", "Ｍ")})
 ENDIF
 
-;���v��\��(15�ȏ�Ŏ��s)
+;合計を表示(15以上で実行)
 CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 15
 
 RETURN RESULT

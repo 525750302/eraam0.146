@@ -1,12 +1,12 @@
-;-------------------------------------------------
-;���ド���_�������֐�
-;ARGS�͎��
-;�����֐��Ƃ��ČĂяo���̂͂ЂƂ܂��ۗ�
+﻿;-------------------------------------------------
+;口上ランダム生成関数
+;ARGSは種別
+;式中関数として呼び出すのはひとまず保留
 ;
-;@KOJO_RAND_K5���x�[�X�Ɏg�p���ėǂ��ƌ��̍�҂��񂩂狖�𓾂Ă��܂�
-;�g�������l�͎����̃L�����̌����ɍ��킹�Ăǂ���
+;@KOJO_RAND_K5をベースに使用して良いと元の作者さんから許可を得ています
+;使いたい人は自分のキャラの口調に合わせてどうぞ
 ;
-;���ρF�\�������Z���t���s�ɏC��
+;改変：表示されるセリフを二行に修正
 ;-------------------------------------------------
 @KOJO_RAND_K42(ARGS)
 #DIM LCOUNT
@@ -14,405 +14,405 @@
 LOCAL = 0
 LOCALS = 
 SELECTCASE ARGS
-CASE "�L�X"
-	;���[�h�ɂ�����ω��x����������
-	;���[�h30�ɂ��n�[�g����ɑ�������
-	;���[�h��150�ȏ�
-	IF FLAG:���[�h >= 150
+CASE "キス"
+	;ムードによる口上変化度合いを決定
+	;ムード30につきハート一個分に相当する
+	;ムードが150以上
+	IF FLAG:ムード >= 150
 		LOCAL = 5
-	;���[�h��120�ȏ�Ȃ�m��A����90�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 120 || (FLAG:���[�h >= 90 && FLAG:���[�h >= RAND:180)
+	;ムードが120以上なら確定、かつ90未満は範囲外
+	ELSEIF FLAG:ムード >= 120 || (FLAG:ムード >= 90 && FLAG:ムード >= RAND:180)
 		LOCAL = 4
-	;���[�h��90�ȏ�Ȃ�m��A����60�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 90 || (FLAG:���[�h >= 60 && FLAG:���[�h >= RAND:180)
+	;ムードが90以上なら確定、かつ60未満は範囲外
+	ELSEIF FLAG:ムード >= 90 || (FLAG:ムード >= 60 && FLAG:ムード >= RAND:180)
 		LOCAL = 3
-	;���[�h��60�ȏ�Ȃ�m��A����30�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 60 || (FLAG:���[�h >= 30 && FLAG:���[�h >= RAND:180)
+	;ムードが60以上なら確定、かつ30未満は範囲外
+	ELSEIF FLAG:ムード >= 60 || (FLAG:ムード >= 30 && FLAG:ムード >= RAND:180)
 		LOCAL = 2
 	ELSE
 		LOCAL = 1
 	ENDIF
-	;1.���[�h�������ꍇ�̒ǉ�����@��s�ځ@�n�[�g4��
+	;1.ムードが高い場合の追加口上　一行目　ハート4つ
 	IF LOCAL >= 4
-		LOCALS:1 = %TEXTR("�����/�񂿂��/���/����")%
+		LOCALS:1 = %TEXTR("ちゅっ/んちゅっ/んっ/んんっ")%
 		IF LOCAL == 5
-			LOCALS:2 = �@
+			LOCALS:2 = 　
 		ENDIF
 	ENDIF
-	;1.�ɑ����ĕ\�������@��s��
-	;2.���[�h������ɍ����ƒǉ�����@�n�[�g5��
-	;���������������ς���Δėp�Ŏg�p�\������
-	;�ėp����̈�s�ڂ��폜���āA���㑤�ň�s�ڂɃZ���t+��s�ڂɔėp�b���̕����֗��Ɏg���邩������Ȃ�
-	IF LOCAL == 5 && TALENT:����
-		LOCALS:3 = %TEXTR(@"%CNAME("��l", "�Â�")%�c/%CNAME("��l")%�A")%%TEXTR("�D���ł�/��D���ł�/�����Ɓc�c")%%TEXTR(@"%CNAME("��l��")%�ƃL�X���Ă��������c�c/%CALLNAME%�������Ă��������c�c/���܂ł������ɂ����Ă��������c�c")%%UNICODE(0x2665)%
+	;1.に続いて表示される　一行目
+	;2.ムードがさらに高いと追加口上　ハート5つ
+	;☆☆☆ここを改変すれば汎用で使用可能☆☆☆
+	;汎用口上の一行目を削除して、口上側で一行目にセリフ+二行目に汎用喘ぎの方が便利に使えるかもしれない
+	IF LOCAL == 5 && TALENT:恋慕
+		LOCALS:3 = %TEXTR(@"%CNAME("主人", "甘え")%…/%CNAME("主人")%、")%%TEXTR("好きです/大好きです/ずっと……")%%TEXTR(@"%CNAME("一人称")%とキスしてください……/%CALLNAME%を愛してください……/いつまでもお側においてください……")%%UNICODE(0x2665)%
 	ENDIF
-	;�����Ă�2��܂Ł@��s��
+	;長くても2回まで　二行目
 	LIMIT_MEMO = LIMIT(RAND:LOCAL, 2, 3)
 	FOR LCOUNT, 0, LIMIT_MEMO
-		;���������n
+		;ちゅっちゅ系
 		IF RAND:2 == 0
-			LOCALS = %LOCALS%%TEXTR("������A/����c/������c/���ィ�c�c/�񂿂���A")%%TEXTR("�����/������c/����c�c��/����c�c/������c�����")%
-		;�������n
+			LOCALS = %LOCALS%%TEXTR("ちゅっ、/ちゅ…/ちゅっ…/ちゅぅ……/んちゅっ、")%%TEXTR("ちゅっ/ちゅっ…/ちゅ……っ/ちゅ……/ちゅっ…ちゅっ")%
+		;んっんっ系
 		ELSE
-			LOCALS = %LOCALS%%TEXTR("�Q/��A/����A/��c�c")%%TEXTR("����c/����A���c/���c�c/���c���A��c/�����A��c/���ӂ��A��c/����A����c")%%TEXTR("�c/�c/�c/��/�c���")%
+			LOCALS = %LOCALS%%TEXTR("＿/ん、/んっ、/ん……")%%TEXTR("んっ…/ちゅ、んん…/んん……/んん…っ、ん…/んんっ、ん…/ぁふっ、ん…/んっ、ちゅ…")%%TEXTR("…/…/…/っ/…んっ")%
 		ENDIF
-		;���[�h�Ɉˑ����ăn�[�g�}�[�N�ł���m�����オ��
+		;ムードに依存してハートマークである確率が上がる
 		IF LOCAL >= RAND:4 && LOCAL >= 4
 			LOCALS = %LOCALS%%UNICODE(0x2665)%%UNICODE(0x2665)%%UNICODE(0x2665)%
 		ELSEIF LOCAL >= 3
 			LOCALS = %LOCALS%%UNICODE(0x2665)%
 		ENDIF
-		;�s���ȊO�̋L���̌�ɑS�p�X�y�[�X������
+		;行末以外の記号の後に全角スペースを入れる
 		SIF LIMIT_MEMO - LCOUNT > 1
-			LOCALS = %LOCALS%�@
+			LOCALS = %LOCALS%　
 		RESETCOLOR
 	NEXT
-CASE "�t�F��"
-	;���[�h�ɂ�����ω��x����������
-	;���[�h�������قǐ[����������ł��邱�Ƃ��ӎ�
-	;���[�h��150�ȏ�
-	IF FLAG:���[�h >= 150
+CASE "フェラ"
+	;ムードによる口上変化度合いを決定
+	;ムードが高いほど深く咥えこんでいることを意識
+	;ムードが150以上
+	IF FLAG:ムード >= 150
 		LOCAL = 5
-	;���[�h��120�ȏ�Ȃ�m��A����90�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 120 || (FLAG:���[�h >= 90 && FLAG:���[�h >= RAND:180)
+	;ムードが120以上なら確定、かつ90未満は範囲外
+	ELSEIF FLAG:ムード >= 120 || (FLAG:ムード >= 90 && FLAG:ムード >= RAND:180)
 		LOCAL = 4
-	;���[�h��90�ȏ�Ȃ�m��A����60�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 90 || (FLAG:���[�h >= 60 && FLAG:���[�h >= RAND:180)
+	;ムードが90以上なら確定、かつ60未満は範囲外
+	ELSEIF FLAG:ムード >= 90 || (FLAG:ムード >= 60 && FLAG:ムード >= RAND:180)
 		LOCAL = 3
-	;���[�h��60�ȏ�Ȃ�m��A����30�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 60 || (FLAG:���[�h >= 30 && FLAG:���[�h >= RAND:180)
+	;ムードが60以上なら確定、かつ30未満は範囲外
+	ELSEIF FLAG:ムード >= 60 || (FLAG:ムード >= 30 && FLAG:ムード >= RAND:180)
 		LOCAL = 2
 	ELSE
 		LOCAL = 1
 	ENDIF
-	;1.���[�h�������ꍇ�̒ǉ�����@��s�ځ@�n�[�g4��
+	;1.ムードが高い場合の追加口上　一行目　ハート4つ
 	IF LOCAL >= 4
-		LOCALS:1 = %TEXTR("�񂮂�/��ނ�/���/����")%%UNICODE(0x2665)%
+		LOCALS:1 = %TEXTR("んぐっ/んむっ/んっ/んんっ")%%UNICODE(0x2665)%
 		IF LOCAL == 5
-			LOCALS:2  = �@
+			LOCALS:2  = 　
 		ENDIF
 	ENDIF
-	;1.�ɑ����ĕ\�������@��s��
-	;2.���[�h������ɍ����ƒǉ�����@�n�[�g5��
-	;���������������ς���Δėp�Ŏg�p�\������
-	IF LOCAL == 5 && TALENT:����
-		LOCALS:3 = %TEXTR(@"%CNAME("��l", "�Â�")%�c/%CNAME("��l")%�A")%%TEXTR(@"�C����������ł���/�т��т����ĉ���/����Ȃɖ��ł���/����ȂɔM���Ȃ���/%CNAME("��l��")%�̂���d�ǂ��ł��傤���c/�D���ł�/��D���ł�")%%UNICODE(0x2665)%%TEXTR("�Q/�c�c")%
+	;1.に続いて表示される　一行目
+	;2.ムードがさらに高いと追加口上　ハート5つ
+	;☆☆☆ここを改変すれば汎用で使用可能☆☆☆
+	IF LOCAL == 5 && TALENT:恋慕
+		LOCALS:3 = %TEXTR(@"%CNAME("主人", "甘え")%…/%CNAME("主人")%、")%%TEXTR(@"気持ちいいんですね/びくびくして可愛い/こんなに脈打って/こんなに熱くなって/%CNAME("一人称")%のご奉仕どうでしょうか…/好きです/大好きです")%%UNICODE(0x2665)%%TEXTR("＿/……")%
 	ENDIF
-	;�����Ă�2��܂�
+	;長くても2回まで
 	LIMIT_MEMO = LIMIT(RAND:LOCAL, 2, 3)
 	FOR LCOUNT, 0, LIMIT_MEMO
-		;���������y���y�����Ăₒ ���S�H 
+		;さぁこいペロペロしてやｒ ンゴォ 
 		IF RAND:3 == 0
-			LOCALS = %LOCALS%%TEXTR("����A/����c�A/�񂣁A/�񂣁c/������A/�����c�c/���A/�����A/���c/���c/���c")%%TEXTR("���c/���c�c/���ށc/�����c/�͂ށc�c")%%TEXTR("�Q/���/�񂣂�/�����/����Ղ�")%
-		;�񂮂��n
+			LOCALS = %LOCALS%%TEXTR("んっ、/んっ…、/んぅ、/んぅ…/ちゅっ、/んんっ……/れろ、/れろっ、/れろ…/れろ…/れろ…")%%TEXTR("れろ…/れろ……/ぁむ…/れろっ…/はむ……")%%TEXTR("＿/んっ/んぅっ/ちゅっ/ちゅぷっ")%
+		;んぐっ系
 		ELSEIF RAND:2 == 0
-			LOCALS = %LOCALS%%TEXTR("����A/����c�A/���c/��c�����c�c/�񂮂��A/��ނ��A")%%TEXTR("�񂮂��c/�񂣁c�c/���c�c/����c/��ނ��c�c/���c")%%TEXTR("�Q/��/���")%
-		;�������n
+			LOCALS = %LOCALS%%TEXTR("んっ、/んっ…、/んん…/ん…ぐっ……/んぐっ、/んむっ、")%%TEXTR("んぐっ…/んぅ……/んん……/んっ…/んむっ……/んん…")%%TEXTR("＿/っ/んっ")%
+		;んっんっ系
 		ELSE
-			LOCALS = %LOCALS%%TEXTR("��A/����A/���c���A/�����A")%%TEXTR("���/����c��/���c�c��/��c��/�Ղ͂��A��c��")%%TEXTR("�Q/�A����A���c��/�A����c��")%
+			LOCALS = %LOCALS%%TEXTR("ん、/んっ、/んん…っ、/んんっ、")%%TEXTR("んっ/んっ…っ/んん……っ/ん…っ/ぷはっ、ん…っ")%%TEXTR("＿/、ちゅ、んん…っ/、ちゅ…っ")%
 		ENDIF
-		;���[�h�Ɉˑ����ăn�[�g�}�[�N�ł���m�����オ��
+		;ムードに依存してハートマークである確率が上がる
 		IF LOCAL >= RAND:4 && LOCAL >= 4
 			LOCALS = %LOCALS%%UNICODE(0x2665)%%UNICODE(0x2665)%%UNICODE(0x2665)%
 		ELSEIF LOCAL >= 3
 			LOCALS = %LOCALS%%UNICODE(0x2665)%
 		ENDIF
-		;�s���ȊO�̋L���̌�ɑS�p�X�y�[�X������
+		;行末以外の記号の後に全角スペースを入れる
 		SIF LIMIT_MEMO - LCOUNT > 1
-			LOCALS = %LOCALS%�@
+			LOCALS = %LOCALS%　
 	NEXT
-	;�c�c�{�u�͍�Ɨʂ����������ɔ߂���
-	IF COND("�J�������O")
-		IF ABL:�}�]���C >= 3
+	;……ボブは作業量が増えた事に悲しんだ
+	IF COND("開口リング")
+		IF ABL:マゾっ気 >= 3
 			IF RAND:3 == 0
-				LOCALS:4 = %CALLNAME%�͊��������ɂ��Ȃ���A�Ƃ߂�ꂽ�����O�M���O������˂��o���Č����ɕ�d���Ă���
+				LOCALS:4 = %CALLNAME%は嬉しそうにしながら、嵌められたリングギャグから舌を突き出して懸命に奉仕している
 			ELSEIF RAND:2 == 0
-				LOCALS:4 = �����J�����ꂽ%CALLNAME%�͖j��Ԃ�߂āA����O��ɓ�����%CALLNAME:PLAYER%�ɕ�d���Ă���
+				LOCALS:4 = 強制開口された%CALLNAME%は頬を赤らめて、頭を前後に動かし%CALLNAME:PLAYER%に奉仕している
 			ELSE
-				LOCALS:4 = %CALLNAME%�̓����O�M���O�������Ă��鎖�ɋ������Ȃ���A��𗍂ߌ����ɎC�����l�ɂ��Č��g�I�ɕ�d���Ă���
+				LOCALS:4 = %CALLNAME%はリングギャグをつけられている事に興奮しながら、舌を絡め口内に擦りつける様にして献身的に奉仕している
 			ENDIF
 		ELSE
 			IF RAND:3 == 0
-				LOCALS:4 = %CALLNAME%�͛Ƃ߂�ꂽ�����O�M���O������˂��o���ĕ�d���Ă���
+				LOCALS:4 = %CALLNAME%は嵌められたリングギャグから舌を突き出して奉仕している
 			ELSEIF RAND:2 == 0
-				LOCALS:4 = �����J�����ꂽ%CALLNAME%�͓���O��ɓ�������d���Ă���
+				LOCALS:4 = 強制開口された%CALLNAME%は頭を前後に動かし奉仕している
 			ELSE
-				LOCALS:4 = %CALLNAME%�͕s���R���������Ȃ�����A��𗍂ߌ����ɎC�����l�ɂ��ĕ�d���Ă���
+				LOCALS:4 = %CALLNAME%は不自由さを感じながらも、舌を絡め口内に擦りつける様にして奉仕している
 			ENDIF
 		ENDIF
 	ENDIF
-;�C���}�`�I��Ԃ�z��
-CASE "�C���}�`�I"
-	;���[�h�ɂ�����ω��x����������
-	;���[�h�������قǐ[����������ł��邱�Ƃ��ӎ�
-	;���[�h��150�ȏ�
-	IF FLAG:���[�h >= 150
+;イラマチオ状態を想定
+CASE "イラマチオ"
+	;ムードによる口上変化度合いを決定
+	;ムードが高いほど深く咥えこんでいることを意識
+	;ムードが150以上
+	IF FLAG:ムード >= 150
 		LOCAL = 5
-	;���[�h��120�ȏ�Ȃ�m��A����90�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 120 || (FLAG:���[�h >= 90 && FLAG:���[�h >= RAND:180)
+	;ムードが120以上なら確定、かつ90未満は範囲外
+	ELSEIF FLAG:ムード >= 120 || (FLAG:ムード >= 90 && FLAG:ムード >= RAND:180)
 		LOCAL = 4
-	;���[�h��90�ȏ�Ȃ�m��A����60�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 90 || (FLAG:���[�h >= 60 && FLAG:���[�h >= RAND:180)
+	;ムードが90以上なら確定、かつ60未満は範囲外
+	ELSEIF FLAG:ムード >= 90 || (FLAG:ムード >= 60 && FLAG:ムード >= RAND:180)
 		LOCAL = 3
-	;���[�h��60�ȏ�Ȃ�m��A����30�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 60 || (FLAG:���[�h >= 30 && FLAG:���[�h >= RAND:180)
+	;ムードが60以上なら確定、かつ30未満は範囲外
+	ELSEIF FLAG:ムード >= 60 || (FLAG:ムード >= 30 && FLAG:ムード >= RAND:180)
 		LOCAL = 2
 	ELSE
 		LOCAL = 1
 	ENDIF
-	;���[�h�������ꍇ�̒ǉ�����
+	;ムードが高い場合の追加口上
 	IF LOCAL >= 4
-		LOCALS:1 = %TEXTR("�ނ���/�ނ�����/��J��J��/��Ԃ���")%%UNICODE(0x2665)%
+		LOCALS:1 = %TEXTR("むぐっ/むぐぅっ/ん゛ん゛っ/んぶぅっ")%%UNICODE(0x2665)%
 		IF LOCAL == 5
-			LOCALS:2  = �@
+			LOCALS:2  = 　
 		ENDIF
 	ENDIF
-	;���[�h������ɍ����ƒǉ�����
-	IF LOCAL == 5 && TALENT:����
-		LOCALS:3 = %TEXTR("����/��ށJ��/�񂮂���/���Ԃ���")%%UNICODE(0x2665)%
+	;ムードがさらに高いと追加口上
+	IF LOCAL == 5 && TALENT:恋慕
+		LOCALS:3 = %TEXTR("んんっ/んむ゛っ/んぐぅっ/ぐぶぅっ")%%UNICODE(0x2665)%
 	ENDIF
-	;�����Ă�2��܂�
+	;長くても2回まで
 	LIMIT_MEMO = LIMIT(RAND:LOCAL, 2, 3)
 	FOR LCOUNT, 0, LIMIT_MEMO
-		;�񂮂��n
+		;んぐっ系
 		IF RAND:2 == 0
-			LOCALS = %LOCALS%%TEXTR("�񂮂��A/�񂮁A����c/��J����A/��ނ����A")%%TEXTR("�ނ������c/��ނ��c��/���J���c�A�Ԃ��A���c/���c���Ԃ�/��ށJ���c�c��/��J��c��")%
-		;�������n
+			LOCALS = %LOCALS%%TEXTR("んぐっ、/んぐ、んっ…/ん゛んっ、/んむぅっ、")%%TEXTR("むぐぅっ…/んむぅ…っ/んん゛っ…、ぶぐ、ぅ…/っ…ぐぶっ/んむ゛っ……っ/ん゛ん…っ")%
+		;んっんっ系
 		ELSE
-			LOCALS = %LOCALS%%TEXTR("����A/�񂣂��A/���c���A")%%TEXTR("����c��/�񂮁c��/���ށc�c��/�񂮁c��/��񂣁J��/�񂮂ށc��/����A�������c��")%
+			LOCALS = %LOCALS%%TEXTR("んっ、/んぅっ、/んん…っ、")%%TEXTR("んっ…っ/んぐ…っ/ぐむ……っ/んぐ…っ/んんぅ゛っ/んぐむ…っ/んっ、ごぇぇ…っ")%
 		ENDIF
-		;���[�h�Ɉˑ����ăn�[�g�}�[�N�ł���m�����オ��
+		;ムードに依存してハートマークである確率が上がる
 		IF LOCAL >= RAND:4 && LOCAL >= 4
 			LOCALS = %LOCALS%%UNICODE(0x2665)%%UNICODE(0x2665)%%UNICODE(0x2665)%
 		ELSEIF LOCAL >= 3
 			LOCALS = %LOCALS%%UNICODE(0x2665)%
 		ENDIF
-		;�s���ȊO�̋L���̌�ɑS�p�X�y�[�X������
+		;行末以外の記号の後に全角スペースを入れる
 		SIF LIMIT_MEMO - LCOUNT > 1
-			LOCALS = %LOCALS%�@
+			LOCALS = %LOCALS%　
 	NEXT
-	;�c�c�{�u�͍�Ɨʂ����������ɓ�d�ɔ߂���
-	IF COND("�J�������O")
-		IF ABL:�}�]���C >= 3
+	;……ボブは作業量が増えた事に二重に悲しんだ
+	IF COND("開口リング")
+		IF ABL:マゾっ気 >= 3
 			IF RAND:3 == 0
-				LOCALS:4 = %CALLNAME%�͋ꂵ�����ɂ��Ȃ�����A���[���܂ř������݁A����O��ɓ������ĕ�d���Ă���
+				LOCALS:4 = %CALLNAME%は苦しそうにしながらも喉奥深くまで咥え込み、頭を前後に動かして奉仕している
 			ELSEIF RAND:2 == 0
-				LOCALS:4 = �����J�����ꂽ%CALLNAME%�͋ꂵ���ȕ\��𕂂��ׂȂ�����A%CALLNAME:PLAYER%�������܂ř������ݐ���g���Ċ�΂��悤�Ƃ��Ă���
+				LOCALS:4 = 強制開口された%CALLNAME%は苦しげな表情を浮かべながらも、%CALLNAME:PLAYER%を根元まで咥え込み舌を使って喜ばせようとしている
 			ELSE
-				LOCALS:4 = %CALLNAME%�͋ꂵ�����ɔ������񂹂Ȃ�������̓��͉����ɓ����A�J�������O����͐؂Ȃ��ȓf�����R��Ă���
+				LOCALS:4 = %CALLNAME%は苦しそうに眉根を寄せながらもその瞳は快感に蕩け、開口リングからは切なげな吐息が漏れていた
 			ENDIF
 		ELSE
 			IF RAND:3 == 0
-				LOCALS:4 = %CALLNAME%�͛Ƃ߂�ꂽ�����O�M���O�ɂ���R�o�����ɁA�A���[���܂ř������܂���Ă���
+				LOCALS:4 = %CALLNAME%は嵌められたリングギャグにより抵抗出来ずに、喉奥深くまで咥え込まされている
 			ELSEIF RAND:2 == 0
-				LOCALS:4 = �����J�����ꂽ%CALLNAME%�͍����܂ř������܂���A���̕\��𕂂��ׂĂ���
+				LOCALS:4 = 強制開口された%CALLNAME%は根元まで咥え込まされ、苦悶の表情を浮かべている
 			ELSE
-				LOCALS:4 = %CALLNAME%�͔������񂹂Ȃ�����A��R���鎖���o�����Ɍ��o��Ƃ���Ă���
+				LOCALS:4 = %CALLNAME%は眉根を寄せながらも、抵抗する事が出来ずに口腔を犯されている
 			ENDIF
 		ENDIF
 	ENDIF
-;�X�p���L���O�@�X�p���L���O�A�ځA�j���̋�Ɍn
-CASE "�X�p���L���O"
-	;���[�h�ɂ�����ω��x����������
-	;���[�h��150�ȏ�
-	IF FLAG:���[�h >= 150
+;スパンキング　スパンキング、鞭、針等の苦痛系
+CASE "スパンキング"
+	;ムードによる口上変化度合いを決定
+	;ムードが150以上
+	IF FLAG:ムード >= 150
 		LOCAL = 5
-	;���[�h��120�ȏ�Ȃ�m��A����90�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 120 || (FLAG:���[�h >= 90 && FLAG:���[�h >= RAND:180)
+	;ムードが120以上なら確定、かつ90未満は範囲外
+	ELSEIF FLAG:ムード >= 120 || (FLAG:ムード >= 90 && FLAG:ムード >= RAND:180)
 		LOCAL = 4
-	;���[�h��90�ȏ�Ȃ�m��A����60�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 90 || (FLAG:���[�h >= 60 && FLAG:���[�h >= RAND:180)
+	;ムードが90以上なら確定、かつ60未満は範囲外
+	ELSEIF FLAG:ムード >= 90 || (FLAG:ムード >= 60 && FLAG:ムード >= RAND:180)
 		LOCAL = 3
-	;���[�h��60�ȏ�Ȃ�m��A����30�����͔͈͊O
-	ELSEIF FLAG:���[�h >= 60 || (FLAG:���[�h >= 30 && FLAG:���[�h >= RAND:180)
+	;ムードが60以上なら確定、かつ30未満は範囲外
+	ELSEIF FLAG:ムード >= 60 || (FLAG:ムード >= 30 && FLAG:ムード >= RAND:180)
 		LOCAL = 2
 	ELSE
 		LOCAL = 1
 	ENDIF
-	;���[�h�������ꍇ�̒ǉ�����
-	IF LOCAL >= 4 && ABL:�}�]���C >= 3
-		LOCALS:1 = %TEXTR("����/����/������")%%UNICODE(0x2665)%�c�c
+	;ムードが高い場合の追加口上
+	IF LOCAL >= 4 && ABL:マゾっ気 >= 3
+		LOCALS:1 = %TEXTR("くっ/ぐっ/くぅっ")%%UNICODE(0x2665)%……
 	ENDIF
 	IF RAND:2 == 0
-		LOCALS:2 = %TEXTR("�c�c/�@")%
+		LOCALS:2 = %TEXTR("……/　")%
 	ENDIF
-	;���[�h������ɍ����ƒǉ�����
-	IF LOCAL == 5 && ABL:�}�]���C >= 3
-		LOCALS:3 = %TEXTR("����c/�񂣂��c/�͂��c/���c")%%TEXTR(@"���d�u�����Ă�������/�@���Ă�������/�����Ƌ������Ă�������/%CNAME("��l")%�̖]�ނ܂܂�")%%UNICODE(0x2665)%�c�c
+	;ムードがさらに高いと追加口上
+	IF LOCAL == 5 && ABL:マゾっ気 >= 3
+		LOCALS:3 = %TEXTR("んっ…/んぅっ…/はぁ…/っ…")%%TEXTR(@"お仕置きしてください/叩いてください/もっと強くしてください/%CNAME("主人")%の望むままに")%%UNICODE(0x2665)%……
 	ENDIF
-	;�����Ă�2��܂�
+	;長くても2回まで
 	LIMIT_MEMO = LIMIT(RAND:LOCAL, 2, 3)
 	FOR LCOUNT, 0, LIMIT_MEMO
-		;�񂮂��n
+		;んぐっ系
 		IF RAND:2 == 0
-			LOCALS = %LOCALS%%TEXTR("�񂮂�/����/������/���/��")%
-		;�������n
+			LOCALS = %LOCALS%%TEXTR("んぐっ/くっ/くぅっ/んっ/んぅ")%
+		;んっんっ系
 		ELSE
-			LOCALS = %LOCALS%%TEXTR("���/�񂣂�/����")%
+			LOCALS = %LOCALS%%TEXTR("んっ/んぅっ/んんっ")%
 		ENDIF
-		;�s���ȊO�̋L���̌�ɑS�p�X�y�[�X������
+		;行末以外の記号の後に全角スペースを入れる
 		IF LIMIT_MEMO - LCOUNT > 1
-			LOCALS = %LOCALS%�c�c
-		;��Ɂ@�ɂ�
-		ELSEIF CUP:��� >= 1000 || CUP:��� >= 3000 && ABL:�}�]���C >= 3 || CUP:��� >= 6000 && ABL:�}�]���C >= 5
-			LOCALS = %LOCALS%�I�I
-			;�s���ȊO�̋L���̌�ɑS�p�X�y�[�X������
+			LOCALS = %LOCALS%……
+		;苦痛　痛い
+		ELSEIF CUP:苦痛 >= 1000 || CUP:苦痛 >= 3000 && ABL:マゾっ気 >= 3 || CUP:苦痛 >= 6000 && ABL:マゾっ気 >= 5
+			LOCALS = %LOCALS%！！
+			;行末以外の記号の後に全角スペースを入れる
 			SIF LIMIT_MEMO - LCOUNT > 1
-				LOCALS = %LOCALS%�@
-		;��Ɂ@�ꂵ��
-		ELSEIF CUP:��� >= 100 || CUP:��� >= 1000 && ABL:�}�]���C >= 3 || CUP:��� >= 2000 && ABL:�}�]���C >= 5
-			LOCALS = %LOCALS%�I
-			;�s���ȊO�̋L���̌�ɑS�p�X�y�[�X������
+				LOCALS = %LOCALS%　
+		;苦痛　苦しい
+		ELSEIF CUP:苦痛 >= 100 || CUP:苦痛 >= 1000 && ABL:マゾっ気 >= 3 || CUP:苦痛 >= 2000 && ABL:マゾっ気 >= 5
+			LOCALS = %LOCALS%！
+			;行末以外の記号の後に全角スペースを入れる
 			SIF LIMIT_MEMO - LCOUNT > 1
-				LOCALS = %LOCALS%�@
-		;���[�h�Ɉˑ����ăn�[�g�}�[�N�ł���m�����オ��
-		ELSEIF LOCAL >= RAND:4 && LOCAL >= 4 && ABL:�}�]���C >= 3
+				LOCALS = %LOCALS%　
+		;ムードに依存してハートマークである確率が上がる
+		ELSEIF LOCAL >= RAND:4 && LOCAL >= 4 && ABL:マゾっ気 >= 3
 			LOCALS = %LOCALS%%UNICODE(0x2665)%%UNICODE(0x2665)%%UNICODE(0x2665)%
-			;�s���ȊO�̋L���̌�ɑS�p�X�y�[�X������
+			;行末以外の記号の後に全角スペースを入れる
 			SIF LIMIT_MEMO - LCOUNT > 1
-				LOCALS = %LOCALS%�@
-		ELSEIF LOCAL >= 3 && ABL:�}�]���C >= 3
+				LOCALS = %LOCALS%　
+		ELSEIF LOCAL >= 3 && ABL:マゾっ気 >= 3
 			LOCALS = %LOCALS%%UNICODE(0x2665)%
-			;�s���ȊO�̋L���̌�ɑS�p�X�y�[�X������
+			;行末以外の記号の後に全角スペースを入れる
 			SIF LIMIT_MEMO - LCOUNT > 1
-				LOCALS = %LOCALS%�@
+				LOCALS = %LOCALS%　
 		ELSE
-			LOCALS = %LOCALS%�c�c
+			LOCALS = %LOCALS%……
 		ENDIF
 	NEXT
-	;�{�u�͕��Q�𐾂����{�u�̂��߂ɂȂ�Ƃ��Ă����̌o�T�����p���˂΂Ǝv����
-	IF ABL:�}�]���C >= 3
+	;ボブは復讐を誓ったボブのためになんとしてもこの経典を活用せねばと思った
+	IF ABL:マゾっ気 >= 3
 		IF RAND:3 == 0
-			LOCALS:4 = %CALLNAME%�͋ꂵ�����ɂ��Ȃ�����A�Y�܂����ȓf����R�炵�Ă���c�c
+			LOCALS:4 = %CALLNAME%は苦しそうにしながらも、悩ましげな吐息を漏らしている……
 		ELSEIF RAND:2 == 0
-			LOCALS:4 = %CALLNAME%�͒ɂ݂������Ƃ��Ď󂯓���A�ꂵ���ɚb���ł���c�c
+			LOCALS:4 = %CALLNAME%は痛みを快感として受け入れ、苦しげに喘いでいる……
 		ELSE
-			LOCALS:4 = %CALLNAME%�͒ɂ߂����鎖�ɉ������o���A�Â��f����f���Ă���c�c
+			LOCALS:4 = %CALLNAME%は痛めつけられる事に快感を覚え、甘い吐息を吐いている……
 		ENDIF
 	ENDIF
-;�M���O��Ԃ�z��
-CASE "���g"
-	;�����d�l
-	;�������e�l��100���ȏ�
-	IF BASE:�������e�l�I���i >= MAXBASE:�������e�l�I���i
+;ギャグ状態を想定
+CASE "口枷"
+	;実験仕様
+	;快感許容値の100％以上
+	IF BASE:快感許容値オンナ >= MAXBASE:快感許容値オンナ
 		LOCAL = 5
-	;�Ⓒ�Q�[�W��100���ȏ�
-	ELSEIF BASE:�Ⓒ >= MAXBASE:�Ⓒ
+	;絶頂ゲージの100％以上
+	ELSEIF BASE:絶頂 >= MAXBASE:絶頂
 		LOCAL = 5
-	;�������e�l��75���ȏ�
-	ELSEIF BASE:�������e�l�I���i >= MAXBASE:�������e�l�I���i * 3 / 4
+	;快感許容値の75％以上
+	ELSEIF BASE:快感許容値オンナ >= MAXBASE:快感許容値オンナ * 3 / 4
 		LOCAL = 4
-	;�Ⓒ�Q�[�W��75���ȏ�
-	ELSEIF BASE:�Ⓒ >= MAXBASE:�Ⓒ * 3 / 4
+	;絶頂ゲージの75％以上
+	ELSEIF BASE:絶頂 >= MAXBASE:絶頂 * 3 / 4
 		LOCAL = 4
-	;�������e�l��50���ȏ�
-	ELSEIF BASE:�������e�l�I���i >= MAXBASE:�������e�l�I���i * 2 / 4
+	;快感許容値の50％以上
+	ELSEIF BASE:快感許容値オンナ >= MAXBASE:快感許容値オンナ * 2 / 4
 		LOCAL = 3
-	;�Ⓒ�Q�[�W��50���ȏ�
-	ELSEIF BASE:�Ⓒ >= MAXBASE:�Ⓒ * 2 / 4
+	;絶頂ゲージの50％以上
+	ELSEIF BASE:絶頂 >= MAXBASE:絶頂 * 2 / 4
 		LOCAL = 3
-	;�������e�l��25���ȏ�
-	ELSEIF BASE:�������e�l�I���i >= MAXBASE:�������e�l�I���i * 1 / 4
+	;快感許容値の25％以上
+	ELSEIF BASE:快感許容値オンナ >= MAXBASE:快感許容値オンナ * 1 / 4
 		LOCAL = 3
-	;�Ⓒ�Q�[�W��25���ȏ�
-	ELSEIF BASE:�Ⓒ >= MAXBASE:�Ⓒ * 1 / 4
+	;絶頂ゲージの25％以上
+	ELSEIF BASE:絶頂 >= MAXBASE:絶頂 * 1 / 4
 		LOCAL = 2
 	ELSE
 		LOCAL = 1
 	ENDIF
-	;���[�h�������ꍇ�̒ǉ�����
+	;ムードが高い場合の追加口上
 	IF LOCAL >= 4
-		LOCALS:1 = %TEXTR("�񂣂�/�񂣂�/��񂣂�/��J����/��J��J��/��J���[��/��J��J��/��J�����[")%%UNICODE(0x2665)%�c�c
+		LOCALS:1 = %TEXTR("んぅぅ/んぅっ/んんぅっ/ん゛ぅっ/ん゛ん゛っ/ん゛ぅーっ/ん゛ん゛ぅ/ん゛ぅっー")%%UNICODE(0x2665)%……
 	ENDIF
-	;���[�h������ɍ����ƒǉ�����
-	IF LOCAL == 5 && TALENT:����
-		LOCALS:3 = %TEXTR("�񂣂�/����/�񂣂�/�񂤂�/���/��[/�񂣂�/��J����/��J����/��J��J��/��J����/��J��J��/��J��/��J�[/��J����/��J��J��")%%UNICODE(0x2665)%�c�c
+	;ムードがさらに高いと追加口上
+	IF LOCAL == 5 && TALENT:恋慕
+		LOCALS:3 = %TEXTR("んぅっ/んんっ/んぅう/んうぅ/んっ/んー/んぅっ/ん゛ぅう/ん゛うぅ/ん゛ん゛ぅ/ん゛ぅっ/ん゛ん゛っ/ん゛っ/ん゛ー/ん゛ぅっ/ん゛ん゛ぅ")%%UNICODE(0x2665)%……
 	ENDIF
-	;�����Ă�2��܂�
+	;長くても2回まで
 	LIMIT_MEMO = LIMIT(RAND:LOCAL, 2, 3)
 	FOR LCOUNT, 0, LIMIT_MEMO
 		IF RAND:2 == 0
-			;��Ɂ@�ɂ�
-			IF CUP:��� >= 1000 || CUP:��� >= 3000 && ABL:�}�]���C >= 3 || CUP:��� >= 6000 && ABL:�}�]���C >= 5
-				LOCALS = %LOCALS%%TEXTR("�񂮂��A/�񂮁A����c/��J����A/��ނ����A/�񂣂�/��J����/��[/��J���[/�񂣂�/����/�񂣂�/�񂤂�/���/��[/�񂣂�/��J����/��J����/��J��J��/��J����/��J��J��/��J��/��J�[/��J����/��J��J��")%%TEXTR("�ނ�����/��ނ��c��/��J�ނ��c��/���J���c�A�Ԃ��A��/���c���Ԃ�/��ށJ���c�c��/��J��c��")%
+			;苦痛　痛い
+			IF CUP:苦痛 >= 1000 || CUP:苦痛 >= 3000 && ABL:マゾっ気 >= 3 || CUP:苦痛 >= 6000 && ABL:マゾっ気 >= 5
+				LOCALS = %LOCALS%%TEXTR("んぐっ、/んぐ、んっ…/ん゛んっ、/んむぅっ、/んぅっ/ん゛ぐぅ/んー/ん゛っー/んぅっ/んんっ/んぅう/んうぅ/んっ/んー/んぅっ/ん゛ぅう/ん゛うぅ/ん゛ん゛ぅ/ん゛ぅっ/ん゛ん゛っ/ん゛っ/ん゛ー/ん゛ぅっ/ん゛ん゛ぅ")%%TEXTR("むぐぅっ/んむぅ…っ/ん゛むぅ…っ/んん゛っ…、ぶぐ、ぅ/っ…ぐぶっ/んむ゛っ……っ/ん゛ん…っ")%
 			ELSE
-				LOCALS = %LOCALS%%TEXTR("�񂮂�/�񂮁A���/��J���/��ނ���/�񂣂�/��J����/��[/��J���[/�񂣂�/����/�񂣂�/�񂤂�/���/��[/�񂣂�/��J����/��J����/��J��J��/��J����/��J��J��/��J��/��J�[/��J����/��J��J��")%
+				LOCALS = %LOCALS%%TEXTR("んぐっ/んぐ、んっ/ん゛んっ/んむぅっ/んぅっ/ん゛ぐぅ/んー/ん゛っー/んぅっ/んんっ/んぅう/んうぅ/んっ/んー/んぅっ/ん゛ぅう/ん゛うぅ/ん゛ん゛ぅ/ん゛ぅっ/ん゛ん゛っ/ん゛っ/ん゛ー/ん゛ぅっ/ん゛ん゛ぅ")%
 			ENDIF
 		ELSE
-			;��Ɂ@�ɂ�
-			IF CUP:��� >= 1000 || CUP:��� >= 3000 && ABL:�}�]���C >= 3 || CUP:��� >= 6000 && ABL:�}�]���C >= 5
-				LOCALS = %LOCALS%%TEXTR("����A/�������A/�񂣂��A/��J�����A/���c���A/��J��J�c���A")%%TEXTR("����c��/��J���c��/�񂮁c��/�񂮁c��/��J���c��/���ށc�c��/��񂣁J��/�񂮂ށc��/����A�c��/��J���c��/����A��")%
+			;苦痛　痛い
+			IF CUP:苦痛 >= 1000 || CUP:苦痛 >= 3000 && ABL:マゾっ気 >= 3 || CUP:苦痛 >= 6000 && ABL:マゾっ気 >= 5
+				LOCALS = %LOCALS%%TEXTR("んっ、/んっんっ、/んぅっ、/ん゛ぅっ、/んん…っ、/ん゛ん゛…っ、")%%TEXTR("んっ…っ/ん゛っ…っ/んぐ…っ/んぐ…っ/ん゛ぐ…っ/ぐむ……っ/んんぅ゛っ/んぐむ…っ/んっ、…っ/ん゛っ…っ/んっ、んぅ")%
 			ELSE
-				LOCALS = %LOCALS%%TEXTR("���/������/�񂣂�/��J����/���c��/��J��J�c��")%
+				LOCALS = %LOCALS%%TEXTR("んっ/んっんっ/んぅっ/ん゛ぅっ/んん…っ/ん゛ん゛…っ")%
 			ENDIF
 		ENDIF
-		;��Ɂ@�ɂ�
-		IF CUP:��� >= 1000 || CUP:��� >= 3000 && ABL:�}�]���C >= 3 || CUP:��� >= 6000 && ABL:�}�]���C >= 5
-			LOCALS = %LOCALS%�I�I
-		;��Ɂ@�ꂵ��
-		ELSEIF CUP:��� >= 100 || CUP:��� >= 1000 && ABL:�}�]���C >= 3 || CUP:��� >= 2000 && ABL:�}�]���C >= 5
-			LOCALS = %LOCALS%�I
-		;���[�h�Ɉˑ����ăn�[�g�}�[�N�ł���m�����オ��
-		ELSEIF LOCAL >= RAND:4 && LOCAL >= 4 && ABL:�}�]���C >= 3
+		;苦痛　痛い
+		IF CUP:苦痛 >= 1000 || CUP:苦痛 >= 3000 && ABL:マゾっ気 >= 3 || CUP:苦痛 >= 6000 && ABL:マゾっ気 >= 5
+			LOCALS = %LOCALS%！！
+		;苦痛　苦しい
+		ELSEIF CUP:苦痛 >= 100 || CUP:苦痛 >= 1000 && ABL:マゾっ気 >= 3 || CUP:苦痛 >= 2000 && ABL:マゾっ気 >= 5
+			LOCALS = %LOCALS%！
+		;ムードに依存してハートマークである確率が上がる
+		ELSEIF LOCAL >= RAND:4 && LOCAL >= 4 && ABL:マゾっ気 >= 3
 			LOCALS = %LOCALS%%UNICODE(0x2665)%%UNICODE(0x2665)%%UNICODE(0x2665)%
-		ELSEIF LOCAL >= 3 && ABL:�}�]���C >= 3
+		ELSEIF LOCAL >= 3 && ABL:マゾっ気 >= 3
 			LOCALS = %LOCALS%%UNICODE(0x2665)%
 		ENDIF
-		;�s���ȊO�̋L���̌�ɎO�_���[�h������
+		;行末以外の記号の後に三点リードを入れる
 		SIF LIMIT_MEMO - LCOUNT > 1
-			LOCALS = %LOCALS%�c�c
+			LOCALS = %LOCALS%……
 	NEXT
 	IF RAND:3 == 0
-		;�{�[���M���O������
-		IF COND("�{�[���M���O")
-			LOCALS:4 = %CALLNAME%�ɛƂ߂�ꂽ�M���O�{�[������Ƃ߂ǂȂ��t�̂������Ă����c�c
-		;�����O�M���O������
-		ELSEIF COND("�J�������O")
-			LOCALS:4 = %CALLNAME%�͛Ƃ߂�ꂽ�����O�M���O������˂��o���āA�Ƃ߂ǂȂ��t�̂���ꂳ���Ă���
+		;ボールギャグ装備中
+		IF COND("ボールギャグ")
+			LOCALS:4 = %CALLNAME%に嵌められたギャグボールからとめどなく液体が溢れ堕ちていた……
+		;リングギャグ装備中
+		ELSEIF COND("開口リング")
+			LOCALS:4 = %CALLNAME%は嵌められたリングギャグから舌を突き出して、とめどなく液体を溢れさせている
 		ENDIF
 	ELSEIF RAND:2 == 0
-		IF ABL:�}�]���C >= 3
-			;�{�[���M���O������
-			IF COND("�{�[���M���O")
-				LOCALS:4 = �����{�[���M���O�ōǂ���Ȃ���%CALLNAME%�͂����Ƃ�Ƃ����\��𕂂��ׂĂ���
-			;�����O�M���O������
-			ELSEIF COND("�J�������O")
-				LOCALS:4 =  �����J��������ꂽ%CALLNAME%�͊���ɖj����߂Ă���
+		IF ABL:マゾっ気 >= 3
+			;ボールギャグ装備中
+			IF COND("ボールギャグ")
+				LOCALS:4 = 口をボールギャグで塞がれながら%CALLNAME%はうっとりとした表情を浮かべている
+			;リングギャグ装備中
+			ELSEIF COND("開口リング")
+				LOCALS:4 =  強制開口させられた%CALLNAME%は歓喜に頬を染めている
 			ENDIF
 		ELSE
-			;�{�[���M���O������
-			IF COND("�{�[���M���O")
-				LOCALS:4 = �����{�[���M���O�ōǂ���Ă���%CALLNAME%��%CALLNAME:MASTER%���ɂ݂��Ă���
-			;�����O�M���O������
-			ELSEIF COND("�J�������O")
-				LOCALS:4 = �����J�����ꂽ%CALLNAME%�͌����Ɋ��c�߂Ă���
+			;ボールギャグ装備中
+			IF COND("ボールギャグ")
+				LOCALS:4 = 口をボールギャグで塞がれている%CALLNAME%は%CALLNAME:MASTER%を睨みつけている
+			;リングギャグ装備中
+			ELSEIF COND("開口リング")
+				LOCALS:4 = 強制開口された%CALLNAME%は嫌悪に顔を歪めている
 			ENDIF
 		ENDIF
 	ELSE
-		IF ABL:�}�]���C >= 3
-			;�{�[���M���O������
-			IF COND("�{�[���M���O")
-				LOCALS:4 = �����{�[���M���O�ōǂ���Ă���%CALLNAME%�͊��������ɖj����߂āA���ɂȂ�Ȃ�����������
-			;�����O�M���O������
-			ELSEIF COND("�J�������O")
-				LOCALS:4 =  �����J��������ꂽ%CALLNAME%�͊Â��f����R�炵�|�^�|�^�Ƒ��t���ꂳ���A���ɂȂ�Ȃ�����������
+		IF ABL:マゾっ気 >= 3
+			;ボールギャグ装備中
+			IF COND("ボールギャグ")
+				LOCALS:4 = 口をボールギャグで塞がれている%CALLNAME%は嬉しそうに頬を染めて、声にならない声をあげる
+			;リングギャグ装備中
+			ELSEIF COND("開口リング")
+				LOCALS:4 =  強制開口させられた%CALLNAME%は甘い吐息を漏らしポタポタと唾液を零れさせ、声にならない声をあげる
 			ENDIF
 		ELSE
-			;�{�[���M���O������
-			IF COND("�{�[���M���O")
-				LOCALS:4 = �����{�[���M���O�ōǂ���Ă���%CALLNAME%�͋ꂵ���ȓf����R�炵�A���ɂȂ�Ȃ�����������
-			;�����O�M���O������
-			ELSEIF COND("�J�������O")
-				LOCALS:4 = �����J��������ꂽ%CALLNAME%�͋ꂵ���ȓf����R�炵�A���ɂȂ�Ȃ�����R�炵�Ă����c�c
+			;ボールギャグ装備中
+			IF COND("ボールギャグ")
+				LOCALS:4 = 口をボールギャグで塞がれている%CALLNAME%は苦しげな吐息を漏らし、声にならない声をあげる
+			;リングギャグ装備中
+			ELSEIF COND("開口リング")
+				LOCALS:4 = 強制開口させられた%CALLNAME%は苦しげな吐息を漏らし、声にならない声を漏らしていた……
 			ENDIF
 		ENDIF
 	ENDIF
 ENDSELECT
 IF LOCAL == 5
-	PRINTFORMW �u%LOCALS:1%%LOCALS:2%%LOCALS:3%�v
+	PRINTFORMW 「%LOCALS:1%%LOCALS:2%%LOCALS:3%」
 ELSEIF LOCAL == 4 && RAND:2 == 0
-	PRINTFORMW �u%LOCALS:1%�v
+	PRINTFORMW 「%LOCALS:1%」
 ENDIF
-PRINTFORMW �u%LOCALS%�v
+PRINTFORMW 「%LOCALS%」
 PRINTFORMW %LOCALS:4%
 RETURN 1

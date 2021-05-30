@@ -1,29 +1,29 @@
-@COM96
-;�A�i����d
+﻿@COM96
+;アナル奉仕
 CALL PRINT_TRAIN_NAME(SELECTCOM)
 
 ;-------------------------------------------------
-;���s�ł��邩�̔���
+;実行できるかの判定
 ;-------------------------------------------------
 CALL SHOW_COM_ORDER_COM, 96
 
-;���s�ł��Ȃ�
-SIF TCVAR:���C == 0
+;実行できない
+SIF TCVAR:やる気 == 0
 	RETURN 0
 ;-------------------------------------------------
-;���s����
+;実行決定
 ;-------------------------------------------------
 CALL TRAIN_MESSAGE_B
 
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:�O��R�}���h = %STR:����R�}���h%
+STR:前回コマンド = %STR:今回コマンド%
 
 ;-------------------------------------------------
-;�ː��`�F�b�N
+;射精チェック
 ;-------------------------------------------------
-IF CHECK_COM("�`�ӂߎ�R�L")
+IF CHECK_COM("Ａ責め手コキ")
 	CALL SAMEN_CHECK, 70
 	SELECTCOM = PREVCOM
 	CALL SAMEN_CHECK, 50
@@ -35,97 +35,97 @@ ENDIF
 RETURN 1
 
 @FLAG_COM96, ARG
-SIF TEQUIP:�����|�� == 0
-	CALL SETFLAG, "�`��d�t���O", TARGET
-SIF CHECK_COM("�`�ӂߎ�R�L") == 96
+SIF TEQUIP:押し倒し == 0
+	CALL SETFLAG, "Ａ奉仕フラグ", TARGET
+SIF CHECK_COM("Ａ責め手コキ") == 96
 	CALL FLAG_COM90, 50
-;�Ώۂ̌��̒����҂�A�̉��ꂪ�ړ�
-CALL EQ_STAIN, TARGET, "�l", PLAYER, "�`"
+;対象の口⇔調教者のAの汚れが移動
+CALL EQ_STAIN, TARGET, "Ｍ", PLAYER, "Ａ"
 
 @SOURCE_COM96, ARG
-SIF CHECK_COM("�`�ӂߎ�R�L") == 96
+SIF CHECK_COM("Ａ責め手コキ") == 96
 	CALL SOURCE_COM90, 50
 
 CALL VARSET_COMF
 
-CALL SOURCE_SERVICE_PLAY, "�A�i����d"
+CALL SOURCE_SERVICE_PLAY, "アナル奉仕"
 
 CALL SOURCE_DOWNBASE_HP, 96
 
-SOURCE:0:�s�� = COM_ORDER_STAIN("�`", "�l")*100 + 100
-SOURCE:0:�~��ǉ� = CALCF("���s�l�ɂ��~��ǉ�")
-SOURCE:0:��E = 3000
+SOURCE:0:不潔 = COM_ORDER_STAIN("Ａ", "Ｍ")*100 + 100
+SOURCE:0:欲情追加 = CALCF("実行値による欲情追加")
+SOURCE:0:逸脱 = 3000
 
-IF TEQUIP:�����|��
-	SOURCE:0:���s�� += 1000
+IF TEQUIP:押し倒し
+	SOURCE:0:性行動 += 1000
 ELSE
-	SOURCE:0:���] = 5000
+	SOURCE:0:屈従 = 5000
 ENDIF
 
-CALL CALC, "�����\�[�X", ARG
+CALL CALC, "調教ソース", ARG
 
 
 @TRAIN_MESSAGE_COM96
-;���������|��
-IF TEQUIP:�v�����|��
-	PRINTFORM %CALLNAME:TARGET%��
-	;���肪�O��Ɠ����s��(�Ⴄ�s���̎��́A�����łȂ��AEQUIP_COM32�ŋL�q)
+;同時押し倒し
+IF TEQUIP:Ｗ押し倒し
+	PRINTFORM %CALLNAME:TARGET%は
+	;助手が前回と同じ行動(違う行動の時は、ここでなく、EQUIP_COM32で記述)
 	SIF SELECTCOM:1 == PREVCOM:1 && SELECTCOM:1 >= 0
-		PRINTFORM %TEXTS("�v�����|����")%
+		PRINTFORM %TEXTS("Ｗ押し倒し中")%
 	IF SELECTCOM == PREVCOM
-		PRINTFORMW %CALLNAME:MASTER%�̃A�i���ɁA��𔇂킹���r�߂܂킵�����Ă���c
+		PRINTFORMW %CALLNAME:MASTER%のアナルに、舌を這わせて舐めまわし続けている…
 	ELSE
-		IF ABL:��d���_ >= 3 && ABL:�T�h���C >= 3 && RAND:2 == 0
-			PRINTFORMW %CALLNAME:MASTER%�̂��K�̌����A��点����Œ��܂��r�߂Ă����c
-		ELSEIF ABL:��d���_ >= 3
-			PRINTFORMW %CALLNAME:MASTER%�̃A�i�����A��������Ɛ���r�ߐ��߂��c
-			STAIN:MASTER:�` = SET_STAIN(0, "�`")
+		IF ABL:奉仕精神 >= 3 && ABL:サドっ気 >= 3 && RAND:2 == 0
+			PRINTFORMW %CALLNAME:MASTER%のお尻の穴を、尖らせた舌で中まで舐めてきた…
+		ELSEIF ABL:奉仕精神 >= 3
+			PRINTFORMW %CALLNAME:MASTER%のアナルを、しっかりと舌で舐め清めた…
+			STAIN:MASTER:Ａ = SET_STAIN(0, "Ａ")
 		ELSE
-			PRINTFORMW %CALLNAME:MASTER%�̂��K�̌����A�`���`���Ɛ�Őӂ߂Ă����c
+			PRINTFORMW %CALLNAME:MASTER%のお尻の穴を、チロチロと舌で責めてきた…
 		ENDIF
 	ENDIF
-ELSEIF CHECK_COM("�R�o��d")
+ELSEIF CHECK_COM("３Ｐ奉仕")
 	CALL TRAIN_MESSAGE_3P
 ELSE
-	PRINTFORM %CALLNAME:TARGET%��
-	;�O��t�A�i��
-	IF PREVPLAY("�`�C���T�[�g", PLAYER)
-		PRINTFORM �A���߂���̂������Ȃ��Ă������͂��ɊJ�����܂܂�%CALLNAME:PLAYER%�̃A�i��
-		IF ABL:��d���_ >= 3 && RAND:2 == 0
-			PRINTW ���ŘJ������c
+	PRINTFORM %CALLNAME:TARGET%は
+	;前回逆アナル
+	IF PREVPLAY("Ａインサート", PLAYER)
+		PRINTFORM 、埋めるものが無くなっても口を僅かに開いたままの%CALLNAME:PLAYER%のアナル
+		IF ABL:奉仕精神 >= 3 && RAND:2 == 0
+			PRINTW を舌で労わった…
 		ELSE
-			PRINTW �ɐ�𔇂킹���c
+			PRINTW に舌を這わせた…
 		ENDIF
 	ELSE
-		IF CHECK_COM("�`�ӂߎ�R�L")
+		IF CHECK_COM("Ａ責め手コキ")
 			IF PREVCOM == 97
-				LOCALS = %CLO("�ς�R�L")%
+				LOCALS = %CLO("ぱんつコキ")%
 				LOCALS:1 = %LOCALS%
 			ELSE
-				LOCALS = ��
-				LOCALS:1 = ��
+				LOCALS = 手
+				LOCALS:1 = 掌
 			ENDIF
-			IF TALENT:���� && RAND:4 == 0
-				PRINTFORM �y�j�X������������%LOCALS%�ň����Ȃ���A
-			ELSEIF ABL:�Z�I >= 3 && ABL:��d���_ >= 3 && RAND:3 == 0
-				PRINTFORM �T����%LOCALS:1%�ł��ˉ񂵂Ȃ���A
-			ELSEIF ABL:�Z�I >= 3 && RAND:2 == 0
-				PRINTFORM �y�j�X��▭�ȗ͉����Ŏh�����Ȃ���A
+			IF TALENT:恋慕 && RAND:4 == 0
+				PRINTFORM ペニスを愛しそうに%LOCALS%で扱きながら、
+			ELSEIF ABL:技巧 >= 3 && ABL:奉仕精神 >= 3 && RAND:3 == 0
+				PRINTFORM 亀頭を%LOCALS:1%でこね回しながら、
+			ELSEIF ABL:技巧 >= 3 && RAND:2 == 0
+				PRINTFORM ペニスを絶妙な力加減で刺激しながら、
 			ELSEIF RAND:2 == 0
-				PRINTFORM �y�j�X����������%LOCALS%�ň����Ȃ���A
+				PRINTFORM ペニスをゆっくりと%LOCALS%で扱きながら、
 			ELSE
-				PRINTFORM �y�j�X��%LOCALS%�ň����Ȃ���A
+				PRINTFORM ペニスを%LOCALS%で扱きながら、
 			ENDIF
 		ENDIF
-		IF ABL:��d���_ >= 3 && ABL:�T�h���C >= 3 && RAND:2 == 0
-			PRINTFORMW %CALLNAME:PLAYER%�̂��K�̌����点����Œ��܂��r�߂Ă����c
-		ELSEIF ABL:��d���_ >= 3
-			PRINTFORMW ��������ƃA�i�������r�ߐ��߂͂��߂��c
-			STAIN:PLAYER:�` = SET_STAIN(0, "�`")
-		ELSEIF ABL:�T�h���C >= 3 || TEQUIP:�����|��
-			PRINTFORMW %CALLNAME:PLAYER%�̂��K�̌����Őӂ߂Ă����c
+		IF ABL:奉仕精神 >= 3 && ABL:サドっ気 >= 3 && RAND:2 == 0
+			PRINTFORMW %CALLNAME:PLAYER%のお尻の穴を尖らせた舌で中まで舐めてきた…
+		ELSEIF ABL:奉仕精神 >= 3
+			PRINTFORMW しっかりとアナルを舌で舐め清めはじめた…
+			STAIN:PLAYER:Ａ = SET_STAIN(0, "Ａ")
+		ELSEIF ABL:サドっ気 >= 3 || TEQUIP:押し倒し
+			PRINTFORMW %CALLNAME:PLAYER%のお尻の穴を舌で責めてきた…
 		ELSE
-			PRINTFORMW %CALLNAME:PLAYER%�̃A�i���������邨�����r�߂Ă����c
+			PRINTFORMW %CALLNAME:PLAYER%のアナルをおそるおそる舐めてきた…
 		ENDIF
 	ENDIF
 ENDIF
@@ -135,47 +135,47 @@ ENDIF
 VARSET LOCAL
 LOCALS = 
 
-;���ׂĂ̖��߂ɋ��ʂ̗v�f���l��
-;(�M���������Ɩ��߂ɏ]���₷���Ȃ�)
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
 CALL COM_ORDER, ARG
 
 LOCAL = RESULT
 
-;ABL:��d���_
-IF ABL:��d���_
-	LOCAL += MIN(ABL:��d���_, 10) * 2
-	LOCALS = %LOCALS% + ��d���_LV{ABL:��d���_}({MIN(ABL:��d���_, 10) * 2})
+;ABL:奉仕精神
+IF ABL:奉仕精神
+	LOCAL += MIN(ABL:奉仕精神, 10) * 2
+	LOCALS = %LOCALS% + 奉仕精神LV{ABL:奉仕精神}({MIN(ABL:奉仕精神, 10) * 2})
 ENDIF
 
-;�p���炢
-IF TALENT:�p���炢
+;恥じらい
+IF TALENT:恥じらい
 	LOCAL -= 5
-	LOCALS = %LOCALS% - �p���炢(5)
+	LOCALS = %LOCALS% - 恥じらい(5)
 ENDIF
-;���g�I
-IF TALENT:���g
+;献身的
+IF TALENT:献身
 	LOCAL += 6
-	LOCALS = %LOCALS% + ���g(6)
+	LOCALS = %LOCALS% + 献身(6)
 ENDIF
-;�����̔ے�
-IF TALENT:�����̔ے�
+;快感の否定
+IF TALENT:快感の否定
 	LOCAL -= 1
-	LOCALS = %LOCALS% - �����̔ے�(1)
+	LOCALS = %LOCALS% - 快感の否定(1)
 ENDIF
 
-;���ꂠ��
-IF COM_ORDER_STAIN("�`", "�l")
-	LOCAL -= COM_ORDER_STAIN("�`", "�l")
-	LOCALS = %LOCALS% - ���ꂠ��
-	;���L�݊�
-	SIF TALENT:���L�݊� || TALENT:���L�q��
-		LOCALS = %LOCALS%�A\@TALENT:���L�݊� ? ���L�݊� # ���L�q��\@
-	SIF COND("����")
-		LOCALS = %LOCALS%�A�����Ŕ���
-	LOCALS = %LOCALS%({COM_ORDER_STAIN("�`", "�l")})
+;汚れあり
+IF COM_ORDER_STAIN("Ａ", "Ｍ")
+	LOCAL -= COM_ORDER_STAIN("Ａ", "Ｍ")
+	LOCALS = %LOCALS% - 汚れあり
+	;汚臭鈍感
+	SIF TALENT:汚臭鈍感 || TALENT:汚臭敏感
+		LOCALS = %LOCALS%、\@TALENT:汚臭鈍感 ? 汚臭鈍感 # 汚臭敏感\@
+	SIF COND("陶酔")
+		LOCALS = %LOCALS%、陶酔で半減
+	LOCALS = %LOCALS%({COM_ORDER_STAIN("Ａ", "Ｍ")})
 ENDIF
 
-;���v��\��(40�ȏ�Ŏ��s)
+;合計を表示(40以上で実行)
 CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 40
 
 RETURN RESULT

@@ -1,17 +1,17 @@
+﻿;-------------------------------------------------
+;写真撮影の自撮りイベントだけ分離
+;製作者:hexagon
 ;-------------------------------------------------
-;�ʐ^�B�e�̎��B��C�x���g��������
-;�����:hexagon
-;-------------------------------------------------
-;���B��ʐ^����
-;ARG�Ŏ��B����s���l������l�w��AARGS�Ŏ��B��V�`�����w��ł���
+;自撮り写真生成
+;ARGで自撮りを行う人物を一人指定、ARGSで自撮りシチュを指定できる
 ;-------------------------------------------------
 @PHOTO_SELFY, ARG, ARGS
 #DIM LCOUNT
 #DIM MEMO_TARGET
 
-SAVESTR:���B��ʐ^ =
+SAVESTR:自撮り写真 =
 
-;SIF COND("��") || COND("�̈�") || COND("���j") || CHARA_NUM("���B��\") == 0
+;SIF COND("夜") || COND("体育") || COND("水泳") || CHARA_NUM("自撮り可能") == 0
 ;	RETURN 0
 
 MEMO_TARGET = TARGET
@@ -19,12 +19,12 @@ TARGET = 0
 
 FOR LCOUNT, 0, 10
 	SELECTCASE ARGS
-	CASE "�A�\�R"
-		TARGET = FIND_COND("���B��\", "�A�\�R���B��\")
-	CASE "�p���c"
-		TARGET = FIND_COND("���B��\", "�p���c���B��\")
+	CASE "アソコ"
+		TARGET = FIND_COND("自撮り可能", "アソコ自撮り可能")
+	CASE "パンツ"
+		TARGET = FIND_COND("自撮り可能", "パンツ自撮り可能")
 	CASEELSE
-		TARGET = FIND_COND("���B��\")
+		TARGET = FIND_COND("自撮り可能")
 	ENDSELECT
 
 	SIF LCOUNT == 0 && ARG
@@ -37,19 +37,19 @@ NEXT
 TARGET = MEMO_TARGET
 
 ;-------------------------------------------------
-;ARGS�Ŏ��B��̎�ނ��w��ł���
+;ARGSで自撮りの種類を指定できる
 ;-------------------------------------------------
 @PHOTO_SELFY_MAIN, ARGS
 #DIMS CLOTHES_SELFY
 #DIMS CLOTHES_TABLE
 #DIMS ACT_TABLE
 #DIM LCOUNT
-;�����ւ��O�̈ߑ��̋L�^
+;着せ替え前の衣装の記録
 #DIMS MEMO_CLO, 50
 #DIM MEMO_EQUIP, 50
 #DIM MEMO_STAIN, 20
 
-;���Ă������Ɖ�����L������
+;着ていた服と汚れを記憶する
 FOR LCOUNT, 40, 50
 	MEMO_CLO:LCOUNT = %CSTR:LCOUNT%
 NEXT
@@ -60,270 +60,270 @@ FOR LCOUNT, 10, 20
 	MEMO_STAIN:LCOUNT = STAIN:LCOUNT
 NEXT
 
-;���B�蒆�t���OON
-SETBIT FLAG:�󋵔���, 41
+;自撮り中フラグON
+SETBIT FLAG:状況判定, 41
 
-;�ǂ̕����ŎB�邩��I��
-;�����Ɉ�l�ł���ꍇ�͕������ŎB��
+;どの服装で撮るかを選ぶ
+;部屋に一人でいる場合は部屋着で撮る
 CLOTHES_TABLE = 
 
-SIF COND("���N�̐����I����") && COND("��")
-	CLOTHES_TABLE += "���N�̐���/"
-;�n�_�J�@�������畁�i���ɒ��ւ����ꍇ���B�邩��
-SIF COND("��") + CFLAG:���j
-	CLOTHES_TABLE += "�n�_�J/"
-;�����@�̑������畁�i���ɒ��ւ����ꍇ���B�邩��
-SIF COND("��") + CFLAG:�̈� && EQUIP:�p���c
-	CLOTHES_TABLE += "����/"
+SIF COND("今年の水着選択済") && COND("夜")
+	CLOTHES_TABLE += "今年の水着/"
+;ハダカ　水着から普段着に着替えた場合も撮るかも
+SIF COND("夜") + CFLAG:水泳
+	CLOTHES_TABLE += "ハダカ/"
+;下着　体操服から普段着に着替えた場合も撮るかも
+SIF COND("夜") + CFLAG:体育 && EQUIP:パンツ
+	CLOTHES_TABLE += "下着/"
 
-;�̑���
-IF COND("�̈�") && CHECK_CLO("�̑����p")
-	CLOTHES_TABLE += "�̑���/"
-;���j
-ELSEIF COND("���j") && CHECK_CLO("�����p")
-	CLOTHES_TABLE += "����/"
-;CSV�ɐݒ肳��Ă镞
+;体操服
+IF COND("体育") && CHECK_CLO("体操服姿")
+	CLOTHES_TABLE += "体操服/"
+;水泳
+ELSEIF COND("水泳") && CHECK_CLO("水着姿")
+	CLOTHES_TABLE += "水着/"
+;CSVに設定されてる服
 ELSE
-	IF CHECK_CLO("�n�_�J")
-		CLOTHES_TABLE += "�n�_�J/"
-	ELSEIF CHECK_CLO("�����p")
-		CLOTHES_TABLE += "����/"
-	ELSEIF CHECK_CLO("�w�����p")
-		CLOTHES_TABLE += "�w����/"
-	ELSEIF CFLAG:�R�X�v����
-		CLOTHES_TABLE += "�R�X�v��/"
+	IF CHECK_CLO("ハダカ")
+		CLOTHES_TABLE += "ハダカ/"
+	ELSEIF CHECK_CLO("下着姿")
+		CLOTHES_TABLE += "下着/"
+	ELSEIF CHECK_CLO("学生服姿")
+		CLOTHES_TABLE += "学生服/"
+	ELSEIF CFLAG:コスプレ中
+		CLOTHES_TABLE += "コスプレ/"
 	ELSE
-		CLOTHES_TABLE += "���i��/"
+		CLOTHES_TABLE += "普段着/"
 	ENDIF 
 ENDIF
 
-;�i�D���Ƃɉ����Ȃ���B�邩�����߂�
+;格好ごとに何しながら撮るかを決める
 CLOTHES_SELFY = %TEXTR(CLOTHES_TABLE)%
 ACT_TABLE = 
 
 SELECTCASE CLOTHES_SELFY
-CASE "����"
-	ACT_TABLE += "�S�g���B��/"
-	IF CHECK_CLO("�r�L�j�p")
-		ACT_TABLE += "�Z�p���[�g�ʐ^/"
+CASE "水着"
+	ACT_TABLE += "全身自撮り/"
+	IF CHECK_CLO("ビキニ姿")
+		ACT_TABLE += "セパレート写真/"
 	ELSE
-		ACT_TABLE += "�����ʐ^�F�����s�[�X/"
+		ACT_TABLE += "水着写真：ワンピース/"
 	ENDIF
-	SIF CFLAG:���j
-		ACT_TABLE += "���ƒ���F�����p/"
-CASE "�̑���"
-	ACT_TABLE += "�`�������ʐ^�F��/�`�������ʐ^�F��/�S�g���B��/"
-	SIF CFLAG:�̈�
-		ACT_TABLE += "���ƒ���F�̑����p/"
-CASE "�w����"
-	ACT_TABLE += "�`�������ʐ^�F��/"
-	SIF CHECK_CLO("�p���c���F�\")
-		ACT_TABLE += "�`�������ʐ^�F��/" 
-CASE "���N�̐���"
-	ACT_TABLE += "�����ʐ^�F���N�̐���/�S�g���B��/"
-CASE "����"
-	;�����p�ɂȂ�
-	CALL SETFLAG, "�����p�ɂȂ�", TARGET
-	ACT_TABLE += "�Z�p���[�g�ʐ^/�S�g���B��/"
-	SIF CFLAG:�̈�
-		ACT_TABLE += "���ƒ���F�����p/"
-CASE "�n�_�J"
-	;�n�_�J�ɂȂ�
-	CALL SETFLAG, "�n�_�J�ɂ���", TARGET
-	ACT_TABLE += "�k�[�h�ʐ^/�S�g���B��/"
-	SIF CFLAG:���j
-		ACT_TABLE += "���ƒ���F�n�_�J/"
-CASE "�R�X�v��"
-	ACT_TABLE += "�S�g���B��/�`�������ʐ^�F��/"
-	SIF EQUIP:��
-		ACT_TABLE += "�`�������ʐ^�F��/"
-CASE "���i��"
-	ACT_TABLE += "�`�������ʐ^�F��/"
-	SIF EQUIP:��
-		ACT_TABLE += "�`�������ʐ^�F��/"
+	SIF CFLAG:水泳
+		ACT_TABLE += "授業直後：水着姿/"
+CASE "体操服"
+	ACT_TABLE += "チラ見せ写真：上/チラ見せ写真：下/全身自撮り/"
+	SIF CFLAG:体育
+		ACT_TABLE += "授業直後：体操服姿/"
+CASE "学生服"
+	ACT_TABLE += "チラ見せ写真：上/"
+	SIF CHECK_CLO("パンツ視認可能")
+		ACT_TABLE += "チラ見せ写真：下/" 
+CASE "今年の水着"
+	ACT_TABLE += "水着写真：今年の水着/全身自撮り/"
+CASE "下着"
+	;下着姿になる
+	CALL SETFLAG, "下着姿になる", TARGET
+	ACT_TABLE += "セパレート写真/全身自撮り/"
+	SIF CFLAG:体育
+		ACT_TABLE += "授業直後：下着姿/"
+CASE "ハダカ"
+	;ハダカになる
+	CALL SETFLAG, "ハダカにする", TARGET
+	ACT_TABLE += "ヌード写真/全身自撮り/"
+	SIF CFLAG:水泳
+		ACT_TABLE += "授業直後：ハダカ/"
+CASE "コスプレ"
+	ACT_TABLE += "全身自撮り/チラ見せ写真：下/"
+	SIF EQUIP:服
+		ACT_TABLE += "チラ見せ写真：上/"
+CASE "普段着"
+	ACT_TABLE += "チラ見せ写真：下/"
+	SIF EQUIP:服
+		ACT_TABLE += "チラ見せ写真：上/"
 ENDSELECT
 
 
-STR:�ʐ^ = 
-STR:�⑫ = 
+STR:写真 = 
+STR:補足 = 
 SELECTCASE TEXTR(ACT_TABLE)
-CASE "���ƒ���F�����p"
-	STR:�ʐ^ += @"���j�̎��ƒ���Ŕ��������Ƃ�ƔG��Ă���A%PHOTO_COSTUME(TARGET)%"
-CASE "���ƒ���F�n�_�J"
-	STR:�ʐ^ += @"���j�̎��ƒ���Ŕ��������Ƃ�ƔG��Ă���A�ꎅ�܂Ƃ�ʎp��"
-CASE "���ƒ���F�̑����p"
-	STR:�ʐ^ += @"�̈�̎��ƒ����\@ COND("��") ? �����Ƃ�� # ���� \@���΂�ł���%PHOTO_COSTUME(TARGET)%"
-CASE "���ƒ���F�����p"
-	STR:�ʐ^ += @"�̈�̎��ƒ����\@ COND("��") ? �����Ƃ�� # ���� \@���΂�ł��鉺���p��"
-CASE "�����ʐ^�F���N�̐���"
+CASE "授業直後：水着姿"
+	STR:写真 += @"水泳の授業直後で髪がしっとりと濡れている、%PHOTO_COSTUME(TARGET)%"
+CASE "授業直後：ハダカ"
+	STR:写真 += @"水泳の授業直後で髪がしっとりと濡れている、一糸まとわぬ姿の"
+CASE "授業直後：体操服姿"
+	STR:写真 += @"体育の授業直後で\@ COND("夏") ? じっとりと # 少し \@汗ばんでいる%PHOTO_COSTUME(TARGET)%"
+CASE "授業直後：下着姿"
+	STR:写真 += @"体育の授業直後で\@ COND("夏") ? じっとりと # 少し \@汗ばんでいる下着姿の"
+CASE "水着写真：今年の水着"
 	IF RAND:3 == 0
-		STR:�ʐ^ += @"%SWIM(CSTR:���N�̐���)%�𒅂āA�傫�����𔽂炵�Ă���"
+		STR:写真 += @"%SWIM(CSTR:今年の水着)%を着て、大きく胸を反らしている"
 	ELSEIF RAND:2
-		STR:�ʐ^ += @"���ɂ��K�������A�U��Ԃ��ăX�}�z���\���Ă���%SWIM(CSTR:���N�̐���)%�𒅂�"
+		STR:写真 += @"鏡にお尻を向け、振り返ってスマホを構えている%SWIM(CSTR:今年の水着)%を着た"
 	ELSE
-		STR:�ʐ^ += @"%SWIM(CSTR:���N�̐���)%�����炵��\@ TALENT:�I�g�R ? �y�j�X # �A�\�R \@��I��ɂ��Ă���"
+		STR:写真 += @"%SWIM(CSTR:今年の水着)%をずらして\@ TALENT:オトコ ? ペニス # アソコ \@を露わにしている"
 	ENDIF
-CASE "�����ʐ^�F�����s�[�X"
+CASE "水着写真：ワンピース"
 	IF RAND:3 == 0
-		STR:�ʐ^ += @"%BODYS(TARGET)%�𒅂āA�傫�����𔽂炵�Ă���"
+		STR:写真 += @"%BODYS(TARGET)%を着て、大きく胸を反らしている"
 	ELSEIF RAND:2
-		STR:�ʐ^ += @"���ɂ��K�������A�U��Ԃ��ăX�}�z���\���Ă���%BODYS(TARGET)%�p��"
+		STR:写真 += @"鏡にお尻を向け、振り返ってスマホを構えている%BODYS(TARGET)%姿の"
 	ELSE
-		STR:�ʐ^ += @"%BODYS(TARGET)%�����炵��\@ TALENT:�I�g�R ? �y�j�X # �A�\�R \@��I��ɂ��Ă���"
+		STR:写真 += @"%BODYS(TARGET)%をずらして\@ TALENT:オトコ ? ペニス # アソコ \@を露わにしている"
 	ENDIF
-CASE "�Z�p���[�g�ʐ^"
-	IF RAND:2 || EQUIP:�u�� == 0
-		IF CHECK_PANTIES("���点��")
-			STR:�ʐ^ += @"%PANTIES(TARGET)%%TEXTR("�𑾂����̕ӂ�܂ł��艺�낵��/�Ƒ��������A�b�v�Ŏʂ���")%����"
+CASE "セパレート写真"
+	IF RAND:2 || EQUIP:ブラ == 0
+		IF CHECK_PANTIES("ずらせる")
+			STR:写真 += @"%PANTIES(TARGET)%%TEXTR("を太ももの辺りまでずり下ろして/と太ももがアップで写って")%いる"
 		ELSE
-			STR:�ʐ^ += @"%PANTIES(TARGET)%�Ƒ��������A�b�v�Ŏʂ��Ă���"
+			STR:写真 += @"%PANTIES(TARGET)%と太ももがアップで写っている"
 		ENDIF
-		STR:�⑫ += "_�p���c"
+		STR:補足 += "_パンツ"
 	ELSE
-		STR:�ʐ^ += @"%BRA(TARGET)%���܂���グ%TEXTR("�E��/����/�Q")%\@ TALENT:�I�g�R ? ���� # ���[ \@��I��ɂ��Ă���"
-		;�⑫��ǉ������Ă��������c
-		STR:�⑫ += "_�����ς�"
+		STR:写真 += @"%BRA(TARGET)%をまくり上げ%TEXTR("右の/左の/＿")%\@ TALENT:オトコ ? 乳首 # 乳房 \@を露わにしている"
+		;補足一個追加させてください…
+		STR:補足 += "_おっぱい"
 	ENDIF
-CASE "�`�������ʐ^�F��"
-	IF CHECK_SHIRT("�v�������グ")
-		STR:�ʐ^ += @"%SHIRT(TARGET)%%TEXTR("���܂���グ��/�̐������ɂ��킦��")%"
-	ELSEIF CHECK_SHIRT("�u���E�X")
-		STR:�ʐ^ += @"%SHIRT(TARGET)%�̃{�^����S�ĊO����"
+CASE "チラ見せ写真：上"
+	IF CHECK_SHIRT("要たくし上げ")
+		STR:写真 += @"%SHIRT(TARGET)%%TEXTR("をまくり上げて/の裾を口にくわえて")%"
+	ELSEIF CHECK_SHIRT("ブラウス")
+		STR:写真 += @"%SHIRT(TARGET)%のボタンを全て外して"
 	ELSE
-		STR:�ʐ^ += @"%SHIRT(TARGET)%���͂���������"
+		STR:写真 += @"%SHIRT(TARGET)%をはだけさせて"
 	ENDIF
-	IF EQUIP:�u�� == 0
-		STR:�ʐ^ += @"\@ TALENT:�I�g�R ? �� # �����ς� \@��I��ɂ��Ă���"
-		STR:�⑫ += "_�����ς�"
-	ELSEIF CHECK_BRA("����I�o")
-		STR:�ʐ^ = %SHIRT(TARGET)%���܂���グ��
-		IF CHECK_BRA("�V�F���t�u��")
-			STR:�ʐ^ += @"%BRA(TARGET)%���������Ă��邨���ς��ی�����Ԃ�"
+	IF EQUIP:ブラ == 0
+		STR:写真 += @"\@ TALENT:オトコ ? 胸 # おっぱい \@を露わにしている"
+		STR:補足 += "_おっぱい"
+	ELSEIF CHECK_BRA("乳首露出")
+		STR:写真 = %SHIRT(TARGET)%をまくり上げて
+		IF CHECK_BRA("シェルフブラ")
+			STR:写真 += @"%BRA(TARGET)%を見せつけているおっぱい丸見え状態の"
 		ELSE
-			STR:�ʐ^ += @"%BRA(TARGET)%��I�o�����Ă�����񂪊ی�����"
+			STR:写真 += @"%BRA(TARGET)%を露出させている乳首が丸見えの"
 		ENDIF
-		STR:�⑫ += "_�u��"
+		STR:補足 += "_ブラ"
 	ELSE
-		STR:�ʐ^ += @"%BRA(TARGET)%��I��ɂ��Ă���"
-		STR:�⑫ += "_�u��"
+		STR:写真 += @"%BRA(TARGET)%を露わにしている"
+		STR:補足 += "_ブラ"
 	ENDIF
-CASE "�`�������ʐ^�F��"
-	;�����ɋ�����̂��ȁH
-	SIF COND("��")
-		STR:�ʐ^ += "���̑O��"
-	IF EQUIP:�X�J�[�g && (COND("��") || RAND:3 == 0)
-		STR:�ʐ^ += @"%CLO("�X�J�[�g�߂���")%���߂���グ��"
-	ELSEIF COND("�r������")
-		STR:�ʐ^ += "�������낵��"
+CASE "チラ見せ写真：下"
+	;部屋に鏡あるのかな？
+	SIF COND("夜")
+		STR:写真 += "鏡の前で"
+	IF EQUIP:スカート && (COND("昼") || RAND:3 == 0)
+		STR:写真 += @"%CLO("スカートめくり")%をめくり上げて"
+	ELSEIF COND("脚が無い")
+		STR:写真 += "腰を下ろして"
 	ELSEIF RAND:2
-		STR:�ʐ^ += "�l���ɑ����J����"
+		STR:写真 += "Ｍ字に足を開いて"
 	ELSE
-		STR:�ʐ^ += "�̈���������"
+		STR:写真 += "体育座りをして"
 	ENDIF
-	SIF CHECK_CLO("�p���X�g�I�o")
-		STR:�ʐ^ += @"%OUTER(TARGET)%�z���Ɍ�����"
-	IF EQUIP:�p���c == 0
-		IF COND("�g�n�݁F�u�g��")
-			STR:�ʐ^ += "�o�C�u���}������"
-		ELSEIF CHECK_CLO("�u�I�o")
-			STR:�ʐ^ += "�ނ��o����"
+	SIF CHECK_CLO("パンスト露出")
+		STR:写真 += @"%OUTER(TARGET)%越しに見える"
+	IF EQUIP:パンツ == 0
+		IF COND("身嗜み：Ｖ拡張")
+			STR:写真 += "バイブが挿さった"
+		ELSEIF CHECK_CLO("Ｖ露出")
+			STR:写真 += "むき出しの"
 		ENDIF
 		IF PENIS(TARGET)
-			STR:�ʐ^ += "�y�j�X"
-			STR:�⑫ += "_�y�j�X"
+			STR:写真 += "ペニス"
+			STR:補足 += "_ペニス"
 		ELSE
-			STR:�ʐ^ += "�A�\�R"
-			STR:�⑫ += "_�A�\�R"
+			STR:写真 += "アソコ"
+			STR:補足 += "_アソコ"
 		ENDIF
 	ELSE
-		STR:�ʐ^ += @"%PANTIES(TARGET)%"
-		STR:�⑫ += "_�p���c"
+		STR:写真 += @"%PANTIES(TARGET)%"
+		STR:補足 += "_パンツ"
 	ENDIF
-	STR:�ʐ^ += @"��I��ɂ��Ă���%PHOTO_COSTUME(TARGET)%"
-CASE "�k�[�h�ʐ^"
-	STR:�ʐ^ += @"�ꎅ�܂Ƃ�ʎp��\@ COND("��") ? �X�ߎ��� # \@���̑O��"
-	IF RAND:2 && COND("��")
-		STR:�ʐ^ += @"�G�𗧂Ăč���A\@ TALENT:�I�g�R ? �y�j�X # �A�\�R \@��"
+	STR:写真 += @"を露わにしている%PHOTO_COSTUME(TARGET)%"
+CASE "ヌード写真"
+	STR:写真 += @"一糸まとわぬ姿で\@ COND("昼") ? 更衣室の # \@鏡の前に"
+	IF RAND:2 && COND("夜")
+		STR:写真 += @"膝を立てて座り、\@ TALENT:オトコ ? ペニス # アソコ \@を"
 		IF RAND:2
-			STR:�ʐ^ += "�Ў�ŉB���Ă���"
+			STR:写真 += "片手で隠している"
 		ELSE
-			STR:�ʐ^ += "�I��ɂ��Ă���"
+			STR:写真 += "露わにしている"
 		ENDIF
 	ELSE
-		STR:�ʐ^ += "�����A"
-		IF RAND:2 && TALENT:�I�g�R == 0
-			STR:�ʐ^ += "�Ў�ŗ����̋����B���Ă���"
+		STR:写真 += "立ち、"
+		IF RAND:2 && TALENT:オトコ == 0
+			STR:写真 += "片手で両方の胸を隠している"
 		ELSE
-			STR:�ʐ^ += @"�����%TEXTR("�A�s�[������悤��/��������悤��")%�w�����Ă���"
+			STR:写真 += @"乳首を%TEXTR("アピールするように/強調するように")%指さしている"
 		ENDIF
 	ENDIF
-;���̕ӂ͈̂ߑ������낭�Ȃ��Ƃ��낭�Ȃ������c
-CASE "�S�g���B��"
+;この辺のは衣装がえろくないとえろくないかも…
+CASE "全身自撮り"
 	SELECTCASE CLOTHES_SELFY
-	CASE "�n�_�J"
-		STR:�ʐ^ += "�ꎅ�܂Ƃ�ʎp��"
-	CASE "���N�̐���"
-		STR:�ʐ^ += @"%SWIM(CSTR:���N�̐���)%��g�ɒ�����"
-	CASE "����"
-		IF EQUIP:�u�� && EQUIP:�p���c
-			STR:�ʐ^ += @"%CLO_ABOUT(TARGET, "�p")%��"
-			STR:�⑫ += "_�u��"
-		ELSEIF EQUIP:�u��
-			STR:�ʐ^ += @"%BRA(TARGET)%�݂̂�g�ɒ����ĉ����g���̏�Ԃ�"
-			STR:�⑫ += "_�A�\�R"
+	CASE "ハダカ"
+		STR:写真 += "一糸まとわぬ姿で"
+	CASE "今年の水着"
+		STR:写真 += @"%SWIM(CSTR:今年の水着)%を身に着けて"
+	CASE "下着"
+		IF EQUIP:ブラ && EQUIP:パンツ
+			STR:写真 += @"%CLO_ABOUT(TARGET, "姿")%で"
+			STR:補足 += "_ブラ"
+		ELSEIF EQUIP:ブラ
+			STR:写真 += @"%BRA(TARGET)%のみを身に着けて下半身裸の状態で"
+			STR:補足 += "_アソコ"
 		ELSE
-			STR:�ʐ^ += @"%PANTIES(TARGET)%�݂̂�g�ɒ�����"
-			STR:�⑫ += "_�p���c"
-			STR:�⑫ += "_�����ς�"
+			STR:写真 += @"%PANTIES(TARGET)%のみを身に着けて"
+			STR:補足 += "_パンツ"
+			STR:補足 += "_おっぱい"
 		ENDIF
 	ENDSELECT
 	IF RAND:2 
-		STR:�ʐ^ += @"\@ COND("��") ? �X�ߎ��� # \@���̑O�ŃX�}�z���\���Ă���"
+		STR:写真 += @"\@ COND("昼") ? 更衣室の # \@鏡の前でスマホを構えている"
 	ELSE
-		STR:�ʐ^ += @"%TEXTR("�Ў�Ŗڂ��B��/��̉��Ńs�[�X����/�����グ���X�}�z�����グ��悤�Ɏʂ�")%�Ă���"
+		STR:写真 += @"%TEXTR("片手で目を隠し/顔の横でピースをし/持ち上げたスマホを見上げるように写っ")%ている"
 	ENDIF
 	SELECTCASE CLOTHES_SELFY
-	CASE "�̑���", "����", "�R�X�v��"
-		STR:�ʐ^ += @"%PHOTO_COSTUME(TARGET)%"
+	CASE "体操服", "水着", "コスプレ"
+		STR:写真 += @"%PHOTO_COSTUME(TARGET)%"
 	ENDSELECT
 ENDSELECT
-STR:�ʐ^ += @"%CALLNAME:TARGET%"
+STR:写真 += @"%CALLNAME:TARGET%"
 
 
-;�ꍇ�ɂ���Ă̓p���c�̎��B��Ƃ�
-IF COND("�A�\�R���B��\") && ARGS == "�A�\�R"
+;場合によってはパンツの自撮りとか
+IF COND("アソコ自撮り可能") && ARGS == "アソコ"
 	CALL PHOTO_PUSSY
-	STR:�ʐ^ += "�̎��B��"
-ELSEIF COND("�p���c���B��\") && (RAND:2 || ARGS == "�p���c")
+	STR:写真 += "の自撮り"
+ELSEIF COND("パンツ自撮り可能") && (RAND:2 || ARGS == "パンツ")
 	CALL PHOTO_PANTIES
-	STR:�ʐ^ += "�̎��B��"
+	STR:写真 += "の自撮り"
 ELSE
-	SIF CLOTHES_SELFY == "���N�̐���"
-		STR:�⑫ += "_���N�̐���"
-	SIF CLOTHES_SELFY == "����"
-		STR:�⑫ += "_����"
-	SIF CLOTHES_SELFY == "�̑���"
-		STR:�⑫ += "_�̑���"
-	SIF CLOTHES_SELFY == "�w����"
-		STR:�⑫ += "_�w����"
+	SIF CLOTHES_SELFY == "今年の水着"
+		STR:補足 += "_今年の水着"
+	SIF CLOTHES_SELFY == "水着"
+		STR:補足 += "_水着"
+	SIF CLOTHES_SELFY == "体操服"
+		STR:補足 += "_体操服"
+	SIF CLOTHES_SELFY == "学生服"
+		STR:補足 += "_学生服"
 ENDIF
 
 
-;���B��^�O�t����
-STR:�⑫ += "_���B��"
+;自撮りタグ付ける
+STR:補足 += "_自撮り"
 
-;�l���̕⑫
-STR:�⑫ += @"_%CALLNAME:TARGET%"
-;���t�̋L�^
-STR:�⑫ += @"_���t%TOSTR(DAY*10 + TIME)%"
+;人物の補足
+STR:補足 += @"_%CALLNAME:TARGET%"
+;日付の記録
+STR:補足 += @"_日付%TOSTR(DAY*10 + TIME)%"
 
-SAVESTR:���B��ʐ^ += @"%STR:�ʐ^%%STR:�⑫%/"
+SAVESTR:自撮り写真 += @"%STR:写真%%STR:補足%/"
 
 
-;���B�蒆�t���OOFF
-CLEARBIT FLAG:�󋵔���, 41
+;自撮り中フラグOFF
+CLEARBIT FLAG:状況判定, 41
 
-;���Ă������Ɖ����߂�
+;着ていた服と汚れを戻す
 FOR LCOUNT, 40, 50
 	CSTR:LCOUNT = %MEMO_CLO:LCOUNT%
 NEXT
@@ -336,7 +336,7 @@ NEXT
 
 
 ;-------------------------------------------------
-;���B��ʐ^�𑗂���܂�
+;自撮り写真を送りつけます
 ;-------------------------------------------------
 @SEND_SELFY
 #DIM MEMO_TARGET
@@ -344,14 +344,14 @@ NEXT
 MEMO_TARGET = TARGET
 TARGET = 0
 
-TARGET = FIND_COND("���B�著�M�\")
+TARGET = FIND_COND("自撮り送信可能")
 
-SIF TARGET && NUM("�ʐ^") < 300
+SIF TARGET && NUM("写真") < 300
 	CALL SEND_SELFY_MAIN, TARGET
 
 TARGET = MEMO_TARGET
 
-;�L�����w�肵�đ����悤�ɕ���
+;キャラ指定して送れるように分割
 @SEND_SELFY_MAIN, ARG
 #DIM LCOUNT
 #DIM LCOUNT2
@@ -359,61 +359,61 @@ TARGET = MEMO_TARGET
 
 VARSET MEMO_SELFY
 
-SPLIT SAVESTR:���B��ʐ^, "/", LOCALS
+SPLIT SAVESTR:自撮り写真, "/", LOCALS
 
 FOR LCOUNT, 0, 10
 	IF STRCOUNTS(LOCALS:LCOUNT, CALLNAME:ARG)
 		MEMO_SELFY = %LOCALS:LCOUNT%
 		SPLIT LOCALS:LCOUNT, "_", LOCALS
 		DRAWLINE
-		PRINTFORMW %CALLNAME:MASTER%�̃X�}�z���璅�M���������B
-		PRINTFORMW �c�c�m�F����Ɓw%LOCALS:0%�x���͂��Ă����B
-		;���B�胁�b�Z�[�W�\��
+		PRINTFORMW %CALLNAME:MASTER%のスマホから着信音が鳴った。
+		PRINTFORMW ……確認すると『%LOCALS:0%』が届いていた。
+		;自撮りメッセージ表示
 		CALL SELFY_MAIL, MEMO_SELFY
 		CALL SAVE_PHOTO, MEMO_SELFY
 
-		;�ʐ^�����ԑт��m�肷����̂Ȃ�t���O��M��
-		SIF STRCOUNT(LOCALS, "���ƒ���")
-			SETBIT FLAG:�󋵔���, 18
+		;写真が時間帯を確定するものならフラグを弄る
+		SIF STRCOUNT(LOCALS, "授業直後")
+			SETBIT FLAG:状況判定, 18
 
-		;�������ʐ^�𑗐M�ς݂ɂ���@2��ȏ㑗��Ȃ�����
-		SAVESTR:���M�ςݎ��B��ʐ^ += @"%MEMO_SELFY%\/"
-		;���M�ς݂̎��B��p���c���L�^
+		;送った写真を送信済みにする　2回以上送らないため
+		SAVESTR:送信済み自撮り写真 += @"%MEMO_SELFY%\/"
+		;送信済みの自撮りパンツを記録
 		FOR LCOUNT2, 2, CHARANUM
-			;�N�̎��B��H
+			;誰の自撮り？
 			SIF STRCOUNT(LOCALS, CALLNAME:LCOUNT2) == 0
 				CONTINUE
 			SIF STRCOUNT(LOCALS, PANTIES(LCOUNT2) )== 0
 				CONTINUE
-			SAVESTR:���M�ςݎ��B��p���c += @"%PANTIES(LCOUNT2)%_%CALLNAME:LCOUNT2%\/"
+			SAVESTR:送信済み自撮りパンツ += @"%PANTIES(LCOUNT2)%_%CALLNAME:LCOUNT2%\/"
 		NEXT
 		BREAK
 	ENDIF
 NEXT
 
 ;-------------------------------------------------
-;@EVENT_DAILY_EX���ő��肵�Ė��������L���������B��𑗂��Ă���C�x���g
+;@EVENT_DAILY_EX内で相手して無かったキャラが自撮りを送ってくるイベント
 ;-------------------------------------------------
 @SEND_SELFY_DAILY_EX
 #DIM MEMO_TARGET
 #DIMS EVENT_TABLE
 #DIM IS_PANTU_SELFY
 
-;�����m���Q�O�����炢�ɂ���H
-SIF RAND:5 || NUM("�ʐ^") >= 300
+;発生確率２０％くらいにする？
+SIF RAND:5 || NUM("写真") >= 300
 	RETURN 0
 
 IS_PANTU_SELFY = 0
 
 MEMO_TARGET = TARGET
-TARGET = FIND_COND("�p���c���B�著�M�\")
+TARGET = FIND_COND("パンツ自撮り送信可能")
 IF TARGET <= 0
-	;TARGET�����ɖ߂�(��������Ȃ��Ɩ{�����B��𑗂��Ă��Ȃ��͂���TARGET�������Ă���)
+	;TARGETを元に戻す(これをしないと本来自撮りを送ってこないはずのTARGETが送ってくる)
 	TARGET = MEMO_TARGET
-	TARGET = FIND_COND("���B�著�M�\")
+	TARGET = FIND_COND("自撮り送信可能")
 ENDIF
 
-;��₪���Ȃ��ꍇ�͏I�� �����m���Q�O�����炢�H
+;候補がいない場合は終了 発生確率２０％くらい？
 IF TARGET <= 0
 	TARGET = MEMO_TARGET
 	RETURN 0
@@ -421,13 +421,13 @@ ENDIF
 
 EVENT_TABLE = 
 
-;���݂̏󋵎���Ŏʐ^��ς���B���������ɂ���ꍇ�̓p���c��A�\�R�̎��B��ɂȂ�
-IF COND("���ݑ���")
-	IF CHECK_SELFIE(TARGET, "�p���c", "�A�\�R", "�y�j�X", "�����ς�")
-	ELSEIF COND("�A�\�R���B��\") && COND("�p���c�`��m�F")
-		CALL PHOTO_SELFY, TARGET, "�A�\�R"
-	ELSEIF COND("�p���c�`��m�F") == 0 && COND("�p���c���B��\")
-		CALL PHOTO_SELFY, TARGET, "�p���c"
+;現在の状況次第で写真を変える。同じ部屋にいる場合はパンツやアソコの自撮りになる
+IF COND("現在存在")
+	IF CHECK_SELFIE(TARGET, "パンツ", "アソコ", "ペニス", "おっぱい")
+	ELSEIF COND("アソコ自撮り可能") && COND("パンツ形状確認")
+		CALL PHOTO_SELFY, TARGET, "アソコ"
+	ELSEIF COND("パンツ形状確認") == 0 && COND("パンツ自撮り可能")
+		CALL PHOTO_SELFY, TARGET, "パンツ"
 	ELSE
 		RETURN 0
 	ENDIF
@@ -435,61 +435,61 @@ ELSE
 	CALL PHOTO_SELFY, TARGET
 ENDIF
 
-SIF COND("�p���c���B�著�M�\")
+SIF COND("パンツ自撮り送信可能")
 	IS_PANTU_SELFY = 1
 
 CALL SEND_SELFY_MAIN, TARGET
 
-IF COND("���ݑ���")
-	PRINTFORM %TEXTR("�ӂ�/���ڂ�/���˓I��")%�����̕�������ƁA%CALLNAME:TARGET%��
-	IF TALENT:�D�F || TALENT:������ || TALENT:�z�C || TALENT:�D��S
-		IF IS_PANTU_SELFY && CHECK_SKIRT("�X�J�[�g") && COND("���B��Ɠ����p���c")
-			PRINTFORM %SKIRT(TARGET, "��")%��E�ݏグ�Ďʐ^�Ɠ���%PANTIES(TARGET, "�p���c")%��������ҊԂ�%CALLNAME:MASTER%�Ƀ`���������Ȃ���
-			CALL SETFLAG_DAILY, "�p���c�`��m�F"
+IF COND("現在存在")
+	PRINTFORM %TEXTR("ふと/横目で/反射的に")%送り主の方を見ると、%CALLNAME:TARGET%は
+	IF TALENT:好色 || TALENT:小悪魔 || TALENT:陽気 || TALENT:好奇心
+		IF IS_PANTU_SELFY && CHECK_SKIRT("スカート") && COND("自撮りと同じパンツ")
+			PRINTFORM %SKIRT(TARGET, "略")%を摘み上げて写真と同じ%PANTIES(TARGET, "パンツ")%を穿いた股間を%CALLNAME:MASTER%にチラ見せしながら
+			CALL SETFLAG_DAILY, "パンツ形状確認"
 		ELSE
-			PRINTFORM %CALLNAME:MASTER%�̔������y���ނ悤��
+			PRINTFORM %CALLNAME:MASTER%の反応を楽しむように
 		ENDIF
-		PRINTFORMW %TEXTR("�j�R�j�R�΂���/�y�������ɔ��΂��/�j���j���Ə΂���")%����c
-	ELSEIF TALENT:�p���炢 || TALENT:���C || TALENT:���� 
-		PRINTFORMW �j����߂Ȃ��炻���ۂ������Ă���c
+		PRINTFORMW %TEXTR("ニコニコ笑って/楽しそうに微笑んで/ニヤニヤと笑って")%いる…
+	ELSEIF TALENT:恥じらい || TALENT:内気 || TALENT:謙虚 
+		PRINTFORMW 頬を染めながらそっぽを向いている…
 	ELSE
 		IF RAND:2
-			PRINTFORMW %CALLNAME:MASTER%�̗l�q���M���悤�ɂ���������߂Ă���c
+			PRINTFORMW %CALLNAME:MASTER%の様子を窺うようにこちらを見つめている…
 		ELSE
-			PRINTFORMW %CALLNAME:MASTER%�̎����ɋC�Â��đf�����ڂ���炵���c
+			PRINTFORMW %CALLNAME:MASTER%の視線に気づいて素早く目を逸らした…
 		ENDIF
 	ENDIF
-	STR:����C�x���g�� = ���B�著�M
+	STR:日常イベント名 = 自撮り送信
 ELSE
-	PRINTFORMW %CALLNAME:MASTER%�͎ʐ^���X�}�z�ɕۑ������B
+	PRINTFORMW %CALLNAME:MASTER%は写真をスマホに保存した。
 ENDIF
 
 ;-------------------------------------------------
-;����ꂽ���B��̓��e�𔻒肵�A���b�Z�[�W�̓��e�����߂�
+;送られた自撮りの内容を判定し、メッセージの内容を決める
 ;-------------------------------------------------
 @SELFY_MAIL, ARGS
 #DIMS SELFY_DETAIL
 
 VARSET SELFY_DETAIL
 
-IF STRCOUNTS(ARGS, "�ꎅ�܂Ƃ��")
-	SELFY_DETAIL = �k�[�h���B��
-ELSEIF STRCOUNTS(ARGS, "�A�\�R")
-	SELFY_DETAIL = �A�\�R���B��
-ELSEIF STRCOUNTS(ARGS, "�y�j�X")
-	SELFY_DETAIL = �y�j�X���B��
-ELSEIF STRCOUNTS(ARGS, "�����ς�")
-	SELFY_DETAIL = �����ς����B��
-ELSEIF STRCOUNTS(ARGS, "�̑���")
-	SELFY_DETAIL = �̑������B��
-ELSEIF STRCOUNTS(ARGS, "���N�̐���")
-	SELFY_DETAIL = ���N�̐������B��
-ELSEIF STRCOUNTS(ARGS, "����")
-	SELFY_DETAIL = �w�Z�w��̐������B��
-ELSEIF STRCOUNTS(ARGS, "�u��")
-	SELFY_DETAIL = �u�����B��
-ELSEIF STRCOUNTS(ARGS, "�p���c")
-	SELFY_DETAIL = �p���c���B��
+IF STRCOUNTS(ARGS, "一糸まとわぬ")
+	SELFY_DETAIL = ヌード自撮り
+ELSEIF STRCOUNTS(ARGS, "アソコ")
+	SELFY_DETAIL = アソコ自撮り
+ELSEIF STRCOUNTS(ARGS, "ペニス")
+	SELFY_DETAIL = ペニス自撮り
+ELSEIF STRCOUNTS(ARGS, "おっぱい")
+	SELFY_DETAIL = おっぱい自撮り
+ELSEIF STRCOUNTS(ARGS, "体操服")
+	SELFY_DETAIL = 体操服自撮り
+ELSEIF STRCOUNTS(ARGS, "今年の水着")
+	SELFY_DETAIL = 今年の水着自撮り
+ELSEIF STRCOUNTS(ARGS, "水着")
+	SELFY_DETAIL = 学校指定の水着自撮り
+ELSEIF STRCOUNTS(ARGS, "ブラ")
+	SELFY_DETAIL = ブラ自撮り
+ELSEIF STRCOUNTS(ARGS, "パンツ")
+	SELFY_DETAIL = パンツ自撮り
 ELSE
 	SELFY_DETAIL =
 ENDIF

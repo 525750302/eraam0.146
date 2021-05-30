@@ -1,46 +1,46 @@
-;USERCOM����Ăяo��
+﻿;USERCOMから呼び出す
 @SHOW_WILLGET_JUEL
 #DIM LCOUNT
 #DIM MEMO_LINECOUNT
 
-PRINTL ���݂̕��擾�\�萔
+PRINTL 現在の宝珠取得予定数
 PRINTL 
-;�u���`���o���͖����̂�15�Ԃ܂łŗǂ�
+;Ｖ潤Ａ潤Ｐ潤は無いので15番までで良い
 FOR LCOUNT, 0, 16
 	SIF PALAMNAME:LCOUNT == ""
 		CONTINUE
-	;�p�����[�^���E�����𑵂��p�����[�^��\��
+	;パラメータ名・桁数を揃えつつパラメータを表示
 	PRINTFORM %PALAMNAME:LCOUNT% {PALAM:LCOUNT, 10} 
-	;�����𑵂����݁{�\�聁���v��\��
-	PRINTFORM %PALAMNAME:LCOUNT%�̎�~({JUEL:LCOUNT, 10} + 
+	;桁数を揃えつつ現在＋予定＝合計を表示
+	PRINTFORM %PALAMNAME:LCOUNT%の珠×({JUEL:LCOUNT, 10} + 
 
 	SIF GET_JUEL(LCOUNT)
-		SETCOLOR DEF_COLOR("���F")
+		SETCOLOR DEF_COLOR("黄色")
 	PRINTFORM {GET_JUEL(LCOUNT), 10}
 	RESETCOLOR
 
 	PRINTFORM ) ={JUEL:LCOUNT + GET_JUEL(LCOUNT), 10}
 
-	;���b�u�`�a�l�A�͐Ⓒ�񐔂�\��
+	;快ＣＶＡＢＭ尿は絶頂回数を表示
 	SELECTCASE PALAMNAME:LCOUNT
-	CASE "���b"
-		SIF EX:�b�Ⓒ >= 1
-			PRINTFORM  < �b�Ⓒ:{EX:�b�Ⓒ, 2}�� >
-	CASE "���u"
-		SIF EX:�u�Ⓒ >= 1
-			PRINTFORM  < �u�Ⓒ:{EX:�u�Ⓒ, 2}�� >
-	CASE "���`"
-		SIF EX:�`�Ⓒ >= 1
-			PRINTFORM  < �`�Ⓒ:{EX:�`�Ⓒ, 2}�� >
-	CASE "���a"
-		SIF EX:�a�Ⓒ >= 1
-			PRINTFORM  < �a�Ⓒ:{EX:�a�Ⓒ, 2}�� >
-	CASE "���l"
-		SIF EX:�l�Ⓒ >= 1
-			PRINTFORM  < �l�Ⓒ:{EX:�l�Ⓒ, 2}�� >
-	CASE "���A"
-		SIF EX:�A���Ⓒ >= 1
-			PRINTFORM  < �A���Ⓒ:{EX:�A���Ⓒ, 2}�� >
+	CASE "快Ｃ"
+		SIF EX:Ｃ絶頂 >= 1
+			PRINTFORM  < Ｃ絶頂:{EX:Ｃ絶頂, 2}回 >
+	CASE "快Ｖ"
+		SIF EX:Ｖ絶頂 >= 1
+			PRINTFORM  < Ｖ絶頂:{EX:Ｖ絶頂, 2}回 >
+	CASE "快Ａ"
+		SIF EX:Ａ絶頂 >= 1
+			PRINTFORM  < Ａ絶頂:{EX:Ａ絶頂, 2}回 >
+	CASE "快Ｂ"
+		SIF EX:Ｂ絶頂 >= 1
+			PRINTFORM  < Ｂ絶頂:{EX:Ｂ絶頂, 2}回 >
+	CASE "快Ｍ"
+		SIF EX:Ｍ絶頂 >= 1
+			PRINTFORM  < Ｍ絶頂:{EX:Ｍ絶頂, 2}回 >
+	CASE "快尿"
+		SIF EX:尿道絶頂 >= 1
+			PRINTFORM  < 尿道絶頂:{EX:尿道絶頂, 2}回 >
 	ENDSELECT
 	PRINTL 
 NEXT
@@ -48,16 +48,16 @@ NEXT
 PRINTL 
 
 MEMO_LINECOUNT = LINECOUNT
-;ABLUP���\��
-CALL PRINT_SHOW_ABLUP_SELECT, "�\��"
+;ABLUPも表示
+CALL PRINT_SHOW_ABLUP_SELECT, "予定"
 SIF LINECOUNT > MEMO_LINECOUNT
 	PRINTL 
 
-PRINTL �����̎�͗~��E�����E�����̎��D��I�ɑ��E���܂��B
-PRINTL ���̌�ɁA�p��E��ɁE���|�̎�𑊎E���܂��B
-IF EXP_GAIN("�Z��o��")
-	SETCOLOR DEF_COLOR("�C�G���[")
-	PRINTL ���Z��̎g�p�ɂ��A�l�������̗ʂ��������Ă��܂���
+PRINTL 反感の珠は欲情・恭順・屈服の珠を優先的に相殺します。
+PRINTL その後に、恥情・苦痛・恐怖の珠を相殺します。
+IF EXP_GAIN("媚薬経験")
+	SETCOLOR DEF_COLOR("イエロー")
+	PRINTL ※媚薬の使用により、獲得する珠の量が減少しています※
 	RESETCOLOR
 ENDIF
 WAIT
@@ -69,10 +69,10 @@ SIF ARG:1 == 0 && TARGET
 	ARG:1 = TARGET
 
 SELECTCASE ARG
-;�u���A�`���A�o���̎�͑��݂��Ȃ�
+;Ｖ潤、Ａ潤、Ｐ潤の珠は存在しない
 CASE IS >= 20
 	RETURNF 0
-;�����̎삾���͑Ή��p�����[�^�[�ɂ��擾��������10�{
+;反感の珠だけは対応パラメーターによる取得数が他の10倍
 CASE 7
 	LOCAL = CALC_JUEL(ARG, ARG:1)*10
 CASEELSE
@@ -80,14 +80,14 @@ CASEELSE
 ENDSELECT
 RETURNF LOCAL
 
-;JUEL:ARG���������邩�v�Z����
+;JUEL:ARGをいくつ得るか計算する
 @CALC_JUEL(ARG, ARG:1)
 #FUNCTION
 
 SIF ARG:1 == 0 && TARGET
 	ARG:1 = TARGET
 
-;�p�����[�^���x���ɂ��擾��
+;パラメータレベルによる取得数
 SELECTCASE PALAM:(ARG:1):ARG
 ;LV 0
 CASE IS < 100
@@ -122,43 +122,43 @@ CASE 250000 TO 499999
 ;LV10
 CASE 500000 TO 999999
 	LOCAL = 16000 + (PALAM:(ARG:1):ARG - 500000) * 4000 / 499999
-;LV11�ȏ�
+;LV11以上
 CASEELSE
 	LOCAL = 20000 + (PALAM:(ARG:1):ARG - 1000000) * 5000 / 3999999
 ENDSELECT
 
 
-;���b�u�`�a�l�A�Ⓒ�{�[�i�X�������ɂ��{�[�i�X
+;快ＣＶＡＢＭ尿絶頂ボーナス＆性向によるボーナス
 SELECTCASE PALAMNAME:ARG
-CASE "���b"
-	LOCAL += EX:(ARG:1):�b�Ⓒ*1000 + JUEL:(ARG:1):���b�{�[�i�X
-	SIF TALENT:(ARG:1):�b����
+CASE "快Ｃ"
+	LOCAL += EX:(ARG:1):Ｃ絶頂*1000 + JUEL:(ARG:1):快Ｃボーナス
+	SIF TALENT:(ARG:1):Ｃ性向
 		TIMES LOCAL, 1.50
-CASE "���u"
-	LOCAL += EX:(ARG:1):�u�Ⓒ*1000 + JUEL:(ARG:1):���u�{�[�i�X
-	SIF TALENT:(ARG:1):�u����
+CASE "快Ｖ"
+	LOCAL += EX:(ARG:1):Ｖ絶頂*1000 + JUEL:(ARG:1):快Ｖボーナス
+	SIF TALENT:(ARG:1):Ｖ性向
 		TIMES LOCAL, 1.50
-CASE "���`"
-	LOCAL += EX:(ARG:1):�`�Ⓒ*1000 + JUEL:(ARG:1):���`�{�[�i�X
-	SIF TALENT:(ARG:1):�`����
+CASE "快Ａ"
+	LOCAL += EX:(ARG:1):Ａ絶頂*1000 + JUEL:(ARG:1):快Ａボーナス
+	SIF TALENT:(ARG:1):Ａ性向
 		TIMES LOCAL, 1.50
-CASE "���a"
-	LOCAL += EX:(ARG:1):�a�Ⓒ*1000 + JUEL:(ARG:1):���a�{�[�i�X
-	SIF TALENT:(ARG:1):�a����
+CASE "快Ｂ"
+	LOCAL += EX:(ARG:1):Ｂ絶頂*1000 + JUEL:(ARG:1):快Ｂボーナス
+	SIF TALENT:(ARG:1):Ｂ性向
 		TIMES LOCAL, 1.50
-CASE "���l"
-	LOCAL += EX:(ARG:1):�l�Ⓒ*1000 + JUEL:(ARG:1):���l�{�[�i�X
-	SIF TALENT:(ARG:1):�l����
+CASE "快Ｍ"
+	LOCAL += EX:(ARG:1):Ｍ絶頂*1000 + JUEL:(ARG:1):快Ｍボーナス
+	SIF TALENT:(ARG:1):Ｍ性向
 		TIMES LOCAL, 1.50
-CASE "���A"
-	LOCAL += EX:(ARG:1):�A���Ⓒ*1000 + JUEL:(ARG:1):���A�{�[�i�X
+CASE "快尿"
+	LOCAL += EX:(ARG:1):尿道絶頂*1000 + JUEL:(ARG:1):快尿ボーナス
 ENDSELECT
 
 
-;�Z��ɂ��y�i���e�B
-SIF EXP_GAIN("�Z��o��", ARG:1) > 0
-	LOCAL /= 1 + EXP_GAIN("�Z��o��", ARG:1)
-SIF TFLAG:�Ȃ��琫����
+;媚薬によるペナルティ
+SIF EXP_GAIN("媚薬経験", ARG:1) > 0
+	LOCAL /= 1 + EXP_GAIN("媚薬経験", ARG:1)
+SIF TFLAG:ながら性処理
 	LOCAL /= 3
 
 RETURNF LOCAL

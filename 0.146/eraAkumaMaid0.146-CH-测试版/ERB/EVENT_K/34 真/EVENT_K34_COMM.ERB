@@ -1,83 +1,83 @@
-;-------------------------------------------------
-;�������m�ł̌𗬁B������TARGET�Ƃ��ČĂ΂�A�b����̕�����PARTNER()�Ƃ��ČĂ΂��
-;�b����ւ̌Ăт�����CNAME("�p�[�g�i�[")�ŏo����
-;TFLAG:�䎌�X�L�b�v = 1�Řb���Ă��鑊��̃Z���t�̃X�L�b�v�ATFLAG:�n�̕��X�L�b�v = 1�ő����n�̕��̃X�L�b�v�����鎖���o����
+﻿;-------------------------------------------------
+;部員同士での交流。自分はTARGETとして呼ばれ、話相手の部員はPARTNER()として呼ばれる
+;話相手への呼びかけはCNAME("パートナー")で出来る
+;TFLAG:台詞スキップ = 1で話している相手のセリフのスキップ、TFLAG:地の文スキップ = 1で続く地の文のスキップをする事が出来る
 ;-------------------------------------------------
 @KOJO_COMM_K34, ARGS
 #DIM MEMO_LINECOUNT
-;�Θb����ɂ������L�����̖��O��/��؂�ł���ɓ˂������FIND_TaiTa(EVENT_TABLE)�Ƃ���Ƃ��̂�����l���I�΂��
+;対話相手にしたいキャラの名前を/区切りでこれに突っ込んでFIND_TaiTa(EVENT_TABLE)とするとそのうち一人が選ばれる
 #DIMS EVENT_TABLE
 
 EVENT_TABLE = 
 MEMO_LINECOUNT = LINECOUNT
 
 SELECTCASE ARGS
-;�b�������鑤�̃Z���t�BCOND("�Θb�\")�𖞂��������I���PARTNER()�ɂ��鎖�ŁA����̑���ɘb�������邱�Ƃ��ł���
-CASE "���U������"
-	;����̑���ɘb��������ꍇ��EVENT_TABLE�ɑΘb����̌Ăі�(CALLNAME)�� / ��؂�ŕ��ׂ� ; ������
-	;��P�j�t�F���V�G��or�G�G�̌Nor���񂸂����l�I�ԏꍇ
-	EVENT_TABLE = ��/�
-	;��Q�j�����S�Ă����l�I�ԏꍇ
-	;EVENT_TABLE = �S��
+;話しかける側のセリフ。COND("対話可能")を満たす相手を選んでPARTNER()にする事で、特定の相手に話しかけることもできる
+CASE "お誘いする"
+	;特定の相手に話しかける場合はEVENT_TABLEに対話相手の呼び名(CALLNAME)を / 区切りで並べて ; を消す
+	;例１）フェリシエルor濡烏の君orあんずから一人選ぶ場合
+	EVENT_TABLE = 灯/莉
+	;例２）部員全てから一人選ぶ場合
+	;EVENT_TABLE = 全員
 
 	IF FIND_TaiTa(EVENT_TABLE)
-		;�b��������p�[�g�i�[�ɂ���
+		;話し相手をパートナーにする
 		CALL SET_PARTNER, FIND_TaiTa(EVENT_TABLE)
-		CALL EMOTION_PLUS, "�𗬒�", TARGET, PARTNER()
+		CALL EMOTION_PLUS, "交流中", TARGET, PARTNER()
 	ENDIF
 
 	IF NO:PARTNER() == 35
-		IF CALCF("�����̗\�z�_��") <= 30
-			PRINTFORMW �u�Z���`��c���q�}�H�v
-			PRINTFORMW �w�����ŕ׋�����x
-			PRINTFORMW �u�₾�I ���肢�{���ɏ����āI�I ���̎����Ȃ�ɂ��킩��Ȃ��́`�I�I�v
-			PRINTFORMW �w���O��������ċ������̉���ڂ���I ���̓z�ɗ��߂΂�������I�x
-			PRINTFORMW �u�������`�A�Z���񏕂��Ă�`�c�c���������v
-		ELSEIF COND("���сF�w�N���") && CEVENT("���ю����F�w�N���") == 0
-			PRINTFORMW �u�ǁ[��Z����I ���ꂪ���̎��͂�I�v
-			PRINTFORMW �w�c�c�c�c�x
-			PRINTFORMW �^�������т炩�����������ʂ����āA���͉����ق��Ă���c�c
-			PRINTFORMW �w���O�c�c�x
-			PRINTFORMW �u�ȁA�ȂɁH�v
-			PRINTFORMW �w�c�c�Ƃ��Ƃ������̎�������񂩁x
-			PRINTFORMW �u���[�ā[�ȁ[���[�I�v
-			CALL SET_CEVENT, "���ю����F�w�N���"
-		;��̃C�x���g��������ɉ��̃C�x���g����������̂�������ƕς��i�[�Ǝv���̂ŁA�����Ă�������������
-		ELSEIF COND("���сF�D�G") && CEVENT("���ю����F�D�G") == 0 && CEVENT("���ю����F�w�N���") == 0
-			PRINTFORMW �u���Č��ČZ����I ���̎������ʁI �˂��˂������Ȃ��I�H�v
-			PRINTFORMW �w��[�H �����A���������x
-			PRINTFORMW �u������Ɓ[�A���A�N�V���������Ȃ��H ���撣�����񂾂�H�v
-			PRINTFORMW �w�ʂɊ撣��Ȃ������Ă����邾��A���ꂮ�炢�c�c�x
-			PRINTFORMW �u�́[���I ���ꂾ����V�˂́I �������񎟂͊w�N��ʊl���Ă��Ă��񂾂���v
-			PRINTFORMW �w�����A�������x
-			PRINTFORMW �u�������c�c�I�v
-			CALL SET_CEVENT, "���ю����F�D�G"
-		;�@�\���邩�悭�킩��Ȃ����e�X�g�����ɂ����̂ŃR�����g�A�E�g���Ă���
-		; ELSEIF FLAG:�ɂ킩�J���� == 0
-		; 	PRINTFORMW �u���A�J�~���Ă�c�c�Z����P�����Ă�H�v
-		; 	PRINTFORMW �w����H�x
-		; 	PRINTFORMW �u�ȁ[��ł����������Ă��Ȃ��̌Z����c�c�v
-		; 	PRINTFORMW �w�����ĎP�ז������B�N���ɓ���Ă��炦�΂������x
-		; 	PRINTFORMW �u�����̈����߁c�c�v
+		IF CALCF("試験の予想点数") <= 30
+			PRINTFORMW 「兄さ～ん…今ヒマ？」
+			PRINTFORMW 『自分で勉強しろ』
+			PRINTFORMW 「やだ！ お願い本当に助けて！！ 次の試験なんにもわかんないの～！！」
+			PRINTFORMW 『お前そうやって泣きつくの何回目だよ！ 他の奴に頼めばいいだろ！』
+			PRINTFORMW 「無理ぃ～、兄さん助けてよ～……うっうっ」
+		ELSEIF COND("成績：学年上位") && CEVENT("成績自慢：学年上位") == 0
+			PRINTFORMW 「どーよ兄さん！ これが私の実力よ！」
+			PRINTFORMW 『…………』
+			PRINTFORMW 真が見せびらかした試験順位を見て、灯は押し黙っている……
+			PRINTFORMW 『お前……』
+			PRINTFORMW 「な、なに？」
+			PRINTFORMW 『……とうとう悪魔の取引したんか』
+			PRINTFORMW 「しーてーなーいー！」
+			CALL SET_CEVENT, "成績自慢：学年上位"
+		;上のイベントを見た後に下のイベントが発生するのもちょっと変かナーと思うので、敢えてこういう条件で
+		ELSEIF COND("成績：優秀") && CEVENT("成績自慢：優秀") == 0 && CEVENT("成績自慢：学年上位") == 0
+			PRINTFORMW 「見て見て兄さん！ 私の試験順位！ ねえねえ凄くない！？」
+			PRINTFORMW 『んー？ あぁ、凄い凄い』
+			PRINTFORMW 「ちょっとー、リアクション薄くない？ 私頑張ったんだよ？」
+			PRINTFORMW 『別に頑張んなくたっていけるだろ、それぐらい……』
+			PRINTFORMW 「はーっ！ これだから天才は！ いいもん次は学年上位獲ってきてやるんだから」
+			PRINTFORMW 『おぉ、あっそ』
+			PRINTFORMW 「ぐぎぎ……！」
+			CALL SET_CEVENT, "成績自慢：優秀"
+		;機能するかよくわからないしテストもやりにくいのでコメントアウトしておく
+		; ELSEIF FLAG:にわか雨判定 == 0
+		; 	PRINTFORMW 「あ、雨降ってる……兄さん傘持ってる？」
+		; 	PRINTFORMW 『いや？』
+		; 	PRINTFORMW 「なーんでいっつも持ってこないの兄さん……」
+		; 	PRINTFORMW 『だって傘邪魔じゃん。誰かに入れてもらえばいいし』
+		; 	PRINTFORMW 「こぉの悪女め……」
 		ELSE
-			PRINTFORMW �u�Z����A�����̔ӂ��тǂ�����H�v
-			PRINTFORMW �w���`�c�c�Ȃ�ł�������x
-			PRINTFORMW �u�c�c���Ⴀ�V�Ղ�ɂ���H�v
-			PRINTFORMW �w�����`�A�V�Ղ炟�H�x
-			PRINTFORMW �u���Ⴀ�����ƍl���Ă�`�c�c�v
+			PRINTFORMW 「兄さん、今日の晩ご飯どうする？」
+			PRINTFORMW 『あ～……なんでもいいよ』
+			PRINTFORMW 「……じゃあ天ぷらにする？」
+			PRINTFORMW 『えぇ～、天ぷらぁ？』
+			PRINTFORMW 「じゃあちゃんと考えてよ～……」
 		ENDIF
 	ELSEIF NO:PARTNER() == 48
-		PRINTFORMW �u�˂��A仂����c�c���́B���܃q�}�H�v
-		PRINTFORMW �w�q�}�x
-		PRINTFORMW �u�ق�ƂɁH ���ꂶ��c�c���́B�Q�[���ł�����H�v
-		PRINTFORMW �w�����x
-		PRINTFORMW �u�c�c�ق�ƂɁH�v
-		PRINTFORMW �w����x
-		PRINTFORMW �u���������c�c�v
+		PRINTFORMW 「ねえ、莉ちゃん……その。いまヒマ？」
+		PRINTFORMW 『ヒマ』
+		PRINTFORMW 「ほんとに？ それじゃ……その。ゲームでもする？」
+		PRINTFORMW 『いい』
+		PRINTFORMW 「……ほんとに？」
+		PRINTFORMW 『うん』
+		PRINTFORMW 「そっかぁ……」
 	ENDIF
 
-;�b���������鑤�̃Z���t�B���ʂ́w�x���g���̂��]�܂���
-CASE "�U��ꂽ"
+;話しかけられる側のセリフ。括弧は『』を使うのが望ましい
+CASE "誘われた"
 
 
 ENDSELECT

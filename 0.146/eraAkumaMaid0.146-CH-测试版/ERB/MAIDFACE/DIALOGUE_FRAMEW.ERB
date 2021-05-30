@@ -1,9 +1,9 @@
-;-------------------------------------------------
-;STR����WAIT����DIALOGUE_FRAME
-;STR���󂾂����ꍇ�͂��̍s�͎~�܂�Ȃ��̂ŊԂ���肽���Ȃ�󔒕����ł�����Ƃ��Ă�������
-;ARG��TARGET�Ƃ�ARGS�ɏ����̊�O���ω�
-;STR���ŕ��͂̌��"#F"�ŋ�؂��Ċ�O����ω������邱�Ƃ��ł���
-;��jSTR:1 = ����ɂ���#F�ɂ�����
+﻿;-------------------------------------------------
+;STR毎にWAITするDIALOGUE_FRAME
+;STRが空だった場合はその行は止まらないので間を作りたいなら空白文字でも入れといてください
+;ARGはTARGETとかARGSに初期の顔グラ変化
+;STR内で文章の後に"#F"で区切って顔グラを変化させることができる
+;例）STR:1 = こんにちは#Fにっこり
 ;-------------------------------------------------
 @DIALOGUE_FRAMEW, ARG, ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4, ARGS:5, ARGS:6, ARGS:7, ARGS:8, ARGS:9
 #DIM DYNAMIC LCOUNT
@@ -14,22 +14,22 @@
 
 MEMO_LINECOUNT = LINECOUNT
 
-;STR�̏㏑��
+;STRの上書き
 FOR LCOUNT, 1, 10
 	SIF ARGS:LCOUNT != ""
 		STR:LCOUNT = %ARGS:LCOUNT%
 NEXT
 
-;�\��̃R�s�[
+;表情のコピー
 SIF ARGS:0 != ""
 	MEMO_EMOTION = %ARGS:0%
 
-;STR�̓��e���R�s�[
+;STRの内容をコピー
 FOR LCOUNT, 0, 20
 	MEMO_STR:LCOUNT = %STR:LCOUNT%
 NEXT
 
-;�����������STR�͋�ɂ���
+;メモを取ったSTRは空にする
 VARSET STR, "", 0, 20
 
 FOR LCOUNT, 1, 20
@@ -38,13 +38,13 @@ FOR LCOUNT, 1, 20
 	CASE 19
 		SIF MEMO_STR:LCOUNT == ""
 			CONTINUE
-	;�Q�s�A���󔒂Ȃ�e�L�X�g�\���I��
+	;２行連続空白ならテキスト表示終了
 	CASEELSE
 		SIF MEMO_STR:LCOUNT == "" && MEMO_STR:(LCOUNT + 1) == ""
 			BREAK
 	ENDSELECT
 
-	;��O���ω��p�̏���
+	;顔グラ変化用の処理
 	IF STRCOUNT(MEMO_STR:LCOUNT, "#F")
 		VARSET LOCALS
 		SPLIT MEMO_STR:LCOUNT, "#F", LOCALS
@@ -52,23 +52,23 @@ FOR LCOUNT, 1, 20
 		MEMO_EMOTION = %LOCALS:1%
 	ENDIF
 
-	;MEMO����STR�̓��e�����ǂ��Ă���
+	;MEMOからSTRの内容をもどしていく
 	FOR LCOUNT2, 0, LCOUNT + 1
 		STR:LCOUNT2 = %MEMO_STR:LCOUNT2%
 	NEXT
 
-	;�ȑO�\�����������̂͏���
+	;以前表示させたものは消す
 	SIF MEMO_LINECOUNT != LINECOUNT
 		CLEARLINE LINECOUNT - MEMO_LINECOUNT
 
-	;�\��������
+	;表示させる
 	CALL DIALOGUE_FRAME, ARG, MEMO_EMOTION
 	SIF MEMO_STR:LCOUNT != ""
 		WAIT
 NEXT
 
 ;-------------------------------------------------
-;���@DIALOGUE_FRAMEW�̖��O�\���ǉ���
+;上の@DIALOGUE_FRAMEWの名前表示追加版
 ;-------------------------------------------------
 @DIALOGUE_FRAME_NAMEW, ARG, ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4, ARGS:5, ARGS:6, ARGS:7
 
@@ -76,9 +76,9 @@ STR:0 = - _%DISPLAY_NAME(ARG)%_ -
 CALL DIALOGUE_FRAMEW, ARG, ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4, ARGS:5, ARGS:6, ARGS:7
 
 ;-------------------------------------------------
-;STR����WAIT����ITEM��
-;STR���ŕ��͂̌��"#G"�ŋ�؂��ĕ\���摜��ύX�ł���
-;��jSTR:1 = ����ɂ���#G22�܂��낤1
+;STR毎にWAITするITEM版
+;STR内で文章の後に"#G"で区切って表示画像を変更できる
+;例）STR:1 = こんにちは#G22まぐろう1
 ;-------------------------------------------------
 @DIALOGUE_FRAME_ITEMW, ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4, ARGS:5, ARGS:6, ARGS:7, ARGS:8, ARGS:9
 #DIM DYNAMIC LCOUNT
@@ -89,22 +89,22 @@ CALL DIALOGUE_FRAMEW, ARG, ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4, ARGS:5, ARGS:6,
 
 MEMO_LINECOUNT = LINECOUNT
 
-;STR�̏㏑��
+;STRの上書き
 FOR LCOUNT, 1, 10
 	SIF ARGS:LCOUNT != ""
 		STR:LCOUNT = %ARGS:LCOUNT%
 NEXT
 
-;�\���摜�̃R�s�[
+;表示画像のコピー
 SIF ARGS:0 != ""
 	MEMO_IMG = %ARGS:0%
 
-;STR�̓��e���R�s�[
+;STRの内容をコピー
 FOR LCOUNT, 0, 20
 	MEMO_STR:LCOUNT = %STR:LCOUNT%
 NEXT
 
-;�����������STR�͋�ɂ���
+;メモを取ったSTRは空にする
 VARSET STR, "", 0, 20
 
 FOR LCOUNT, 1, 20
@@ -113,13 +113,13 @@ FOR LCOUNT, 1, 20
 	CASE 19
 		SIF MEMO_STR:LCOUNT == ""
 			CONTINUE
-	;�Q�s�A���󔒂Ȃ�e�L�X�g�\���I��
+	;２行連続空白ならテキスト表示終了
 	CASEELSE
 		SIF MEMO_STR:LCOUNT == "" && MEMO_STR:(LCOUNT + 1) == ""
 			BREAK
 	ENDSELECT
 
-	;�\���摜�ύX�p�̏���
+	;表示画像変更用の処理
 	IF STRCOUNT(MEMO_STR:LCOUNT, "#G")
 		VARSET LOCALS
 		SPLIT MEMO_STR:LCOUNT, "#G", LOCALS
@@ -127,16 +127,16 @@ FOR LCOUNT, 1, 20
 		MEMO_IMG = %LOCALS:1%
 	ENDIF
 
-	;MEMO����STR�̓��e�����ǂ��Ă���
+	;MEMOからSTRの内容をもどしていく
 	FOR LCOUNT2, 0, LCOUNT + 1
 		STR:LCOUNT2 = %MEMO_STR:LCOUNT2%
 	NEXT
 
-	;�ȑO�\�����������̂͏���
+	;以前表示させたものは消す
 	SIF MEMO_LINECOUNT != LINECOUNT
 		CLEARLINE LINECOUNT - MEMO_LINECOUNT
 
-	;�\��������
+	;表示させる
 	CALL DIALOGUE_FRAME_ITEM, MEMO_IMG
 	SIF MEMO_STR:LCOUNT != ""
 		WAIT

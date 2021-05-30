@@ -1,12 +1,12 @@
-;----------
-;������������ɂ������ď�����ʃt�@�C���ɂ����ق��������Ȃ��Ďv���č�����֐��u����
-;era�����Ń��C�h�Ŏg�����ɂ͂����R�ɂ��g����������
+﻿;----------
+;青空鈴口上を書くにいたって処理を別ファイルにしたほうがいいなって思って作った関数置き場
+;era悪魔でメイドで使う分にはご自由にお使いください
 ;----------
 ;
 ;----------
-;�A���R�}���h���Ɍ��オ���Ȃ��悤�ɂ���֐�
+;連続コマンド時に口上が被らないようにする関数
 ;
-;SELECTCASE KABURAND(3)�̂悤�ɕ\�L����
+;SELECTCASE KABURAND(3)のように表記する
 ;----------
 @KABURAND(ARG, ARG:1)
 #FUNCTION
@@ -20,72 +20,72 @@ SIF ACTOR == 0 && TARGET > 0
 	ACTOR = TARGET
 
 RVALUE = RAND:ARG
-IF COND("KOJO_DAILY�䎌��")
-	SIF CFLAG:ACTOR:�J�u�����h_DAILY == RVALUE
+IF COND("KOJO_DAILY台詞中")
+	SIF CFLAG:ACTOR:カブランド_DAILY == RVALUE
 		RESTART
-	CFLAG:ACTOR:�J�u�����h_DAILY = RVALUE
+	CFLAG:ACTOR:カブランド_DAILY = RVALUE
 ELSE
-	SIF CFLAG:ACTOR:�J�u�����h == RVALUE
+	SIF CFLAG:ACTOR:カブランド == RVALUE
 		RESTART
-	CFLAG:ACTOR:�J�u�����h = RVALUE
+	CFLAG:ACTOR:カブランド = RVALUE
 ENDIF
 RETURNF RVALUE
 
 ;----------
-;����Ǝ��̎ʐ^�B�e�p�֐�
+;口上独自の写真撮影用関数
 ;
-;@KOJO_MESSAGE_BEFORE_COM��
-;IF SELECTCOM == 158�����
-;CALL KOJOPIC_KX1�������Ă������Ăяo��
+;@KOJO_MESSAGE_BEFORE_COMに
+;IF SELECTCOM == 158作って
+;CALL KOJOPIC_KX1を書いてここを呼び出す
 ;----------
 @KOJOPIC_K33
 #DIM LCOUNT
-TFLAG:�n�̕��X�L�b�v = 1
+TFLAG:地の文スキップ = 1
 
-;COMF158_�ʐ^�B�e.ERB���Q�l�ɂ��Ȃ���
-;�����������Ēn�̕��Ǝʐ^�̃^�C�g��������
-;���łɌ���������΂Ȃ��ǂ�
-IF PREVEX("�u���o��") && INSERT("�C���T�[�g") && PREVEX("���O�W�����X�q�b�g") && ( PREVPLAY("���Ȉ�") || PREVPLAY("�����") )
-	PRINTFORMW %CALLNAME:MASTER%��%CALLNAME:TARGET%��%TEXTR("��t��/���o��")%���Ȃ���X�}�z���\�����c
-	PRINTFORML �߯
-	STR:�ʐ^ = %TEXTR("���܂�/�S��/�q�{")%��%TEXTR("���t�𒍂����/�ː������")%���o��%TEXTR("�������ĐⒸ���Ă���/�������\������Ă���/�g����ɂȂ��Ă���")%%CALLNAME:TARGET%
-	PRINTFORMW %CALLNAME:MASTER%�́w%STR:�ʐ^%�x���ʐ^�Ɏ��߂��B
-;�����ĂȂ��p�^�[���͔ėp�����o��
+;COMF158_写真撮影.ERBを参考にしながら
+;条件を書いて地の文と写真のタイトルを書く
+;ついでに口上も書けばなお良し
+IF PREVEX("Ｖ中出し") && INSERT("インサート") && PREVEX("ラグジャラスヒット") && ( PREVPLAY("屈曲位") || PREVPLAY("正常位") )
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に%TEXTR("種付け/中出し")%しながらスマホを構えた…
+	PRINTFORML ﾋﾟｯ
+	STR:写真 = %TEXTR("おまんこ/膣内/子宮")%に%TEXTR("精液を注がれる/射精される")%感覚で%TEXTR("仰け反って絶頂している/惚けた表情をしている/トロ顔になっている")%%CALLNAME:TARGET%
+	PRINTFORMW %CALLNAME:MASTER%は『%STR:写真%』を写真に収めた。
+;書いてないパターンは汎用文を出す
 ELSE
-	TFLAG:�n�̕��X�L�b�v = 0
+	TFLAG:地の文スキップ = 0
 	RETURN 1
 ENDIF
 
-STR:�⑫ += @"_%CALLNAME:TARGET%"
-STR:�⑫ += "_����"
+STR:補足 += @"_%CALLNAME:TARGET%"
+STR:補足 += "_事後"
 
-SIF CHECK_CLO("�����p")
-	STR:�⑫ += "_����"
-SIF CHECK_CLO("�̑����p")
-	STR:�⑫ += "_�̑���"
-SIF CHECK_CLO("�w�����p")
-	STR:�⑫ += "_�w����"
+SIF CHECK_CLO("水着姿")
+	STR:補足 += "_水着"
+SIF CHECK_CLO("体操服姿")
+	STR:補足 += "_体操服"
+SIF CHECK_CLO("学生服姿")
+	STR:補足 += "_学生服"
 
-;���t�̋L�^
-STR:�⑫ += @"_���t%TOSTR(DAY*10 + TIME)%"
+;日付の記録
+STR:補足 += @"_日付%TOSTR(DAY*10 + TIME)%"
 
-SAVESTR:�ʐ^ = %STR:�ʐ^%
+SAVESTR:写真 = %STR:写真%
 
-CALL SAVE_PHOTO, @"%STR:�ʐ^%%STR:�⑫%"
+CALL SAVE_PHOTO, @"%STR:写真%%STR:補足%"
 
-;�������c��
+;履歴を残す
 VARSET LOCALS
-SPLIT SAVESTR:�g���̎B�e����, "/", LOCALS
+SPLIT SAVESTR:Ｈ中の撮影履歴, "/", LOCALS
 
 FOR LCOUNT, 0, 100
 	SIF LOCALS:LCOUNT == ""
 		BREAK
-	;���łɎ����ʐ^�����邩���`�F�b�N
-	SIF CHECK_HIGHMATCH(SAVESTR:�ʐ^, LOCALS:LCOUNT) == 0
+	;すでに似た写真があるかをチェック
+	SIF CHECK_HIGHMATCH(SAVESTR:写真, LOCALS:LCOUNT) == 0
 		CONTINUE
-	SAVESTR:�ʐ^ = 
+	SAVESTR:写真 = 
 NEXT
-SIF SAVESTR:�ʐ^ != ""
-	SAVESTR:�g���̎B�e���� += @"%SAVESTR:�ʐ^%\/"
+SIF SAVESTR:写真 != ""
+	SAVESTR:Ｈ中の撮影履歴 += @"%SAVESTR:写真%\/"
 
-STR:�ʐ^ = 
+STR:青写真 = 

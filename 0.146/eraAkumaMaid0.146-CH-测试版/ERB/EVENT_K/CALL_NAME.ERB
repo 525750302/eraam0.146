@@ -1,6 +1,6 @@
-;--------------------------------------------------
-;���Œ��X�ƋL�q���Ă���l�̊Ǘ��֐�@CNAME��TARGET�ȊO���w��ł����
-;ARG�ɔ����҂̔ԍ������Ă�������
+﻿;--------------------------------------------------
+;下で長々と記述している人称管理関数@CNAMEのTARGET以外も指定できる版
+;ARGに発言者の番号を入れてください
 ;--------------------------------------------------
 @CNAMET(ARG, ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4)
 #FUNCTIONS
@@ -8,10 +8,10 @@
 
 MEMO_TARGET = TARGET
 
-;�ϊ����K�v��ARGS�̏���
+;変換が必要なARGSの処理
 SELECTCASE ARGS
-;�p�[�g�i�[�Ăт�TARGET�̖��O�Ăтɕϊ�����
-CASE "�p�[�g�i�["
+;パートナー呼びはTARGETの名前呼びに変換する
+CASE "パートナー"
 	SIF ARG != TARGET
 		ARGS = %CALLNAME:TARGET%
 ENDSELECT
@@ -25,12 +25,12 @@ TARGET = MEMO_TARGET
 RETURNF LOCALS
 
 ;--------------------------------------------------
-;TARGET�̐l�̊Ǘ��֐�@CNAME
-;ARGS�ɉ��l�̂��A�܂��͒N�ւ̌Ăт�����������B
-;ARGS:1�`�ɂ͂ǂ���A�Â��A���ȁA�`�ȂǕω������������e������
-;��{�I�Ȑl�̂�PERSON_DEF�Őݒ肵�A����ȃP�[�X�̌Ăі���PERSON��p���Đݒ肷��
-;��̓I�ɂ́APERSON���ݒ肳��Ă���ꍇ�ɂ�PERSON�A�����łȂ��ꍇ�ɂ�PERSON_DEF��p���邱�ƂɂȂ�
-;�܂��ACEVENT��p�����Ăі��ύX��PERSON���ݒ肳��Ă���ꍇ�ɂ͖��������̂Œ���
+;TARGETの人称管理関数@CNAME
+;ARGSに何人称か、または誰への呼びかけかを入れる。
+;ARGS:1～にはどもり、甘え、かな、～など変化をつけたい内容を入れる
+;基本的な人称はPERSON_DEFで設定し、特殊なケースの呼び名はPERSONを用いて設定する
+;具体的には、PERSONが設定されている場合にはPERSON、そうでない場合にはPERSON_DEFを用いることになる
+;また、CEVENTを用いた呼び名変更はPERSONが設定されている場合には無視されるので注意
 ;--------------------------------------------------
 @CNAME(ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4)
 #FUNCTIONS
@@ -39,17 +39,17 @@ RETURNF LOCALS
 #DIM MEMO_PLAYER
 #DIM MEMO_ASSI
 #DIMS MEMO_ARGS
-;�Ăі����ݒ�̏ꍇ�ɑ��̌Ăі�������t���O
+;呼び名未設定の場合に他の呼び名を見るフラグ
 #DIMS USE_CNAME
-;���O���Ăԑ���̃L�����ԍ��̑���Ɏg��
+;名前を呼ぶ相手のキャラ番号の代入に使う
 #DIM ACTOR
-;�Ăі�
+;呼び名
 #DIMS PERSON
-;��т�
+;よびな
 #DIMS KANA
-;��{�Ăі�
+;基本呼び名
 #DIMS PERSON_DEF
-;��{��т�
+;基本よびな
 #DIMS KANA_DEF
 
 MEMO_PLAYER = PLAYER
@@ -57,174 +57,174 @@ MEMO_ASSI = ASSI
 
 USE_CNAME = 
 
-;��{�Ăі��̃��Z�b�g
+;基本呼び名のリセット
 VARSET PERSON_DEF
 VARSET KANA_DEF
 
-;���i�Ƃ͈قȂ�Ăі��̃��Z�b�g
+;普段とは異なる呼び名のリセット
 VARSET PERSON
 VARSET KANA
 
-;�ϊ����K�v��ARGS�̏���
+;変換が必要なARGSの処理
 SELECTCASE ARGS
-CASE "�p�[�g�i�["
-	ARGS = %NAMES("�p�[�g�i�[")%
+CASE "パートナー"
+	ARGS = %NAMES("パートナー")%
 ENDSELECT
 MEMO_ARGS = %ARGS%
 
-;ARGS���L������CALLNAME�ɓ������ꍇ�́A�Ăі����ݒ�Ȃ瑼�̏ꍇ������
+;ARGSがキャラのCALLNAMEに等しい場合は、呼び名未設定なら他の場合を見る
 SELECTCASE FIND_NO(ARGS)
 CASE IS <= 0
 CASE PLAYER
-	USE_CNAME = ��l��
+	USE_CNAME = 二人称
 ;CASE MASTER
-;	USE_CNAME = ��l
+;	USE_CNAME = 主人
 ;CASE ASSI
-;	USE_CNAME = ����
+;	USE_CNAME = 助手
 CASEELSE
-	USE_CNAME = ����
+	USE_CNAME = 助手
 ENDSELECT
 
 $CNAME_LOOP
 
-STR:��{�Ăі� = 
-;TRYCALLFORM�����g����΂ȁ[
-;�ǉ������L�����̔ԍ��ɉ����đ��₷
+STR:基本呼び名 = 
+;TRYCALLFORMさえ使えればなー
+;追加したキャラの番号に応じて増やす
 SELECTCASE NO:TARGET
 CASE 1
-	STR:��{�Ăі� = %CNAME_K1(ARGS)%
+	STR:基本呼び名 = %CNAME_K1(ARGS)%
 CASE 2
-	STR:��{�Ăі� = %CNAME_K2(ARGS)%
+	STR:基本呼び名 = %CNAME_K2(ARGS)%
 CASE 3
-	STR:��{�Ăі� = %CNAME_K3(ARGS)%
+	STR:基本呼び名 = %CNAME_K3(ARGS)%
 CASE 4
-	STR:��{�Ăі� = %CNAME_K4(ARGS)%
+	STR:基本呼び名 = %CNAME_K4(ARGS)%
 CASE 5
-	STR:��{�Ăі� = %CNAME_K5(ARGS)%
+	STR:基本呼び名 = %CNAME_K5(ARGS)%
 CASE 6
-	STR:��{�Ăі� = %CNAME_K6(ARGS)%
+	STR:基本呼び名 = %CNAME_K6(ARGS)%
 CASE 7
-	STR:��{�Ăі� = %CNAME_K7(ARGS)%
+	STR:基本呼び名 = %CNAME_K7(ARGS)%
 CASE 8
-	STR:��{�Ăі� = %CNAME_K8(ARGS)%
+	STR:基本呼び名 = %CNAME_K8(ARGS)%
 CASE 9
-	STR:��{�Ăі� = %CNAME_K9(ARGS)%
+	STR:基本呼び名 = %CNAME_K9(ARGS)%
 CASE 10
-	STR:��{�Ăі� = %CNAME_K10(ARGS)%
+	STR:基本呼び名 = %CNAME_K10(ARGS)%
 CASE 11
-	STR:��{�Ăі� = %CNAME_K11(ARGS)%
+	STR:基本呼び名 = %CNAME_K11(ARGS)%
 CASE 12
-	STR:��{�Ăі� = %CNAME_K12(ARGS)%
+	STR:基本呼び名 = %CNAME_K12(ARGS)%
 CASE 13
-	STR:��{�Ăі� = %CNAME_K13(ARGS)%
+	STR:基本呼び名 = %CNAME_K13(ARGS)%
 CASE 14
-	STR:��{�Ăі� = %CNAME_K14(ARGS)%
+	STR:基本呼び名 = %CNAME_K14(ARGS)%
 CASE 15
-	STR:��{�Ăі� = %CNAME_K15(ARGS)%
+	STR:基本呼び名 = %CNAME_K15(ARGS)%
 CASE 16
-	STR:��{�Ăі� = %CNAME_K16(ARGS)%
+	STR:基本呼び名 = %CNAME_K16(ARGS)%
 CASE 17
-	STR:��{�Ăі� = %CNAME_K17(ARGS)%
+	STR:基本呼び名 = %CNAME_K17(ARGS)%
 CASE 18
-	STR:��{�Ăі� = %CNAME_K18(ARGS)%
+	STR:基本呼び名 = %CNAME_K18(ARGS)%
 CASE 19
-	STR:��{�Ăі� = %CNAME_K19(ARGS)%
+	STR:基本呼び名 = %CNAME_K19(ARGS)%
 CASE 20
-	STR:��{�Ăі� = %CNAME_K20(ARGS)%
+	STR:基本呼び名 = %CNAME_K20(ARGS)%
 CASE 21
-	STR:��{�Ăі� = %CNAME_K21(ARGS)%
+	STR:基本呼び名 = %CNAME_K21(ARGS)%
 CASE 22
-	STR:��{�Ăі� = %CNAME_K22(ARGS)%
+	STR:基本呼び名 = %CNAME_K22(ARGS)%
 CASE 23
-	STR:��{�Ăі� = %CNAME_K23(ARGS)%
+	STR:基本呼び名 = %CNAME_K23(ARGS)%
 CASE 24
-	STR:��{�Ăі� = %CNAME_K24(ARGS)%
+	STR:基本呼び名 = %CNAME_K24(ARGS)%
 CASE 25
-	STR:��{�Ăі� = %CNAME_K25(ARGS)%
+	STR:基本呼び名 = %CNAME_K25(ARGS)%
 CASE 26
-	STR:��{�Ăі� = %CNAME_K26(ARGS)%
+	STR:基本呼び名 = %CNAME_K26(ARGS)%
 CASE 27
-	STR:��{�Ăі� = %CNAME_K27(ARGS)%
+	STR:基本呼び名 = %CNAME_K27(ARGS)%
 CASE 28
-	STR:��{�Ăі� = %CNAME_K28(ARGS)%
+	STR:基本呼び名 = %CNAME_K28(ARGS)%
 CASE 29
-	STR:��{�Ăі� = %CNAME_K29(ARGS)%
+	STR:基本呼び名 = %CNAME_K29(ARGS)%
 CASE 30
-	STR:��{�Ăі� = %CNAME_K30(ARGS)%
+	STR:基本呼び名 = %CNAME_K30(ARGS)%
 CASE 31
-	STR:��{�Ăі� = %CNAME_K31(ARGS)%
+	STR:基本呼び名 = %CNAME_K31(ARGS)%
 CASE 32
-	STR:��{�Ăі� = %CNAME_K32(ARGS)%
+	STR:基本呼び名 = %CNAME_K32(ARGS)%
 CASE 33
-	STR:��{�Ăі� = %CNAME_K33(ARGS)%
+	STR:基本呼び名 = %CNAME_K33(ARGS)%
 CASE 34
-	STR:��{�Ăі� = %CNAME_K34(ARGS)%
+	STR:基本呼び名 = %CNAME_K34(ARGS)%
 CASE 35
-	STR:��{�Ăі� = %CNAME_K35(ARGS)%
+	STR:基本呼び名 = %CNAME_K35(ARGS)%
 CASE 36
-	STR:��{�Ăі� = %CNAME_K36(ARGS)%
+	STR:基本呼び名 = %CNAME_K36(ARGS)%
 CASE 37
-	STR:��{�Ăі� = %CNAME_K37(ARGS)%
+	STR:基本呼び名 = %CNAME_K37(ARGS)%
 CASE 38
-	STR:��{�Ăі� = %CNAME_K38(ARGS)%
+	STR:基本呼び名 = %CNAME_K38(ARGS)%
 CASE 39
-	STR:��{�Ăі� = %CNAME_K39(ARGS)%
+	STR:基本呼び名 = %CNAME_K39(ARGS)%
 CASE 40
-	STR:��{�Ăі� = %CNAME_K40(ARGS)%
+	STR:基本呼び名 = %CNAME_K40(ARGS)%
 CASE 41
-	STR:��{�Ăі� = %CNAME_K41(ARGS)%
+	STR:基本呼び名 = %CNAME_K41(ARGS)%
 CASE 42
-	STR:��{�Ăі� = %CNAME_K42(ARGS)%
+	STR:基本呼び名 = %CNAME_K42(ARGS)%
 
 CASE 44
-	STR:��{�Ăі� = %CNAME_K44(ARGS)%
+	STR:基本呼び名 = %CNAME_K44(ARGS)%
 CASE 45
-	STR:��{�Ăі� = %CNAME_K45(ARGS)%
+	STR:基本呼び名 = %CNAME_K45(ARGS)%
 CASE 46
-	STR:��{�Ăі� = %CNAME_K46(ARGS)%
+	STR:基本呼び名 = %CNAME_K46(ARGS)%
 CASE 47
-	STR:��{�Ăі� = %CNAME_K47(ARGS)%
+	STR:基本呼び名 = %CNAME_K47(ARGS)%
 CASE 48
-	STR:��{�Ăі� = %CNAME_K48(ARGS)%
+	STR:基本呼び名 = %CNAME_K48(ARGS)%
 CASE 49
-	STR:��{�Ăі� = %CNAME_K49(ARGS)%
+	STR:基本呼び名 = %CNAME_K49(ARGS)%
 CASE 50
-	STR:��{�Ăі� = %CNAME_K50(ARGS)%
+	STR:基本呼び名 = %CNAME_K50(ARGS)%
 CASE 51
-	STR:��{�Ăі� = %CNAME_K51(ARGS)%
+	STR:基本呼び名 = %CNAME_K51(ARGS)%
 CASE 52
-	STR:��{�Ăі� = %CNAME_K52(ARGS)%
+	STR:基本呼び名 = %CNAME_K52(ARGS)%
 CASE 53
-	STR:��{�Ăі� = %CNAME_K53(ARGS)%
+	STR:基本呼び名 = %CNAME_K53(ARGS)%
 CASE 55
-	STR:��{�Ăі� = %CNAME_K55(ARGS)%
+	STR:基本呼び名 = %CNAME_K55(ARGS)%
 CASE 56
-	STR:��{�Ăі� = %CNAME_K56(ARGS)%
+	STR:基本呼び名 = %CNAME_K56(ARGS)%
 CASE 57
-	STR:��{�Ăі� = %CNAME_K57(ARGS)%
+	STR:基本呼び名 = %CNAME_K57(ARGS)%
 CASE 58
-	STR:��{�Ăі� = %CNAME_K58(ARGS)%
+	STR:基本呼び名 = %CNAME_K58(ARGS)%
 
-;�Ⴂ�󂫔ԍ�
+;若い空き番号
 ;CASE 54
-;	STR:��{�Ăі� = %CNAME_K54(ARGS)%
+;	STR:基本呼び名 = %CNAME_K54(ARGS)%
 
-;�ԍ��\��
-;[�يE�̍~��p�t]�V�I��
+;番号予約
+;[異界の降霊術師]シオン
 ;CASE 43
-;	STR:��{�Ăі� = %CNAME_K43(ARGS)%
+;	STR:基本呼び名 = %CNAME_K43(ARGS)%
 
 
 CASE 100
-	STR:��{�Ăі� = %CNAME_K100(ARGS)%
+	STR:基本呼び名 = %CNAME_K100(ARGS)%
 ENDSELECT
 
-;���̌Ăі�������t���O�������Ă��邩�`�F�b�N
-IF STR:��{�Ăі� == "" && USE_CNAME != ""
+;他の呼び名を見るフラグが立っているかチェック
+IF STR:基本呼び名 == "" && USE_CNAME != ""
 	SELECTCASE USE_CNAME
-	CASE "��l��"
+	CASE "二人称"
 		PLAYER = FIND_NO(ARGS)
-	CASE "����"
+	CASE "助手"
 		ASSI = FIND_NO(ARGS)
 	ENDSELECT
 
@@ -233,43 +233,43 @@ IF STR:��{�Ăі� == "" && USE_CNAME != ""
 	GOTO CNAME_LOOP
 ENDIF
 
-;ARGS,ASSI,PLAYER�����ɖ߂�
+;ARGS,ASSI,PLAYERを元に戻す
 ARGS = %MEMO_ARGS%
 ASSI = MEMO_ASSI
 PLAYER = MEMO_PLAYER
 
-;�Ăі����ݒ肳��Ă���
-IF STR:��{�Ăі� != ""
+;呼び名が設定されている
+IF STR:基本呼び名 != ""
 	VARSET LOCALS
-	SPLIT STR:��{�Ăі�, "_", LOCALS
+	SPLIT STR:基本呼び名, "_", LOCALS
 	PERSON_DEF = %LOCALS%
 	KANA_DEF = %LOCALS:1%
-;����Ă��Ȃ��ꍇ�͔ėp�Ăі�
+;されていない場合は汎用呼び名
 ELSE
 	SELECTCASE ARGS
-	CASE "��l��"
-		PERSON_DEF = ��
-		KANA_DEF = �킽��
-	CASE "��l��"
-		;���肪��l
+	CASE "一人称"
+		PERSON_DEF = 私
+		KANA_DEF = わたし
+	CASE "二人称"
+		;相手が主人
 		IF PLAYER == MASTER
-			PERSON_DEF = ���Ȃ�
-			KANA_DEF = ���Ȃ�
-		;���肪��l�ł͂Ȃ�
+			PERSON_DEF = あなた
+			KANA_DEF = あなた
+		;相手が主人ではない
 		ELSE
-			PERSON_DEF = ���Ȃ�
-			KANA_DEF = ���Ȃ�
+			PERSON_DEF = あなた
+			KANA_DEF = あなた
 		ENDIF
-	CASE "��l"
-		PERSON_DEF = ����l�l
-		KANA_DEF = �����ザ�񂳂�
+	CASE "主人"
+		PERSON_DEF = ご主人様
+		KANA_DEF = ごしゅじんさま
 	CASEELSE
-		;���O���Ăԑ���̃L�����ԍ���ACTOR�ɑ������
+		;名前を呼ぶ相手のキャラ番号をACTORに代入する
 		SELECTCASE ARGS
-		;���肪����
-		CASE "����"
+		;相手が助手
+		CASE "助手"
 			ACTOR = ASSI
-		;�����ɂ�ARGS�ɃL������CALLNAME���������肵�Ă���ꍇ(ARGS == "�t�F���V�G��" �Ȃ�)�ɗ���
+		;ここにはARGSにキャラのCALLNAMEが入ったりしている場合(ARGS == "フェリシエル" など)に来る
 		CASEELSE
 			ACTOR = FIND_NO(ARGS)
 		ENDSELECT
@@ -278,34 +278,34 @@ ELSE
 			PERSON_DEF = %ARGS%
 			KANA_DEF = %ARGS%
 		ELSE
-			;���肪����
-			IF COND("����", ACTOR)
-				STR:��{�Ăі� = %CALLNAME:ACTOR%�搶_%CSTR:ACTOR:�ӂ肪��%���񂹂�
+			;相手が教員
+			IF COND("教員", ACTOR)
+				STR:基本呼び名 = %CALLNAME:ACTOR%先生_%CSTR:ACTOR:ふりがな%せんせい
 
-			;������������w���Ȃ�w�N��r
-			ELSEIF COND("�w��") && COND("�w��", ACTOR)
-				;���肪���w�N
-				IF COND("�w�N") == COND("�w�N", ACTOR)
-					STR:��{�Ăі� = %CALLNAME:ACTOR%_%CSTR:ACTOR:�ӂ肪��%
-				;���肪���̊w�N
-				ELSEIF COND("�w�N") > COND("�w�N", ACTOR)
-					IF TALENT:ACTOR:�I�g�R
-						STR:��{�Ăі� = %CALLNAME:ACTOR%_%CSTR:ACTOR:�ӂ肪��%
+			;自分も相手も学生なら学年比較
+			ELSEIF COND("学生") && COND("学生", ACTOR)
+				;相手が同学年
+				IF COND("学年") == COND("学年", ACTOR)
+					STR:基本呼び名 = %CALLNAME:ACTOR%_%CSTR:ACTOR:ふりがな%
+				;相手が下の学年
+				ELSEIF COND("学年") > COND("学年", ACTOR)
+					IF TALENT:ACTOR:オトコ
+						STR:基本呼び名 = %CALLNAME:ACTOR%_%CSTR:ACTOR:ふりがな%
 					ELSE
-						STR:��{�Ăі� = %CALLNAME:ACTOR%�����_%CSTR:ACTOR:�ӂ肪��%�����
+						STR:基本呼び名 = %CALLNAME:ACTOR%ちゃん_%CSTR:ACTOR:ふりがな%ちゃん
 					ENDIF
-				;���肪�㋉��
+				;相手が上級生
 				ELSE
-					STR:��{�Ăі� = %CALLNAME:ACTOR%��y_%CSTR:ACTOR:�ӂ肪��%����ς�
+					STR:基本呼び名 = %CALLNAME:ACTOR%先輩_%CSTR:ACTOR:ふりがな%せんぱい
 				ENDIF
 
-			;����ȊO
+			;それ以外
 			ELSE
-				STR:��{�Ăі� = %CALLNAME:ACTOR%����_%CSTR:ACTOR:�ӂ肪��%����
+				STR:基本呼び名 = %CALLNAME:ACTOR%さん_%CSTR:ACTOR:ふりがな%さん
 			ENDIF
 
 			VARSET LOCALS
-			SPLIT STR:��{�Ăі�, "_", LOCALS
+			SPLIT STR:基本呼び名, "_", LOCALS
 			PERSON_DEF = %LOCALS%
 			KANA_DEF = %LOCALS:1%
 		ENDIF
@@ -313,162 +313,162 @@ ELSE
 ENDIF
 
 
-;�����܂łŐl�̂̕ω����N���Ă��Ȃ��ꍇ�ɂ́A�l�̕ύX�����Ă���Ȃ炻����A���Ă��Ȃ��Ȃ�f�t�H�̐l�̂��g��
+;ここまでで人称の変化が起きていない場合には、人称変更をしているならそれを、していないならデフォの人称を使う
 IF PERSON == ""
 	PERSON = %PERSON_DEF%
 	KANA = %KANA_DEF%
 
 	SELECTCASE ARGS
-	CASE "��l��"
-		IF PLAYER == MASTER && CEVENTS("��l�̎�l") != ""
-			PERSON = %CEVENTS("��l�̎�l")%
-			KANA = %CEVENTS("��l�̎�l����")%
-		ELSEIF PLAYER == ASSI && CEVENTS("��l�̏���") != ""
-			PERSON = %CEVENTS("��l�̏���")%
-			KANA = %CEVENTS("��l�̏��肩��")%
-		ELSEIF CEVENTS("��l��") != ""
-			PERSON = %CEVENTS("��l��")%
-			KANA = %CEVENTS("��l�̂���")%
+	CASE "一人称"
+		IF PLAYER == MASTER && CEVENTS("一人称主人") != ""
+			PERSON = %CEVENTS("一人称主人")%
+			KANA = %CEVENTS("一人称主人かな")%
+		ELSEIF PLAYER == ASSI && CEVENTS("一人称助手") != ""
+			PERSON = %CEVENTS("一人称助手")%
+			KANA = %CEVENTS("一人称助手かな")%
+		ELSEIF CEVENTS("一人称") != ""
+			PERSON = %CEVENTS("一人称")%
+			KANA = %CEVENTS("一人称かな")%
 		ENDIF
-	CASE "��l��"
-		IF PLAYER == MASTER && CEVENTS("��l�̎�l") != ""
-			PERSON = %CEVENTS("��l�̎�l")%
-			KANA = %CEVENTS("��l�̎�l����")%
-		ELSEIF PLAYER == ASSI && CEVENTS("��l�̏���") != ""
-			PERSON = %CEVENTS("��l�̏���")%
-			KANA = %CEVENTS("��l�̏��肩��")%
-		ELSEIF CEVENTS("��l��") != ""
-			PERSON = %CEVENTS("��l��")%
-			KANA = %CEVENTS("��l�̂���")%
+	CASE "二人称"
+		IF PLAYER == MASTER && CEVENTS("二人称主人") != ""
+			PERSON = %CEVENTS("二人称主人")%
+			KANA = %CEVENTS("二人称主人かな")%
+		ELSEIF PLAYER == ASSI && CEVENTS("二人称助手") != ""
+			PERSON = %CEVENTS("二人称助手")%
+			KANA = %CEVENTS("二人称助手かな")%
+		ELSEIF CEVENTS("二人称") != ""
+			PERSON = %CEVENTS("二人称")%
+			KANA = %CEVENTS("二人称かな")%
 		ENDIF
-	CASE "��l"
-		IF CEVENTS("��l�̎�l") != ""
-			PERSON = %CEVENTS("��l�̎�l")%
-			KANA = %CEVENTS("��l�̎�l����")%
-		ELSEIF CEVENTS("��l��") != ""
-			PERSON = %CEVENTS("��l��")%
-			KANA = %CEVENTS("��l�̂���")%
+	CASE "主人"
+		IF CEVENTS("二人称主人") != ""
+			PERSON = %CEVENTS("二人称主人")%
+			KANA = %CEVENTS("二人称主人かな")%
+		ELSEIF CEVENTS("二人称") != ""
+			PERSON = %CEVENTS("二人称")%
+			KANA = %CEVENTS("二人称かな")%
 		ENDIF
-	CASE "����"
-		IF CEVENTS("��l�̏���") != ""
-			PERSON = %CEVENTS("��l�̏���")%
-			KANA = %CEVENTS("��l�̏��肩��")%
-		ELSEIF CEVENTS("��l��") != ""
-			PERSON = %CEVENTS("��l��")%
-			KANA = %CEVENTS("��l�̂���")%
+	CASE "助手"
+		IF CEVENTS("二人称助手") != ""
+			PERSON = %CEVENTS("二人称助手")%
+			KANA = %CEVENTS("二人称助手かな")%
+		ELSEIF CEVENTS("二人称") != ""
+			PERSON = %CEVENTS("二人称")%
+			KANA = %CEVENTS("二人称かな")%
 		ENDIF
 	ENDSELECT
 ENDIF
 
 
-;�ȉ��ōׂ����ω�������
+;以下で細かい変化をつける
 
-;�Ђ炪�ȉ�
+;ひらがな化
 FOR LCOUNT, 1, 5
 	SELECTCASE ARGS:LCOUNT
-	CASE "����", "�E"
+	CASE "かな", "・"
 		PERSON = %KANA%
 	ENDSELECT
 NEXT
 
-;���E�ɁE���E����i�Ђ炪�ȉ��͏�Ŋ��Ɋ����j
+;お・に・い・さん（ひらがな化は上で既に完了）
 FOR LCOUNT, 1, 5
-	SIF ARGS:LCOUNT != "�E"
+	SIF ARGS:LCOUNT != "・"
 		CONTINUE
 
 	FOR LCOUNT2, 0, 20
 		SIF STRLENS(PERSON) <= 2 + LCOUNT2 * 4
 			BREAK
-		PERSON = %SUBSTRING(PERSON, 0, 2 + LCOUNT2 * 4)%�E%SUBSTRING(PERSON, 2 + LCOUNT2 * 4, -1)%
+		PERSON = %SUBSTRING(PERSON, 0, 2 + LCOUNT2 * 4)%・%SUBSTRING(PERSON, 2 + LCOUNT2 * 4, -1)%
 	NEXT
 	SELECTCASE PERSON
-	;����ω�
-	CASE "���E��E���E��"
-		PERSON = ���E��E��
+	;特殊変化
+	CASE "せ・ん・せ・い"
+		PERSON = せ・ん・せ
 	CASEELSE
 		SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 6, 0), -1)
-		CASE "���E��"
-			PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%����
-		CASE "���E��"
-			PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%����
+		CASE "さ・ん"
+			PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%さん
+		CASE "く・ん"
+			PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%くん
 		CASEELSE
 			SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 10, 0), -1)
-			CASE "���E��E��"
-				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 10)%�����
+			CASE "ち・ゃ・ん"
+				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 10)%ちゃん
 			ENDSELECT
 		ENDSELECT
 	ENDSELECT
 NEXT
-;�Â�(���ʂ��Ƃ��݂����ȊÂ��鎖���ُ�ȌĂѕ�������̂ŌʊǗ�)
+;甘え(おぬしとかみたいな甘える事が異常な呼び方もあるので個別管理)
 FOR LCOUNT, 1, 5
-	SIF ARGS:LCOUNT != "�Â�"
+	SIF ARGS:LCOUNT != "甘え"
 		CONTINUE
 
 	SELECTCASE PERSON
-	CASE "�}�X�^�["
-		PERSON = �}�X�^��
-	CASE "���Ȃ�", "�ڂ���", "�}�}", "�܂�", "�p�p", "�ς�"
-		PERSON = %PERSON%��
-	CASE "������", "�A�^�V", "���邶", "�킽��", "���^�V", "�킽����", "���^�N�V"
-		PERSON = %PERSON%��
-	CASE "�l", "�ڂ�", "�{�N"
-		PERSON = %PERSON%��
-	CASE "����", "�I��", "���", "�͂͂���", "����", "��������", "�o��", "���˂���", "�Z��", "���ɂ���"
-		PERSON = %PERSON%��
-	CASE "���񂹂�"
-		PERSON = ���񂹂�
-	CASE "��y"
-		PERSON = ����ς���
-	;�Â�����������
-	CASE "�M��", "�M��", "�N", "����", "�L�~", "�}�X�^�[", "�܂����["
+	CASE "マスター"
+		PERSON = マスタぁ
+	CASE "あなた", "ぼうや", "ママ", "まま", "パパ", "ぱぱ"
+		PERSON = %PERSON%ぁ
+	CASE "あたし", "アタシ", "あるじ", "わたし", "ワタシ", "わたくし", "ワタクシ"
+		PERSON = %PERSON%ぃ
+	CASE "僕", "ぼく", "ボク"
+		PERSON = %PERSON%ぅ
+	CASE "おれ", "オレ", "母上", "ははうえ", "父上", "ちちうえ", "姉上", "あねうえ", "兄上", "あにうえ"
+		PERSON = %PERSON%ぇ
+	CASE "せんせい"
+		PERSON = せんせぇ
+	CASE "先輩"
+		PERSON = せんぱぁい
+	;甘え口調が無い
+	CASE "貴方", "貴女", "君", "きみ", "キミ", "マスター", "ますたー"
 	CASEELSE
 		SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 2, 0), -1)
-		CASE "�l"
-			PERSON = %PERSON%��
-		CASE "�N"
+		CASE "様"
+			PERSON = %PERSON%ぁ
+		CASE "君"
 			SIF STRLENS(PERSON) >= 3
-				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 2)%������
+				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 2)%くぅん
 		CASEELSE
 			SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 4, 0), -1)
-			CASE "�搶"
-				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%���񂹂�
-			CASE "����"
-				PERSON = %PERSON%��
-			CASE "����"
-				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%������
-			CASE "����"
-				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%������
+			CASE "先生"
+				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%せんせぇ
+			CASE "さま"
+				PERSON = %PERSON%ぁ
+			CASE "さん"
+				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%さぁん
+			CASE "くん"
+				PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 4)%くぅん
 
 			CASEELSE
 				SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 6, 0), -1)
-				CASE "�����"
-					PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%���႟��
-				CASE "�����"
-					PERSON = %PERSON%��
+				CASE "ちゃん"
+					PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 6)%ちゃぁん
+				CASE "しゃま"
+					PERSON = %PERSON%ぁ
 				ENDSELECT
 			ENDSELECT
 		ENDSELECT
 	ENDSELECT
 NEXT
 
-;�������Ƃ��g�_�b�V���Ƃ�
+;音引きとか波ダッシュとか
 FOR LCOUNT, 1, 5
 	SELECTCASE ARGS:LCOUNT
-	CASE "�[", "�`", "�A", "�c", "�c�c"
+	CASE "ー", "～", "、", "…", "……"
 		SELECTCASE SUBSTRING(PERSON, MAX(STRLENS(PERSON) - 2, 0), -1)
-		CASE "��"
-			PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 2)%%ARGS:LCOUNT%��
+		CASE "ん"
+			PERSON = %SUBSTRING(PERSON, 0, STRLENS(PERSON) - 2)%%ARGS:LCOUNT%ん
 		ENDSELECT
 	ENDSELECT
 NEXT
-;�ǂ���
+;どもり
 FOR LCOUNT, 1, 5
 	SIF STRLENS(KANA) <= 2
 		BREAK
-	SIF ARGS:LCOUNT != "�ǂ���"
+	SIF ARGS:LCOUNT != "どもり"
 		CONTINUE
 
-	PERSON = %SUBSTRING(KANA, 0, 2)%�A%PERSON%
+	PERSON = %SUBSTRING(KANA, 0, 2)%、%PERSON%
 NEXT
 
 PLAYER = MEMO_PLAYER

@@ -1,6 +1,6 @@
-;-------------------------------------------------
-;�L�����𗅗񂷂�\���͂����ňꊇ�Ǘ��B��ނ�ARGS�ŋ�ʂ���B
-;LOCAL:LCOUNT��LOCAL�Ԃ̃L�����������N���A���ǂ������Ǘ�����B
+﻿;-------------------------------------------------
+;キャラを羅列する表示はここで一括管理。種類はARGSで区別する。
+;LOCAL:LCOUNTでLOCAL番のキャラが条件クリアかどうかを管理する。
 ;-------------------------------------------------
 @SHOW_CHARA_LIST, ARGS
 #DIM LCOUNT
@@ -8,18 +8,18 @@
 VARSET LOCAL
 FOR LCOUNT, 1, CHARANUM
 	SELECTCASE ARGS
-	CASE "�p�[�g�i�[�ύX", "����ύX", "��o���p�x�ύX", "�R�X�m�F", "�A�i���C�Y"
+	CASE "パートナー変更", "助手変更", "顔出し頻度変更", "コス確認", "アナライズ"
 		SIF LCOUNT == MASTER
 			CONTINUE
-	CASE "�f�[�g"
+	CASE "デート"
 		SIF LCOUNT == MASTER
 			CONTINUE
-		SIF COND("�f�[�g�\", LCOUNT) == 0
+		SIF COND("デート可能", LCOUNT) == 0
 			CONTINUE
-	CASE "�Ăяo���g"
+	CASE "呼び出しＨ"
 		SIF LCOUNT == MASTER
 			CONTINUE
-		SIF COND("�Ăяo���g�\", LCOUNT) == 0
+		SIF COND("呼び出しＨ可能", LCOUNT) == 0
 			CONTINUE
 	ENDSELECT
 	LOCAL:LCOUNT = 1
@@ -31,14 +31,14 @@ FOR LCOUNT, 1, CHARANUM
 		CONTINUE
 
 	SELECTCASE ARGS
-	CASE "�\�͕\��"
+	CASE "能力表示"
 		IF LCOUNT == MASTER
-			IF CONFIG("�\�͕\���łR�T�C�Y�{��") == 0 || TALENT:MASTER:�I�g�R
-				PRINTFORM �@[{MASTER, 2}]
-				IF STATE("������", MASTER)
-					SETCOLOR DEF_COLOR("��")
-				ELSEIF STATE("����", MASTER)
-					SETCOLOR DEF_COLOR("�n�[�g�s���N")
+			IF CONFIG("能力表示で３サイズ閲覧") == 0 || TALENT:MASTER:オトコ
+				PRINTFORM 　[{MASTER, 2}]
+				IF STATE("悪酔い", MASTER)
+					SETCOLOR DEF_COLOR("青")
+				ELSEIF STATE("酔い", MASTER)
+					SETCOLOR DEF_COLOR("ハートピンク")
 				ENDIF
 				PRINTFORM %TEXT_LJ(NAME:MASTER, 16)%
 				RESETCOLOR
@@ -46,70 +46,70 @@ FOR LCOUNT, 1, CHARANUM
 				PRINTFORM %BL(22)%
 			ENDIF
 
-			PRINTFORM [200]\@ CONFIG("�\�͕\���łR�T�C�Y�{��") ? �̗͓��\�� # �Rsize�\�� \@ 
+			PRINTFORM [200]\@ CONFIG("能力表示で３サイズ閲覧") ? 体力等表示 # ３size表示 \@ 
 
-			IF CONFIG("�\�͕\���łR�T�C�Y�{��") == 0 && TALENT:MASTER:�I�g�R == 0
+			IF CONFIG("能力表示で３サイズ閲覧") == 0 && TALENT:MASTER:オトコ == 0
 				CALL PRINT_N, LCOUNT
 			ELSE
 				PRINTFORM %BL(15)%
 			ENDIF
 
-			PRINTFORM  [400]���ӈꗗCSV
+			PRINTFORM  [400]合意一覧CSV
 
 			PRINTL 
 			
-			IF CONFIG("�\�͕\���łR�T�C�Y�{��") == 0 || TALENT:MASTER:�I�g�R
+			IF CONFIG("能力表示で３サイズ閲覧") == 0 || TALENT:MASTER:オトコ
 				DRAWLINE
 				CONTINUE
 			ENDIF
 		ENDIF
-		IF CONFIG("�\�͕\���łR�T�C�Y�{��")
-			CALL PRINT_NUM_NAME, "�R�T�C�Y�{��", LCOUNT
-		ELSEIF CONFIG("�\�͕\����ABLUP")
+		IF CONFIG("能力表示で３サイズ閲覧")
+			CALL PRINT_NUM_NAME, "３サイズ閲覧", LCOUNT
+		ELSEIF CONFIG("能力表示でABLUP")
 			CALL PRINT_NUM_NAME, "ABLUP", LCOUNT
 		ELSE
-			CALL PRINT_NUM_NAME, "�\�͕\��", LCOUNT
+			CALL PRINT_NUM_NAME, "能力表示", LCOUNT
 		ENDIF
-	CASE "�p�[�g�i�[�ύX"
-		IF CONFIG("�p�[�g�i�[�ύX�ŃA�i���C�Y")
-			CALL PRINT_NUM_NAME, "�A�i���C�Y", LCOUNT
+	CASE "パートナー変更"
+		IF CONFIG("パートナー変更でアナライズ")
+			CALL PRINT_NUM_NAME, "アナライズ", LCOUNT
 		ELSE
-			CALL PRINT_NUM_NAME, "�p�[�g�i�[�ύX", LCOUNT
+			CALL PRINT_NUM_NAME, "パートナー変更", LCOUNT
 		ENDIF
 	CASEELSE
 		CALL PRINT_NUM_NAME, ARGS, LCOUNT
 	ENDSELECT
 NEXT
 
-SIF ARGS != "�R�X�m�F"
-	PRINTFORM  [100]�߂�
+SIF ARGS != "コス確認"
+	PRINTFORM  [100]戻る
 
 SELECTCASE ARGS
-CASE "�\�͕\��", "�p�[�g�i�[�ύX", "����ύX", "��o���p�x�ύX"
-	IF ARGS == "�\�͕\��" && CONFIG("�\�͕\����ABLUP") == 0
-		PRINTFORM  [101]�k�u�t�o
+CASE "能力表示", "パートナー変更", "助手変更", "顔出し頻度変更"
+	IF ARGS == "能力表示" && CONFIG("能力表示でABLUP") == 0
+		PRINTFORM  [101]ＬＶＵＰ
 	ELSE
-		PRINTFORM  [101]�\�͕\��
+		PRINTFORM  [101]能力表示
 	ENDIF
-	IF ARGS != "�p�[�g�i�[�ύX" && CHARA_NUM("�T���L����")
-		PRINTFORM  [102]%TEXTS("�Ώۂ̖���")%�ύX
+	IF ARGS != "パートナー変更" && CHARA_NUM("控えキャラ")
+		PRINTFORM  [102]%TEXTS("対象の名称")%変更
 	ELSE
-		SETCOLOR DEF_COLOR("�D�F")
-		PRINTPLAINFORM   [�~]%TEXTS("�Ώۂ̖���")%�ύX
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTPLAINFORM   [×]%TEXTS("対象の名称")%変更
 		RESETCOLOR
 	ENDIF
-	IF ARGS != "����ύX" && CHARA_NUM("����\")
-		PRINTFORM  [103]%TEXTS("����̖���")%�ύX
+	IF ARGS != "助手変更" && CHARA_NUM("助手可能")
+		PRINTFORM  [103]%TEXTS("助手の名称")%変更
 	ELSE
-		SETCOLOR DEF_COLOR("�D�F")
-		PRINTPLAINFORM   [�~]%TEXTS("����̖���")%�ύX
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTPLAINFORM   [×]%TEXTS("助手の名称")%変更
 		RESETCOLOR
 	ENDIF
-	IF ARGS != "��o���p�x�ύX"
-		PRINTFORM  [104]��o���p�x�ύX
+	IF ARGS != "顔出し頻度変更"
+		PRINTFORM  [104]顔出し頻度変更
 	ELSE
-		SETCOLOR DEF_COLOR("�D�F")
-		PRINTPLAINFORM   [�~]��o���p�x�ύX
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTPLAINFORM   [×]顔出し頻度変更
 		RESETCOLOR
 	ENDIF
 ENDSELECT
@@ -121,81 +121,81 @@ PRINTL
 
 PRINTL 
 
-PRINTFORM ���݂�%TEXTS("�Ώۂ̖���")%��
-CALL PRINT_COLORTEXT, CALLNAME:TARGET, DEF_COLOR("���F")
+PRINTFORM 現在の%TEXTS("対象の名称")%は
+CALL PRINT_COLORTEXT, CALLNAME:TARGET, DEF_COLOR("黄色")
 IF ASSI:1 == TARGET
-	PRINTFORM �ŁA%TEXTS("����̖���")%��
-	CALL PRINT_COLORTEXT, "���C��", DEF_COLOR("��")
-	PRINTFORML �ł��B
+	PRINTFORM で、%TEXTS("助手の名称")%も
+	CALL PRINT_COLORTEXT, "兼任中", DEF_COLOR("緑")
+	PRINTFORML です。
 ELSEIF ASSI
-	PRINTFORM �ŁA%TEXTS("����̖���")%��
-	CALL PRINT_COLORTEXT, CALLNAME:ASSI, DEF_COLOR("��")
-	PRINTFORML �ł��B
+	PRINTFORM で、%TEXTS("助手の名称")%は
+	CALL PRINT_COLORTEXT, CALLNAME:ASSI, DEF_COLOR("緑")
+	PRINTFORML です。
 ELSE
-	PRINTFORML �ŁA%TEXTS("����̖���")%�͎w�����Ă��܂���B
+	PRINTFORML で、%TEXTS("助手の名称")%は指名していません。
 ENDIF
 
 SELECTCASE ARGS
-CASE "�\�͕\��"
-	IF CONFIG("�\�͕\����ABLUP")
-		PRINTL �N�̔\�͂��㏸�����܂����H
-		CALL PRINT_STR, "�C�G���[_���̐F_�ŕ\������Ă��镶���́A�㏸�\�Ȕ\�͂⍏��̓������ł�_L_"
+CASE "能力表示"
+	IF CONFIG("能力表示でABLUP")
+		PRINTL 誰の能力を上昇させますか？
+		CALL PRINT_STR, "イエロー_この色_で表示されている文字は、上昇可能な能力や刻印の頭文字です_L_"
 	ELSE
-		IF CHARA_NUM("��������")
-			CALL PRINT_STRL, "�N�̔\�͂����܂����H�i_���F_������_ �̓N���b�N���鎖�ŏ�Ԃ�ύX�ł��܂��j"
+		IF CHARA_NUM("性処理中")
+			CALL PRINT_STRL, "誰の能力を見ますか？（_黄色_性処理_ はクリックする事で状態を変更できます）"
 		ELSE
-			PRINTL �N�̔\�͂����܂����H
+			PRINTL 誰の能力を見ますか？
 		ENDIF
-		PRINTL �\����ʂ̍���(�� �f�� ����)�̓N���b�N�ŏo������ł��A���ʌo���͏ڍו\�����ł��܂�
+		PRINTL 表示画面の項目(□ 素質 □等)はクリックで出し入れでき、特別経験は詳細表示もできます
 	ENDIF
-CASE "����ύX"
-	IF CONFIG("����ւ̎w��")
-		PRINTL []�̐������w����^���邱�Ƃ��o���܂��B
-		PRINTL �N�̎w����ύX���܂����H
+CASE "助手変更"
+	IF CONFIG("助手への指示")
+		PRINTL []の数だけ指示を与えることが出来ます。
+		PRINTL 誰の指示を変更しますか？
 	ELSE
-		PRINTFORML �N��%TEXTS("����̖���")%�ɂ��܂����H�i�I���ς݂̃L������I�Ԃ�%TEXTS("����̖���")%�����ɂȂ�܂��j
-		PRINTFORML %TEXTS("����̖���")%�̔\��(�����Ȃ�)�̓N���b�N���邱�ƂŌ��ʂ̉�������鎖���o���܂�
-		CALL PRINT_STR, "���Ȃ݂�", TEXTS("����̖���"), "�ɂȂ��ĖႤ�ɂ�_���F_[�M��LV5]��[�Z�ILV3]_���K�v�ƂȂ�܂�_L"
+		PRINTFORML 誰を%TEXTS("助手の名称")%にしますか？（選択済みのキャラを選ぶと%TEXTS("助手の名称")%無しになります）
+		PRINTFORML %TEXTS("助手の名称")%の能力(調合など)はクリックすることで効果の解説を見る事が出来ます
+		CALL PRINT_STR, "ちなみに", TEXTS("助手の名称"), "になって貰うには_黄色_[信頼LV5]＆[技巧LV3]_が必要となります_L"
 	ENDIF
 	DRAWLINE
-	LOCALS = %TEXTS("����̖���")%�Ȃ�
-	PRINTFORM �@[ 0]%TEXT_LJ(LOCALS, 16)% 
-	IF CHARA_NUM("�w���\�ȏ���")
-		PRINTFORM [200]\@ CONFIG("����ւ̎w��") ? �ύX��� # �w����� \@ 
+	LOCALS = %TEXTS("助手の名称")%なし
+	PRINTFORM 　[ 0]%TEXT_LJ(LOCALS, 16)% 
+	IF CHARA_NUM("指示可能な助手")
+		PRINTFORM [200]\@ CONFIG("助手への指示") ? 変更画面 # 指示画面 \@ 
 	ELSE
-		CLEARBIT FLAG:������, 0
+		CLEARBIT FLAG:助手画面, 0
 	ENDIF
-	PRINTFORM [400]%TEXTS("����̖���")%�̖��̂̕ύX
+	PRINTFORM [400]%TEXTS("助手の名称")%の名称の変更
 	PRINTL 
-CASE "�p�[�g�i�[�ύX"
-	IF CONFIG("�p�[�g�i�[�ύX�ŃA�i���C�Y")
-		PRINTFORML �N��%TEXTS("�Ώۂ̖���")%�ɂ��܂����H�i������100�_���_�ŁA50�_�Ȃ�Ύ�l�ƌ݊p�ł��j
+CASE "パートナー変更"
+	IF CONFIG("パートナー変更でアナライズ")
+		PRINTFORML 誰を%TEXTS("対象の名称")%にしますか？（強さは100点満点で、50点ならば主人と互角です）
 		DRAWLINE
-		PRINTFORM  [200]�ʏ�\���ɖ߂�
-		PRINTPLAINFORM �@�~���s���@ �D���x�@ ���u�@ �q���x�@ �U���́@��l��ł̋���
+		PRINTFORM  [200]通常表示に戻す
+		PRINTPLAINFORM 　欲求不満　 好感度　 放置　 敏感度　 攻撃力　主人基準での強さ
 	ELSE
-		IF CHARA_NUM("��������")
-			CALL PRINT_STRL, @"�N��%TEXTS("�Ώۂ̖���")%�ɂ��܂����H�i_���F_������_ �̓N���b�N���鎖�ŏ�Ԃ�ύX�ł��܂��j"
+		IF CHARA_NUM("性処理中")
+			CALL PRINT_STRL, @"誰を%TEXTS("対象の名称")%にしますか？（_黄色_性処理_ はクリックする事で状態を変更できます）"
 		ELSE
-			PRINTFORML �N��%TEXTS("�Ώۂ̖���")%�ɂ��܂����H
+			PRINTFORML 誰を%TEXTS("対象の名称")%にしますか？
 		ENDIF
 		DRAWLINE
-		PRINTFORM  [200]�~���s���x�A�D���x�A���u���ԁA��̓I�ȋ����c����\������
+		PRINTFORM  [200]欲求不満度、好感度、放置期間、具体的な強さ…等を表示する
 	ENDIF
 	PRINTL 
-CASE "��o���p�x�ύX"
-	PRINTL �N�̕����ւ̓o��p�x��ύX���܂����H�L������I�����鎖�ŁA
-	CALL PRINT_STRL, "��o�����肢��(�f�t�H�͂���)�c�c�L�����ԍ��̍���_���F_�Z_�A"
-	CALL PRINT_STRL, "�D���Ȏ��ɂ��Ă����΂n�j�@�c�c�L�����ԍ��̍���_���F_��_�A"
-	CALL PRINT_STRL, "���؂�ւ��܂��B_���F_��_�͓o��p�x���K�N�b�Ɨ����܂����A������Ȃǂɂ͂��̌���ł͂���܂���B"
-CASE "���O�ύX"
-	PRINTL �N�̖��O��ύX���܂����H
-CASE "�A�i���C�Y"
-	PRINTL �N���A�i���C�Y���܂����H
+CASE "顔出し頻度変更"
+	PRINTL 誰の部室への登場頻度を変更しますか？キャラを選択する事で、
+	CALL PRINT_STRL, "顔出しお願い中(デフォはこれ)……キャラ番号の左に_黄色_〇_、"
+	CALL PRINT_STRL, "好きな時にきてくれればＯＫ　……キャラ番号の左に_水色_△_、"
+	CALL PRINT_STRL, "が切り替わります。_水色_△_は登場頻度がガクッと落ちますが、発情期などにはその限りではありません。"
+CASE "名前変更"
+	PRINTL 誰の名前を変更しますか？
+CASE "アナライズ"
+	PRINTL 誰をアナライズしますか？
 ENDSELECT
 
 ;-------------------------------------------------
-;�X�e�[�^�X�\��
+;ステータス表示
 ;-------------------------------------------------
 @SHOW_CHARADATA
 #DIM CHOICE
@@ -204,8 +204,8 @@ MEMO_LINECOUNT = LINECOUNT
 
 REDRAW 0
 
-CALL SHOW_CHARA_LIST_PRE, "�\�͕\��"
-CALL SHOW_CHARA_LIST, "�\�͕\��"
+CALL SHOW_CHARA_LIST_PRE, "能力表示"
+CALL SHOW_CHARA_LIST, "能力表示"
 
 $INPUT_LOOP
 INPUT
@@ -217,14 +217,14 @@ IF CHOICE == 100
 	RETURN 0
 ELSEIF CHOICE == 101
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
-	CLEARBIT FLAG:�\�͉��, 0
-	INVERTBIT FLAG:�\�͉��, 1
+	CLEARBIT FLAG:能力画面, 0
+	INVERTBIT FLAG:能力画面, 1
 	RESTART
-ELSEIF CHOICE == 102 && CHARA_NUM("�T���L����")
+ELSEIF CHOICE == 102 && CHARA_NUM("控えキャラ")
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	CALL CHANGE_TARGET
 	RETURN 0
-ELSEIF CHOICE == 103 && CHARA_NUM("����\")
+ELSEIF CHOICE == 103 && CHARA_NUM("助手可能")
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	CALL SELECT_ASSI
 	RETURN 0
@@ -234,34 +234,34 @@ ELSEIF CHOICE == 104
 	RETURN 0
 ELSEIF CHOICE == 200
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
-	INVERTBIT FLAG:�\�͉��, 0
-	CLEARBIT FLAG:�\�͉��, 1
+	INVERTBIT FLAG:能力画面, 0
+	CLEARBIT FLAG:能力画面, 1
 	RESTART
 ELSEIF CHOICE == 400
 	CALL OUTPUT_GOUI_CSV
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	RESTART
-;�������̓��e�ύX
-ELSEIF CHOICE >= 2002 && CHOICE < 2000 + CHARANUM && COND("��������", CHOICE - 2000)
+;性処理の内容変更
+ELSEIF CHOICE >= 2002 && CHOICE < 2000 + CHARANUM && COND("性処理中", CHOICE - 2000)
 	CALL CHECK_COM_ABLE, CHOICE - 2000
-	CALL SETFLAG, "�������ł̃v���C���e", CHOICE - 2000
+	CALL SETFLAG, "性処理でのプレイ内容", CHOICE - 2000
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
-	PRINTFORML %CALLNAME:(CHOICE - 2000)%�Ɗw�����ł̃v���C���e�𑊒k���܂���
+	PRINTFORML %CALLNAME:(CHOICE - 2000)%と学園内でのプレイ内容を相談しました
 	RESTART
 ELSEIF CHOICE < MASTER || CHOICE >= CHARANUM
 	GOTO INPUT_LOOP
 ENDIF
 
-IF CONFIG("�\�͕\����ABLUP")
+IF CONFIG("能力表示でABLUP")
 	CALL ABLUP_CHARA, CHOICE
 ELSE
-	CALL NEW_PRINT_STATE, CHOICE, "�ʏ�"
+	CALL NEW_PRINT_STATE, CHOICE, "通常"
 ENDIF
 
 RESTART
 
 ;-------------------------------------------------
-;����I��
+;助手選択
 ;-------------------------------------------------
 @SELECT_ASSI
 #DIM LCOUNT
@@ -269,15 +269,15 @@ RESTART
 #DIMS CHOICES, 2
 #DIM MEMO_LINECOUNT
 
-FLAG:�\�͉�� = 0
+FLAG:能力画面 = 0
 
 MEMO_LINECOUNT = LINECOUNT
 VARSET CHOICES
 
 REDRAW 0
 
-CALL SHOW_CHARA_LIST_PRE, "����ύX"
-CALL SHOW_CHARA_LIST, "����ύX"
+CALL SHOW_CHARA_LIST_PRE, "助手変更"
+CALL SHOW_CHARA_LIST, "助手変更"
 
 $INPUT_LOOP
 INPUTS
@@ -285,77 +285,77 @@ INPUTS
 SPLIT RESULTS, "/", CHOICES
 
 SELECTCASE CHOICES
-CASE "������"
+CASE "相性☆"
 	IF TARGET
-		PRINTFORML %CALLNAME:TARGET%�Ƃ̑������ō��ɗǂ��ł��I
-		PRINTFORMW (�R�}���h�̎��s�l��30�̃{�[�i�X���t���܂�)
+		PRINTFORML %CALLNAME:TARGET%との相性が最高に良いです！
+		PRINTFORMW (コマンドの実行値に30のボーナスが付きます)
 	ENDIF
-CASE "������"
+CASE "相性◎"
 	IF TARGET
-		PRINTFORML %CALLNAME:TARGET%�Ƃ̑������f���炵���ǂ��ł��I
-		PRINTFORMW (�R�}���h�̎��s�l��15�̃{�[�i�X���t���܂�)
+		PRINTFORML %CALLNAME:TARGET%との相性が素晴らしく良いです！
+		PRINTFORMW (コマンドの実行値に15のボーナスが付きます)
 	ENDIF
-CASE "������"
+CASE "相性○"
 	IF TARGET
-		PRINTFORML %CALLNAME:TARGET%�Ƃ̑������ǂ��ł�
-		PRINTFORMW (�R�}���h�̎��s�l�ɂT�̃{�[�i�X���t���܂�)
+		PRINTFORML %CALLNAME:TARGET%との相性が良いです
+		PRINTFORMW (コマンドの実行値に５のボーナスが付きます)
 	ENDIF
-CASE "�R�o�֎~"
-	PRINTFORMW ���Ȃ��ȊO�Ƃ͂g�Ȏ������܂���
-CASE "�j"
-	PRINTFORMW �j�R�}���h�̌��ʂ��オ��܂�
-CASE "����"
-	PRINTFORML �Z��R�}���h�̌��ʂ��������オ��܂�
-	PRINTFORMW �܂��A�l�X�Ȗ򕨂���邱�Ƃ��ł��܂�
-CASE "�T�h"
-	PRINTFORMW ���Ɍ����r�l�ɂ�����r�ȃR�}���h��s�ׂ����s����̂����ӂł�
-CASE "�ە�"
-	PRINTFORML %TEXTS("����̖���")%���A����΂ꂪ��΂�ł���ł���Ɖ��ŉ������Ă���܂�
-	PRINTFORMW (�R�}���h�̎��s�l��10�̃{�[�i�X���t���܂�)
-CASE "�ӂ��Ȃ�"
-	PRINTFORMW �ӂ��Ȃ�ł�
-CASE "��"
-	PRINTFORMW �I�g�R�ł�
-;CASE "�֒f�̒m��"
-;	PRINTFORML ���X�Ŋ댯�ȏ��i�𔄂��Ă��炦��悤�ɂȂ�܂�
-;	PRINTFORMW �܂��A�B���p�Ɠ��l�ɛZ��̌��ʂ������Ȃ�܂�
-CASE "�"
-	PRINTFORMW �����Ƀy�j�X�𐶂₷���Ƃ��ł��܂�
-CASE "�����E��d�m��"
-	PRINTFORML ��d�∤���ɂ���ė^����������T�������ɂ��A���|�┽���Ȃǂ̃}�C�i�X�p�����[�^�𔼌������܂�
-	PRINTFORMW �������A%TEXTS("����̖���")%���g������𒲋����Ȃ��ƈӖ�������܂���
-CASE "�������"
-	PRINTFORML ��d�����ۂɑ�������Z�ILV�Ȃǂ������ƁA���肪�l������o�����e+�P�����܂�
-	PRINTFORML �܂��A�p�[�g�i�[�̊l�������d���y�o����1.5�{�ɂ��܂�
-	PRINTFORMW �������A%TEXTS("����̖���")%���g������𒲋����Ȃ��ƈӖ�������܂���
-CASE "�r�l�m��"
-	PRINTFORML �X�p���L���O�ȂǁA�r�l�v���C�ɑ�����R�}���h�̎��s���ɂ̂݌��ʂ�����m���ł�
-	PRINTFORML �~��Ƌ����̃p�����[�^�[���T�������ɂ��A���|�┽���𔼌������܂�
-	PRINTFORML �܂��A����̊l������n�s���y�o���Ɣ�s���y�o����1.5�{�ɂ��܂�
-	PRINTFORMW �������A%TEXTS("����̖���")%���g������𒲋����Ȃ��ƈӖ�������܂���
-CASE "�`�����m��"
-	PRINTFORML �A�i����M��R�}���h���s���ɉ��`��~��̃p�����[�^�[���T�������ɂ��A
-	PRINTFORML ��ɂ┽���Ȃǂ̃}�C�i�X�p�����[�^�[�̔����𔼌������܂�
-	PRINTFORMW �������A%TEXTS("����̖���")%���g������𒲋����Ȃ��ƈӖ�������܂���
-CASE "����g���m��"
-	PRINTFORML ������g��������ۂ̋�ɂ⋰�|�𔼌������A�g���o���̑����ʂɃ{�[�i�X�𓾂܂�
-	PRINTFORMW �������A%TEXTS("����̖���")%���g������𒲋����Ȃ��ƈӖ�������܂���
-CASE "����g��"
-	PRINTFORML �o�C�u�ȂǓ����p�����R�}���h���s���ɉ��y��~��̃p�����[�^�[���T�������ɂ��A
-	PRINTFORML ���|�┽���Ȃǂ̃}�C�i�X�p�����[�^�[�̔����𔼌������܂�
-	PRINTFORMW �������A%TEXTS("����̖���")%���g������𒲋����Ȃ��ƈӖ�������܂���
-CASE "�I�o�m��"
-	PRINTFORML �p�[�g�i�[�̒p��̃p�����[�^����ɂT�������ɂ��A�I�o�o����㵒p���y�o���̊l���ʂ𑝂₵�܂�
-	PRINTFORMW ���̒m���́A%TEXTS("����̖���")%�������Ă��邾���ł����ʂ𔭊����܂�
-CASE "�Â����t"
-	PRINTFORMW �Â����t�𚑂����Ƃ��ł��܂�
-CASE "�����"
-	PRINTFORMW ��������s�����Ƃ��ł��܂�
+CASE "３Ｐ禁止"
+	PRINTFORMW あなた以外とはＨな事をしません
+CASE "針"
+	PRINTFORMW 針コマンドの効果が上がります
+CASE "調合"
+	PRINTFORML 媚薬コマンドの効果が著しく上がります
+	PRINTFORMW また、様々な薬物を作ることができます
+CASE "サド"
+	PRINTFORMW 俗に言うＳＭにおけるＳなコマンドや行為を実行するのが得意です
+CASE "鼓舞"
+	PRINTFORML %TEXTS("助手の名称")%が、がんばれがんばれできるできると横で応援してくれます
+	PRINTFORMW (コマンドの実行値に10のボーナスが付きます)
+CASE "ふたなり"
+	PRINTFORMW ふたなりです
+CASE "♂"
+	PRINTFORMW オトコです
+;CASE "禁断の知識"
+;	PRINTFORML お店で危険な商品を売ってもらえるようになります
+;	PRINTFORMW また、錬金術と同様に媚薬の効果が強くなります
+CASE "具現"
+	PRINTFORMW 女性にペニスを生やすことができます
+CASE "愛撫・奉仕知識"
+	PRINTFORML 奉仕や愛撫によって与える快感を５割増しにし、恐怖や反感などのマイナスパラメータを半減させます
+	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
+CASE "教え上手"
+	PRINTFORML 奉仕される際に相手よりも技巧LVなどが高いと、相手が獲得する経験を各+１させます
+	PRINTFORML また、パートナーの獲得する奉仕快楽経験を1.5倍にします
+	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
+CASE "ＳＭ知識"
+	PRINTFORML スパンキングなど、ＳＭプレイに属するコマンドの実行時にのみ効果がある知識です
+	PRINTFORML 欲情と屈服のパラメーターを５割増しにし、恐怖や反感を半減させます
+	PRINTFORML また、相手の獲得する嗜虐快楽経験と被虐快楽経験を1.5倍にします
+	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
+CASE "Ａ調教知識"
+	PRINTFORML アナルを弄るコマンド実行時に快Ａや欲情のパラメーターを５割増しにし、
+	PRINTFORML 苦痛や反感などのマイナスパラメーターの発生を半減させます
+	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
+CASE "性器拡張知識"
+	PRINTFORML 性器を拡張させる際の苦痛や恐怖を半減させ、拡張経験の増加量にボーナスを得ます
+	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
+CASE "道具使い"
+	PRINTFORML バイブなど道具を用いたコマンド実行時に快楽や欲情のパラメーターを５割増しにし、
+	PRINTFORML 恐怖や反感などのマイナスパラメーターの発生を半減させます
+	PRINTFORMW ただし、%TEXTS("助手の名称")%自身が相手を調教しないと意味がありません
+CASE "露出知識"
+	PRINTFORML パートナーの恥情のパラメータを常に５割増しにし、露出経験と羞恥快楽経験の獲得量を増やします
+	PRINTFORMW この知識は、%TEXTS("助手の名称")%が持っているだけでも効果を発揮します
+CASE "甘い言葉"
+	PRINTFORMW 甘い言葉を囁くことができます
+CASE "手加減"
+	PRINTFORMW 手加減を行うことができます
 CASEELSE
-	;�A�h�o�C�U�[�\�́H
+	;アドバイザー能力？
 	IF COMMENT_ADVISER(CHOICES) != ""
 		PRINTFORMW %COMMENT_ADVISER(CHOICES)%
-	;����ȊO�͐��l���͂֕ϊ�
+	;それ以外は数値入力へ変換
 	ELSE
 		CHOICE = TOINT(CHOICES)
 		IF CHOICE == 100
@@ -365,7 +365,7 @@ CASEELSE
 			CLEARLINE LINECOUNT - MEMO_LINECOUNT
 			CALL SHOW_CHARADATA
 			RETURN 0
-		ELSEIF CHOICE == 102 && CHARA_NUM("�T���L����")
+		ELSEIF CHOICE == 102 && CHARA_NUM("控えキャラ")
 			CLEARLINE LINECOUNT - MEMO_LINECOUNT
 			CALL CHANGE_TARGET
 			RETURN 0
@@ -373,21 +373,21 @@ CASEELSE
 			CLEARLINE LINECOUNT - MEMO_LINECOUNT
 			CALL CHANGE_FOCUS
 			RETURN 0
-		ELSEIF CHOICE == 200 && CHARA_NUM("�w���\�ȏ���")
-			INVERTBIT FLAG:������, 0
+		ELSEIF CHOICE == 200 && CHARA_NUM("指示可能な助手")
+			INVERTBIT FLAG:助手画面, 0
 			RESTART
 		ELSEIF CHOICE == 400
-			PRINTFORML ������"����"�̖�E����ύX���܂�
-			PRINTFORML ���݂́w%TEXTS("����̖���")%�x�ł����A���ɕύX���܂����H
-			PRINTFORML  [ 0] �A�h�o�C�U�[
-			PRINTFORML  [ 1] ����
-			PRINTFORML  [ 2] �鏑
-			PRINTFORML  [ 3] ����
-			PRINTFORML  [ 4] ���C�h��
-			PRINTFORML  [ 5] ����
-			PRINTFORML  [ 6] �Q�d
-			PRINTFORML  [99] ���ړ��͂���
-			PRINTFORML [100] �ύX���Ȃ�
+			PRINTFORML いわゆる"助手"の役職名を変更します
+			PRINTFORML 現在は『%TEXTS("助手の名称")%』ですが、何に変更しますか？
+			PRINTFORML  [ 0] アドバイザー
+			PRINTFORML  [ 1] 助手
+			PRINTFORML  [ 2] 秘書
+			PRINTFORML  [ 3] 副官
+			PRINTFORML  [ 4] メイド長
+			PRINTFORML  [ 5] 側近
+			PRINTFORML  [ 6] 参謀
+			PRINTFORML  [99] 直接入力する
+			PRINTFORML [100] 変更しない
 
 			CALL INPUT_SELECT, 7, 99, 100
 
@@ -395,22 +395,22 @@ CASEELSE
 			CASE 100
 				RESTART
 			CASE 0
-				LOCALS = ����̖��́F�A�h�o�C�U�[
+				LOCALS = 助手の名称：アドバイザー
 			CASE 1
-				LOCALS = ����̖��́F����
+				LOCALS = 助手の名称：助手
 			CASE 2
-				LOCALS = ����̖��́F�鏑
+				LOCALS = 助手の名称：秘書
 			CASE 3
-				LOCALS = ����̖��́F����
+				LOCALS = 助手の名称：副官
 			CASE 4
-				LOCALS = ����̖��́F���C�h��
+				LOCALS = 助手の名称：メイド長
 			CASE 5
-				LOCALS = ����̖��́F����
+				LOCALS = 助手の名称：側近
 			CASE 6
-				LOCALS = ����̖��́F�Q�d
+				LOCALS = 助手の名称：参謀
 			CASE 99
-				CALL PRINT_STR, "���F_���S�p�U����(���p�Ȃ�12����)�ȓ��œ��͂��Ă���������_L"
-				PRINTFORML �������͂��Ȃ��ꍇ�͕ύX���܂���B
+				CALL PRINT_STR, "黄色_※全角６文字(半角なら12文字)以内で入力してください※_L"
+				PRINTFORML 何も入力しない場合は変更しません。
 
 				CALL INPUTS_SELECT, 16
 
@@ -418,14 +418,14 @@ CASEELSE
 				CASE ""
 					RESTART
 				CASEELSE
-					LOCALS = ����̖��́F%RESULTS%
+					LOCALS = 助手の名称：%RESULTS%
 				ENDSELECT
 			ENDSELECT
-			;����̖��̃t���O���Z�b�g
-			CALL DEL_CEVENT_GROUP, "����̖���", MASTER
+			;助手の名称フラグリセット
+			CALL DEL_CEVENT_GROUP, "助手の名称", MASTER
 			CALL SET_CEVENT, LOCALS, MASTER
 
-			PRINTFORMW ��E�����w%TEXTS("����̖���")%�x�Ƃ��܂���
+			PRINTFORMW 役職名を『%TEXTS("助手の名称")%』としました
 
 			RESTART
 		ELSEIF CHOICE == 0
@@ -437,22 +437,22 @@ CASEELSE
 			GOTO INPUT_LOOP
 		ELSEIF CHOICE == ASSI
 
-		ELSEIF COND("����\", CHOICE) == 0
+		ELSEIF COND("助手可能", CHOICE) == 0
 			GOTO INPUT_LOOP
-		ELSEIF CONFIG("����ւ̎w��") && ABL:CHOICE:���� == 0
+		ELSEIF CONFIG("助手への指示") && ABL:CHOICE:助手 == 0
 			GOTO INPUT_LOOP
 		ENDIF
 
-		;�w���ύX
-		IF CONFIG("����ւ̎w��")
+		;指示変更
+		IF CONFIG("助手への指示")
 			CALL ASSI_CHANGE_INDICATE, CHOICE
-		;�ȉ��͏���ύX
-		;�A�h�o�C�U�[���đI���ŃA�h�o�C�U�[������
+		;以下は助手変更
+		;アドバイザーを再選択でアドバイザー無しに
 		ELSEIF CHOICE == ASSI:1
-			CALL SETFLAG, "����w��", 0
-		;����ȊO�͎w�肳�ꂽ�L�������A�h�o�C�U�[��
+			CALL SETFLAG, "助手指定", 0
+		;それ以外は指定されたキャラがアドバイザーに
 		ELSE
-			CALL SETFLAG, "����w��", CHOICE
+			CALL SETFLAG, "助手指定", CHOICE
 		ENDIF
 	ENDIF
 ENDSELECT
@@ -461,19 +461,19 @@ CLEARLINE LINECOUNT - MEMO_LINECOUNT
 RESTART
 
 ;-------------------------------------------------
-;�p�[�g�i�[�I��
+;パートナー選択
 ;-------------------------------------------------
 @CHANGE_TARGET
 #DIM MEMO_LINECOUNT
 #DIM CHOICE
 MEMO_LINECOUNT = LINECOUNT
 
-FLAG:�\�͉�� = 0
+FLAG:能力画面 = 0
 
 REDRAW 0
 
-CALL SHOW_CHARA_LIST_PRE, "�p�[�g�i�[�ύX"
-CALL SHOW_CHARA_LIST, "�p�[�g�i�[�ύX"
+CALL SHOW_CHARA_LIST_PRE, "パートナー変更"
+CALL SHOW_CHARA_LIST, "パートナー変更"
 
 $INPUT_LOOP
 INPUT
@@ -487,7 +487,7 @@ ELSEIF CHOICE == 101
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	CALL SHOW_CHARADATA
 	RETURN 0
-ELSEIF CHOICE == 103 && CHARA_NUM("����\")
+ELSEIF CHOICE == 103 && CHARA_NUM("助手可能")
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	CALL SELECT_ASSI
 	RETURN 0
@@ -497,39 +497,39 @@ ELSEIF CHOICE == 104
 	RETURN 0
 ELSEIF CHOICE == 200
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
-	INVERTBIT FLAG:�ΏەύX���, 0
+	INVERTBIT FLAG:対象変更画面, 0
 	RESTART
-;�������̓��e�ύX
-ELSEIF CHOICE >= 2002 && CHOICE < 2000 + CHARANUM && COND("��������", CHOICE - 2000)
+;性処理の内容変更
+ELSEIF CHOICE >= 2002 && CHOICE < 2000 + CHARANUM && COND("性処理中", CHOICE - 2000)
 	CALL CHECK_COM_ABLE, CHOICE - 2000
-	CALL SETFLAG, "�������ł̃v���C���e", CHOICE - 2000
+	CALL SETFLAG, "性処理でのプレイ内容", CHOICE - 2000
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
-	PRINTFORML %CALLNAME:(CHOICE - 2000)%�Ɗw�����ł̃v���C���e�𑊒k���܂���
+	PRINTFORML %CALLNAME:(CHOICE - 2000)%と学園内でのプレイ内容を相談しました
 	RESTART
 ELSEIF CHOICE <= MASTER || CHOICE >= CHARANUM
 	GOTO INPUT_LOOP
 ENDIF
 
-SIF CHOICE && COND("���ݕs��", CHOICE) == 0
-	CALL SETFLAG, "�Ώێw��", CHOICE
+SIF CHOICE && COND("現在不在", CHOICE) == 0
+	CALL SETFLAG, "対象指定", CHOICE
 
 CLEARLINE LINECOUNT - MEMO_LINECOUNT
 RESTART
 
 ;-------------------------------------------------
-;��o���p�x�̕ύX
+;顔出し頻度の変更
 ;-------------------------------------------------
 @CHANGE_FOCUS
 #DIM MEMO_LINECOUNT
 #DIM CHOICE
 MEMO_LINECOUNT = LINECOUNT
 
-FLAG:�\�͉�� = 0
+FLAG:能力画面 = 0
 
 REDRAW 0
 
-CALL SHOW_CHARA_LIST_PRE, "��o���p�x�ύX"
-CALL SHOW_CHARA_LIST, "��o���p�x�ύX"
+CALL SHOW_CHARA_LIST_PRE, "顔出し頻度変更"
+CALL SHOW_CHARA_LIST, "顔出し頻度変更"
 
 $INPUT_LOOP
 INPUT
@@ -543,11 +543,11 @@ ELSEIF CHOICE == 101
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	CALL SHOW_CHARADATA
 	RETURN 0
-ELSEIF CHOICE == 102 && CHARA_NUM("�T���L����")
+ELSEIF CHOICE == 102 && CHARA_NUM("控えキャラ")
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	CALL CHANGE_TARGET
 	RETURN 0
-ELSEIF CHOICE == 103 && CHARA_NUM("����\")
+ELSEIF CHOICE == 103 && CHARA_NUM("助手可能")
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	CALL SELECT_ASSI
 	RETURN 0
@@ -555,19 +555,19 @@ ELSEIF CHOICE <= MASTER || CHOICE >= CHARANUM
 	GOTO INPUT_LOOP
 ENDIF
 
-INVERTBIT CFLAG:CHOICE:��o���p�x, 0
+INVERTBIT CFLAG:CHOICE:顔出し頻度, 0
 
 CLEARLINE LINECOUNT - MEMO_LINECOUNT
 RESTART
 
 
 ;-------------------------------------------------
-;�R�X�`���[���̈ꗗ�\��
+;コスチュームの一覧表示
 ;-------------------------------------------------
 @COSPLAY_LIST
 DRAWLINE
-PRINTL �� �R�X�`���[���ꗗ ��---------------------------------------------------------
-CALL SHOW_CHARA_LIST, "�R�X�m�F"
+PRINTL □ コスチューム一覧 □---------------------------------------------------------
+CALL SHOW_CHARA_LIST, "コス確認"
 
 WAIT
 RETURN 0
@@ -578,39 +578,39 @@ RETURN 0
 
 ACTORS = 
 FOR LCOUNT, 2, CHARANUM
-	IF COND("���ݕs��", LCOUNT)
-		SIF CFLAG:LCOUNT:�s��
+	IF COND("現在不在", LCOUNT)
+		SIF CFLAG:LCOUNT:不在
 			CONTINUE
-		;���肪�Q�Ă���ꍇ�͌ĂׂȂ�
-		SIF CFLAG:����
+		;相手が寝ている場合は呼べない
+		SIF CFLAG:睡眠
 			CONTINUE
-		IF PLACE("����")
-			SIF PLACE("����") == 0
+		IF PLACE("自宅")
+			SIF PLACE("居間") == 0
 				CONTINUE
-		ELSEIF PLACE("����") == 0
+		ELSEIF PLACE("部室") == 0
 			CONTINUE
 		ENDIF
-		ACTORS += "�D�F/"
+		ACTORS += "灰色/"
 	ELSE
 		SELECTCASE LCOUNT
 		CASE TARGET
-			ACTORS += "���F/"
+			ACTORS += "黄色/"
 		CASE ASSI:1
-			ACTORS += "��/"
+			ACTORS += "緑/"
 		ENDSELECT
 	ENDIF
 	ACTORS = %ACTORS%%NAME:LCOUNT%_{1000 + LCOUNT}\/
 
-	SIF COND("����\", LCOUNT) == 0
+	SIF COND("助手可能", LCOUNT) == 0
 		CONTINUE
 
-	ACTORS += "��/"
+	ACTORS += "＆/"
 
 	SELECTCASE LCOUNT
 	CASE ASSI:1
-		ACTORS += "��/"
+		ACTORS += "緑/"
 	ENDSELECT
-	ACTORS = %ACTORS%��\/��_{2000 + LCOUNT}\/
+	ACTORS = %ACTORS%＆\/α_{2000 + LCOUNT}\/
 NEXT
 CALL PRINT_LIST, ACTORS
 PRINTL 
@@ -626,7 +626,7 @@ GCOUNT = 0
 
 FOR LCOUNT1, 2, CHARANUM
 	VARSET LOCALS
-	SPLIT CSTR:LCOUNT1:����, "/", LOCALS
+	SPLIT CSTR:LCOUNT1:合意, "/", LOCALS
 
 ;	PRINTFORM %NAME:LCOUNT1% 
 	FOR LCOUNT2, 0, VARSIZE("STR_GOUI")
@@ -641,10 +641,10 @@ FOR LCOUNT1, 2, CHARANUM
 ;	PRINTL
 NEXT
 
-PRINTFORML ���ݎ擾�ςݍ��� �v{GCOUNT}���
+PRINTFORML 現在取得済み合意 計{GCOUNT}種類
 PRINTL
 
-PRINT NAME,NO,���ʔԍ�,�D���x,
+PRINT NAME,NO,識別番号,好感度,
 ARRAYSORT STR_GOUI
 FOR LCOUNT2, 0, VARSIZE("STR_GOUI")
 	SIF STR_GOUI:LCOUNT2 == ""
@@ -654,11 +654,11 @@ NEXT
 PRINTL
 
 FOR LCOUNT1, 2, CHARANUM
-	PRINTFORM %NAME:LCOUNT1%,{NO:LCOUNT1},{BASE:LCOUNT1:���ʔԍ�},{CFLAG:LCOUNT1:�D���x},
+	PRINTFORM %NAME:LCOUNT1%,{NO:LCOUNT1},{BASE:LCOUNT1:識別番号},{CFLAG:LCOUNT1:好感度},
 	FOR LCOUNT2, 0, VARSIZE("STR_GOUI")
 		SIF STR_GOUI:LCOUNT2 == ""
 			CONTINUE
-		SIF STRCOUNT(CSTR:LCOUNT1:����, @"\/%STR_GOUI:LCOUNT2%\/")
+		SIF STRCOUNT(CSTR:LCOUNT1:合意, @"\/%STR_GOUI:LCOUNT2%\/")
 			PRINT o
 		PRINT ,
 	NEXT

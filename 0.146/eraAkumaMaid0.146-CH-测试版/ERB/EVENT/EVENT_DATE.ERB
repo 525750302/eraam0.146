@@ -1,95 +1,95 @@
-;-------------------------------------------------
-;�f�[�g���I�f�[�g�ɍs�����I�I
+﻿;-------------------------------------------------
+;デートだ！デートに行くぞ！！
 ;-------------------------------------------------
 @EVENT_DATE_MAIN
 #DIM MEMO_REALTIMEFORFLAG
 #DIM LCOUNT
-;�����ւ��O�̈ߑ��̋L�^
+;着せ替え前の衣装の記録
 #DIMS MEMO_CLO, 50
 #DIM MEMO_EQUIP, 50
 #DIM MEMO_STAIN, 20
 
-SIF CHARA_NUM("�f�[�g�\") == 0
+SIF CHARA_NUM("デート可能") == 0
 	RETURN 0
-;�Ƃ肠�����͓��j�̒��̂�
-SIF DAYEV("�f�[�g�^�C��") == 0
+;とりあえずは日曜の昼のみ
+SIF DAYEV("デートタイム") == 0
 	RETURN 0
 
-MEMO_REALTIMEFORFLAG = FLAG:��������
-;�������ԃt���O�擾
+MEMO_REALTIMEFORFLAG = FLAG:現実時間
+;現実時間フラグ取得
 CALL GET_REALTIMEFORFLAG
 
 REDRAW 0
 
-;�񑩂�����Ȃ�Ί��ɑ���͌��܂��Ă���
-IF COND("�f�[�g�̗\�肠��")
-	TARGET = TO_NUMBER(CFLAG:MASTER:�f�[�g�̖�)
-	PRINTFORMW %CALLNAME:MASTER%��%NAMES("�f�[�g����")%�Ɩ񑩂����f�[�g�̑҂����킹�ꏊ�Ɍ��������B
-;�񑩂��Ă��Ȃ��Ȃ瑊��I��
+;約束があるならば既に相手は決まっている
+IF COND("デートの予定あり")
+	TARGET = TO_NUMBER(CFLAG:MASTER:デートの約束)
+	PRINTFORMW %CALLNAME:MASTER%は%NAMES("デート相手")%と約束したデートの待ち合わせ場所に向かった。
+;約束していないなら相手選び
 ELSE
 	CALL SELECT_DATE
-	;����ς�[�߂�
+	;やっぱやーめた
 	IF RESULT == 0
-		PRINTFORMW �f�[�g�ɍs���̂���߂܂����B
-		FLAG:�������� = MEMO_REALTIMEFORFLAG
+		PRINTFORMW デートに行くのをやめました。
+		FLAG:現実時間 = MEMO_REALTIMEFORFLAG
 		RETURN 0
 	ENDIF
 
-	CVARSET CFLAG, GETNUM(CFLAG, "����")
-	CVARSET CFLAG, GETNUM(CFLAG, "�Q�N��")
+	CVARSET CFLAG, GETNUM(CFLAG, "睡眠")
+	CVARSET CFLAG, GETNUM(CFLAG, "寝起き")
 
 	CALL BLANKLINE
-	;�܂��͗U�����ۂ̔���
-	CALL KOJO_DATE, "�f�[�g�ɗU��"
+	;まずは誘った際の反応
+	CALL KOJO_DATE, "デートに誘う"
 
-	IF TFLAG:�n�̕��X�L�b�v == 0
-		;���̏�ɋ��Ȃ������I�񂾂̂Ȃ�A�Ăяo������Ȃ�Ȃ�
-		IF COND("������")
-			PRINTFORMW ���������̃f�[�g�Ƃ������ŁA%CALLNAME:MASTER%�B�͂��݂��ɏ��������Ă��犸���Č��֊O�ō������ďo�����鎖�ɂ����B
+	IF TFLAG:地の文スキップ == 0
+		;この場に居ない相手を選んだのなら、呼び出したりなんなり
+		IF COND("同棲中")
+			PRINTFORMW せっかくのデートという事で、%CALLNAME:MASTER%達はお互いに準備をしてから敢えて玄関外で合流して出かける事にした。
 		ELSE
-			PRINTFORMW %CALLNAME:TARGET%��U�����Ƃɐ�������%CALLNAME:MASTER%�́A�f�[�g���y���ނ��߂ɊO�ő҂����킹�����鎖�ɂ����B
+			PRINTFORMW %CALLNAME:TARGET%を誘うことに成功した%CALLNAME:MASTER%は、デートを楽しむために外で待ち合わせをする事にした。
 		ENDIF
 	ENDIF
 ENDIF
 
-;�f�[�g���t���OON
-SETBIT FLAG:�󋵔���, 40
-FLAG:���[�h = 30
+;デート中フラグON
+SETBIT FLAG:状況判定, 40
+FLAG:ムード = 30
 
-;�f�[�g�̍s���揉����
-SAVESTR:�f�[�g = 
-STR:�g����ꏊ = 
+;デートの行き先初期化
+SAVESTR:デート = 
+STR:Ｈする場所 = 
 
-CFLAG:���� = 0
-CFLAG:�Q�N�� = 0
-;�p���c�Ȃǂ�CFLAG�͓�ɂ���
-CVARSET CFLAG, GETNUM(CFLAG, "�����m�F��")
-CVARSET CFLAG, GETNUM(CFLAG, "�ҊԊm�F��")
-CVARSET CFLAG, GETNUM(CFLAG, "�A�\�R�`�F�b�N")
-CVARSET CFLAG, GETNUM(CFLAG, "�X�J�[�g�߂���")
+CFLAG:睡眠 = 0
+CFLAG:寝起き = 0
+;パンツなどのCFLAGは謎にする
+CVARSET CFLAG, GETNUM(CFLAG, "下着確認済")
+CVARSET CFLAG, GETNUM(CFLAG, "股間確認済")
+CVARSET CFLAG, GETNUM(CFLAG, "アソコチェック")
+CVARSET CFLAG, GETNUM(CFLAG, "スカートめくり")
 
-;�f�[�g�Ŏg��TFLAG������
-TFLAG:��q�� = 0
-TFLAG:�L�X = 0
-TFLAG:��� = 0
-TFLAG:�t�F�� = 0
-TFLAG:���K��G�� = 0
-TFLAG:�Z�b�N�X = 0
-TFLAG:�f�[�g��Ȃ��\ = 0
-TFLAG:�f�[�g�G���\ = 0
-TFLAG:�����`�������\ = 0
-TFLAG:�����f�[�g = 0
-TFLAG:�����Ճf�[�g = 0
-TFLAG:�ߑ�����ς� = 0
-TFLAG:�C�x���g�� = 0
+;デートで使うTFLAG初期化
+TFLAG:手繋ぎ = 0
+TFLAG:キス = 0
+TFLAG:手淫 = 0
+TFLAG:フェラ = 0
+TFLAG:お尻を触る = 0
+TFLAG:セックス = 0
+TFLAG:デート手つなぎ可能 = 0
+TFLAG:デートエロ可能 = 0
+TFLAG:下着チラ見え可能 = 0
+TFLAG:水着デート = 0
+TFLAG:文化祭デート = 0
+TFLAG:衣装解説済み = 0
+TFLAG:イベント回数 = 0
 
-CALL EVENT_DATE, "�f�[�g�ߑ��ɒ��ւ���"
+CALL EVENT_DATE, "デート衣装に着替える"
 DRAWLINE
 DRAWLINE
-;�f�[�g�v��������
-CALL EVENT_DATE, "�҂����킹"
+;デートプラン羅列
+CALL EVENT_DATE, "待ち合わせ"
 
-;���Ă������Ɖ�����L������
+;着ていた服と汚れを記憶する
 FOR LCOUNT, 40, 50
 	MEMO_CLO:LCOUNT = %CSTR:LCOUNT%
 NEXT
@@ -100,60 +100,60 @@ FOR LCOUNT, 10, 20
 	MEMO_STAIN:LCOUNT = STAIN:LCOUNT
 NEXT
 
-CALL EVENT_DATE, "�s�挈��"
-CALL EVENT_DATE, "�����`������"
+CALL EVENT_DATE, "行先決定"
+CALL EVENT_DATE, "下着チラ見え"
 
-;���������͍s���掟��ŕω�������
-SELECTCASE SAVESTR:�f�[�g
-CASE "������"
-	;�����ɒ��ւ���
+;ここから先は行き先次第で変化がある
+SELECTCASE SAVESTR:デート
+CASE "文化祭"
+	;制服に着替える
 	FOR LCOUNT, 2, CHARANUM
 		SIF LCOUNT == TARGET
 			CONTINUE
-		SIF COND("�w���ݐ�", LCOUNT)
-			CALL SET_COORDINATE, "����", LCOUNT
+		SIF COND("学園在籍", LCOUNT)
+			CALL SET_COORDINATE, "制服", LCOUNT
 	NEXT
-	;�����Ղ�CEVENT�t���O���Z�b�g
+	;文化祭のCEVENTフラグリセット
 	FOR LCOUNT, 1, CHARANUM
-		CALL DEL_CEVENT_GROUP, "�w����", LCOUNT
+		CALL DEL_CEVENT_GROUP, "学園祭", LCOUNT
 	NEXT
-	CALL EVENT_DATE, "������"
-	CALL EVENT_DATE, "���ٓ�"
-	CALL EVENT_DATE, "��q��"
-	CALL EVENT_DATE, "������"
-	CALL EVENT_DATE, "�f�[�g�G��"
-	CALL EVENT_DATE, "������"
-CASE "�j���ɍs��"
-	CALL EVENT_DATE, "���ւ��č���"
-	CALL EVENT_DATE, "���ٓ�"
-	CALL EVENT_DATE, "��q��"
-	CALL EVENT_DATE, "�f�[�g�G��"
-CASE "�f��قɍs��"
-	CALL EVENT_DATE, "��q��"
-	CALL EVENT_DATE, "�f�[�g�G��"
-	CALL EVENT_DATE, "���ٓ�"
-CASE "�}���قɍs��"
-	CALL EVENT_DATE, "���ٓ�"
+	CALL EVENT_DATE, "文化祭"
+	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "手繋ぎ"
+	CALL EVENT_DATE, "文化祭"
+	CALL EVENT_DATE, "デートエロ"
+	CALL EVENT_DATE, "文化祭"
+CASE "泳ぎに行く"
+	CALL EVENT_DATE, "着替えて合流"
+	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "手繋ぎ"
+	CALL EVENT_DATE, "デートエロ"
+CASE "映画館に行く"
+	CALL EVENT_DATE, "手繋ぎ"
+	CALL EVENT_DATE, "デートエロ"
+	CALL EVENT_DATE, "お弁当"
+CASE "図書館に行く"
+	CALL EVENT_DATE, "お弁当"
 	CALL BLANK_DRAWLINE
-	CALL SETFLAG_DAILY, "�׋�"
-	CALL EVENT_DATE, "�f�[�g�G��"
-CASE "�H�ו���"
-	CALL EVENT_DATE, "��q��"
-	;�����𔃂��ɍs�����ꍇ�Ȃ�
-	CALL EVENT_DATE, "��������"
-	CALL EVENT_DATE, "�f�[�g�G��"
+	CALL SETFLAG_DAILY, "勉強"
+	CALL EVENT_DATE, "デートエロ"
+CASE "食べ歩き"
+	CALL EVENT_DATE, "手繋ぎ"
+	;水着を買いに行った場合など
+	CALL EVENT_DATE, "お買い物"
+	CALL EVENT_DATE, "デートエロ"
 CASEELSE
-	CALL EVENT_DATE, "���ٓ�"
-	CALL EVENT_DATE, "��q��"
-	;�����𔃂��ɍs�����ꍇ�Ȃ�
-	CALL EVENT_DATE, "��������"
-	CALL EVENT_DATE, "�f�[�g�G��"
+	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "手繋ぎ"
+	;水着を買いに行った場合など
+	CALL EVENT_DATE, "お買い物"
+	CALL EVENT_DATE, "デートエロ"
 ENDSELECT
-;�����f�[�g�͓��Ă����N����
-SIF TFLAG:�����f�[�g
-	CALL EVENT_DATE, "���Ă�"
+;水着デートは日焼けも起きる
+SIF TFLAG:水着デート
+	CALL EVENT_DATE, "日焼け"
 
-;���Ă������Ɖ����߂�
+;着ていた服と汚れを戻す
 FOR LCOUNT, 40, 50
 	CSTR:LCOUNT = %MEMO_CLO:LCOUNT%
 NEXT
@@ -164,20 +164,20 @@ FOR LCOUNT, 10, 20
 	STAIN:LCOUNT = MEMO_STAIN:LCOUNT
 NEXT
 
-;�f�[�g���I���B���āc�c
+;デートも終わり。さて……
 CALL BLANK_DRAWLINE
-IF TFLAG:�����Ճf�[�g
-	PRINTFORMW �C���t���Əo�����̑唼���P���̏������n�߂Ă���A�����Ղ��I���ɋ߂Â��Ă����B
+IF TFLAG:文化祭デート
+	PRINTFORMW 気が付くと出し物の大半が撤収の準備を始めており、文化祭も終わりに近づいていた。
 ELSE
-	PRINTFORMW �y���������f�[�g���A���낻��I���̎��Ԃ��B
+	PRINTFORMW 楽しかったデートも、そろそろ終わりの時間だ。
 ENDIF
 CALL BLANKLINE
-CALL KOJO_DATE, "�A���"
+CALL KOJO_DATE, "帰り際"
 
 RETURN 1
 
 ;-------------------------------------------------
-;�f�[�g�̂������I��
+;デートのお相手を選ぶ
 ;-------------------------------------------------
 @SELECT_DATE
 #DIM CHOICE
@@ -186,9 +186,9 @@ MEMO_LINECOUNT = LINECOUNT
 
 REDRAW 0
 
-PRINTL �c�c�N���f�[�g�ɗU���܂����H
-CALL PRINT_STRL, "���Ȃ݂ɁA���U�����󂯂Ă��炤�ɂ�_���F_[�M��LV3]or[����]or[��������LV1]_���K�v�ƂȂ�܂�"
-CALL SHOW_CHARA_LIST, "�f�[�g"
+PRINTL ……誰をデートに誘いますか？
+CALL PRINT_STRL, "ちなみに、お誘いを受けてもらうには_黄色_[信頼LV3]or[恋慕]or[屈服刻印LV1]_が必要となります"
+CALL SHOW_CHARA_LIST, "デート"
 
 $INPUT_LOOP
 INPUT
@@ -201,25 +201,25 @@ CASE 100
 CASE IS < MASTER, IS >= CHARANUM
 	GOTO INPUT_LOOP
 CASEELSE
-	SIF COND("�f�[�g�\", CHOICE) == 0
+	SIF COND("デート可能", CHOICE) == 0
 		GOTO INPUT_LOOP
 ENDSELECT
 
-;���̏�ɋ��Ȃ������I�񂾂̂Ȃ�A�D�揇�ʂ͕ϓ������Ȃ�
-IF COND("���ݕs��", CHOICE)
+;この場に居ない相手を選んだのなら、優先順位は変動させない
+IF COND("現在不在", CHOICE)
 	TARGET = CHOICE
 ELSE
-	CALL SETFLAG, "�Ώێw��", CHOICE
+	CALL SETFLAG, "対象指定", CHOICE
 ENDIF
 
 RETURN 1
 
 
 ;-------------------------------------------------
-;�f�[�g�̃C�x���g�Ǘ�
+;デートのイベント管理
 ;-------------------------------------------------
 @EVENT_DATE, ARGS
-;�N������C�x���g�̔���Ɏg��
+;起きうるイベントの判定に使う
 #DIMS EVENT_TABLE
 #DIMS CHOICES
 #DIM ACTOR
@@ -227,341 +227,341 @@ RETURN 1
 #DIM MEMO_LINECOUNT
 #DIM MEMO_MOOD
 #DIM MEMO_EJECT
-;�����ւ��O�̈ߑ��̋L�^
+;着せ替え前の衣装の記録
 #DIMS BEFORE_CLO
 #DIMS AFTER_CLO
 
-TFLAG:�n�̕��X�L�b�v = 0
-MEMO_MOOD = FLAG:���[�h
+TFLAG:地の文スキップ = 0
+MEMO_MOOD = FLAG:ムード
 
 SELECTCASE ARGS
-CASE "�f�[�g�ߑ��ɒ��ւ���"
-	;�f�[�g�p�̔��^�ȂǕύX
-	CALL SETFLAG, "�s�o�n�ɂ��O���ύX"
+CASE "デート衣装に着替える"
+	;デート用の髪型など変更
+	CALL SETFLAG, "ＴＰＯによる外見変更"
 
-	STR:�ύX�ߑ� = �f�[�g�ߑ�
+	STR:変更衣装 = デート衣装
 
-	;���Ă��������L������B��v���邩�����邾���Ȃ̂ŕ�����R�s�[�ŗǂ�
-	BEFORE_CLO = %CSTR:�p���c%%CSTR:�u��%%CSTR:��%%CSTR:�X�J�[�g%%CSTR:�{�f�B�X�[�c%%CSTR:�A�E�^�[%%CSTR:�C��%%CSTR:�C%%CSTR:���%%CSTR:�A�N�Z�T��%
+	;着ていた服を記憶する。一致するかを見るだけなので文字列コピーで良い
+	BEFORE_CLO = %CSTR:パンツ%%CSTR:ブラ%%CSTR:服%%CSTR:スカート%%CSTR:ボディスーツ%%CSTR:アウター%%CSTR:靴下%%CSTR:靴%%CSTR:手袋%%CSTR:アクセサリ%
 
-	CALL KOJO_DATE, "�f�[�g�ߑ��ɒ��ւ���"
+	CALL KOJO_DATE, "デート衣装に着替える"
 
-	AFTER_CLO = %CSTR:�p���c%%CSTR:�u��%%CSTR:��%%CSTR:�X�J�[�g%%CSTR:�{�f�B�X�[�c%%CSTR:�A�E�^�[%%CSTR:�C��%%CSTR:�C%%CSTR:���%%CSTR:�A�N�Z�T��%
+	AFTER_CLO = %CSTR:パンツ%%CSTR:ブラ%%CSTR:服%%CSTR:スカート%%CSTR:ボディスーツ%%CSTR:アウター%%CSTR:靴下%%CSTR:靴%%CSTR:手袋%%CSTR:アクセサリ%
 
-	;���ւ����ꍇ�̓t���OON
+	;着替えた場合はフラグON
 	SIF BEFORE_CLO != AFTER_CLO
-		CALL SETFLAG, "���ւ�������"
+		CALL SETFLAG, "着替えをした"
 
-	;����ȂǂŒ��ւ��Ă��Ȃ��Ȃ�(����Ȃ�)�f�[�g�ߑ��ɂȂ�
-	SIF COND("�f�[�g�ߑ��ɒ��ւ���") == 0
-		CALL SETFLAG, "�f�[�g�ߑ��ɒ��ւ���"
-	;�f�[�g�p�̈ߑ��œo�ꂵ���Ȃ烀�[�h�A�b�v
-	SIF COND("�f�[�g�ߑ��ɒ��ւ���")
-		FLAG:���[�h += 30
-CASE "�҂����킹"
+	;口上などで着替えていないなら(あるなら)デート衣装になる
+	SIF COND("デート衣装に着替えた") == 0
+		CALL SETFLAG, "デート衣装に着替える"
+	;デート用の衣装で登場したならムードアップ
+	SIF COND("デート衣装に着替えた")
+		FLAG:ムード += 30
+CASE "待ち合わせ"
 	CALL PRINT_MAIDFACE, TARGET
-	CALL KOJO_DATE, "�҂����킹"
-	;�������ߑ��̉���������Ȃ炱���ł��Ă���
-	IF TFLAG:�ߑ�����ς� == 0
-		IF COND("�f�[�g�ߑ��ɒ��ւ���") && TFLAG:�n�̕��X�L�b�v == 0
-			CALL PRINT_STRW, @"������%CALLNAME:TARGET%�̊i�D�́A_�n�[�g�s���N_%CLO_ABOUT(TARGET)%_���B"
-			PRINTFORM %TEXTR("���i�Ƃ͈ꖡ�Ⴄ/�����Ƃ͈قȂ�C���̓�����/�f�[�g�ɔ����Ă��߂������ė����l�q��")%%CONDS("�ԕ�")%�̎p�ɁA
-			PRINTFORMW �ۉ��Ȃ��e���V���������܂�c�c
+	CALL KOJO_DATE, "待ち合わせ"
+	;もしも衣装の解説が無いならここでしておく
+	IF TFLAG:衣装解説済み == 0
+		IF COND("デート衣装に着替えた") && TFLAG:地の文スキップ == 0
+			CALL PRINT_STRW, @"今日の%CALLNAME:TARGET%の格好は、_ハートピンク_%CLO_ABOUT(TARGET)%_だ。"
+			PRINTFORM %TEXTR("普段とは一味違う/いつもとは異なる気合の入った/デートに備えておめかしして来た様子の")%%CONDS("間柄")%の姿に、
+			PRINTFORMW 否応なくテンションが高まる……
 		ELSE
 
 		ENDIF
-		TFLAG:�ߑ�����ς� = 1
+		TFLAG:衣装解説済み = 1
 	ENDIF
-CASE "�s�挈��"
-	;���肪�s�������ꏊ�������炻�����D��
-	IF SAVESTR:�f�[�g == ""
-		;���߂Ă̂��f�[�g�I
-		IF EXP:MASTER:�f�[�g�o�� == 0
-			PRINTFORML �L�O���ׂ����߂Ẵf�[�g�͈�̑S�́A�������ĉ߂����Ƃ��悤�H
-		;���̑���Ƃ͏��߂�
-		ELSEIF EXP:�f�[�g�o�� == 0
-			PRINTFORML �����%CALLNAME:TARGET%�Ƃ̏��f�[�g���B�������悤���H
+CASE "行先決定"
+	;相手が行きたい場所あったらそっち優先
+	IF SAVESTR:デート == ""
+		;初めてのおデート！
+		IF EXP:MASTER:デート経験 == 0
+			PRINTFORML 記念すべき初めてのデートは一体全体、何をして過ごすとしよう？
+		;この相手とは初めて
+		ELSEIF EXP:デート経験 == 0
+			PRINTFORML 今回は%CALLNAME:TARGET%との初デートだ。何をしようか？
 		ELSE
-			PRINTFORML ����̃f�[�g�́A�ǂ̂悤�ȃv�����ōs���Ƃ��悤���H
+			PRINTFORML 今回のデートは、どのようなプランで行くとしようか？
 		ENDIF
-		SIF COND("��") && CSTR:���N�̐��� != "" && COND("���N�̐����I����")
-			CALL PRINT_STRL, @"�i���v�[����C�ɔ�����_���F_���N�̐���(%SWIM(CSTR:���N�̐���, "���")%)_���w���ς݂ł��j"
+		SIF COND("夏") && CSTR:今年の水着 != "" && COND("今年の水着選択済")
+			CALL PRINT_STRL, @"（※プールや海に備えて_黄色_今年の水着(%SWIM(CSTR:今年の水着, "種類")%)_を購入済みです）"
 
-		;�N������C�x���g�̔���Ɏg��
-		STR:�I���� = 
+		;起きうるイベントの判定に使う
+		STR:選択肢 = 
 
-		;���㑤�őI���������R�ɍ�邱�Ƃ��ł���
+		;口上側で選択肢を自由に作ることができる
 		TRYCALLFORM DATE_K{NO:TARGET}_ADDSELECT
 
-		SIF DAYEV("������")
-			STR:�I���� += "������/"
+		SIF DAYEV("文化祭")
+			STR:選択肢 += "文化祭/"
 
-		SELECTCASE TEXTS("�G�ߏڍ�")
-		CASE "�t", "����", "��"
-			SIF COND("���N�̐����I����") == 0
-				STR:�I���� += "�����𔃂��ɍs��/"
+		SELECTCASE TEXTS("季節詳細")
+		CASE "春", "初夏", "夏"
+			SIF COND("今年の水着選択済") == 0
+				STR:選択肢 += "水着を買いに行く/"
 		ENDSELECT
 
-		;�G�߃C�x���g�B����ȍs��͍�肩���Ȃ̂Ŏ��d���ĕ���
-		IF COND("�t")
-	;		STR:�I���� += "���Ԍ�/"
-		ELSEIF COND("��")
-			STR:�I���� += "�j���ɍs��/"
-	;		STR:�I���� += "�R�ɍs��/"
-		ELSEIF COND("�H")
-	;		STR:�I���� += "�g�t���ɍs��/"
-		ELSEIF COND("�~")
-	;		STR:�I���� += "�X�P�[�g/"
+		;季節イベント。特殊な行先は作りかけなので自重して封印
+		IF COND("春")
+	;		STR:選択肢 += "お花見/"
+		ELSEIF COND("夏")
+			STR:選択肢 += "泳ぎに行く/"
+	;		STR:選択肢 += "山に行く/"
+		ELSEIF COND("秋")
+	;		STR:選択肢 += "紅葉狩りに行く/"
+		ELSEIF COND("冬")
+	;		STR:選択肢 += "スケート/"
 		ENDIF
 
 
-		;���ꂽ����ƂȂ�g�߂ȏꏊ��I�ׂ�
-		SIF EXP:�f�[�g�o��
-			STR:�I���� += "�U��/"
+		;慣れた相手となら身近な場所を選べる
+		SIF EXP:デート経験
+			STR:選択肢 += "散歩/"
 
-		;�ʔN�n�j�ȃX�|�b�g
-		STR:�I���� += "�H�ו���/�X�ł�������/�����قɍs��/�V���n�ɍs��/�f��قɍs��/"
+		;通年ＯＫなスポット
+		STR:選択肢 += "食べ歩き/街でお買い物/水族館に行く/遊園地に行く/映画館に行く/"
 
-		;�}���ق͊w������
-		SIF STRCOUNTS(CSTR:�w�N, "�N��", "������", "������")
-			STR:�I���� += "�}���قɍs��/"
+		;図書館は学生限定
+		SIF STRCOUNTS(CSTR:学年, "年生", "初等部", "中等部")
+			STR:選択肢 += "図書館に行く/"
 
 		VARSET LOCALS
-		SPLIT STR:�I����, "/", LOCALS
-		CALL PRINT_SELECT, STR:�I����
-		SAVESTR:�f�[�g = %LOCALS:RESULT%
+		SPLIT STR:選択肢, "/", LOCALS
+		CALL PRINT_SELECT, STR:選択肢
+		SAVESTR:デート = %LOCALS:RESULT%
 	ENDIF
 
 	MEMO_LINECOUNT = LINECOUNT
-	;����ō�����I������I�񂾂Ȃ炱���Œn�̕��Ƒ䎌���o��
+	;口上で作った選択肢を選んだならここで地の文と台詞が出る
 	TRYCALLFORM KOJO_DATE_K{NO:TARGET}_ADDSELECT
 
-	;����ō�����I������I��ł��Ȃ��ꍇ
+	;口上で作った選択肢を選んでいない場合
 	SIF LINECOUNT == MEMO_LINECOUNT
-		CALL KOJO_DATE, "�f�[�g�{��"
+		CALL KOJO_DATE, "デート本番"
 
 	CALL BLANKLINE
 
-	;���[�h�̃{�[�i�X�v�Z
-	SIF TFLAG:��q��
-		FLAG:���[�h += 15
+	;ムードのボーナス計算
+	SIF TFLAG:手繋ぎ
+		FLAG:ムード += 15
 
-	;�f�[�g�ꏊ�ɂ���Ă������̃t���O������
-	;���[�h�{�[�i�X�������ꏊ��FLAG:���[�h+60�A���ʂȂ�FLAG:���[�h+30�A�f�[�g���ۂ��Ȃ��ꏊ���ƏC���Ȃ�
-	SELECTCASE SAVESTR:�f�[�g
-	;�����[�h���G���\
-	CASE "�����قɍs��", "�V���n�ɍs��"
-		FLAG:���[�h += 60
-		TFLAG:�f�[�g�G���\ = 1
-		TFLAG:�f�[�g��Ȃ��\ = 1
-		TFLAG:�����`�������\ = 1
-	;2019/10 hokaguru �ǋL �f��قŉ����͌����ւ��낤�c�c
-	CASE "�f��قɍs��"
-		FLAG:���[�h += 60
-		TFLAG:�f�[�g�G���\ = 1
-		TFLAG:�f�[�g��Ȃ��\ = 1
-	CASE "�j���ɍs��"
-		FLAG:���[�h += 30
-		TFLAG:�f�[�g�G���\ = 1
-		TFLAG:�f�[�g��Ȃ��\ = 1
-		TFLAG:�����f�[�g = 1
+	;デート場所によっていくつかのフラグが立つ
+	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+	SELECTCASE SAVESTR:デート
+	;高ムード＆エロ可能
+	CASE "水族館に行く", "遊園地に行く"
+		FLAG:ムード += 60
+		TFLAG:デートエロ可能 = 1
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	;2019/10 hokaguru 追記 映画館で下着は見えへんやろう……
+	CASE "映画館に行く"
+		FLAG:ムード += 60
+		TFLAG:デートエロ可能 = 1
+		TFLAG:デート手つなぎ可能 = 1
+	CASE "泳ぎに行く"
+		FLAG:ムード += 30
+		TFLAG:デートエロ可能 = 1
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:水着デート = 1
 
-		;�����������̐ݒ肪�����ꍇ�ɂ̓r�L�j
-		IF CSTR:���N�̐��� == ""
-			SELECTCASE COND("�A��")
+		;もしも水着の設定が無い場合にはビキニ
+		IF CSTR:今年の水着 == ""
+			SELECTCASE COND("陰毛")
 			CASE IS >= 7
 				IF RAND:3 == 0
-					CSTR:���N�̐��� = %PALAM_SWIM("�r�L�j���p���I", CSTR:�D���ȐF)%
+					CSTR:今年の水着 = %PALAM_SWIM("ビキニ＆パレオ", CSTR:好きな色)%
 				ELSEIF RAND:2
-					CSTR:���N�̐��� = %PALAM_SWIM("�r�L�j���V���[�g�p���c", CSTR:�D���ȐF)%
+					CSTR:今年の水着 = %PALAM_SWIM("ビキニ＆ショートパンツ", CSTR:好きな色)%
 				ELSE
-					CSTR:���N�̐��� = %PALAM_SWIM("�r�L�j���~�j�X�J�[�g", CSTR:�D���ȐF)%
+					CSTR:今年の水着 = %PALAM_SWIM("ビキニ＆ミニスカート", CSTR:好きな色)%
 				ENDIF
 			CASEELSE
-				CSTR:���N�̐��� = %PALAM_SWIM("�r�L�j", CSTR:�D���ȐF)%
+				CSTR:今年の水着 = %PALAM_SWIM("ビキニ", CSTR:好きな色)%
 			ENDSELECT
 		ENDIF
-	;�����[�h���G���\
-	CASE "������"
-		FLAG:���[�h += 30
-		TFLAG:�����Ճf�[�g = 1
-		TFLAG:�f�[�g��Ȃ��\ = 1
-		TFLAG:�f�[�g�G���\ = 1
-		TFLAG:�����`�������\ = 1
-	CASE "�����𔃂��ɍs��"
-		FLAG:���[�h += 30
-		TFLAG:�f�[�g��Ȃ��\ = 1
-		TFLAG:�f�[�g�G���\ = 1
-		TFLAG:�����`�������\ = 1
-	;�Ⴠ�[�h�����ǃG���\
-	CASE "�}���قɍs��"
-		FLAG:���[�h += 30
-		TFLAG:�f�[�g�G���\ = 1
-		TFLAG:�����`�������\ = 1
-	CASE "�U��"
-		TFLAG:�f�[�g�G���\ = 1
-		TFLAG:�f�[�g��Ȃ��\ = 1
-		TFLAG:�����`�������\ = 1
-	;���̑��B��ʂɃG�������Ƃ͏o���Ȃ�
-	CASE "�H�ו���", "�X�ł�������"
-		FLAG:���[�h += 30
-		TFLAG:�f�[�g��Ȃ��\ = 1
-		TFLAG:�����`�������\ = 1
-	;���ݒ�
-	CASE "���Ԍ�", "�R�ɍs��", "�g�t���ɍs��", "�X�P�[�g"
-		FLAG:���[�h += 30
-		TFLAG:�f�[�g��Ȃ��\ = 1
-		TFLAG:�����`�������\ = 1
+	;並ムード＆エロ可能
+	CASE "文化祭"
+		FLAG:ムード += 30
+		TFLAG:文化祭デート = 1
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:デートエロ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	CASE "水着を買いに行く"
+		FLAG:ムード += 30
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:デートエロ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	;低ムードだけどエロ可能
+	CASE "図書館に行く"
+		FLAG:ムード += 30
+		TFLAG:デートエロ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	CASE "散歩"
+		TFLAG:デートエロ可能 = 1
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	;その他。一般にエロいことは出来ない
+	CASE "食べ歩き", "街でお買い物"
+		FLAG:ムード += 30
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	;未設定
+	CASE "お花見", "山に行く", "紅葉狩りに行く", "スケート"
+		FLAG:ムード += 30
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
 	CASEELSE
-		FLAG:���[�h += 30
-		TFLAG:�f�[�g��Ȃ��\ = 1
-		TFLAG:�����`�������\ = 1
+		FLAG:ムード += 30
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
 	ENDSELECT
-CASE "�����`������"
-	SIF TFLAG:�����`�������\ == 0
+CASE "下着チラ見え"
+	SIF TFLAG:下着チラ見え可能 == 0
 		RETURN 0
 	CALL BLANK_DRAWLINE
 	MEMO_LINECOUNT = LINECOUNT
-	CALL EVENT_ACADEMY, "�`������"
+	CALL EVENT_ACADEMY, "チラ見え"
 
 	SIF LINECOUNT == MEMO_LINECOUNT
 		CLEARLINE 1
-CASE "���ւ��č���"
-	SELECTCASE SAVESTR:�f�[�g
-	CASE "�j���ɍs��"
-		STR:�I�񂾐��� = %CSTR:���N�̐���%
-		CALL SET_COORDINATE, "���N�̐���"
+CASE "着替えて合流"
+	SELECTCASE SAVESTR:デート
+	CASE "泳ぎに行く"
+		STR:選んだ水着 = %CSTR:今年の水着%
+		CALL SET_COORDINATE, "今年の水着"
 		CALL BLANK_DRAWLINE
-		PRINTFORMW �ړI�n�ɒ�����%CALLNAME:MASTER%�B�́A��U������čX�ߎ��Œ��ւ�����ɍ������鎖�ɂ����B
-		PRINTW �c�c�c
-		PRINTW �c�c
-		PRINTW �c
-		CALL KOJO_DATE, "�����ɒ��ւ���"
-		PRINTFORMW %CALLNAME:MASTER%�ɒx��邱�Ɛ����A%SWIM(CSTR:���N�̐���)%�ɒ��ւ���%CALLNAME:TARGET%���p���������I
-		IF COMMENT_SWIM(CSTR:���N�̐���, "�P�ƕ�") != ""
-			SIF EQUIP:�p���c
-				CALL PRINT_CUTIN, "�p���c", TARGET
-			PRINTFORMW %COMMENT_SWIM(CSTR:���N�̐���, "�P�ƕ�")%
+		PRINTFORMW 目的地に着いた%CALLNAME:MASTER%達は、一旦分かれて更衣室で着替えた後に合流する事にした。
+		PRINTW ………
+		PRINTW ……
+		PRINTW …
+		CALL KOJO_DATE, "水着に着替えた"
+		PRINTFORMW %CALLNAME:MASTER%に遅れること数分、%SWIM(CSTR:今年の水着)%に着替えた%CALLNAME:TARGET%が姿を現した！
+		IF COMMENT_SWIM(CSTR:今年の水着, "単独文") != ""
+			SIF EQUIP:パンツ
+				CALL PRINT_CUTIN, "パンツ", TARGET
+			PRINTFORMW %COMMENT_SWIM(CSTR:今年の水着, "単独文")%
 		ENDIF
-		FLAG:���[�h += 30
+		FLAG:ムード += 30
 	ENDSELECT
-CASE "���ٓ�"
-	SIF CEVENT("�f�[�g�̂��ٓ�") == 0
+CASE "お弁当"
+	SIF CEVENT("デートのお弁当") == 0
 		RETURN 0
 	CALL BLANK_DRAWLINE
 	IF RAND:4 == 0
-		SELECTCASE SAVESTR:�f�[�g
-		CASE "�f��قɍs��"
-			PRINTFORM �f��ق���o�Ȃ���%CALLNAME:TARGET%�ƎG�k���Ă��邤���ɁA�b�肪���R�ƐH�ׂ鎖�ɃV�t�g���Ă���
+		SELECTCASE SAVESTR:デート
+		CASE "映画館に行く"
+			PRINTFORM 映画館から出ながら%CALLNAME:TARGET%と雑談しているうちに、話題が自然と食べる事にシフトしてきた
 		CASEELSE
-			PRINTFORM �ړ����Ȃ���%CALLNAME:TARGET%�ƎG�k���Ă��邤���ɁA�b�肪���R�ƐH�ׂ鎖�ɃV�t�g���Ă���
+			PRINTFORM 移動しながら%CALLNAME:TARGET%と雑談しているうちに、話題が自然と食べる事にシフトしてきた
 		ENDSELECT
 	ELSE
-		PRINTFORM �s�ӂ�%CALLNAME:MASTER%�̂�����%TEXTR("�b�̂悤�ȚX�萺��������/�O�D�`�Ɩ��Ă��܂���/������������")%�̂��󂯂āA%CALLNAME:TARGET%��
-		IF TALENT:�f�� + TALENT:�z�C && TALENT:�͎��� + TALENT:�e�� + TALENT:����
-			PRINTFORM %TEXTR("�v�b�Ɛ����o����/�y�������ɂ��炩���Ă���/�j�b�Ɣ��΂�")%
-		ELSEIF TALENT:�f�� + TALENT:�z�C + TALENT:�D���� + TALENT:���g + TALENT:���
-			PRINTFORM %TEXTR("�΂݂����ڂ���/�D�������΂�/�Ί�Őg���񂹂Ă���")%
-		ELSEIF TALENT:���C + TALENT:����
-			PRINTFORM %TEXTR("�䖝�ł��Ȃ��Ƃ������l�q�ŏ΂�����R�炵��/���������ƃW�F�X�`���[���Ȃ���D�������΂݂����Ă���/�E�я΂���R�炵�Ȃ���e����I�ł��Ă���")%
+		PRINTFORM 不意に%CALLNAME:MASTER%のお腹が%TEXTR("獣のような唸り声をあげた/グゥ～と鳴ってしまった/お昼を告げた")%のを受けて、%CALLNAME:TARGET%が
+		IF TALENT:素直 + TALENT:陽気 && TALENT:力持ち + TALENT:粗野 + TALENT:愚か
+			PRINTFORM %TEXTR("プッと吹き出した/楽しそうにからかってきた/ニッと微笑んだ")%
+		ELSEIF TALENT:素直 + TALENT:陽気 + TALENT:優しい + TALENT:献身 + TALENT:冷静
+			PRINTFORM %TEXTR("笑みをこぼした/優しく微笑んだ/笑顔で身を寄せてきた")%
+		ELSEIF TALENT:強気 + TALENT:高慢
+			PRINTFORM %TEXTR("我慢できないといった様子で笑い声を漏らした/ヤレヤレとジェスチャーしながら優しく微笑みかけてきた/忍び笑いを漏らしながら脇腹を肘でつついてきた")%
 		ELSE
-			PRINTFORM %TEXTR("�����o����/�j�R�b�Ɣ��΂�/����Ȃ���̏Ί��������")%
+			PRINTFORM %TEXTR("吹き出した/ニコッと微笑んだ/呆れながらの笑顔を見せた")%
 		ENDIF
 	ENDIF
-	PRINTFORMW �c�c���낻�남�����͂�̎��Ԃ̂悤���B
+	PRINTFORMW ……そろそろお昼ごはんの時間のようだ。
 	PRINTL 
-	IF COND("��")
-		PRINTFORM %CALLNAME:MASTER%��%CALLNAME:TARGET%���N�[���[�{�b�N�X������o�������ٓ����A
+	IF COND("夏")
+		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%がクーラーボックスから取り出したお弁当を、
 	ELSE
-		PRINTFORM %CALLNAME:MASTER%��%CALLNAME:TARGET%���p�ӂ��Ă��ꂽ����̂��ٓ����A
+		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%が用意してくれた手作りのお弁当を、
 	ENDIF
-	IF COND("�~")
-		PRINTFORMW ���O�ɖڐ������Ă����������̍L��ɍ��𗎂������Ĉꏏ�ɐH�ׂ��B
+	IF COND("冬")
+		PRINTFORMW 事前に目星をつけておいた屋内の広場に腰を落ち着けて一緒に食べた。
 	ELSE
-		SELECTCASE SAVESTR:�f�[�g
-		CASE "�����قɍs��", "�V���n�ɍs��", "�f��قɍs��", "�X�P�[�g", "�j���ɍs��", "�����𔃂��ɍs��"
-			PRINTFORMW �x���`�ɍ����Ĉꏏ�ɐH�ׂ��B
-		CASE "�}���قɍs��"
-			PRINTFORMW �يO�̃x���`�ɍ����Ĉꏏ�ɐH�ׂ��B
-		CASE "�U��", "�H�ו���", "�X�ł�������"
-			PRINTFORMW %TEXTR("�����̃x���`�ɍ�����/�J�t�F�̃I�[�v���X�y�[�X��/�V���b�s���O���[���̃I�[�v���X�y�[�X��")%�ꏏ�ɐH�ׂ��B
-		CASE "���Ԍ�", "�R�ɍs��", "�g�t���ɍs��"
-			PRINTFORMW ���W���[�V�[�g�ɍ������낵�Ĉꏏ�ɐH�ׂ��B
+		SELECTCASE SAVESTR:デート
+		CASE "水族館に行く", "遊園地に行く", "映画館に行く", "スケート", "泳ぎに行く", "水着を買いに行く"
+			PRINTFORMW ベンチに座って一緒に食べた。
+		CASE "図書館に行く"
+			PRINTFORMW 館外のベンチに座って一緒に食べた。
+		CASE "散歩", "食べ歩き", "街でお買い物"
+			PRINTFORMW %TEXTR("公園のベンチに座って/カフェのオープンスペースで/ショッピングモールのオープンスペースで")%一緒に食べた。
+		CASE "お花見", "山に行く", "紅葉狩りに行く"
+			PRINTFORMW レジャーシートに腰を下ろして一緒に食べた。
 		CASEELSE
-			PRINTFORMW �x���`�ɍ����Ĉꏏ�ɐH�ׂ��B
+			PRINTFORMW ベンチに座って一緒に食べた。
 		ENDSELECT
 	ENDIF
-	CALL KOJO_DATE, "���ٓ�"
-	FLAG:���[�h += 30
-CASE "��q��"
-	SIF TFLAG:��q�� || TFLAG:�f�[�g��Ȃ��\ == 0
+	CALL KOJO_DATE, "お弁当"
+	FLAG:ムード += 30
+CASE "手繋ぎ"
+	SIF TFLAG:手繋ぎ || TFLAG:デート手つなぎ可能 == 0
 		RETURN 0
 	CALL BLANK_DRAWLINE
-	PRINTFORMW �Ƃ���ŁB
-	IF COND("���ӁF��q��")
-		PRINTFORMW �����͂܂�%CALLNAME:TARGET%�̎�������Ă��Ȃ����ɋC�Â��܂����B
-	ELSEIF TALENT:���v����
-		PRINTFORMW ���l���m���ƌ����̂ɁA%CALLNAME:TARGET%�̎�������Ă��Ȃ����ɋC�Â��܂����B
+	PRINTFORMW ところで。
+	IF COND("合意：手繋ぎ")
+		PRINTFORMW 今日はまだ%CALLNAME:TARGET%の手を握っていない事に気づきました。
+	ELSEIF TALENT:相思相愛
+		PRINTFORMW 恋人同士だと言うのに、%CALLNAME:TARGET%の手を握っていない事に気づきました。
 	ELSE
-		PRINTFORMW ���ɂ��f�[�g���ƌ����̂ɁA%CALLNAME:TARGET%�̎�������Ă��Ȃ����ɋC�Â��܂����B
+		PRINTFORMW 仮にもデートだと言うのに、%CALLNAME:TARGET%の手を握っていない事に気づきました。
 	ENDIF
-	PRINTFORMW �c�c�ǂ�����H
-	IF COND("���ӁF��q��") || TALENT:����
-		CALL PRINT_SELECT, "����Ȃ�/��߂Ă���"
+	PRINTFORMW ……どうする？
+	IF COND("合意：手繋ぎ") || TALENT:恋慕
+		CALL PRINT_SELECT, "手をつなぐ/やめておく"
 	ELSE
-		CALL PRINT_SELECT, "����Ȃ�/�������邩������Ȃ����A��߂Ă���"
+		CALL PRINT_SELECT, "手をつなぐ/嫌がられるかもしれないし、やめておく"
 	ENDIF
 
-	;����Ȃ���
+	;手をつないだ
 	IF RESULT == 0
-		TFLAG:��q�� = 1
-		FLAG:���[�h += 30
+		TFLAG:手繋ぎ = 1
+		FLAG:ムード += 30
 
-		CALL KOJO_DATE, "����Ȃ�"
+		CALL KOJO_DATE, "手をつなぐ"
 	ELSE
-		CALL KOJO_DATE, "����Ȃ��Ȃ�"
+		CALL KOJO_DATE, "手をつながない"
 	ENDIF
-CASE "��������"
-	SELECTCASE SAVESTR:�f�[�g
-	CASE "�����𔃂��ɍs��"
+CASE "お買い物"
+	SELECTCASE SAVESTR:デート
+	CASE "水着を買いに行く"
 		CALL EVENT_SHOP_SWIM
 	ENDSELECT
-CASE "�f�[�g�G��"
-	;���[�h�����܂��ė�����G���������ł����
+CASE "デートエロ"
+	;ムードが高まって来たらエロい事もできるよ
 	EVENT_TABLE = 
-	IF TFLAG:�f�[�g�G���\ && (COND("�����") || MOOD_HEART() >= 2 || SAVESTR:�f�[�g == "�}���قɍs��")
-		SELECTCASE SAVESTR:�f�[�g
-		CASE "�����𔃂��ɍs��"
-			;SIF PENIS(MASTER) &&  BASE:MASTER:���� >= 30 && BASE:MASTER:�� >= 100 && EXP:�������o�� && COND("�����哱���Z�b�N�X") && COND("�������\") && CANTRAIN("�����")
-			;	EVENT_TABLE += "�O�̌���݂��Ă��炤/"
-			SIF PENIS(MASTER) &&  BASE:MASTER:���� >= 30 && BASE:MASTER:�� >= 100 && EXP:�������o�� && EXP:�����o�� > 5 && COND("�������\") && CANTRAIN("�t�F���`�I")
-				EVENT_TABLE += "����������Ŕ����Ă��炤/"
+	IF TFLAG:デートエロ可能 && (COND("発情期") || MOOD_HEART() >= 2 || SAVESTR:デート == "図書館に行く")
+		SELECTCASE SAVESTR:デート
+		CASE "水着を買いに行く"
+			;SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && COND("女性主導生セックス") && COND("性処理可能") && CANTRAIN("正常位")
+			;	EVENT_TABLE += "前の穴を貸してもらう/"
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("フェラチオ")
+				EVENT_TABLE += "こっそり口で抜いてもらう/"
 			SIF EVENT_TABLE != ""
-				EVENT_TABLE += "�䖝����/"
-		;2019/10 hokaguru �ǋL
-		CASE "�f��قɍs��"
-			SIF PENIS(MASTER) &&  BASE:MASTER:���� >= 30 && BASE:MASTER:�� >= 100 && EXP:�������o�� && EXP:����o�� > 5 && COND("�������\") && CANTRAIN("���")
-				EVENT_TABLE += "���������R�L���Ă��炤/"
+				EVENT_TABLE += "我慢する/"
+		;2019/10 hokaguru 追記
+		CASE "映画館に行く"
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:手淫経験 > 5 && COND("性処理可能") && CANTRAIN("手淫")
+				EVENT_TABLE += "こっそり手コキしてもらう/"
 			SIF EVENT_TABLE != ""
-				EVENT_TABLE += "�f��ɏW������/"
-		;2020/02/24�@�}���[�����̒��̐l�@�ǋL�@�G�ɕ���𑝂₷
-		CASE "�}���قɍs��"
-			SIF PENIS(MASTER) &&  BASE:MASTER:���� >= 30 && BASE:MASTER:�� >= 100 && EXP:�������o�� && EXP:�����o�� > 5 && COND("�������\") && CANTRAIN("�t�F���`�I")
-				EVENT_TABLE += "����������Ŕ����Ă��炤/"
-			;���e���l����̂��ʓ|�Ȃ̂ň�U����
-;			SIF PENIS(MASTER) &&  BASE:MASTER:���� >= 30 && BASE:MASTER:�� >= 100 && EXP:�������o�� && EXP:����o�� > 5 && COND("�������\") && CANTRAIN("���")
-;				EVENT_TABLE += "���������R�L���Ă��炤/"
+				EVENT_TABLE += "映画に集中する/"
+		;2020/02/24　マリーちゃんの中の人　追記　雑に分岐を増やす
+		CASE "図書館に行く"
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("フェラチオ")
+				EVENT_TABLE += "こっそり口で抜いてもらう/"
+			;内容を考えるのが面倒なので一旦封印
+;			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:手淫経験 > 5 && COND("性処理可能") && CANTRAIN("手淫")
+;				EVENT_TABLE += "こっそり手コキしてもらう/"
 			SIF EVENT_TABLE != ""
-				EVENT_TABLE += "�^�ʖڂɕ׋�����/"
+				EVENT_TABLE += "真面目に勉強する/"
 		CASEELSE
-			SIF PENIS(MASTER) &&  BASE:MASTER:���� >= 30 && BASE:MASTER:�� >= 100 && EXP:�������o�� && EXP:�����o�� > 5 && COND("�������\") && CANTRAIN("�t�F���`�I")
-				EVENT_TABLE += "������ƕ��A�ցc�c/"
-			SIF COND("���ӁF�L�X")
-				EVENT_TABLE += "�L�X����/"
-			SIF CHECK_SKIRT("�~�j") || EQUIP:�X�J�[�g == 0 || TFLAG:�����f�[�g
-				EVENT_TABLE += "���K��G��/"
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("フェラチオ")
+				EVENT_TABLE += "ちょっと物陰へ……/"
+			SIF COND("合意：キス")
+				EVENT_TABLE += "キスする/"
+			SIF CHECK_SKIRT("ミニ") || EQUIP:スカート == 0 || TFLAG:水着デート
+				EVENT_TABLE += "お尻を触る/"
 			SIF EVENT_TABLE != ""
-				EVENT_TABLE += "���͉����ɍs�������H�Ƙb��U��/"
+				EVENT_TABLE += "次は何処に行こうか？と話を振る/"
 		ENDSELECT
 	ENDIF
 
@@ -569,22 +569,22 @@ CASE "�f�[�g�G��"
 		RETURN 0
 
 	CALL BLANK_DRAWLINE
-	SELECTCASE SAVESTR:�f�[�g
-	CASE "�����قɍs��"
-		PRINTFORMW �c�c���Â������ق�\@ TFLAG:��q�� ? ����Ȃ��� # \@����Ă��邤���ɁA���݂��̌����������ċ������k�܂��Ă����C������B
-	CASE "�V���n�ɍs��"
-		PRINTFORMW �c�c���₩������e�[�}�p�[�N��\@ TFLAG:��q�� ? ����Ȃ��� # \@����Ă��邤���ɁA���݂��̌����������ċ������k�܂��Ă����C������B
-	CASE "�j���ɍs��"
-		PRINTFORMW �c�c�����p��\@ TFLAG:��q�� ? ����Ȃ��� # \@�y����ł��邤���ɁA���݂��̌����������ċ������k�܂��Ă����C������B
-	CASE "�����𔃂��ɍs��"
-		PRINTFORMW �c�c���������̒��A���ߋ����ł̐����I�т��I����%CALLNAME:MASTER%�͌ҊԂ��傫���Ȃ��Ă��鎖�ɋC�������B
-	CASE "�f��قɍs��"
-		PRINTFORMW �c�c���Â��ٓ���\@ TFLAG:��q�� ? ����Ȃ��� # \@�f����Ϗ܂��Ă�����A%CALLNAME:TARGET%���M���ۂ�����������Ă��鎖�ɋC�����B
-	CASE "�}���قɍs��"
-		PRINTFORMW �W���͂��؂ꂽ%CALLNAME:MASTER%���{�������グ��ƁA��Ɉ��؂���Ă����炵��%CALLNAME:TARGET%�Ɩڂ��������B
-		PRINTFORMW %CALLNAME:TARGET%�͒p�����������ɖڂ���炵�����A�����܂��`�����ƔM���Ă����፷����%CALLNAME:MASTER%�Ɍ����Ă����c�c
+	SELECTCASE SAVESTR:デート
+	CASE "水族館に行く"
+		PRINTFORMW ……薄暗い水族館を\@ TFLAG:手繋ぎ ? 手をつないで # \@回っているうちに、お互いの口数が減って距離が縮まってきた気がする。
+	CASE "遊園地に行く"
+		PRINTFORMW ……賑やかすぎるテーマパークを\@ TFLAG:手繋ぎ ? 手をつないで # \@回っているうちに、お互いの口数が減って距離が縮まってきた気がする。
+	CASE "泳ぎに行く"
+		PRINTFORMW ……水着姿で\@ TFLAG:手繋ぎ ? 手をつないで # \@楽しんでいるうちに、お互いの口数が減って距離が縮まってきた気がする。
+	CASE "水着を買いに行く"
+		PRINTFORMW ……狭い部屋の中、至近距離での水着選びを終えた%CALLNAME:MASTER%は股間が大きくなっている事に気がついた。
+	CASE "映画館に行く"
+		PRINTFORMW ……薄暗い館内で\@ TFLAG:手繋ぎ ? 手をつないで # \@映画を観賞している内、%CALLNAME:TARGET%が熱っぽくこちらを見ている事に気がつく。
+	CASE "図書館に行く"
+		PRINTFORMW 集中力が切れた%CALLNAME:MASTER%が本から顔を上げると、先に一区切りつけていたらしい%CALLNAME:TARGET%と目が合った。
+		PRINTFORMW %CALLNAME:TARGET%は恥ずかしそうに目を逸らしたが、すぐまたチラリと熱の籠った眼差しを%CALLNAME:MASTER%に向けてきた……
 	CASEELSE
-		PRINTFORMW �c�c\@ TFLAG:��q�� ? ����Ȃ��� # \@�ꏏ�ɍs�����Ă��邤���ɁA���݂��̌����������ċ������k�܂��Ă����C������B
+		PRINTFORMW ……\@ TFLAG:手繋ぎ ? 手をつないで # \@一緒に行動しているうちに、お互いの口数が減って距離が縮まってきた気がする。
 	ENDSELECT
 
 	VARSET LOCALS
@@ -593,328 +593,328 @@ CASE "�f�[�g�G��"
 	CHOICES = %LOCALS:RESULT%
 
 	SELECTCASE CHOICES
-	CASE "�^�ʖڂɕ׋�����"
-		PRINTFORMW %CALLNAME:MASTER%�B�͌y���x�e�����񂾂̂��ɁA�Ăѕ׋����ĊJ���鎖�ɂ����B
-		CALL SETFLAG_DAILY, "�׋�"
-	CASE "������ƕ��A�ցc�c", "����������Ŕ����Ă��炤"
+	CASE "真面目に勉強する"
+		PRINTFORMW %CALLNAME:MASTER%達は軽い休憩を挟んだのちに、再び勉強を再開する事にした。
+		CALL SETFLAG_DAILY, "勉強"
+	CASE "ちょっと物陰へ……", "こっそり口で抜いてもらう"
 		CALL KOJO_DATE, CHOICES
 		CLEARLINE 1
 
 		CALL SIMULATE_TRAIN_FIRST
-		MEMO_EJECT = EXP:MASTER:�ː��o��
+		MEMO_EJECT = EXP:MASTER:射精経験
 		FOR LCOUNT, 0, 10
 			CALL SIMULATE_TRAIN_COM, 91, 1
-			;���łɎː��ς݂Ȃ炱���ł����܂�
-			SIF EXP:MASTER:�ː��o�� > MEMO_EJECT
+			;すでに射精済みならここでおしまい
+			SIF EXP:MASTER:射精経験 > MEMO_EJECT
 				BREAK
 		NEXT
 		CALL SIMULATE_TRAIN_CALC
 		CALL SIMULATE_TRAIN_SHOW
 		WAIT
 
-		PRINTFORM %CALLNAME:TARGET%��
-		SELECTCASE SAVESTR:�f�[�g
-		CASE "�����𔃂��ɍs��"
-			PRINTFORM ��v�O�̐���������Ȃ��l�ɂƁA
-		CASE "�j���ɍs��"
-			PRINTFORM ���������瑽���̉���͑��v�����ɂ�������炸�A
+		PRINTFORM %CALLNAME:TARGET%は
+		SELECTCASE SAVESTR:デート
+		CASE "水着を買いに行く"
+			PRINTFORM 会計前の水着が汚れない様にと、
+		CASE "泳ぎに行く"
+			PRINTFORM 水着だから多少の汚れは大丈夫そうにもかかわらず、
 		CASEELSE
-			IF COND("�f�[�g�ߑ��ɒ��ւ���")
-				PRINTFORM ���������f�[�g�p�ɂƒ��Ă���
+			IF COND("デート衣装に着替えた")
+				PRINTFORM せっかくデート用にと着てきた
 			ENDIF
-			PRINTFORM ��������Ȃ��l�ɂƁA
+			PRINTFORM 服が汚れない様にと、
 		ENDSELECT
-		PRINTFORMW %CALLNAME:MASTER%�̎ː������Ŏ󂯎~�߂��B
+		PRINTFORMW %CALLNAME:MASTER%の射精を口で受け止めた。
 
-		IF COND("�~���s��") || TALENT:���� || TALENT:�D�F || COND("�����t�F���\") || ABL:���t���� >= 3
-			PRINTFORM �S�N���ƍA�𓮂�����%TEXTR("������������/�Ȃ�Ď��̂Ȃ��l�q��/��������̂����R�ƌ������ԓx��")%���t�����݊�����%CALLNAME:TARGET%�́A
-			;�n���J�`�Ō�����@���Ȃ���
-			PRINTFORM %TEXTR("�ق�̂��C�������/�s�ׂ̑O�������͓I�Ɍ�����Ί��/�������Ă̊��̗ǂ�������Y�킹�Ȃ���")%
+		IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色 || COND("自発フェラ可能") || ABL:精液中毒 >= 3
+			PRINTFORM ゴクリと喉を動かして%TEXTR("美味しそうに/なんて事のない様子で/そうするのが当然と言った態度で")%精液を飲み干した%CALLNAME:TARGET%は、
+			;ハンカチで口元を拭きながら
+			PRINTFORM %TEXTR("ほんのり上気した顔で/行為の前よりも魅力的に見える笑顔で/かきたての汗の良い匂いを漂わせながら")%
 
-			FLAG:���[�h += 30
+			FLAG:ムード += 30
 		ELSE
-			PRINTFORM %TEXTR("�������c�c��/�o���ꂽ����/���ς�炸��")%���ƔS��ɋ�J���Ȃ�����Ȃ�Ƃ����̒��̐��t�����݊�����%CALLNAME:TARGET%��
-			PRINTFORM %TEXTR("�A������ꂽ�l�q��/�R�z���ƈ�x�P�������čA�̒��q�𐮂���ƁA/������o�������ݕ��ōA�������A")%
+			PRINTFORM %TEXTR("んっんっ……と/出された物の/相変わらずの")%味と粘りに苦労しながらもなんとか口の中の精液を飲み干した%CALLNAME:TARGET%は
+			PRINTFORM %TEXTR("、少し疲れた様子で/コホンと一度咳払いして喉の調子を整えると、/鞄から出した飲み物で喉を潤し、")%
 
-			FLAG:���[�h -= 30
+			FLAG:ムード -= 30
 		ENDIF
-		SELECTCASE SAVESTR:�f�[�g
-		CASE "�����𔃂��ɍs��"
-			PRINTFORMW �X���ɋC�Â����O�ɐ��Z���Ă��X���o�悤��%CALLNAME:MASTER%�ɘb��U���Ă����c�c
-		CASE "�j���ɍs��"
-			PRINTFORMW %TEXTR("���̍s����ɂ���/�������j���ɍs��������/���₩�Ȃ������ŒN���C�Â��Ă��Ȃ��悤����/������C�ɂ��Ȃ��Ă����̂͗ǂ��Ƃ��낾�Ȃǂ�")%%CALLNAME:MASTER%�ɘb��U���Ă����c�c
-		CASE "�}���قɍs��"
-			PRINTFORMW %TEXTR("�����𗧂ĂȂ��l�ɍאS�̒��ӂ𕥂��Ȃ���I���������Ă����c�c/�����Ȑ��ŏI���ɂ��悤�Ƙb��U���Ă����c�c")%
+		SELECTCASE SAVESTR:デート
+		CASE "水着を買いに行く"
+			PRINTFORMW 店員に気づかれる前に清算してお店を出ようと%CALLNAME:MASTER%に話を振ってきた……
+		CASE "泳ぎに行く"
+			PRINTFORMW %TEXTR("次の行き先について/もう一回泳ぎに行こうかと/賑やかなおかげで誰も気づいていないようだと/汚れを気にしなくていいのは良いところだなどと")%%CALLNAME:MASTER%に話を振ってきた……
+		CASE "図書館に行く"
+			PRINTFORMW %TEXTR("物音を立てない様に細心の注意を払いながら終わりを告げてきた……/小さな声で終わりにしようと話を振ってきた……")%
 		CASEELSE
-			PRINTFORMW ���̍s����ɂ���%CALLNAME:MASTER%�ɘb��U���Ă����c�c
+			PRINTFORMW 次の行き先について%CALLNAME:MASTER%に話を振ってきた……
 		ENDSELECT
 
-		TFLAG:�t�F�� = 1
+		TFLAG:フェラ = 1
 
-	;2019/10 hokaguru �ǋL�@CALL SIMULATE_TRAIN_COM�̎w��R�}���h������ɕς��ā����ۃp�N�@�ꕔ�n�̕����p�N�p�N��������
-	CASE "���������R�L���Ă��炤"
+	;2019/10 hokaguru 追記　CALL SIMULATE_TRAIN_COMの指定コマンドを手淫に変えて↑を丸パク　一部地の文もパクパク美味しい
+	CASE "こっそり手コキしてもらう"
 		CALL KOJO_DATE, CHOICES
 		CLEARLINE 1
 
 		CALL SIMULATE_TRAIN_FIRST
-		MEMO_EJECT = EXP:MASTER:�ː��o��
+		MEMO_EJECT = EXP:MASTER:射精経験
 		FOR LCOUNT, 0, 10
 			CALL SIMULATE_TRAIN_COM, 90, 1
-			;���łɎː��ς݂Ȃ炱���ł����܂�
-			SIF EXP:MASTER:�ː��o�� > MEMO_EJECT
+			;すでに射精済みならここでおしまい
+			SIF EXP:MASTER:射精経験 > MEMO_EJECT
 				BREAK
 		NEXT
 		CALL SIMULATE_TRAIN_CALC
 		CALL SIMULATE_TRAIN_SHOW
 		WAIT
 
-		IF COND("�~���s��") || TALENT:���� || TALENT:�D�F || ABL:���t���� >= 3
-			PRINTFORMW %CALLNAME:TARGET%�̎�̒��ɂ��郂�m���z������ƁA%TEXTR("�S��̂���/�N�Z�̂��������")%�t�̂��f���o���ꂽ�B
-			PRINTFORM %TEXTR("��Ȃ��Ȃ�����ł�����󂢂���Ŏ󂯎~�߂�/�f���o������܂܂ɂ���")%%CALLNAME:TARGET%�́A
-			PRINTFORM ��ɕt�����������%TEXTR("�����r�ߏグ��/�O�Ő@���悤�ɂ���/���čA��炷")%�ƁA
-			;��R�L�Ȃ̂Ńt�F���ɔ�ׂĒჀ�[�h�␳�ŗǂ����ȁA�Ƌ��l�B����A�ǂ����������̏�ł��ɂ͂�ׂ����ǂˁH
-			FLAG:���[�h += 15
+		IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色 || ABL:精液中毒 >= 3
+			PRINTFORMW %CALLNAME:TARGET%の手の中にあるモノが痙攣すると、%TEXTR("粘りのある/クセのある匂いの")%液体が吐き出された。
+			PRINTFORM %TEXTR("危なげない手つきでそれを空いた手で受け止めた/吐き出させるままにした")%%CALLNAME:TARGET%は、
+			PRINTFORM 手に付着したそれを%TEXTR("舌先で舐め上げる/唇で拭うようにする/見て喉を鳴らす")%と、
+			;手コキなのでフェラに比べて低ムード補正で良いかな、と愚考。いや、どっちも公共の場でやるにはやべえけどね？
+			FLAG:ムード += 15
 		ELSE
-			PRINTFORM �ꏊ��I�΂��f���o���ꂽ%TEXTR("���`��/������")%��u���%TEXTR("����������/�����߂�")%%CALLNAME:TARGET%��
-			PRINTFORM %TEXTR("�����Ȋ�����Ȃ���/���傤���Ȃ��ƌ���������/�Q�Ă�")%�n���J�`�ł����@���ƁA
-			;���� �t�F�����܂����A�Ȃ烀�[�h�̉����蕝�͋����͂����i�ȂǂƋ��q
-			FLAG:���[�h -= 15
+			PRINTFORM 場所を選ばず吐き出された%TEXTR("濁汁に/白濁に")%一瞬顔を%TEXTR("呆けさせた/しかめた")%%CALLNAME:TARGET%は
+			PRINTFORM %TEXTR("微妙な顔をしながら/しょうがないと言った風に/慌てて")%ハンカチでそれを拭うと、
+			;同上 フェラよりましだ、ならムードの下がり幅は狭いはずだ（などと供述
+			FLAG:ムード -= 15
 		ENDIF
-		SELECTCASE SAVESTR:�f�[�g
-		CASE "�f��قɍs��"
-			IF COND("�~���s��") || TALENT:���� || TALENT:�D�F
-				PRINTFORMW %TEXTR("�����͂ǂ��ŁH/����ŏI���H/�܂���łˁA")%�Ǝ����Ś����Ă����c�c
-			;���t���Ŏ������A��炷�Ƃ���Ȃ��ƌ����Ȃ���@���Ă܂���A�ǂ������̂ł��傤���B���炩�ɑ����������B
-			ELSEIF TALENT:�p���炢
-				PRINTFORMW %TEXTR("���߂ĉf��ɏW�����ė~����/����ȏ��ŉ�����点���")%�A�Ɗ��Ԃ������܂ܕ����ŗ�����f�����c�c
+		SELECTCASE SAVESTR:デート
+		CASE "映画館に行く"
+			IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色
+				PRINTFORMW %TEXTR("続きはどこで？/これで終わり？/また後でね、")%と耳元で囁いてきた……
+			;精液中毒持ちかつ喉を鳴らすとこんなこと言いながら拭ってません、どうしたのでしょうか。安らかに息を引き取る。
+			ELSEIF TALENT:恥じらい
+				PRINTFORMW %TEXTR("せめて映画に集中して欲しい/こんな所で何をやらせるんだ")%、と顔を赤くしたまま呆れ顔で溜息を吐いた……
 			ELSE
-				PRINTFORMW ���x��f���I��肾�A��%CALLNAME:MASTER%�Ɏ��ł������c�c
+				PRINTFORMW 丁度上映も終わりだ、と%CALLNAME:MASTER%に耳打ちした……
 			ENDIF
 		CASEELSE
-			IF COND("�~���s��") || TALENT:���� || TALENT:�D�F
-				PRINTFORMW %TEXTR("�ǂ������������Ȋ��/��ɂ����c�荁���y���ނ悤�ɂ���")%���͂ǂ��ɍs�������ȂǂƘb��U���Ă����c�c
-			ELSEIF TALENT:�p���炢
-				PRINTFORMW %TEXTR("�Ԗʂ����\��̂܂�/��������X�֖Z��������Ƃ₪��")%������%CALLNAME:MASTER%�̎��͂ނƂ��̏����ɂ����c�c
+			IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色
+				PRINTFORMW %TEXTR("どこか満足そうな顔で/手についた残り香を楽しむようにして")%次はどこに行こうかなどと話を振ってきた……
+			ELSEIF TALENT:恥じらい
+				PRINTFORMW %TEXTR("赤面した表情のまま/視線を方々へ忙しくするとやがて")%無言で%CALLNAME:MASTER%の手を掴むとその場を後にした……
 			ELSE
-				PRINTFORMW ���̍s����ɂ���%CALLNAME:MASTER%�ɘb��U���Ă����c�c
+				PRINTFORMW 次の行き先について%CALLNAME:MASTER%に話を振ってきた……
 			ENDIF
 		ENDSELECT
 
-		TFLAG:��� = 1
+		TFLAG:手淫 = 1
 
-	CASE "�L�X����"
-		PRINTFORMW %CALLNAME:MASTER%��%TEXTR("�炪���R�Ƌ߂Â��̂����v�����/�s�ӂɖK�ꂽ���ق̌���/���h����")%%CALLNAME:TARGET%�ɃL�X�������B
-		;�ėp�n�̕��������̂�MEMO_LINECOUNT�ő䎌�̗L��������
+	CASE "キスする"
+		PRINTFORMW %CALLNAME:MASTER%は%TEXTR("顔が自然と近づくのを見計らって/不意に訪れた沈黙の隙に/無防備な")%%CALLNAME:TARGET%にキスをした。
+		;汎用地の文が無いのでMEMO_LINECOUNTで台詞の有無を見る
 		MEMO_LINECOUNT = LINECOUNT
 		CALL KOJO_DATE, CHOICES
 		SIF LINECOUNT != MEMO_LINECOUNT
 			CLEARLINE 1
-		FLAG:���[�h += 30
+		FLAG:ムード += 30
 
-		TFLAG:�L�X = 1
-	CASE "���K��G��"
-		SIF EQUIP:�p���c && CHECK_OUTER("�Y�{��") == 0
-			CALL PRINT_CUTIN, "�o�b�N�p���c", TARGET
-		PRINTFORM %CALLNAME:MASTER%��%CALLNAME:TARGET%��
-		IF TFLAG:�����f�[�g
-			IF CHECK_SWIM("�X�J�[�g") || CHECK_SWIM("�p���I")
-				PRINTFORM %SWIM(CSTR:���N�̐���, "�{�g��")%�̉��Ɏ��E�΂��A%TEXTS("���K�F���G")%�����Ŗ��킢�Ȃ���
+		TFLAG:キス = 1
+	CASE "お尻を触る"
+		SIF EQUIP:パンツ && CHECK_OUTER("ズボン") == 0
+			CALL PRINT_CUTIN, "バックパンツ", TARGET
+		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%の
+		IF TFLAG:水着デート
+			IF CHECK_SWIM("スカート") || CHECK_SWIM("パレオ")
+				PRINTFORM %SWIM(CSTR:今年の水着, "ボトム")%の下に手を忍ばせ、%TEXTS("お尻：感触")%を掌で味わいながら
 			ELSE
-				PRINTFORM %TEXTS("���K�F���G")%��
-				IF CHECK_SWIM("�p���c")
-					PRINTFORM %SWIM(CSTR:���N�̐���, "�{�g��")%�z����
-				ELSEIF CHECK_SWIM("�s�o�b�N")
-					PRINTFORM ����
+				PRINTFORM %TEXTS("お尻：感触")%を
+				IF CHECK_SWIM("パンツ")
+					PRINTFORM %SWIM(CSTR:今年の水着, "ボトム")%越しに
+				ELSEIF CHECK_SWIM("Ｔバック")
+					PRINTFORM 直に
 				ELSE
-					PRINTFORM �����z����
+					PRINTFORM 水着越しに
 				ENDIF
-				PRINTFORM ��̕��Ŗ��킢�Ȃ���A
+				PRINTFORM 手の平で味わいながら、
 			ENDIF
-			IF CHECK_SWIM("�s�o�b�N") && CHECK_SWIM("�p���c") == 0
-				PRINTFORMW �w��%TEXTR("�ŐH�����񂾕R�z���ɃA�i���Ɉ��Y����/�ōׂ��ҕz����������ҊԂ𕏂ł�������")%�B
-			ELSEIF TALENT:�I�g�R
-				PRINTFORMW �w��%TEXTR("���ҊԂ̌��ԂɊ��荞�܂���/�ŌҊԂ����ɂ��ɂƘM����/�ł��K�̌������A�ɂ����Ă𕏂ł�������")%�B
-			ELSEIF CHECK_SWIM("�X�J�[�g") || CHECK_SWIM("�p���I")
-				PRINTFORMW �w��%TEXTR("�Ōҕz�z���ɏ_�炩�ȃA�\�R��M���Ċy����/�ŌҊԂɖ��������z�n�Ƃ��̉��̏_�炩�ȃA�\�R�𕏂ł�������")%�B
+			IF CHECK_SWIM("Ｔバック") && CHECK_SWIM("パンツ") == 0
+				PRINTFORMW 指先%TEXTR("で食い込んだ紐越しにアナルに悪戯した/で細い股布が密着する股間を撫でさすった")%。
+			ELSEIF TALENT:オトコ
+				PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でお尻の穴から会陰にかけてを撫でさすった")%。
+			ELSEIF CHECK_SWIM("スカート") || CHECK_SWIM("パレオ")
+				PRINTFORMW 指先%TEXTR("で股布越しに柔らかなアソコを弄って楽しんだ/で股間に密着した布地とその下の柔らかなアソコを撫でさすった")%。
 			ELSE
-				PRINTFORMW �w��%TEXTR("���ҊԂ̌��ԂɊ��荞�܂���/�ŌҊԂ����ɂ��ɂƘM����/�ŃA�\�R���炨�K�̌��ɂ����Ă𕏂ł�������")%�B
+				PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でアソコからお尻の穴にかけてを撫でさすった")%。
 			ENDIF
 		ELSE
-			;�X�J�[�g�Ȃ�΃~�j�̂�
-			IF CHECK_SKIRT("�~�j")
-				PRINTFORM �~�j�X�J�[�g�̉��Ɏ��E�΂��A%TEXTS("���K�F���G")%�����Ŗ��킢�Ȃ���
+			;スカートならばミニのみ
+			IF CHECK_SKIRT("ミニ")
+				PRINTFORM ミニスカートの下に手を忍ばせ、%TEXTS("お尻：感触")%を掌で味わいながら
 			ELSE
-				PRINTFORM %TEXTS("���K�F���G")%��
-				IF EQUIP:�A�E�^�[
-					PRINTFORM %OUTER(TARGET, "��")%�z����
-				ELSEIF EQUIP:�{�f�B�X�[�c
-					PRINTFORM %BODYS(TARGET, "��")%�z����
-				ELSEIF EQUIP:�p���c
-					PRINTFORM %PANTIES(TARGET, "�p���c")%�z����
+				PRINTFORM %TEXTS("お尻：感触")%を
+				IF EQUIP:アウター
+					PRINTFORM %OUTER(TARGET, "略")%越しに
+				ELSEIF EQUIP:ボディスーツ
+					PRINTFORM %BODYS(TARGET, "略")%越しに
+				ELSEIF EQUIP:パンツ
+					PRINTFORM %PANTIES(TARGET, "パンツ")%越しに
 				ENDIF
-				PRINTFORM ��̕��Ŗ��킢�Ȃ���A
+				PRINTFORM 手の平で味わいながら、
 			ENDIF
-			IF COND("�p���c�`��m�F")
-				IF EQUIP:�p���c == 0 || CHECK_PANTIES("�u�I�o")
-					IF TALENT:�I�g�R
-						PRINTFORMW �w��%TEXTR("�Ŕ����o���̌ҊԂ����ɂ��ɂƘM����/�ł��K�̌������A�ɂ����Ă𕏂ł�������")%�B
+			IF COND("パンツ形状確認")
+				IF EQUIP:パンツ == 0 || CHECK_PANTIES("Ｖ露出")
+					IF TALENT:オトコ
+						PRINTFORMW 指先%TEXTR("で剥き出しの股間をぐにぐにと弄った/でお尻の穴から会陰にかけてを撫でさすった")%。
 					ELSE
-						PRINTFORMW �w��%TEXTR("�Ŕ����o���̌ҊԂ����ɂ��ɂƘM����/�ŃA�\�R���炨�K�̌��ɂ����Ă̔S���𕏂ł�������")%�B
+						PRINTFORMW 指先%TEXTR("で剥き出しの股間をぐにぐにと弄った/でアソコからお尻の穴にかけての粘膜を撫でさすった")%。
 					ENDIF
-				ELSEIF CHECK_PANTIES("�s�o�b�N") && CHECK_SKIRT("�~�j")
-					PRINTFORMW �w��%TEXTR("�łs�o�b�N�̕R�z���ɃA�i���Ɉ��Y����/�ōׂ��ҕz����������ҊԂ𕏂ł�������")%�B
-				ELSEIF TALENT:�I�g�R
-					PRINTFORMW �w��%TEXTR("���ҊԂ̌��ԂɊ��荞�܂���/�ŌҊԂ����ɂ��ɂƘM����/�ł��K�̌������A�ɂ����Ă𕏂ł�������")%�B
-				ELSEIF CHECK_SKIRT("�~�j")
-					PRINTFORMW �w��%TEXTR("�ŃN���b�`�z���ɏ_�炩�ȃA�\�R��M���Ċy����/�Ńp���c�Ƃ��̉��̏_�炩�ȃA�\�R�𕏂ł�������")%�B
+				ELSEIF CHECK_PANTIES("Ｔバック") && CHECK_SKIRT("ミニ")
+					PRINTFORMW 指先%TEXTR("でＴバックの紐越しにアナルに悪戯した/で細い股布が密着する股間を撫でさすった")%。
+				ELSEIF TALENT:オトコ
+					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でお尻の穴から会陰にかけてを撫でさすった")%。
+				ELSEIF CHECK_SKIRT("ミニ")
+					PRINTFORMW 指先%TEXTR("でクロッチ越しに柔らかなアソコを弄って楽しんだ/でパンツとその下の柔らかなアソコを撫でさすった")%。
 				ELSE
-					PRINTFORMW �w��%TEXTR("���ҊԂ̌��ԂɊ��荞�܂���/�ŌҊԂ����ɂ��ɂƘM����/�ŃA�\�R���炨�K�̌��ɂ����Ă𕏂ł�������")%�B
+					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でアソコからお尻の穴にかけてを撫でさすった")%。
 				ENDIF
 			ELSE
-				IF TALENT:�I�g�R
-					PRINTFORMW �w��%TEXTR("���ҊԂ̌��ԂɊ��荞�܂���/�ŌҊԂ����ɂ��ɂƘM����")%�B
+				IF TALENT:オトコ
+					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った")%。
 				ELSE
-					PRINTFORMW �w��%TEXTR("���ҊԂ̌��ԂɊ��荞�܂���/�ŌҊԂ����ɂ��ɂƘM����/�ŃA�\�R���炨�K�̌��ɂ����Ă𕏂ł�������")%�B
+					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でアソコからお尻の穴にかけてを撫でさすった")%。
 				ENDIF
-				IF EQUIP:�X�J�[�g && CHECK_CLO("�p���c���F�\")
-					PRINTFORM ���G����@����ɁA������%CALLNAME:TARGET%�́c�c
-					IF EQUIP:�p���c == 0
-						PRINTFORMW �Ȃ�ƁA�p���c������Ă��Ȃ��悤�ł��I
-					ELSEIF CHECK_PANTIES("�O�\��")
-						PRINTFORMW �O�\����ҊԂɓ\��t���Ă���悤���B
-					ELSEIF CHECK_PANTIES("��")
-						PRINTFORMW �����߂Ă���悤���B
+				IF EQUIP:スカート && CHECK_CLO("パンツ視認可能")
+					PRINTFORM 感触から察するに、今日の%CALLNAME:TARGET%は……
+					IF EQUIP:パンツ == 0
+						PRINTFORMW なんと、パンツを穿いていないようです！
+					ELSEIF CHECK_PANTIES("前貼り")
+						PRINTFORMW 前貼りを股間に貼り付けているようだ。
+					ELSEIF CHECK_PANTIES("褌")
+						PRINTFORMW 褌を締めているようだ。
 					ELSE
-						PRINTFORMW %DETAIL_PANTIES(TARGET, "���G")%������Ă���悤���B
+						PRINTFORMW %DETAIL_PANTIES(TARGET, "感触")%を穿いているようだ。
 					ENDIF
 				ENDIF
 			ENDIF
 		ENDIF
 		CALL KOJO_DATE, CHOICES
 		CLEARLINE 1
-		FLAG:���[�h += 15
+		FLAG:ムード += 15
 
-		TFLAG:���K��G�� = 1
-	CASE "�䖝����"
-		PRINTFORMW �����ŐF�X����̂͗��΂ɕs�����̂ŉ䖝���܂����B
+		TFLAG:お尻を触る = 1
+	CASE "我慢する"
+		PRINTFORMW ここで色々するのは流石に不味いので我慢しました。
 	CASEELSE
 		CALL KOJO_DATE, CHOICES
-		IF TFLAG:�n�̕��X�L�b�v == 0
+		IF TFLAG:地の文スキップ == 0
 			SELECTCASE CHOICES
-			CASE "�f��ɏW������"
-				PRINTFORMW %CALLNAME:TARGET%�̓X�N���[���Ɍ�����%CALLNAME:MASTER%�̉�����b�����߂���ɁA���Z�܂��𐳂��ĉf��ɏW�����������c�c
+			CASE "映画に集中する"
+				PRINTFORMW %CALLNAME:TARGET%はスクリーンに見入る%CALLNAME:MASTER%の横顔を暫し眺めた後に、居住まいを正して映画に集中し直した……
 			CASEELSE
-				PRINTFORMW %CALLNAME:TARGET%�͎v���̂ق�%CALLNAME:MASTER%�Ƃ̃f�[�g�����C�ɏ������悤�ŁA���ɉ������킸�ɑ̂��������ďΊ�������Ă����c�c
+				PRINTFORMW %CALLNAME:TARGET%は思いのほか%CALLNAME:MASTER%とのデートがお気に召したようで、特に何も言わずに体をくっつけて笑顔を向けてきた……
 			ENDSELECT
 		ENDIF
-		FLAG:���[�h += 15
+		FLAG:ムード += 15
 	ENDSELECT
 	CALL BLANKLINE
-CASE "���Ă�"
-	SIF TFLAG:�����f�[�g == 0
+CASE "日焼け"
+	SIF TFLAG:水着デート == 0
 		RETURN 0
 
 	CALL BLANK_DRAWLINE
-	PRINTFORMW �����p�Ńf�[�g����%CALLNAME:MASTER%\@ COND("���Ă��΍�") ? # �B \@�́A����������Ă����Ă��܂����B
+	PRINTFORMW 水着姿でデートした%CALLNAME:MASTER%\@ COND("日焼け対策") ? # 達 \@は、すっかり日焼けしてしまった。
 
-	IF COND("���Ă��΍�") == 0
-		CFLAG:���Ă����x = CALCF("���Ă����x")
-		CSTR:���Ă� = %SWIM(CSTR:���N�̐���, "���")%
+	IF COND("日焼け対策") == 0
+		CFLAG:日焼け強度 = CALCF("日焼け強度")
+		CSTR:日焼け = %SWIM(CSTR:今年の水着, "種類")%
 	ENDIF
 
-	CFLAG:MASTER:���Ă����x = CALCF("���Ă����x")
-	IF TALENT:MASTER:�I�g�R
-		CSTR:MASTER:���Ă� = �C�p��
-	ELSEIF TALENT:MASTER:�ӂ��Ȃ�
-		CSTR:MASTER:���Ă� = �����s�[�X����
+	CFLAG:MASTER:日焼け強度 = CALCF("日焼け強度")
+	IF TALENT:MASTER:オトコ
+		CSTR:MASTER:日焼け = 海パン
+	ELSEIF TALENT:MASTER:ふたなり
+		CSTR:MASTER:日焼け = ワンピース水着
 	ELSE
-		CSTR:MASTER:���Ă� = �r�L�j
+		CSTR:MASTER:日焼け = ビキニ
 	ENDIF
-CASE "������"
+CASE "文化祭"
 	CALL BLANK_DRAWLINE
 
-	SELECTCASE TFLAG:�C�x���g��
+	SELECTCASE TFLAG:イベント回数
 	CASE 0
-		PRINTFORMW ���ĂƂ���ł́c�c�L�O���ׂ��ꔭ�ڂ͂ǂ��֍s�������H
+		PRINTFORMW さてとそれでは……記念すべき一発目はどこへ行こうか？
 	CASE 1
-		PRINTFORMW �c�c���͂ǂ̏o���������ɍs�������H
+		PRINTFORMW ……次はどの出し物を見に行こうか？
 	CASE 2
-		PRINTFORMW �c�c���s���l�X�̐��������Ԍ����Ă����B�Ō�͂ǂ��֍s�������H
+		PRINTFORMW ……道行く人々の数がだいぶ減ってきた。最後はどこへ行こうか？
 	ENDSELECT
 
-	STR:�I���� = %SHOP_BUNKASAI()%
+	STR:選択肢 = %SHOP_BUNKASAI()%
 	VARSET LOCALS
-	SPLIT STR:�I����, "/", LOCALS
-	CALL PRINT_SELECT, STR:�I����
+	SPLIT STR:選択肢, "/", LOCALS
+	CALL PRINT_SELECT, STR:選択肢
 	CHOICES = %LOCALS:RESULT%
 
-	PRINTFORM %CALLNAME:MASTER%��%CALLNAME:TARGET%��%CHOICES%�����ɍs�����Ƃɂ���
-	;�l���邩�`�F�b�N
+	PRINTFORM %CALLNAME:MASTER%と%CALLNAME:TARGET%は%CHOICES%を見に行くことにした
+	;人いるかチェック
 	ACTOR = FIND_COND(CHOICES)
 	IF ACTOR
-		PRINTFORMW �c�c%CALLNAME:ACTOR%�����I
+		PRINTFORMW ……%CALLNAME:ACTOR%発見！
 
-		;�p�[�g�i�[�����Z�b�g���ݒ�
+		;パートナーをリセット＆設定
 		CALL RESET_SET_PARTNER, ACTOR
-		;�{����TARGET���p�[�g�i�[�AACTOR��TARGET�Ƃ��ăC�x���g�i�s������
+		;本来のTARGETをパートナー、ACTORをTARGETとしてイベント進行させる
 		CALL SWAP_PARTNER_TARGET
-		;�ӂ��킵�������ɒ��ւ�������
+		;ふさわしい服装に着替えさせる
 		CALL SET_COORDINATE_BUNKASAI, CHOICES, TARGET
 		CALL PRINT_MAIDFACE, TARGET
 		CALL MESSAGE_BUNKASAI, CHOICES
-		;�o���ς݃t���O�𗧂Ă�
-		CALL SET_CEVENT, "�w���ՁF�o����"
+		;出演済みフラグを立てる
+		CALL SET_CEVENT, "学園祭：出演済"
 		CALL SWAP_PARTNER_TARGET
 
-		;�p�[�g�i�[���ăZ�b�g
+		;パートナーを再セット
 		CALL SET_PARTNER
 	ELSE
-		PRINTFORMW �c�c�ǂ�Ȃ��񂾂낤�H
+		PRINTFORMW ……どんなもんだろう？
 	ENDIF
 
-	;���̏ꏊ���������t���O�𗧂Ă�
- 	CALL SET_CEVENT, @"�w���ՁF%CHOICES%", MASTER
-	TFLAG:�C�x���g�� += 1
+	;この場所を巡ったフラグを立てる
+ 	CALL SET_CEVENT, @"学園祭：%CHOICES%", MASTER
+	TFLAG:イベント回数 += 1
 ENDSELECT
 
-IF FLAG:���[�h > MEMO_MOOD
-	CALL TEXT, "���[�h�ω����n�[�g���\��", FLAG:���[�h - MEMO_MOOD
+IF FLAG:ムード > MEMO_MOOD
+	CALL TEXT, "ムード変化＆ハート個数表示", FLAG:ムード - MEMO_MOOD
 	WAIT
 ENDIF
 
 
 ;-------------------------------------------------
-;������
+;水着屋
 ;-------------------------------------------------
 @EVENT_SHOP_SWIM
 
-STR:�I�񂾐��� = 
-STR:�������� = /
+STR:選んだ水着 = 
+STR:試着履歴 = /
 
 CALL BLANK_DRAWLINE
-PRINTFORMW ���낻��{���̃��C���C�x���g�A%CALLNAME:TARGET%�̐����I�т��n�߂܂��B
+PRINTFORMW そろそろ本日のメインイベント、%CALLNAME:TARGET%の水着選びを始めます。
 CALL BLANKLINE
-CALL KOJO_DATE, "�����I�ъJ�n"
-IF CSTR:���N�̐��� != ""
-	PRINTFORM ����%CALLNAME:TARGET%�������Ă��镨��%SWIM(CSTR:���N�̐���)%�ł����A
+CALL KOJO_DATE, "水着選び開始"
+IF CSTR:今年の水着 != ""
+	PRINTFORM 現在%CALLNAME:TARGET%が持っている物は%SWIM(CSTR:今年の水着)%ですが、
 ELSE
-	PRINTFORM ��l�œX���𕨐F���Č��͈ȉ��̕��ɍi���܂������c�c
+	PRINTFORM 二人で店内を物色して候補は以下の物に絞られましたが……
 ENDIF
-PRINTW �ǂ�ɂ��܂����H
-;�O�������𗅗�
-PRINTFORM ���Ȃ݂�%CALLNAME:TARGET%��
-CALL PRINT_LIST, SWIM_APP(TARGET), "�g��\��"
-PRINTFORMW �ł��B
+PRINTW どれにしますか？
+;外見特徴を羅列
+PRINTFORM ちなみに%CALLNAME:TARGET%は
+CALL PRINT_LIST, SWIM_APP(TARGET), "拡大表示"
+PRINTFORMW です。
 
-;������I��
+;水着を選ぶ
 CALL EVENT_SHOP_SWIM_MAIN
 CALL BLANKLINE
-CALL KOJO_DATE, "��������"
+CALL KOJO_DATE, "水着決定"
 CLEARLINE 1
 
-CSTR:���N�̐��� = %STR:�I�񂾐���%
-CFLAG:�����I�� = FLAG:�N
-FLAG:���[�h += 30
+CSTR:今年の水着 = %STR:選んだ水着%
+CFLAG:水着選び = FLAG:年
+FLAG:ムード += 30
 
 
 @EVENT_SHOP_SWIM_MAIN
@@ -936,51 +936,51 @@ VARSET CHANGE_BOTTOM
 VARSET CHOICES_SWIM
 
 MEMO_LINECOUNT = LINECOUNT
-SIF STR:�������� != "/"
-	PRINTL ���͂ǂ�������Ă݂܂����H
+SIF STR:試着履歴 != "/"
+	PRINTL 次はどれを試してみますか？
 
-SIF TALENT:�I�g�R
-	EVENT_TABLE_SWIM += "�����Y�r�L�j/�T�[�t�p���c/"
+SIF TALENT:オトコ
+	EVENT_TABLE_SWIM += "メンズビキニ/サーフパンツ/"
 
-IF TALENT:�I�g�R == 0 || COND("�j�̖�")
-	EVENT_TABLE_SWIM += "�r�L�j/�����s�[�X����/���j����/"
-	SELECTCASE COND("�g�Ȑ����I���\")
+IF TALENT:オトコ == 0 || COND("男の娘")
+	EVENT_TABLE_SWIM += "ビキニ/ワンピース水着/競泳水着/"
+	SELECTCASE COND("Ｈな水着選択可能")
 	CASE 1
-		EVENT_TABLE_SWIM += "�}�C�N���r�L�j/�n�C���O�����s/"
+		EVENT_TABLE_SWIM += "マイクロビキニ/ハイレグワンピ/"
 	CASE IS >= 2
-		EVENT_TABLE_SWIM += "�}�C�N���r�L�j/�n�C���O�����s/�e�B�A�h���b�v/�X�����O�V���b�g/"
+		EVENT_TABLE_SWIM += "マイクロビキニ/ハイレグワンピ/ティアドロップ/スリングショット/"
 	ENDSELECT
 ENDIF
 
-;�����I�т̑I����
+;水着選びの選択肢
 VARSET LOCALS
 SPLIT EVENT_TABLE_SWIM, "/", LOCALS
 CALL PRINT_SELECT, EVENT_TABLE_SWIM
 CHOICES_SWIM = %LOCALS:RESULT%
 
-;�������Ƃ̑����ǉ�
-STR:�I�񂾐��� = %PALAM_SWIM(CHOICES_SWIM, "�F�ȊO")%
+;水着ごとの属性追加
+STR:選んだ水着 = %PALAM_SWIM(CHOICES_SWIM, "色以外")%
 
 VARSET CHOICES_BOTTOM
 $SELECT_BOTTOM
 
-SELECTCASE SWIM(STR:�I�񂾐���, "���")
-;���j������j���ɂ͍��킹�Ȃ��Ă������낤
-CASE "�����Y�r�L�j", "�T�[�t�p���c", "���j����"
+SELECTCASE SWIM(STR:選んだ水着, "種類")
+;競泳水着や男物には合わせなくていいだろう
+CASE "メンズビキニ", "サーフパンツ", "競泳水着"
 
 CASEELSE
 	IF CHOICES_BOTTOM != ""
-		PRINTFORML �ǂ��%CHOICES_SWIM%�ɍ��킹�܂����H
+		PRINTFORML どれを%CHOICES_SWIM%に合わせますか？
 	ELSE
-		PRINTL �ǂꂩ�����킹�܂����H
+		PRINTL どれかを合わせますか？
 	ENDIF
-	IF STRCOUNT(STR:�I�񂾐���, "�����s�[�X")
-		EVENT_TABLE_BOTTOM = �p���I/�~�j�X�J�[�g/���킹�Ȃ�
+	IF STRCOUNT(STR:選んだ水着, "ワンピース")
+		EVENT_TABLE_BOTTOM = パレオ/ミニスカート/合わせない
 	ELSE
-		EVENT_TABLE_BOTTOM = �p���I/�V���[�g�p���c/�~�j�X�J�[�g/���킹�Ȃ�
+		EVENT_TABLE_BOTTOM = パレオ/ショートパンツ/ミニスカート/合わせない
 	ENDIF
 
-	;�{�g���I�v�V�����̑I��
+	;ボトムオプションの選択
 	VARSET LOCALS
 	SPLIT EVENT_TABLE_BOTTOM, "/", LOCALS
 	CALL PRINT_SELECT, EVENT_TABLE_BOTTOM
@@ -988,74 +988,74 @@ CASEELSE
 ENDSELECT
 
 SELECTCASE CHOICES_BOTTOM
-CASE "", "���킹�Ȃ�"
+CASE "", "合わせない"
 	SWIM_SELECTED = %CHOICES_SWIM%
 CASEELSE
-	SWIM_SELECTED = %CHOICES_SWIM%��%CHOICES_BOTTOM%
+	SWIM_SELECTED = %CHOICES_SWIM%＆%CHOICES_BOTTOM%
 ENDSELECT
 
-;�{�g�����Ƃ̑����ǉ�
-STR:�I�񂾐��� = %PALAM_SWIM(SWIM_SELECTED, "�F�ȊO")%
+;ボトムごとの属性追加
+STR:選んだ水着 = %PALAM_SWIM(SWIM_SELECTED, "色以外")%
 
-;�F�̌���
-IF CSTR:�D���ȐF != "" && RAND:5
-	STR:�I�񂾐��� = %PALAM_SWIM(SWIM_SELECTED, CSTR:�D���ȐF)%
+;色の決定
+IF CSTR:好きな色 != "" && RAND:5
+	STR:選んだ水着 = %PALAM_SWIM(SWIM_SELECTED, CSTR:好きな色)%
 ELSE
-	STR:�I�񂾐��� = %PALAM_SWIM(SWIM_SELECTED, SET_CLOCOLOR("�����_���J���[") )%
+	STR:選んだ水着 = %PALAM_SWIM(SWIM_SELECTED, SET_CLOCOLOR("ランダムカラー") )%
 ENDIF
 
-CALL SET_COORDINATE, "���N�̐���"
-IF EQUIP:�{�f�B�X�[�c
-	CALL PRINT_CUTIN, "�A�E�^�[", TARGET
-ELSEIF EQUIP:�p���c
-	CALL PRINT_CUTIN, "�p���c�O��", TARGET
+CALL SET_COORDINATE, "今年の水着"
+IF EQUIP:ボディスーツ
+	CALL PRINT_CUTIN, "アウター", TARGET
+ELSEIF EQUIP:パンツ
+	CALL PRINT_CUTIN, "パンツ前後", TARGET
 ENDIF
 
-;�����ς݁H
-IF STRCOUNT(STR:��������, @"\/%SWIM_SELECTED%\/")
-	PRINTFORMW %SWIM_SELECTED%�Ɍ��߂܂����H
+;試着済み？
+IF STRCOUNT(STR:試着履歴, @"\/%SWIM_SELECTED%\/")
+	PRINTFORMW %SWIM_SELECTED%に決めますか？
 
-	EVENT_TABLE_ACT = �͂�/�ʂ̐����������Ă��炤
+	EVENT_TABLE_ACT = はい/別の水着を試してもらう
 ELSE
-	;���킹����̂�ς��������̏ꍇ
+	;合わせるものを変えただけの場合
 	IF CHANGE_BOTTOM
 		SELECTCASE CHOICES_BOTTOM
-		CASE "", "���킹�Ȃ�"
-			CALL PRINT_STRW, @"���x��%COMMENT_SWIM(STR:�I�񂾐���)%_���F_%CHOICES_SWIM%_�����̊i�D�ɂȂ��Ă�������B"
+		CASE "", "合わせない"
+			CALL PRINT_STRW, @"今度は%COMMENT_SWIM(STR:選んだ水着)%_黄色_%CHOICES_SWIM%_だけの格好になってもらった。"
 		CASEELSE
-			CALL PRINT_STRW, @"%COMMENT_SWIM(STR:�I�񂾐���)%_���F_%CHOICES_SWIM%��%CHOICES_BOTTOM%��g�ݍ��킹���i�D_�ɂȂ��Ă�������B"
+			CALL PRINT_STRW, @"%COMMENT_SWIM(STR:選んだ水着)%_黄色_%CHOICES_SWIM%と%CHOICES_BOTTOM%を組み合わせた格好_になってもらった。"
 		ENDSELECT
 	ELSE
-		CALL PRINT_STRW, @"%COMMENT_SWIM(STR:�I�񂾐���)%_���F_%SWIM_SELECTED%_�p�ɂȂ��Ă�������B"
+		CALL PRINT_STRW, @"%COMMENT_SWIM(STR:選んだ水着)%_黄色_%SWIM_SELECTED%_姿になってもらった。"
 	ENDIF
 
-	STR:�������� += @"%SWIM_SELECTED%\/"
+	STR:試着履歴 += @"%SWIM_SELECTED%\/"
 
-	SELECTCASE SWIM(STR:�I�񂾐���, "���")
-	CASE "�����Y�r�L�j", "�T�[�t�p���c", "���j����"
-		EVENT_TABLE_ACT = ����Ɍ��߂�/�ʂ̐����������Ă��炤
+	SELECTCASE SWIM(STR:選んだ水着, "種類")
+	CASE "メンズビキニ", "サーフパンツ", "競泳水着"
+		EVENT_TABLE_ACT = これに決める/別の水着を試してもらう
 	CASEELSE
-		EVENT_TABLE_ACT = ����Ɍ��߂�/���킹����̂�ς���/�ʂ̐����������Ă��炤
+		EVENT_TABLE_ACT = これに決める/合わせるものを変える/別の水着を試してもらう
 	ENDSELECT
 ENDIF
 
-;�����I����̍s���̑I����
+;水着選択後の行動の選択肢
 VARSET LOCALS
 SPLIT EVENT_TABLE_ACT, "/", LOCALS
 CALL PRINT_SELECT, EVENT_TABLE_ACT
 CHOICES_ACT = %LOCALS:RESULT%
 
 SELECTCASE CHOICES_ACT
-CASE "�͂�", "����Ɍ��߂�"
+CASE "はい", "これに決める"
 
-CASE "���킹����̂�ς���"
+CASE "合わせるものを変える"
 	CHANGE_BOTTOM = 1
 	GOTO SELECT_BOTTOM
-CASE "�ʂ̐����������Ă��炤"
-	PRINTFORMW �������������I�т��y���ނƂ��܂��B
+CASE "別の水着を試してもらう"
+	PRINTFORMW もう少し水着選びを楽しむとします。
 	CALL BLANKLINE
 	;CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	RESTART
 ENDSELECT
 
-CALL PRINT_STRW, @"%CALLNAME:MASTER%��%CALLNAME:TARGET%�͎����Ƙb�������̖��A_���F_%SWIM(STR:�I�񂾐���)%_�����N�̐����Ƃ��đI�񂾁B"
+CALL PRINT_STRW, @"%CALLNAME:MASTER%と%CALLNAME:TARGET%は試着と話し合いの末、_黄色_%SWIM(STR:選んだ水着)%_を今年の水着として選んだ。"

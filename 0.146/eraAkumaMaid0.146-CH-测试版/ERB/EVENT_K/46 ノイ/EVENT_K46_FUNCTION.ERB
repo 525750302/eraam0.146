@@ -1,182 +1,182 @@
-;�������Ɍ�����ς���Ƃ��A�ЂƂ܂Ƃ߂ɑΉ����₷������֐�
-;����m�C����TARGET�̎��̂ݑΏۂȂ̂ŁAARG���͗p�ӂ��Ă��Ȃ�
-;�V���g���[�����̒j����/������ď̕ύX���p�N�c�c�Q�l�ɂ��ĉ������܂���
-;���܂ł̂��̂Ƃ��݊����͂���c�c�͂�
+﻿;調教中に口調を変えるとき、ひとまとめに対応しやすくする関数
+;現状ノイくんがTARGETの時のみ対象なので、ARG等は用意していない
+;シュトリーちゃんの男性器/女性器呼称変更をパク……参考にして改装しました
+;今までのものとも互換性はある……はず
 @TONE_K46, ARG
 #FUNCTIONS
 
 SIF ARG == 0
 	ARG = TARGET
 
-IF NO:ARG == 46 && PLAYER == MASTER && COND("������", ARG) && CFLAG:ARG:���h == 0 && CEVENTS("����", ARG) != ""
-	RETURNF @"%CEVENTS("����", ARG)%"
+IF NO:ARG == 46 && PLAYER == MASTER && COND("調教中", ARG) && CFLAG:ARG:動揺 == 0 && CEVENTS("口調", ARG) != ""
+	RETURNF @"%CEVENTS("口調", ARG)%"
 ELSE
-	RETURNF "�ʏ�"
+	RETURNF "通常"
 ENDIF
 
 ;-------------------------------------------------
-;�ȍ~�͚b�����𐶐����邽�߂̊֐�
-;�Z�،����n�i����̔ėp�b�������Q�l�A�܂��ꕔ���p�A���ς����Ă��������Đ��삵�Ă��܂�
+;以降は喘ぎ声を生成するための関数
+;六華口上やハナ口上の汎用喘ぎ声を参考、また一部流用、改変させていただいて製作しています
 ;-------------------------------------------------
 
-;�b�����������_���Ŕ���������֐��B�C���T�[�g�Ȃǂ̏���������΂������̚b�������������킹��
-;�񐔏���A���[�v�A�n�[�g�v�s�v�͋��ʂɂȂ�
-;���������\��̚b�����́A1.�ʏ�(�����)�A2.�l�ٕ��i����ρj�A3�u�ٕ��i����O�A�j�̖����S��������悤�ɂȂ�Ȃ�������Ȃ��\��j4�`�ٕ��i����ρj5�}��(����O)
-@MPANT_K46, �񐔏��, ARG, ARGS
+;喘ぎ声をランダムで発声させる関数。インサートなどの条件があればいくつかの喘ぎ声を混ぜ合わせる
+;回数上限、ループ、ハート要不要は共通になる
+;現状加える予定の喘ぎ声は、1.通常(製作済)、2.Ｍ異物（製作済）、3Ｖ異物（製作前、男の娘に膣がつけられるようにならない限り作らない予定）4Ａ異物（製作済）5挿入(製作前)
+@MPANT_K46, 回数上限, ARG, ARGS
 #FUNCTIONS
-#DIMS DYNAMIC �b��
-#DIMS �n�[�g;ARGS�𒼐ڂ������Ă��܂��ƃn�[�g���s�v�ɂȂ��ĈȌ�o�Ȃ��Ȃ�̂ŁA�������Ȃ����߂̈ꎞ�I�ȕϐ�
-#DIM �񐔏��
-#DIM ���[�v
-#DIMS �A���t�B���^;���܂�J��Ԃ��������Ȃ����t�Ƀt�B���^���|����
+#DIMS DYNAMIC 喘ぎ
+#DIMS ハート;ARGSを直接いじってしまうとハートが不要になって以後出なくなるので、そうしないための一時的な変数
+#DIM 回数上限
+#DIM ループ
+#DIMS 連続フィルタ;あまり繰り返させたくない言葉にフィルタを掛ける
 
-�A���t�B���^ = ��
-�n�[�g = %ARGS%
-FOR ���[�v, 0, �񐔏��
+連続フィルタ = 無
+ハート = %ARGS%
+FOR ループ, 0, 回数上限
 	
-	;�A�i���ɑ}������Ă����ꍇ
-	IF (TEQUIP:ARG:�A�i���o�C�u || TEQUIP:ARG:���� || INSERT("�`�C���T�[�g", ARG) || GROUPMATCH(SELECTCOM, 2, 9, 14, 33, 70, 71, 72, 73, 74, 75, 136, 142, 143)) && RAND:7 == 0 && �A���t�B���^ != "�`�ٕ�"
-		�b�� += @"%PANT_K46(ARG, �n�[�g, "�`�ٕ�")%"
-		;�A�i����A�����Ęb���Ȃ����߂Ƀt�B���^��������
-		�A���t�B���^ = �`�ٕ�
-	;�A���ɑ}������Ă����ꍇ
-	ELSEIF (INSERT("�A���C���T�[�g", ARG) || GROUPMATCH(SELECTCOM, 15, 83, 84, 85, 86, 87, 88, 149, 151)) && RAND:6 == 0 && �A���t�B���^ != "�A���ٕ�"
-		�b�� += @"%PANT_K46(ARG, �n�[�g, "�A���ٕ�")%"
-		;�A����A�����Ęb���Ȃ����߂Ƀt�B���^��������
-		�A���t�B���^ = �A���ٕ�
-	;���ɉ��������Ă����ꍇ
-	ELSEIF (TEQUIP:ARG:�L�X || TEQUIP:ARG:�f�B�[�v�X���[�g || TEQUIP:ARG:�V�b�N�X�i�C�� || GROUPMATCH(SELECTCOM, 6, 91, 96, 98, 99, 135, 148)) && RAND:5 == 0
-		�b�� += @"%PANT_K46(ARG, �n�[�g, "�l�ٕ�")%"
-	;�l�ٕ��Ə����������̂́A�L�X�̎�����
-	ELSEIF (TEQUIP:ARG:�L�X || SELECTCOM == 6) && RAND:4 == 0
-		�b�� += @"%PANT_K46(ARG, �n�[�g, "�L�X")%"
-	;�S��A�i���ɑ}�����Ă����ꍇ
-	ELSEIF (INSERT("�C���T�[�g", PLAYER, ARG) || (ASSI && INSERT("�C���T�[�g", ASSI, ARG)) || GROUPMATCH(SELECTCOM, 120, 121, 122, 125, 126, 127)) && RAND:3 == 0 && �A���t�B���^ != "�}��"
-		�b�� += @"%PANT_K46(ARG, �n�[�g, "�}��")%"
-		;�}����A�����Ęb���Ȃ����߂Ƀt�B���^��������
-		�A���t�B���^ = �}��
-	;�I�i�z�ɑ}�����Ă����ꍇ
-	ELSEIF SELECTCOM == 37 && RAND:2 && �A���t�B���^ != "�I�i�z�}��"
-		�b�� += @"%PANT_K46(ARG, �n�[�g, "�I�i�z�}��")%"
-		;�I�i�z�}����A�����Ęb���Ȃ����߂Ƀt�B���^��������
-		�A���t�B���^ = �I�i�z�}��
-	;�����Ɉ���������Ȃ���Δėp���Ăяo��
+	;アナルに挿入されていた場合
+	IF (TEQUIP:ARG:アナルバイブ || TEQUIP:ARG:浣腸 || INSERT("Ａインサート", ARG) || GROUPMATCH(SELECTCOM, 2, 9, 14, 33, 70, 71, 72, 73, 74, 75, 136, 142, 143)) && RAND:7 == 0 && 連続フィルタ != "Ａ異物"
+		喘ぎ += @"%PANT_K46(ARG, ハート, "Ａ異物")%"
+		;アナルを連続して話さないためにフィルタをかける
+		連続フィルタ = Ａ異物
+	;尿道に挿入されていた場合
+	ELSEIF (INSERT("尿道インサート", ARG) || GROUPMATCH(SELECTCOM, 15, 83, 84, 85, 86, 87, 88, 149, 151)) && RAND:6 == 0 && 連続フィルタ != "尿道異物"
+		喘ぎ += @"%PANT_K46(ARG, ハート, "尿道異物")%"
+		;尿道を連続して話さないためにフィルタをかける
+		連続フィルタ = 尿道異物
+	;口に何か入っていた場合
+	ELSEIF (TEQUIP:ARG:キス || TEQUIP:ARG:ディープスロート || TEQUIP:ARG:シックスナイン || GROUPMATCH(SELECTCOM, 6, 91, 96, 98, 99, 135, 148)) && RAND:5 == 0
+		喘ぎ += @"%PANT_K46(ARG, ハート, "Ｍ異物")%"
+	;Ｍ異物と条件が被るものの、キスの時限定
+	ELSEIF (TEQUIP:ARG:キス || SELECTCOM == 6) && RAND:4 == 0
+		喘ぎ += @"%PANT_K46(ARG, ハート, "キス")%"
+	;膣やアナルに挿入していた場合
+	ELSEIF (INSERT("インサート", PLAYER, ARG) || (ASSI && INSERT("インサート", ASSI, ARG)) || GROUPMATCH(SELECTCOM, 120, 121, 122, 125, 126, 127)) && RAND:3 == 0 && 連続フィルタ != "挿入"
+		喘ぎ += @"%PANT_K46(ARG, ハート, "挿入")%"
+		;挿入を連続して話さないためにフィルタをかける
+		連続フィルタ = 挿入
+	;オナホに挿入していた場合
+	ELSEIF SELECTCOM == 37 && RAND:2 && 連続フィルタ != "オナホ挿入"
+		喘ぎ += @"%PANT_K46(ARG, ハート, "オナホ挿入")%"
+		;オナホ挿入を連続して話さないためにフィルタをかける
+		連続フィルタ = オナホ挿入
+	;条件に引っかからなければ汎用を呼び出す
 	ELSE
-		�b�� += @"%PANT_K46(ARG, �n�[�g, "�ʏ�")%"
+		喘ぎ += @"%PANT_K46(ARG, ハート, "通常")%"
 	ENDIF
 	
-	;�A�����Ďw�肳��Ȃ������ꍇ�A�t�B���^����������
-	IF �A���t�B���^ != "��"
+	;連続して指定されなかった場合、フィルタを解除する
+	IF 連続フィルタ != "無"
 		IF LOCAL == 3
-			�A���t�B���^ = ��
+			連続フィルタ = 無
 			LOCAL = 0
 		ELSE
 			LOCAL++
 		ENDIF
 	ENDIF
 	
-	;�n�[�g���K�v�ȂƂ��̓����_���łǂ���ɂ���̂��w�肷��
-	IF ARGS == "�v" && (���[�v == 0 || RAND:2)
-		�n�[�g = %ARGS%
-	;�n�[�g���s�v�ȏꍇ
-	;�񐔂��J��Ԃ����Ƃ��̓����_���ł�����̕���I������
-	ELSEIF ARGS == "�s�v" || ���[�v >= 1
-		�n�[�g = �s�v
-	;���̂Ƃ���͊��S�ɕs�v������̊g���̂��߁��\���~�X�ɋC�t�����߂ɂ��̑��ɂ̓G���[������
+	;ハートが必要なときはランダムでどちらにするのか指定する
+	IF ARGS == "要" && (ループ == 0 || RAND:2)
+		ハート = %ARGS%
+	;ハートが不要な場合
+	;回数を繰り返したときはランダムでこちらの方を選択する
+	ELSEIF ARGS == "不要" || ループ >= 1
+		ハート = 不要
+	;今のところは完全に不要だが後の拡張のため＆構文ミスに気付くためにその他にはエラーをだす
 	ELSE
-		�b�� += "�w��͈̔͊O�ł�"
+		喘ぎ += "指定の範囲外です"
 	ENDIF
 NEXT
 
-RETURNF �b��
+RETURNF 喘ぎ
 
-;�b�����𐶐�����֐��B�n�[�g�������邩�ۂ���ARGS�Ŏw�肷��B
-;�b���͎g���x�ɋ󔒂ɂ��Ă����̂œ��I�ϐ��Ƃ��Ďw��
-;���ꂼ��̃p�^�[����ϐ��p�^�[���Ɏw�肵�A����CASE�ɂ��킹�Ěb������ς��čs��(�\��)
-@PANT_K46, ARG, ARGS, �p�^�[��, ��
+;喘ぎ声を生成する関数。ハートを加えるか否かをARGSで指定する。
+;喘ぎは使う度に空白にしていくので動的変数として指定
+;それぞれのパターンを変数パターンに指定し、そのCASEにあわせて喘ぎ方を変えて行く(予定)
+@PANT_K46, ARG, ARGS, パターン, 回数
 #FUNCTIONS
-#DIM ���[�v
-#DIMS �p�^�[��
-#DIMS DYNAMIC �b��
-#DIM ��
+#DIM ループ
+#DIMS パターン
+#DIMS DYNAMIC 喘ぎ
+#DIM 回数
 
-FOR ���[�v, 0, MAX(��, 1)
-	SELECTCASE �p�^�[��
-	;�ėp�p�^�[��
-	CASE "�ʏ�"
-		IF PALAM:ARG:�~�� >= PALAMLV:5 && RAND:3
-			�b�� += @"%TEXTR("���J/���J/���J����/���J�ق�/���J�ւ�/�͂����J��/���J�[/���J����")%"
-		ELSEIF PALAM:ARG:�~�� >= PALAMLV:3 && RAND:2
-			�b�� += @"%TEXTR("���͂�/��͂���/�͂��/�����/����/�͂���/�񂠂�/�Ђ���/������")%"
+FOR ループ, 0, MAX(回数, 1)
+	SELECTCASE パターン
+	;汎用パターン
+	CASE "通常"
+		IF PALAM:ARG:欲情 >= PALAMLV:5 && RAND:3
+			喘ぎ += @"%TEXTR("あ゛/お゛/あ゛あっ/お゛ほっ/あ゛へっ/はっあ゛っ/あ゛ー/あ゛あっ")%"
+		ELSEIF PALAM:ARG:欲情 >= PALAMLV:3 && RAND:2
+			喘ぎ += @"%TEXTR("あはっ/んはぁっ/はんっ/あんっ/あっ/はぅっ/んあっ/ひぅっ/ああっ")%"
 		ELSE
-			�b�� += @"%TEXTR("�����c�c/�q�B��/�񂠂��c�c/�����/�ЂႣ�c�c/�ӂ��c�c/�͂���c�c/����c�c/�Ђ���c�c/�ӂ�����c�c/���c�c")%"
+			喘ぎ += @"%TEXTR("あっ……/ヒィン/んあっ……/あんっ/ひゃぅ……/ふぁ……/はぅん……/んっ……/ひゃっ……/ふぅんっ……/っ……")%"
 		ENDIF
-	;���ɉ��������Ă���Ƃ�
-	CASE "�l�ٕ�"
-		;�����Ȃ�̂ł������ɕ���
+	;口に何か入っているとき
+	CASE "Ｍ異物"
+		;長くなるのでいくつかに分割
 		IF RAND:2
-			�b�� += @"%TEXTR("�ӂނ��c�c/��ނ��c�c/�͂ނ��c�c/�`���p�c�c/�y���c�c/�W�����c�c/��c�c/����A���c/���c���ށc���/����c�A���c�c/������A�����c����Ղ�/�����c�c���c/���A�͂ށc�c���")%"
+			喘ぎ += @"%TEXTR("ふむぅ……/んむっ……/はむぁ……/チュパ……/ペロ……/ジュル……/ん……/んっ、れろ…/れろ…ぁむ…んっ/んっ…、れろ……/ちゅっ、れろっ…ちゅぷっ/んんっ……れろ…/れろ、はむ……んっ")%"
 		ELSE
-			�b�� += @"%TEXTR("����A�񂮂��c/���c�񂣁c�c��/����c�A���c�c/�񂮂��A����c���/��ނ��c�c���/��ނ��A���c��")%"
+			喘ぎ += @"%TEXTR("んっ、んぐっ…/んん…んぅ……っ/んっ…、んん……/んぐっ、んっ…んっ/んむっ……んっ/んむっ、んん…っ")%"
 		ENDIF
-	;�L�X���Ă���Ƃ�
-	CASE "�L�X"
-		�b�� += @"%TEXTR("����c�c/����Ձc�c/��ނ��c�c/��c�c/������A������c/����c����c�c��/������c�A����c�c/������A������c�����/���ィ�c�c�����/�񂿂���A����c�c��")%"
-	;�A�i���ɉ��������Ă���Ƃ�
-	CASE "�`�ٕ�"
+	;キスしているとき
+	CASE "キス"
+		喘ぎ += @"%TEXTR("ちゅ……/ちゅぷ……/んむっ……/ん……/ちゅっ、ちゅっ…/ちゅ…ちゅ……っ/ちゅっ…、ちゅ……/ちゅっ、ちゅっ…ちゅっ/ちゅぅ……ちゅっ/んちゅっ、ちゅ……っ")%"
+	;アナルに何か入っているとき
+	CASE "Ａ異物"
 		SELECTCASE TONE_K46()
-		CASE "���₩", "�Â����"
-			�b�� += @"%TEXTR("���K����/�����/������")%"
-		CASE "���J"
-			�b�� += @"%TEXTR("�����܂����/���̂悤�Ȃ�/���̂悤�ȕs��ȁc�c��")%"
-		CASE "�c���f��", "�ʏ�"
-			�b�� += @"%TEXTR("�P�c����/���/�͂���")%"
+		CASE "穏やか", "甘えんぼ"
+			喘ぎ += @"%TEXTR("お尻がぁ/あんっ/あぁっ")%"
+		CASE "丁寧"
+			喘ぎ += @"%TEXTR("いけませんっ/そのようなっ/そのような不浄な……っ")%"
+		CASE "ツンデレ", "通常"
+			喘ぎ += @"%TEXTR("ケツがっ/んっ/はぁっ")%"
 		ENDSELECT
-	;�A���ɉ��������Ă���Ƃ�
-	CASE "�A���ٕ�"
+	;尿道に何か入っているとき
+	CASE "尿道異物"
 		SELECTCASE TONE_K46()
-		CASE "���₩", "�Â����"
-			�b�� += "���������̌�����"
+		CASE "穏やか", "甘えんぼ"
+			喘ぎ += "おしっこの穴がぁ"
 		CASEELSE
-			�b�� += "�A������"
+			喘ぎ += "尿道がっ"
 		ENDSELECT
-	;�����ɑ}�����Ă���Ƃ�
-	CASE "�}��"
+	;何かに挿入しているとき
+	CASE "挿入"
 		IF RAND:2
-			�b�� += @"%CNAMET(ARG, "��l��")%��"
+			喘ぎ += @"%CNAMET(ARG, "二人称")%の"
 			IF RAND:2
 				IF GROUPMATCH(SELECTCOM, 120, 121, 122)
-					�b�� += @"%TEXTR("�}���R/�i�J")%"
+					喘ぎ += @"%TEXTR("マンコ/ナカ")%"
 				ELSEIF GROUPMATCH(SELECTCOM, 125, 126, 127)
-					�b�� += @"%TEXTR("�P�c/�A�i��")%"
+					喘ぎ += @"%TEXTR("ケツ/アナル")%"
 				ENDIF
 			ELSE
-				�b�� += "�i�J"
+				喘ぎ += "ナカ"
 			ENDIF
-			IF TONE_K46() == "���J"
-				�b�� += "����_H_���˂��Ă�"
+			IF TONE_K46() == "丁寧"
+				喘ぎ += "がっ_H_うねってっ"
 			ELSE
-				�b�� += "�C���������c�c"
+				喘ぎ += "気持ちいい……"
 			ENDIF
 		ELSE
-			�b�� += @"%TEXTR("���/����/�ӂ�/����")%"
+			喘ぎ += @"%TEXTR("んっ/くっ/ふっ/うっ")%"
 		ENDIF
-	;�I�i�z�ɑ}�����Ă���Ƃ�
-	CASE "�I�i�z�}��"
-		�b�� += @"%TEXTR("�I�i�z���c�c/�����c�c���܂蓮�����ȁc�c��")%"
+	;オナホに挿入しているとき
+	CASE "オナホ挿入"
+		喘ぎ += @"%TEXTR("オナホが……/あっ……あまり動かすな……っ")%"
 	ENDSELECT
-	;�n�[�g���K�v�ȏꍇ
-	IF ARGS == "�v"
-		�b�� += "_H_"
-	;�n�[�g���s�v�ȏꍇ
-	ELSEIF ARGS == "�s�v"
-	;���̂Ƃ���͊��S�ɕs�v������̊g���̂��߁��\���~�X�ɋC�t�����߂ɂ��̑��ɂ̓G���[������
+	;ハートが必要な場合
+	IF ARGS == "要"
+		喘ぎ += "_H_"
+	;ハートが不要な場合
+	ELSEIF ARGS == "不要"
+	;今のところは完全に不要だが後の拡張のため＆構文ミスに気付くためにその他にはエラーをだす
 	ELSE
-		�b�� = "PANT_K46�ɖ�肪����܂�"
-		RETURNF �b��
+		喘ぎ = "PANT_K46に問題があります"
+		RETURNF 喘ぎ
 	ENDIF
-	;�ǂ݂₷���悤�ɔ��p�X�y�[�X�����킦��
-	�b�� += " "
+	;読みやすいように半角スペースをくわえる
+	喘ぎ += " "
 NEXT
 
-RETURNF �b��
+RETURNF 喘ぎ

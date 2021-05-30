@@ -1,16 +1,16 @@
-@SYSTEM_TITLE
-;@SYSTEM_TITLE����`����Ă���ƁA�W���̃^�C�g����ʂ̑����SYSTEM_TITLE���Ă΂��B
+﻿@SYSTEM_TITLE
+;@SYSTEM_TITLEが定義されていると、標準のタイトル画面の代わりにSYSTEM_TITLEが呼ばれる。
 
-;���̃^�C�~���O�ŃO���[�o���ϐ���ǂ�ł����Ύ�肱�ڂ��������Ȃ�B
-;GLOBAL��RESETDATA��LOADDATA�ɂ���ď������E�㏑������Ȃ��B
-;�K�v�ɉ����ăR�����g�A�E�g���������邱�ƁB
+;このタイミングでグローバル変数を読んでおけば取りこぼしが無くなる。
+;GLOBALはRESETDATAやLOADDATAによって初期化・上書きされない。
+;必要に応じてコメントアウトを解除すること。
 ;LOADGLOBAL
 
 [IF_NDEBUG]
 	HTML_PRINT "<shape type='space' param='2700'><img src='TITLE' height='3600' ypos='-3300'>"
 [ENDIF]
 
-;�^�C�g���\��
+;タイトル表示
 $TITLE_SELECT
 DRAWLINE 
 
@@ -26,35 +26,35 @@ ALIGNMENT LEFT
 
 DRAWLINE 
 
-;�I�����\���B_Rename.csv�Ŏw�肵���l��ǂނ��Ƃ͂ł��Ȃ��̂ł����Ŏw�肷��K�v������B
-PRINTL [0] �ŏ�����͂��߂�
-PRINTL [1] ���[�h���Ă͂��߂�
+;選択肢表示。_Rename.csvで指定した値を読むことはできないのでここで指定する必要がある。
+PRINTL [0] 最初からはじめる
+PRINTL [1] ロードしてはじめる
 
 $TITLE_INPUT
 INPUT
 IF RESULT == 0
 	DRAWLINE
 	RESETDATA
-	;ADDDEFCHARA��eramaker�̓�����Č����邽�߂ɑ��݂����p�̊֐��ł�
-	;���̏�ʂł�ADDCHARA�AADDSPCHARA�����g�����Ƃ����߂܂�
+	;ADDDEFCHARAはeramakerの動作を再現するために存在する専用の関数です
+	;他の場面ではADDCHARA、ADDSPCHARA等を使うことを勧めます
 	ADDDEFCHARA
 	BEGIN FIRST
 	RETURN
 ELSEIF RESULT == 1
 	LOADGLOBAL
-	SELECTCASE GLOBAL:�ŐV�r�k�ԍ�
+	SELECTCASE GLOBAL:最新ＳＬ番号
 	CASE 0 TO 98
-		CALL LOADGAME_EX, GLOBAL:�ŐV�r�k�ԍ�/20
+		CALL LOADGAME_EX, GLOBAL:最新ＳＬ番号/20
 	CASEELSE
 		CALL LOADGAME_EX
 	ENDSELECT
 	GOTO TITLE_SELECT
-	;LOADGAME_EX��LOAD���s�킸�ɖ߂��Ă����ꍇ�A������x�I�����Ȃ����B
+	;LOADGAME_EXでLOADを行わずに戻ってきた場合、もう一度選択しなおす。
 ELSE
 	CLEARLINE 1
-	REUSELASTLINE �����Ȓl�ł�
+	REUSELASTLINE 無効な値です
 	GOTO TITLE_INPUT
 ENDIF
 
-;SYSTEM_TITLE����RETURN����Ǝ��Ɏ��s����s�������Ȃ�A�G���[�ɂȂ�B
-;�K��BEGIN���߂�LOADGAME���s�����ƁB
+;SYSTEM_TITLE中でRETURNすると次に実行する行が無くなり、エラーになる。
+;必ずBEGIN命令かLOADGAMEを行うこと。

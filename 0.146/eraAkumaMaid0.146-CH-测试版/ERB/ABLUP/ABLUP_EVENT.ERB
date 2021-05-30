@@ -1,88 +1,88 @@
-;TARGET�̑f���ϓ��Ȃ�
+﻿;TARGETの素質変動など
 @EVENTCHECK_T
 #DIM ADDCOND_RESULT
 ;-------------------------------------------------------------------------------------------------
-;�Z�\�̐���
+;技能の成長
 ;-------------------------------------------------------------------------------------------------
 CALL EX_ABLUP, TARGET
 
 ;-------------------------------------------------------------------------------------------------
-;�l�K�e�B�u�ȑf���̍���
+;ネガティブな素質の克服
 ;-------------------------------------------------------------------------------------------------
-CALL SETFLAG, "���R�I����", TARGET
+CALL SETFLAG, "反抗的消去", TARGET
 
 CALL EVENT_NEXTTIME
 
-;����ƈ����̎����擾
-IF COND("����ƈ����̎����l���\")
-	IF TALENT:���� == 0
-		STR:���s���� = 
+;恋慕と淫乱の自動取得
+IF COND("恋慕と淫乱の自動獲得可能")
+	IF TALENT:恋慕 == 0
+		STR:実行条件 = 
 		RESULT = 0
-		TRYCALLFORM ADDCOND_K{NO:TARGET}("����")
+		TRYCALLFORM ADDCOND_K{NO:TARGET}("恋慕")
 		ADDCOND_RESULT = RESULT
-		SIF STR:���s���� == "" && (COND("����擾�\") || ADDCOND_RESULT)
-			CALL SETFLAG, "����"
+		SIF STR:実行条件 == "" && (COND("恋慕取得可能") || ADDCOND_RESULT)
+			CALL SETFLAG, "恋慕"
 	ENDIF
-	IF TALENT:���� == 0 && COND("����ƈ����̎����l���\")
-		STR:���s���� = 
+	IF TALENT:淫乱 == 0 && COND("恋慕と淫乱の自動獲得可能")
+		STR:実行条件 = 
 		RESULT = 0
-		TRYCALLFORM ADDCOND_K{NO:TARGET}("����")
+		TRYCALLFORM ADDCOND_K{NO:TARGET}("淫乱")
 		ADDCOND_RESULT = RESULT
-		SIF STR:���s���� == "" && (COND("�����擾�\") || ADDCOND_RESULT)
-			CALL SETFLAG, "����"
+		SIF STR:実行条件 == "" && (COND("淫乱取得可能") || ADDCOND_RESULT)
+			CALL SETFLAG, "淫乱"
 	ENDIF
 ENDIF
 
-;�����ł���悤�ɂȂ�����
-SIF COND("���ӁF����") == 0 && COND("�����\")
-	CALL SETFLAG, "���ӁF����", TARGET
+;同棲できるようになったか
+SIF COND("合意：同棲") == 0 && COND("同棲可能")
+	CALL SETFLAG, "合意：同棲", TARGET
 
-;���̑����Ӄ`�F�b�N
-CALL SETFLAG, "����", TARGET
+;その他合意チェック
+CALL SETFLAG, "合意", TARGET
 
-;���艻���\�ɂȂ�����
-IF COND("����\") == 0 && ABL:�M�� >= 5 && ABL:�Z�I >= 3
-	CALL PRINT_STR, @"%CALLNAME:TARGET%��_���F_%TEXTS("����̖���")%�ɂȂ��悤��_�Ȃ�܂���_W"
-	CFLAG:����\ = 1
+;助手化が可能になったか
+IF COND("助手可能") == 0 && ABL:信頼 >= 5 && ABL:技巧 >= 3
+	CALL PRINT_STR, @"%CALLNAME:TARGET%が_黄色_%TEXTS("助手の名称")%になれるように_なりました_W"
+	CFLAG:助手可能 = 1
 ENDIF
 
 
 
-;MASTER�̑f���ϓ��Ȃ�
+;MASTERの素質変動など
 @EVENTCHECK_M
-;�Ƃ����l����1�l�ȏ�ŁA��̖��͂��t��
-IF FLAG:�ח��l�� && TALENT:MASTER:��̖��� == 0
-	PRINTFORMW �o����ς�%CALLNAME:MASTER%�́y��̖��́z��g�ɂ���
-	TALENT:MASTER:��̖��� = 1
+;堕とした人数が1人以上で、謎の魅力が付く
+IF FLAG:陥落人数 && TALENT:MASTER:謎の魅力 == 0
+	PRINTFORMW 経験を積んだ%CALLNAME:MASTER%は【謎の魅力】を身につけた
+	TALENT:MASTER:謎の魅力 = 1
 ENDIF
-;�`�o���T�O�O�ȏ�A�`�g���o���R�T�ȏ�ŐK��������
-IF EXP:MASTER:�`�o�� >= 500 && EXP:MASTER:�`�g���o�� >= 35 && TALENT:MASTER:�K������ == 0
-	PRINTFORMW �̗̂l�q�����������c
-	PRINTFORML ���K���M�������A�u���Ďd���Ȃ��B
-	PRINTFORMW �ǂ����x�d�Ȃ�h���ɂ����%CALLNAME:MASTER%���g�����y�ɖڊo�߂Ă��܂����悤���c
-	PRINTFORMW %CALLNAME:MASTER%�́y�K�������z�ɂȂ��Ă��܂���
-	TALENT:MASTER:�K������ = 1
+;Ａ経験５００以上、Ａ拡張経験３５以上で尻穴狂い化
+IF EXP:MASTER:Ａ経験 >= 500 && EXP:MASTER:Ａ拡張経験 >= 35 && TALENT:MASTER:尻穴狂い == 0
+	PRINTFORMW 体の様子がおかしい…
+	PRINTFORML お尻が熱を持ち、疼いて仕方ない。
+	PRINTFORMW どうやら度重なる刺激によって%CALLNAME:MASTER%自身も快楽に目覚めてしまったようだ…
+	PRINTFORMW %CALLNAME:MASTER%は【尻穴狂い】になってしまった
+	TALENT:MASTER:尻穴狂い = 1
 ENDIF
-;�u�o���T�O�O�ȏ�ň��ى�
-IF EXP:MASTER:�u�o�� >= 500 && TALENT:MASTER:���� == 0
-	PRINTFORMW �̗̂l�q�����������c
-	PRINTFORML �q�{�t�߂��M�������A�u���Ďd���Ȃ��B
-	PRINTFORMW �ǂ����x�d�Ȃ�h���ɂ����%CALLNAME:MASTER%���g�����y�ɖڊo�߂Ă��܂����悤���c
-	PRINTFORMW %CALLNAME:MASTER%�́y���فz���l�����Ă��܂���
-	TALENT:MASTER:���� = 1
+;Ｖ経験５００以上で淫壷化
+IF EXP:MASTER:Ｖ経験 >= 500 && TALENT:MASTER:淫壷 == 0
+	PRINTFORMW 体の様子がおかしい…
+	PRINTFORML 子宮付近が熱を持ち、疼いて仕方ない。
+	PRINTFORMW どうやら度重なる刺激によって%CALLNAME:MASTER%自身も快楽に目覚めてしまったようだ…
+	PRINTFORMW %CALLNAME:MASTER%は【淫壷】を獲得してしまった
+	TALENT:MASTER:淫壷 = 1
 ENDIF
-;�o���l�ɂ���ă��U���N�V���������x���A�b�v
-IF EXP:MASTER:�o���l >= 300 && TALENT:MASTER:���U���N�V���� < 200
-	TALENT:MASTER:���U���N�V���� = 200
-	PRINTFORMW �g�̂̉����犈�͂����o��̂�������c�c
-	CALL PRINT_STR, @"�o����ς�%CALLNAME:MASTER%��_���F_[%TALENT_NAME(GETNUM(TALENT, "���U���N�V����"), TALENT:MASTER:���U���N�V����)%]_��g�ɂ���"
+;経験値によってリザレクションがレベルアップ
+IF EXP:MASTER:経験値 >= 300 && TALENT:MASTER:リザレクション < 200
+	TALENT:MASTER:リザレクション = 200
+	PRINTFORMW 身体の奥から活力が溢れ出るのを感じる……
+	CALL PRINT_STR, @"経験を積んだ%CALLNAME:MASTER%は_黄色_[%TALENT_NAME(GETNUM(TALENT, "リザレクション"), TALENT:MASTER:リザレクション)%]_を身につけた"
 	FORCEWAIT
 ENDIF
 
-CALL ABLUP_MASTER, "�ʏ�"
+CALL ABLUP_MASTER, "通常"
 
 
-;MASTER�̋Z�\�l��
+;MASTERの技能獲得
 @ABLUP_MASTER, ARGS
 #DIM LCOUNT
 #DIM MEMO_LINECOUNT
@@ -95,77 +95,77 @@ CALL ABLUP_MASTER, "�ʏ�"
 MEMO_LINECOUNT = LINECOUNT
 
 SELECTCASE ARGS
-CASE "�ʏ�"
-	IF CONFIG("�u�`�g���̎蓮�k�u�t�o") == 0
-		ABL:MASTER:�u�g�� = CALCF("�u�g���̏��", MASTER)
-		ABL:MASTER:�`�g�� = CALCF("�`�g���̏��", MASTER)
+CASE "通常"
+	IF CONFIG("ＶＡ拡張の手動ＬＶＵＰ") == 0
+		ABL:MASTER:Ｖ拡張 = CALCF("Ｖ拡張の上限", MASTER)
+		ABL:MASTER:Ａ拡張 = CALCF("Ａ拡張の上限", MASTER)
 	ENDIF
 	CALL EX_ABLUP, MASTER
-CASE "�T��", "�\�͕ύX"
+CASE "週末", "能力変更"
 	REDRAW 0
 
-	;�Z�I�̌��ݒl�L�^
-	MEMO_MASTERABL = ABL:MASTER:�Z�I
+	;技巧の現在値記録
+	MEMO_MASTERABL = ABL:MASTER:技巧
 
 	$START
 	VARSET LOCAL, 0, 0, 100
 	SELECTCASE ARGS
-	CASE "�T��"
-		PRINTFORML ���T�ɔ�����%CALLNAME:MASTER%�̔\�͂�LV�ύX���s���܂�
-		PRINTFORML �\�Ȕ͈͂Ŏ��R�ɕύX���Ă�������
-		PRINTFORML (�\�͂̕\���㏸��ʂ���A���ł��o���܂�)
+	CASE "週末"
+		PRINTFORML 来週に備えて%CALLNAME:MASTER%の能力のLV変更を行います
+		PRINTFORML 可能な範囲で自由に変更してください
+		PRINTFORML (能力の表示上昇画面から、いつでも出来ます)
 	CASEELSE
-		PRINTFORML %CALLNAME:MASTER%�̔\�͂�LV�ύX���s���܂�
-		PRINTFORML �\�Ȕ͈͂Ŏ��R�ɕύX���Ă�������
+		PRINTFORML %CALLNAME:MASTER%の能力のLV変更を行います
+		PRINTFORML 可能な範囲で自由に変更してください
 	ENDSELECT
-	CALL PRINT_STR, "�C�G���[_���Z�ILV�̏㏸�͎w�g�����A�`�g����LV�̍��v���K�v�l�𖞂������������ƂȂ�܂���_L_"
+	CALL PRINT_STR, "イエロー_※技巧LVの上昇は指使い等、～使いのLVの合計が必要値を満たす事が条件となります※_L_"
 
-	MEMO_FLAG = FLAG:����OFF
-	CLEARBIT FLAG:����OFF, 12
+	MEMO_FLAG = FLAG:項目OFF
+	CLEARBIT FLAG:項目OFF, 12
 	CALL NEW_PRINT_ABL, MASTER
-	FLAG:����OFF = MEMO_FLAG
+	FLAG:項目OFF = MEMO_FLAG
 
 	DRAWLINE
 
-	;�Z�I�k�u���グ���邩�ǂ���
-	MAXABL_TECH = MIN(99, (ABL:MASTER:��g��+ABL:MASTER:�w�g��+ABL:MASTER:���g��+ABL:MASTER:����)/2)
+	;技巧ＬＶが上げられるかどうか
+	MAXABL_TECH = MIN(99, (ABL:MASTER:舌使い+ABL:MASTER:指使い+ABL:MASTER:腰使い+ABL:MASTER:魔乳)/2)
 
-	SIF ABL:MASTER:�Z�I < MAX(MAXABL_TECH, MEMO_MASTERABL)
+	SIF ABL:MASTER:技巧 < MAX(MAXABL_TECH, MEMO_MASTERABL)
 		LOCAL:0 = 1
-	PRINTFORM  [\@ LOCAL:0 ?  {0, 2} # �~ \@] �Z�I�{1LV
-	SIF LOCAL:0 == 0 && ABL:MASTER:�Z�I < 99
-		PRINTFORM �@����LV�ɕK�v�ȁ`�g��LV�̍��v�F����{(ABL:MASTER:�Z�I + 1)*2 - (ABL:MASTER:��g��+ABL:MASTER:�w�g��+ABL:MASTER:���g��+ABL:MASTER:����)}
+	PRINTFORM  [\@ LOCAL:0 ?  {0, 2} # × \@] 技巧＋1LV
+	SIF LOCAL:0 == 0 && ABL:MASTER:技巧 < 99
+		PRINTFORM 　次のLVに必要な～使いLVの合計：あと{(ABL:MASTER:技巧 + 1)*2 - (ABL:MASTER:舌使い+ABL:MASTER:指使い+ABL:MASTER:腰使い+ABL:MASTER:魔乳)}
 	PRINTL 
 
-	SIF ABL:MASTER:�Z�I > 0
+	SIF ABL:MASTER:技巧 > 0
 		LOCAL:1 = 1
-	PRINTFORML  [\@ LOCAL:1 ?  {1, 2} # �~ \@] �Z�I�|1LV
-	SIF ABL:MASTER:�}�]���C < 5
+	PRINTFORML  [\@ LOCAL:1 ?  {1, 2} # × \@] 技巧－1LV
+	SIF ABL:MASTER:マゾっ気 < 5
 		LOCAL:2 = 1
-	PRINTFORML  [\@ LOCAL:2 ?  {2, 2} # �~ \@] �}�]���C�{1LV
-	SIF ABL:MASTER:�}�]���C > 0
+	PRINTFORML  [\@ LOCAL:2 ?  {2, 2} # × \@] マゾっ気＋1LV
+	SIF ABL:MASTER:マゾっ気 > 0
 		LOCAL:3 = 1
-	PRINTFORML  [\@ LOCAL:3 ?  {3, 2} # �~ \@] �}�]���C�|1LV
-	SIF ABL:MASTER:�T�h���C < 5
+	PRINTFORML  [\@ LOCAL:3 ?  {3, 2} # × \@] マゾっ気－1LV
+	SIF ABL:MASTER:サドっ気 < 5
 		LOCAL:4 = 1
-	PRINTFORML  [\@ LOCAL:4 ?  {4, 2} # �~ \@] �T�h���C�{1LV
-	SIF ABL:MASTER:�T�h���C > 0
+	PRINTFORML  [\@ LOCAL:4 ?  {4, 2} # × \@] サドっ気＋1LV
+	SIF ABL:MASTER:サドっ気 > 0
 		LOCAL:5 = 1
-	PRINTFORML  [\@ LOCAL:5 ?  {5, 2} # �~ \@] �T�h���C�|1LV
-	IF CONFIG("�u�`�g���̎蓮�k�u�t�o")
-		IF TALENT:MASTER:�I�g�R == 0
-			SIF CALCF("�u�g���̏��", MASTER) > ABL:MASTER:�u�g��
+	PRINTFORML  [\@ LOCAL:5 ?  {5, 2} # × \@] サドっ気－1LV
+	IF CONFIG("ＶＡ拡張の手動ＬＶＵＰ")
+		IF TALENT:MASTER:オトコ == 0
+			SIF CALCF("Ｖ拡張の上限", MASTER) > ABL:MASTER:Ｖ拡張
 				LOCAL:10 = 1
-			PRINTFORML  [\@ LOCAL:10 ?  {10, 2} # �~ \@] �u�g���{1LV
+			PRINTFORML  [\@ LOCAL:10 ?  {10, 2} # × \@] Ｖ拡張＋1LV
 		ENDIF
-		SIF CALCF("�`�g���̏��", MASTER) > ABL:MASTER:�`�g��
+		SIF CALCF("Ａ拡張の上限", MASTER) > ABL:MASTER:Ａ拡張
 			LOCAL:11 = 1
-		PRINTFORML  [\@ LOCAL:11 ?  {11, 2} # �~ \@] �`�g���{1LV
+		PRINTFORML  [\@ LOCAL:11 ?  {11, 2} # × \@] Ａ拡張＋1LV
 	ENDIF
 
-	PRINTFORML  [98] �Z�I�𕔈��S���̕��ϒl�ɍ��킹��
-	PRINTFORML  [99] �Z�I���グ���邾���グ��
-	PRINTFORML [100] �I��
+	PRINTFORML  [98] 技巧を部員全員の平均値に合わせる
+	PRINTFORML  [99] 技巧を上げられるだけ上げる
+	PRINTFORML [100] 終了
 
 	CALL INPUT_SELECT, 12, 98, 99, 100
 
@@ -177,35 +177,35 @@ CASE "�T��", "�\�͕ύX"
 	ELSEIF CHOICE == 98
 		AVERAGE_TECH = 0
 		FOR LCOUNT, 2, CHARANUM
-			AVERAGE_TECH += ABL:LCOUNT:�Z�I*10
+			AVERAGE_TECH += ABL:LCOUNT:技巧*10
 		NEXT
 		AVERAGE_TECH /= (CHARANUM - 2)
-		;�����_���ʂ��l�̌ܓ�����
+		;小数点第一位を四捨五入する
 		IF AVERAGE_TECH%10 >= 5
-			ABL:MASTER:�Z�I = MIN(MAXABL_TECH, (AVERAGE_TECH/10) + 1)
+			ABL:MASTER:技巧 = MIN(MAXABL_TECH, (AVERAGE_TECH/10) + 1)
 		ELSE
-			ABL:MASTER:�Z�I = MIN(MAXABL_TECH, AVERAGE_TECH/10)
+			ABL:MASTER:技巧 = MIN(MAXABL_TECH, AVERAGE_TECH/10)
 		ENDIF
 	ELSEIF CHOICE == 99
-		ABL:MASTER:�Z�I = MAX(MAXABL_TECH, MEMO_MASTERABL)
+		ABL:MASTER:技巧 = MAX(MAXABL_TECH, MEMO_MASTERABL)
 	ELSEIF LOCAL:CHOICE
 		SELECTCASE CHOICE
 		CASE 0
-			ABL:MASTER:�Z�I += 1
+			ABL:MASTER:技巧 += 1
 		CASE 1
-			ABL:MASTER:�Z�I -= 1
+			ABL:MASTER:技巧 -= 1
 		CASE 2
-			ABL:MASTER:�}�]���C += 1
+			ABL:MASTER:マゾっ気 += 1
 		CASE 3
-			ABL:MASTER:�}�]���C -= 1
+			ABL:MASTER:マゾっ気 -= 1
 		CASE 4
-			ABL:MASTER:�T�h���C += 1
+			ABL:MASTER:サドっ気 += 1
 		CASE 5
-			ABL:MASTER:�T�h���C -= 1
+			ABL:MASTER:サドっ気 -= 1
 		CASE 10
-			ABL:MASTER:�u�g�� += 1
+			ABL:MASTER:Ｖ拡張 += 1
 		CASE 11
-			ABL:MASTER:�`�g�� += 1
+			ABL:MASTER:Ａ拡張 += 1
 		ENDSELECT
 	ENDIF
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
@@ -218,7 +218,7 @@ ENDSELECT
 #DIM MEMO_LINECOUNT
 
 VARSET LOCAL
-;ABL:��g��, ABL:�w�g��, ABL:���g��, ABL:����
+;ABL:舌使い, ABL:指使い, ABL:腰使い, ABL:魔乳
 FOR LCOUNT, 60, 64
 	LOCAL:LCOUNT = ABL:ARG:LCOUNT
 NEXT
@@ -228,18 +228,18 @@ MEMO_LINECOUNT = LINECOUNT
 DRAWLINE
 FOR LCOUNT, 60, 64
 	IF ABL:ARG:LCOUNT > LOCAL:LCOUNT
-		PRINTFORML %NAME:ARG%��%ABLNAME:LCOUNT%��LV���オ�����I
-		PRINTFORMW %ABLNAME:LCOUNT%��LV{ABL:ARG:LCOUNT}�ɂȂ����I
+		PRINTFORML %NAME:ARG%の%ABLNAME:LCOUNT%のLVが上がった！
+		PRINTFORMW %ABLNAME:LCOUNT%がLV{ABL:ARG:LCOUNT}になった！
 		PRINTFORML 
 	ENDIF
 NEXT
 
-LOCAL = TALENT:ARG:�z���̎�
+LOCAL = TALENT:ARG:吸精体質
 
 CALL GET_EXTALENT, ARG
 
-IF TALENT:ARG:�z���̎� > LOCAL
-	PRINTFORMW %CALLNAME:ARG%�̋z���̎���{TALENT:ARG:�z���̎�}LV�ɏオ�����I
+IF TALENT:ARG:吸精体質 > LOCAL
+	PRINTFORMW %CALLNAME:ARG%の吸精体質が{TALENT:ARG:吸精体質}LVに上がった！
 	PRINTFORML 
 ENDIF
 
@@ -247,7 +247,7 @@ CLEARLINE 1
 SIF LINECOUNT > MEMO_LINECOUNT
 	DRAWLINE
 
-;�o���l�̑��������BARG�ɂ͎��COND("�Ⓒ", PLAYER)orNOWEX:�Ⓒ�����v�AARG:1�͌o���l�̎󂯎��肪����
+;経験値の増加処理。ARGには主にCOND("絶頂", PLAYER)orNOWEX:絶頂数合計、ARG:1は経験値の受け取り手が入る
 @GET_EXPERIENCE, ARG, ARG:1
 #DIM ACTOR
 IF ARG:1 == TARGET
@@ -255,7 +255,7 @@ IF ARG:1 == TARGET
 ELSE
 	ACTOR = TARGET
 ENDIF
-;�Z�I���ɂ��␳��������
-LOCAL = MULTIPLY(ARG*5, 100 + LIMIT(ABL:ACTOR:�Z�I - ABL:(ARG:1):�Z�I, -100, 100)*20)
+;技巧差による補正をかける
+LOCAL = MULTIPLY(ARG*5, 100 + LIMIT(ABL:ACTOR:技巧 - ABL:(ARG:1):技巧, -100, 100)*20)
 LOCAL = MAX(LOCAL - 3, 1)
-EXP:(ARG:1):�o���l += LOCAL
+EXP:(ARG:1):経験値 += LOCAL

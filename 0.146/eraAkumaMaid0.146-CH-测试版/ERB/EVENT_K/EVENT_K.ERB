@@ -1,35 +1,35 @@
-;--------------------------------------------------
-;��ɃG���R�}���h�̑䎌�̏o�͂��Ǘ�����B����̑䎌��@EVENT_K_DAILY��
+﻿;--------------------------------------------------
+;主にエロコマンドの台詞の出力を管理する。日常の台詞は@EVENT_K_DAILYへ
 ;--------------------------------------------------
 
 ;--------------------------------------------------
-;�R�}���h���s���ɏo�͂���܂�
+;コマンド実行時に出力されます
 ;--------------------------------------------------
 @KOJO_MESSAGE_COM
 #DIM MEMO_LINECOUNT
 
 CALL BLANKLINE
 
-;���オ���邩�ǂ������s���Ń`�F�b�N
+;口上があるかどうかを行数でチェック
 MEMO_LINECOUNT = LINECOUNT
 
-;���g���p���ɂ͒ʏ�̌�����X�L�b�v����iOFF���ƌ����ǂ��ł�̂ɒ���܂���j
-IF TEQUIP:���g && SELECTCOM != 135
+;口枷着用時には通常の口上をスキップする（OFFだと口を塞いでるのに喋りまくる）
+IF TEQUIP:口枷 && SELECTCOM != 135
 	CALL TRAIN_MESSAGE_C
 ELSE
 	TRYCALLFORM KOJO_MESSAGE_COM_K{NO:TARGET}
 
-	;�ėp����Ȃ�
+	;汎用口上など
 	IF LINECOUNT == MEMO_LINECOUNT
-		;�V�b�N�X�i�C��
+		;シックスナイン
 		IF SELECTCOM == 99
-			TRYCALLFORM COM_ABLE{TEQUIP:�V�b�N�X�i�C��}
+			TRYCALLFORM COM_ABLE{TEQUIP:シックスナイン}
 			SIF RESULT
-				SELECTCOM = TEQUIP:�V�b�N�X�i�C��
-			IF PREVCOM == TEQUIP:�V�b�N�X�i�C��
-				TRYCALLFORM COM_ABLE{TEQUIP:PLAYER:�V�b�N�X�i�C��}
+				SELECTCOM = TEQUIP:シックスナイン
+			IF PREVCOM == TEQUIP:シックスナイン
+				TRYCALLFORM COM_ABLE{TEQUIP:PLAYER:シックスナイン}
 				SIF RESULT
-					SELECTCOM = TEQUIP:PLAYER:�V�b�N�X�i�C��
+					SELECTCOM = TEQUIP:PLAYER:シックスナイン
 			ENDIF
 			TRYCALLFORM KOJO_MESSAGE_COM_K{NO:TARGET}
 			SELECTCOM = 99
@@ -45,20 +45,20 @@ ENDIF
 
 CALL BLANKLINE
 
-;���㑤�Ńt���O��M��H
+;口上側でフラグを弄る？
 TRYCALLFORM KOJO_ENDCOM_K{NO:TARGET}
 
-;�ː��Q�[�W�̃`�F�b�N
+;射精ゲージのチェック
 CALL CHECK_BASEPLAYER2
 
-;���ʂ��y�ڂ��̂̓��C���v���C���[��l�̂�
+;効果を及ぼすのはメインプレイヤー一人のみ
 CALL ENERGY_DRAIN
 
 ;--------------------------------------------------
-;�R�}���h���s���ɒ����e�L�X�g�̑O�ɏo�͂���܂�
+;コマンド実行時に調教テキストの前に出力されます
 ;--------------------------------------------------
 @KOJO_MESSAGE_BEFORE_COM
-;�v���C���[�̐Ⓒ�x�Ȃǎ��Z(COND("�Ⓒ", PLAYER)���g������)
+;プレイヤーの絶頂度など試算(COND("絶頂", PLAYER)を使うため)
 CALL SAMEN_CHECK
 
 CALL BLANKLINE
@@ -67,19 +67,19 @@ TRYCALLFORM KOJO_MESSAGE_BEFORE_COM_K{NO:TARGET}
 
 CALL BLANKLINE
 
-;�v���C���[�̐Ⓒ�x�Ȃǂ����̒l�ɖ߂�
+;プレイヤーの絶頂度などを元の値に戻す
 CALL SAMEN_CHECK, -1
 
-;�ː��Q�[�W�̃`�F�b�N
+;射精ゲージのチェック
 CALL CHECK_BASEPLAYER2
 
 ;-------------------------------------------------
-;�p�����[�^�ϓ����g���K�[�ɂ�������
-;�p�����[�^�ϓ���Ɍ���𔭓����܂�
+;パラメータ変動をトリガーにした口上
+;パラメータ変動後に口上を発動します
 ;-------------------------------------------------
 @KOJO_MESSAGE_PALAMCNG
-;���g���p���ɂ͌�����X�L�b�v����iOFF���ƌ����ǂ��ł�̂ɒ���܂���j
-SIF TEQUIP:���g
+;口枷着用時には口上をスキップする（OFFだと口を塞いでるのに喋りまくる）
+SIF TEQUIP:口枷
 	RETURN 0
 
 LOCALS = %CHECK_MESSAGE_PALAMCNG()%
@@ -90,109 +90,109 @@ CALL BLANKLINE
 
 TRYCALLFORM KOJO_MESSAGE_PALAMCNG_K{NO:TARGET}, LOCALS
 
-;����̎��ɃZ�b�N�X�Ŕj�Z
-SIF GETBIT(NOWEX:�����r��, 1)
-	PRINTFORML %CALLNAME:TARGET%��%CALLNAME:MASTER%�ɏ����������ꂽ���ɍK���������Ă���悤���c
+;恋慕の時にセックスで破瓜
+SIF GETBIT(NOWEX:処女喪失, 1)
+	PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%に処女を捧げられた事に幸福を感じているようだ…
 
 CALL BLANKLINE
 
-;����������̃t���O���L�^
+;喋った口上のフラグを記録
 CALL SET_FIRST_EV, LOCALS
-;�ː��Q�[�W�̃`�F�b�N
+;射精ゲージのチェック
 CALL CHECK_BASEPLAYER2
 
 ;-------------------------------------------------
-;@KOJO_MESSAGE_PALAMCNG �ŉ��ɂ��Ē��邩�̔���
-;�D��x�̍������ɁA�����r���A���Ⓒ�A�Ⓒ���A�A�Ⓒ20��A�ł炵�A�ː������A�ʏ�Ⓒ�APALAM�R�k�u�˔j
+;@KOJO_MESSAGE_PALAMCNG で何について喋るかの判定
+;優先度の高い順に、処女喪失、初絶頂、絶頂放尿、絶頂20回、焦らし、射精噴乳、通常絶頂、PALAM３ＬＶ突破
 ;-------------------------------------------------
 @CHECK_MESSAGE_PALAMCNG()
 #FUNCTIONS
 LOCALS = 
 ;-------------------------------------------------
-;�����r��
+;処女喪失
 ;-------------------------------------------------
-IF NOWEX:�����r�� > 0
-	LOCALS = �����r��
+IF NOWEX:処女喪失 > 0
+	LOCALS = 処女喪失
 	RETURNF LOCALS
 ENDIF
 
 ;-------------------------------------------------
-;���߂Ă̐Ⓒ�i���ڈȍ~�̐Ⓒ�͗D��x���Ⴂ�̂ŉ��̕��ɂ���j
+;初めての絶頂（二回目以降の絶頂は優先度が低いので下の方にある）
 ;-------------------------------------------------
 LOCAL = 1
-IF NOWEX:�b�Ⓒ > 0 && PENIS(TARGET) == 0 && FIRST_EV("�b�Ⓒ") == 0
+IF NOWEX:Ｃ絶頂 > 0 && PENIS(TARGET) == 0 && FIRST_EV("Ｃ絶頂") == 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = �b�Ⓒ
+		LOCALS = Ｃ絶頂
 	LOCAL += 1
 ENDIF
-IF NOWEX:�A���Ⓒ > 0 && FIRST_EV("�A���Ⓒ") == 0
+IF NOWEX:尿道絶頂 > 0 && FIRST_EV("尿道絶頂") == 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = �A���Ⓒ
+		LOCALS = 尿道絶頂
 	LOCAL += 1
 ENDIF
-IF NOWEX:�u�Ⓒ > 0 && FIRST_EV("�u�Ⓒ") == 0
+IF NOWEX:Ｖ絶頂 > 0 && FIRST_EV("Ｖ絶頂") == 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = �u�Ⓒ
+		LOCALS = Ｖ絶頂
 	LOCAL += 1
 ENDIF
-IF NOWEX:�`�Ⓒ > 0 && FIRST_EV("�`�Ⓒ") == 0
+IF NOWEX:Ａ絶頂 > 0 && FIRST_EV("Ａ絶頂") == 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = �`�Ⓒ
+		LOCALS = Ａ絶頂
 	LOCAL += 1
 ENDIF
-IF NOWEX:�a�Ⓒ > 0 && FIRST_EV("�a�Ⓒ") == 0
+IF NOWEX:Ｂ絶頂 > 0 && FIRST_EV("Ｂ絶頂") == 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = �a�Ⓒ
+		LOCALS = Ｂ絶頂
 	LOCAL += 1
 ENDIF
-IF NOWEX:�l�Ⓒ > 0 && FIRST_EV("�l�Ⓒ") == 0
+IF NOWEX:Ｍ絶頂 > 0 && FIRST_EV("Ｍ絶頂") == 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = �l�Ⓒ
+		LOCALS = Ｍ絶頂
 	LOCAL += 1
 ENDIF
 
 SIF LOCALS != ""
 	RETURNF LOCALS
 ;-------------------------------------------------
-;�Ⓒ���A����
+;絶頂放尿した
 ;-------------------------------------------------
-IF NOWEX:�Ⓒ���R�炵 > 0
-	LOCALS = �Ⓒ���A
+IF NOWEX:絶頂お漏らし > 0
+	LOCALS = 絶頂放尿
 	RETURNF LOCALS
 ENDIF
 
 ;-------------------------------------------------
-;�Ⓒ���܂��� �i�R��Ɉ����x����ׂ�B���d�Ⓒ���Ɗm���t�o�j
+;絶頂しまくり （３回に一回程度しゃべる。多重絶頂だと確率ＵＰ）
 ;-------------------------------------------------
 LOCAL = 3
-IF EX:�b�Ⓒ >= 20 && PENIS(TARGET) == 0 && NOWEX:�b�Ⓒ >= MAX(NOWEX:�`�Ⓒ, NOWEX:�a�Ⓒ, NOWEX:�l�Ⓒ, NOWEX:�A���Ⓒ, 1)
+IF EX:Ｃ絶頂 >= 20 && PENIS(TARGET) == 0 && NOWEX:Ｃ絶頂 >= MAX(NOWEX:Ａ絶頂, NOWEX:Ｂ絶頂, NOWEX:Ｍ絶頂, NOWEX:尿道絶頂, 1)
 	SIF RAND:LOCAL == 0
-		LOCALS = �b�Ⓒ20��ȏ�
+		LOCALS = Ｃ絶頂20回以上
 	LOCAL += 1
 ENDIF
-IF EX:�A���Ⓒ >= 20 && NOWEX:�A���Ⓒ >= MAX(NOWEX:�b�Ⓒ, NOWEX:�u�Ⓒ, NOWEX:�`�Ⓒ, NOWEX:�a�Ⓒ, NOWEX:�l�Ⓒ, 1)
+IF EX:尿道絶頂 >= 20 && NOWEX:尿道絶頂 >= MAX(NOWEX:Ｃ絶頂, NOWEX:Ｖ絶頂, NOWEX:Ａ絶頂, NOWEX:Ｂ絶頂, NOWEX:Ｍ絶頂, 1)
 	SIF RAND:LOCAL == 0
-		LOCALS = �A���Ⓒ20��ȏ�
+		LOCALS = 尿道絶頂20回以上
 	LOCAL += 1
 ENDIF
-IF EX:�u�Ⓒ >= 20 && NOWEX:�u�Ⓒ >= MAX(NOWEX:�b�Ⓒ, NOWEX:�`�Ⓒ, NOWEX:�a�Ⓒ, NOWEX:�l�Ⓒ, NOWEX:�A���Ⓒ, 1)
+IF EX:Ｖ絶頂 >= 20 && NOWEX:Ｖ絶頂 >= MAX(NOWEX:Ｃ絶頂, NOWEX:Ａ絶頂, NOWEX:Ｂ絶頂, NOWEX:Ｍ絶頂, NOWEX:尿道絶頂, 1)
 	SIF RAND:LOCAL == 0
-		LOCALS = �u�Ⓒ20��ȏ�
+		LOCALS = Ｖ絶頂20回以上
 	LOCAL += 1
 ENDIF
-IF EX:�`�Ⓒ >= 20 && NOWEX:�`�Ⓒ >= MAX(NOWEX:�b�Ⓒ, NOWEX:�`�Ⓒ, NOWEX:�a�Ⓒ, NOWEX:�l�Ⓒ, NOWEX:�A���Ⓒ, 1)
+IF EX:Ａ絶頂 >= 20 && NOWEX:Ａ絶頂 >= MAX(NOWEX:Ｃ絶頂, NOWEX:Ａ絶頂, NOWEX:Ｂ絶頂, NOWEX:Ｍ絶頂, NOWEX:尿道絶頂, 1)
 	SIF RAND:LOCAL == 0
-		LOCALS = �`�Ⓒ20��ȏ�
+		LOCALS = Ａ絶頂20回以上
 	LOCAL += 1
 ENDIF
-IF EX:�a�Ⓒ >= 20 && NOWEX:�a�Ⓒ >= MAX(NOWEX:�b�Ⓒ, NOWEX:�`�Ⓒ, NOWEX:�a�Ⓒ, NOWEX:�l�Ⓒ, NOWEX:�A���Ⓒ, 1)
+IF EX:Ｂ絶頂 >= 20 && NOWEX:Ｂ絶頂 >= MAX(NOWEX:Ｃ絶頂, NOWEX:Ａ絶頂, NOWEX:Ｂ絶頂, NOWEX:Ｍ絶頂, NOWEX:尿道絶頂, 1)
 	SIF RAND:LOCAL == 0
-		LOCALS = �a�Ⓒ20��ȏ�
+		LOCALS = Ｂ絶頂20回以上
 	LOCAL += 1
 ENDIF
-IF EX:�l�Ⓒ >= 20 && NOWEX:�l�Ⓒ >= MAX(NOWEX:�b�Ⓒ, NOWEX:�`�Ⓒ, NOWEX:�a�Ⓒ, NOWEX:�l�Ⓒ, NOWEX:�A���Ⓒ, 1)
+IF EX:Ｍ絶頂 >= 20 && NOWEX:Ｍ絶頂 >= MAX(NOWEX:Ｃ絶頂, NOWEX:Ａ絶頂, NOWEX:Ｂ絶頂, NOWEX:Ｍ絶頂, NOWEX:尿道絶頂, 1)
 	SIF RAND:LOCAL == 0
-		LOCALS = �l�Ⓒ20��ȏ�
+		LOCALS = Ｍ絶頂20回以上
 	LOCAL += 1
 ENDIF
 
@@ -200,41 +200,41 @@ SIF LOCALS != ""
 	RETURNF LOCALS
 
 ;-------------------------------------------------
-;�ł炵 �i�R��Ɉ����x����ׂ�B���d�Ⓒ���Ɗm���t�o�j
+;焦らし （３回に一回程度しゃべる。多重絶頂だと確率ＵＰ）
 ;-------------------------------------------------
 LOCAL = 3
-IF NOWEX:�b���~�� > 0 && CUP:���b && TALENT:�A������ && COND("�A�������t���O") && CHECK("�A���v���C")
+IF NOWEX:Ｃ寸止め > 0 && CUP:快Ｃ && TALENT:尿道性感 && COND("尿道性感フラグ") && CHECK("尿道プレイ")
 	SIF RAND:LOCAL == 0
-		LOCALS = �A���ł炵
+		LOCALS = 尿道焦らし
 	LOCAL += 1
-ELSEIF NOWEX:�b���~�� > 0 && CUP:���b && PENIS(TARGET) == 0
+ELSEIF NOWEX:Ｃ寸止め > 0 && CUP:快Ｃ && PENIS(TARGET) == 0
 	SIF RAND:LOCAL == 0
-		LOCALS = �b�ł炵
-	LOCAL += 1
-ENDIF
-IF NOWEX:�u���~�� > 0 && CUP:���u
-	SIF RAND:LOCAL == 0
-		LOCALS = �u�ł炵
+		LOCALS = Ｃ焦らし
 	LOCAL += 1
 ENDIF
-IF NOWEX:�`���~�� > 0 && CUP:���`
+IF NOWEX:Ｖ寸止め > 0 && CUP:快Ｖ
 	SIF RAND:LOCAL == 0
-		LOCALS = �`�ł炵
+		LOCALS = Ｖ焦らし
 	LOCAL += 1
 ENDIF
-IF NOWEX:�a���~�� > 0 && CUP:���a
+IF NOWEX:Ａ寸止め > 0 && CUP:快Ａ
 	SIF RAND:LOCAL == 0
-		LOCALS = �a�ł炵
+		LOCALS = Ａ焦らし
 	LOCAL += 1
 ENDIF
-IF NOWEX:�l���~�� > 0 && CUP:���l
+IF NOWEX:Ｂ寸止め > 0 && CUP:快Ｂ
 	SIF RAND:LOCAL == 0
-		LOCALS = �l�ł炵
+		LOCALS = Ｂ焦らし
 	LOCAL += 1
 ENDIF
-IF NOWEX:�ː����~�� > 0
+IF NOWEX:Ｍ寸止め > 0 && CUP:快Ｍ
 	SIF RAND:LOCAL == 0
-		LOCALS = �ː��ł炵
+		LOCALS = Ｍ焦らし
+	LOCAL += 1
+ENDIF
+IF NOWEX:射精寸止め > 0
+	SIF RAND:LOCAL == 0
+		LOCALS = 射精焦らし
 	LOCAL += 1
 ENDIF
 
@@ -242,17 +242,17 @@ SIF LOCALS != ""
 	RETURNF LOCALS
 
 ;-------------------------------------------------
-;�e��C�x���g�i�����r���ƐⒸ���A�͗D��x�������̂ŏ�̕��ɂ���j
+;各種イベント（処女喪失と絶頂放尿は優先度が高いので上の方にある）
 ;-------------------------------------------------
 LOCAL = 1
-IF NOWEX:�ː� > 0
+IF NOWEX:射精 > 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = �ː�����
+		LOCALS = 射精した
 	LOCAL += 1
 ENDIF
-IF NOWEX:���� > 0
+IF NOWEX:噴乳 > 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = ��������
+		LOCALS = 噴乳した
 	LOCAL += 1
 ENDIF
 
@@ -260,37 +260,37 @@ SIF LOCALS != ""
 	RETURNF LOCALS
 
 ;-------------------------------------------------
-;�ʏ�̐Ⓒ�i����Ⓒ�͗D��x�������̂ŏ�̕��ɂ���j
+;通常の絶頂（初回絶頂は優先度が高いので上の方にある）
 ;-------------------------------------------------
 LOCAL = 4
-IF NOWEX:�b�Ⓒ > 0 && PENIS(TARGET) == 0 && FIRST_EV("�b�Ⓒ")
+IF NOWEX:Ｃ絶頂 > 0 && PENIS(TARGET) == 0 && FIRST_EV("Ｃ絶頂")
 	SIF RAND:LOCAL == 0
-		LOCALS = �b�Ⓒ
+		LOCALS = Ｃ絶頂
 	LOCAL += 1
 ENDIF
-IF NOWEX:�A���Ⓒ > 0 && FIRST_EV("�A���Ⓒ")
+IF NOWEX:尿道絶頂 > 0 && FIRST_EV("尿道絶頂")
 	SIF RAND:LOCAL == 0
-		LOCALS = �A���Ⓒ
+		LOCALS = 尿道絶頂
 	LOCAL += 1
 ENDIF
-IF NOWEX:�u�Ⓒ > 0 && FIRST_EV("�u�Ⓒ")
+IF NOWEX:Ｖ絶頂 > 0 && FIRST_EV("Ｖ絶頂")
 	SIF RAND:LOCAL == 0
-		LOCALS = �u�Ⓒ
+		LOCALS = Ｖ絶頂
 	LOCAL += 1
 ENDIF
-IF NOWEX:�`�Ⓒ > 0 && FIRST_EV("�`�Ⓒ")
+IF NOWEX:Ａ絶頂 > 0 && FIRST_EV("Ａ絶頂")
 	SIF RAND:LOCAL == 0
-		LOCALS = �`�Ⓒ
+		LOCALS = Ａ絶頂
 	LOCAL += 1
 ENDIF
-IF NOWEX:�a�Ⓒ > 0 && FIRST_EV("�a�Ⓒ")
+IF NOWEX:Ｂ絶頂 > 0 && FIRST_EV("Ｂ絶頂")
 	SIF RAND:LOCAL == 0
-		LOCALS = �a�Ⓒ
+		LOCALS = Ｂ絶頂
 	LOCAL += 1
 ENDIF
-IF NOWEX:�l�Ⓒ > 0 && FIRST_EV("�l�Ⓒ")
+IF NOWEX:Ｍ絶頂 > 0 && FIRST_EV("Ｍ絶頂")
 	SIF RAND:LOCAL == 0
-		LOCALS = �l�Ⓒ
+		LOCALS = Ｍ絶頂
 	LOCAL += 1
 ENDIF
 
@@ -298,39 +298,39 @@ SIF LOCALS != ""
 	RETURNF LOCALS
 
 ;-------------------------------------------------
-;���߂Ă̊ePALAM�㏸ 3LV
+;初めての各PALAM上昇 3LV
 ;-------------------------------------------------
 LOCAL = 1
-IF PALAM:�u�� + CUP:�u�� >= 3000 && FIRST_EV("�u��LV3�˔j") == 0
+IF PALAM:Ｖ潤 + CUP:Ｖ潤 >= 3000 && FIRST_EV("Ｖ潤LV3突破") == 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = �u��LV3�˔j
+		LOCALS = Ｖ潤LV3突破
 	LOCAL += 1
 ENDIF
-IF PALAM:�~�� + CUP:�~�� >= 3000 && FIRST_EV("�~��LV3�˔j") == 0
+IF PALAM:欲情 + CUP:欲情 >= 3000 && FIRST_EV("欲情LV3突破") == 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = �~��LV3�˔j
+		LOCALS = 欲情LV3突破
 	LOCAL += 1
 ENDIF
-IF PALAM:�p�� + CUP:�p�� >= 3000 && FIRST_EV("�p��LV3�˔j") == 0
+IF PALAM:恥情 + CUP:恥情 >= 3000 && FIRST_EV("恥情LV3突破") == 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = �p��LV3�˔j
+		LOCALS = 恥情LV3突破
 	LOCAL += 1
 ENDIF
-IF TEQUIP:�����|�� == 0 && PALAM:���| + CUP:���| >= 3000 && FIRST_EV("���|LV3�˔j") == 0
+IF TEQUIP:押し倒し == 0 && PALAM:恐怖 + CUP:恐怖 >= 3000 && FIRST_EV("恐怖LV3突破") == 0
 	SIF LOCALS == "" || RAND:LOCAL == 0
-		LOCALS = ���|LV3�˔j
+		LOCALS = 恐怖LV3突破
 	LOCAL += 1
 ENDIF
 
 RETURNF LOCALS
 
 ;-------------------------------------------------
-;@KOJO_MESSAGE_SAMEN_AND_EXTACY�֌W
-;PLAYER�̎ː����Ⓒ���g���K�[�ɂ�������
+;@KOJO_MESSAGE_SAMEN_AND_EXTACY関係
+;PLAYERの射精＆絶頂をトリガーにした口上
 ;-------------------------------------------------
 @KOJO_MESSAGE_SAMEN_AND_EXTACY
-;���g���p���ɂ͌�����X�L�b�v����iOFF���ƌ����ǂ��ł�̂ɒ���܂���j
-SIF TEQUIP:���g
+;口枷着用時には口上をスキップする（OFFだと口を塞いでるのに喋りまくる）
+SIF TEQUIP:口枷
 	RETURN 0
 
 CALL BLANKLINE
@@ -339,39 +339,39 @@ TRYCALLFORM KOJO_MESSAGE_SAMEN_AND_EXTACY_K{NO:TARGET}
 
 CALL BLANKLINE
 
-;����������̃t���O���L�^
-CALL SETFLAG, "�ː����Ⓒ�C�x���g�t���O"
-;�ː��Q�[�W�̃`�F�b�N
+;喋った口上のフラグを記録
+CALL SETFLAG, "射精＆絶頂イベントフラグ"
+;射精ゲージのチェック
 CALL CHECK_BASEPLAYER2
 
 ;-------------------------------------------------
-;PLAYER�̎ː��ӏ��I�𒼑O�̌���
+;PLAYERの射精箇所選択直前の口上
 ;-------------------------------------------------
 @KOJO_MESSAGE_SHOOT
 
-;���g���p���ɂ͌�����X�L�b�v����iOFF���ƌ����ǂ��ł�̂ɒ���܂���j
-SIF TEQUIP:���g || TEQUIP:�f�B�[�v�X���[�g
+;口枷着用時には口上をスキップする（OFFだと口を塞いでるのに喋りまくる）
+SIF TEQUIP:口枷 || TEQUIP:ディープスロート
 	RETURN 0
-;����ׂ�Ȃ��Ǝv����R�}���h���ł��X�L�b�v
-SIF SELECTCOM == TNUM("�C���}�`�I")
+;しゃべれないと思われるコマンド等でもスキップ
+SIF SELECTCOM == TNUM("イラマチオ")
 	RETURN 0
 
 TRYCALLFORM KOJO_MESSAGE_SHOOT_K{NO:TARGET}
 
-;�ː��Q�[�W�̃`�F�b�N
+;射精ゲージのチェック
 CALL CHECK_BASEPLAYER2
 
 ;-------------------------------------------------
-;PLAYER�̎ː��ӏ��I�𒼌�̌���
+;PLAYERの射精箇所選択直後の口上
 ;-------------------------------------------------
 @KOJO_MESSAGE_AFTERSHOOTCHANGE
 #DIM MEMO_LINECOUNT
 
-;���R����PLAYER�Ƀy�j�X�������ƋN���Ȃ�
+;当然だがPLAYERにペニスが無いと起きない
 SIF PENIS(PLAYER) == 0
 	RETURN 0
-;���g���p���ɂ͌�����X�L�b�v����iOFF���ƌ����ǂ��ł�̂ɒ���܂���j
-SIF TEQUIP:���g
+;口枷着用時には口上をスキップする（OFFだと口を塞いでるのに喋りまくる）
+SIF TEQUIP:口枷
 	RETURN 0
 
 MEMO_LINECOUNT = LINECOUNT
@@ -381,67 +381,67 @@ TRYCALLFORM KOJO_MESSAGE_AFTERSHOOTCHANGE_K{NO:TARGET}
 SIF LINECOUNT != MEMO_LINECOUNT
 	CALL BLANKLINE
 
-;�ː��Q�[�W�̃`�F�b�N
+;射精ゲージのチェック
 CALL CHECK_BASEPLAYER2
 
 ;-------------------------------------------------
-;TARGET�̎ː����O�̌���
+;TARGETの射精直前の口上
 ;-------------------------------------------------
 @KOJO_MESSAGE_BEFORE_TARGETSHOOT
 
-;���g���p���ɂ͌�����X�L�b�v����iOFF���ƌ����ǂ��ł�̂ɒ���܂���j
-SIF TEQUIP:���g
+;口枷着用時には口上をスキップする（OFFだと口を塞いでるのに喋りまくる）
+SIF TEQUIP:口枷
 	RETURN 0
 
 CALL BLANKLINE
 TRYCALLFORM KOJO_MESSAGE_BEFORE_TARGETSHOOT_K{NO:TARGET}
 CALL BLANKLINE
 
-;�ː��Q�[�W�̃`�F�b�N
+;射精ゲージのチェック
 CALL CHECK_BASEPLAYER2
 
 
 ;-------------------------------------------------
-;�������g���K�[�ɂ�������E����
-;�����t���OON���Ɍ���𔭓����܂�
-;ARGS�̓C�x���g���
+;反撃をトリガーにした口上・処理
+;反撃フラグON時に口上を発動します
+;ARGSはイベント種別
 ;-------------------------------------------------
 @KOJO_COUNTER, ARGS
-;���g���p���ɂ͌�����X�L�b�v����iOFF���ƌ����ǂ��ł�̂ɒ���܂���j
-SIF TEQUIP:���g
+;口枷着用時には口上をスキップする（OFFだと口を塞いでるのに喋りまくる）
+SIF TEQUIP:口枷
 	RETURN 0
 
 TRYCALLFORM KOJO_COUNTER_K{NO:TARGET}, ARGS
 
-;�ː��Q�[�W�̃`�F�b�N
+;射精ゲージのチェック
 CALL CHECK_BASEPLAYER2
 
 
 ;-------------------------------------------------
-;����ϓ����g���K�[�ɂ�������
-;����ϓ���Ɍ���𔭓����܂�
+;刻印変動をトリガーにした口上
+;刻印変動後に口上を発動します
 ;-------------------------------------------------
 @KOJO_MESSAGE_MARKCNG, ARGS
 #DIM MEMO_LINECOUNT
 
-;���g���p���ɂ͌�����X�L�b�v����iOFF���ƌ����ǂ��ł�̂ɒ���܂���j
-SIF TEQUIP:���g
+;口枷着用時には口上をスキップする（OFFだと口を塞いでるのに喋りまくる）
+SIF TEQUIP:口枷
 	RETURN 0
 
 MEMO_LINECOUNT = LINECOUNT
 
 TRYCALLFORM KOJO_MESSAGE_MARKCNG_K{NO:TARGET}, ARGS
 
-;����������̃t���O���L�^
+;喋った口上のフラグを記録
 SIF LINECOUNT > MEMO_LINECOUNT
 	CALL SET_FIRST_EV, ARGS
 
-;�ː��Q�[�W�̃`�F�b�N
+;射精ゲージのチェック
 CALL CHECK_BASEPLAYER2
 
 
 ;-------------------------------------------------
-;�C�x���g���̌���A�C�x���g�J�n���ɏo�͂��܂�
+;イベント時の口上、イベント開始時に出力します
 ;-------------------------------------------------
 @KOJO_EVENT, ARGS, ARG
 #DIM MEMO_LINECOUNT
@@ -451,34 +451,34 @@ SIF ARG <= 0 && TARGET
 
 SWAP TARGET, ARG
 
-;���g���p���ɂ͌�����X�L�b�v����iOFF���ƌ����ǂ��ł�̂ɒ���܂���j
-SIF TEQUIP:���g
+;口枷着用時には口上をスキップする（OFFだと口を塞いでるのに喋りまくる）
+SIF TEQUIP:口枷
 	RETURN 0
-SIF STRCOUNT(ARGS, "�n�̕��O")
-	TFLAG:�n�̕��X�L�b�v = 0
+SIF STRCOUNT(ARGS, "地の文前")
+	TFLAG:地の文スキップ = 0
 
-;���オ���邩�ǂ������s���Ń`�F�b�N
+;口上があるかどうかを行数でチェック
 MEMO_LINECOUNT = LINECOUNT
 
 TRYCALLFORM KOJO_EVENT_K{NO:TARGET}, ARGS
 
-;����������̃t���O���L�^
+;喋った口上のフラグを記録
 IF LINECOUNT > MEMO_LINECOUNT
 	CALL SET_FIRST_EV, ARGS
-;�ėp����Ȃ�
+;汎用口上など
 ELSE
 	CALL TRAINVOICE_SELF, ARGS
 ENDIF
 
-;�ː��Q�[�W�̃`�F�b�N
+;射精ゲージのチェック
 CALL CHECK_BASEPLAYER2
 
 SWAP TARGET, ARG
 
 
 ;-------------------------------------------------
-;�Z���t�̑O��ɉ��s��t����KOJO_EVENT
-;�n�̕��Ȃǂ������A��{��s���x�̃Z���t���o���ꍇ�Ɍ���
+;セリフの前後に改行を付けたKOJO_EVENT
+;地の文などが無く、基本一行程度のセリフを出す場合に向く
 ;-------------------------------------------------
 @KOJO_EVENT_L, ARGS, ARG
 #DIM MEMO_LINECOUNT
@@ -490,7 +490,7 @@ CALL KOJO_EVENT, ARGS, ARG
 CALL BLANKLINE
 
 ;-------------------------------------------------
-;�قڊm���Ɍ��ݐi�s���ł�TARGET�łȂ��g���ŌĂ΂��䎌
+;ほぼ確実に現在進行中でのTARGETでない身分で呼ばれる台詞
 ;-------------------------------------------------
 @KOJO_GUEST, ARGS, ARG
 CALL RESET_SET_PARTNER, ARG

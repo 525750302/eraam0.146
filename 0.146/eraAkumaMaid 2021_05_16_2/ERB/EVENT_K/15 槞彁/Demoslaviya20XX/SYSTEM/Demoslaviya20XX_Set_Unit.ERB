@@ -1,16 +1,16 @@
-;;;<Summary>
-;;;	���j�b�g�ǉ�����
+﻿;;;<Summary>
+;;;	ユニット追加する
 ;;;</Summary>
-;;;<param name="ARGS:0">�G��������(�u�G�v�u�����v)</param>
-;;;<param name="ARGS:1">���j�b�g��ޖ��@��ނ�DATA/Demoslaviya20XX_����f�[�^.ERB���Q�Ɓ@�����ɗL�镨������</param>
-;;;<param name="ARGS:2">�cHP(TOINT�\�ȕ��̂݁@���̐����݂̂𐄏�)</param>
-;;;<param name="ARGS:3">�c�s����(TOINT�\�ȕ��̂݁@���̐����݂̂𐄏�)</param>
-;;;<param name="ARGS:4">�c�w���������iTOINT�\�ȕ��̂݁@���̐����݂̂𐄏��j</param>
-;;;<param name="ARGS:5">�cERA�iTOINT�\�ȕ��̂݁@���̐����݂̂𐄏��j</param>
-;;;<param name="ARGS:6">�����i����1,����2,����3�@����͎O��ނ܂Ł@����Ƃ̋��E���ʕ����́u,�v����ɓ�����閼�O��DATA/Demoslaviya20XX_����f�[�^.ERB���Q�Ɓj</param>
-;;;<param name="ARGS:7">��ԁi���1,���2,���3...�@���E���ʕ����́u,�vDATA/Demoslaviya20XX_���j�b�g���.ERB���Q�Ɓj</param>
-;;;<param name="ARGS:8">AI���(�G�̏ꍇ�̂� �����Ă���肪�����悤�ɂ���)</param>
-;;;<param name="ARGS:9">���i(����I��p�� �����Ă����Ȃ��悤�ɍ��)</param>
+;;;<param name="ARGS:0">敵味方識別(「敵」「味方」)</param>
+;;;<param name="ARGS:1">ユニット種類名　種類はDATA/Demoslaviya20XX_武器データ.ERBを参照　ここに有る物だけよ</param>
+;;;<param name="ARGS:2">残HP(TOINT可能な物のみ　正の整数のみを推奨)</param>
+;;;<param name="ARGS:3">残行動力(TOINT可能な物のみ　正の整数のみを推奨)</param>
+;;;<param name="ARGS:4">残指揮統制率（TOINT可能な物のみ　正の整数のみを推奨）</param>
+;;;<param name="ARGS:5">残ERA（TOINT可能な物のみ　正の整数のみを推奨）</param>
+;;;<param name="ARGS:6">武装（武器1,武器2,武器3　武器は三種類まで　武器との境界識別符号は「,」武器に入れられる名前はDATA/Demoslaviya20XX_武器データ.ERBを参照）</param>
+;;;<param name="ARGS:7">状態（状態1,状態2,状態3...　境界識別符号は「,」DATA/Demoslaviya20XX_ユニット状態.ERBを参照）</param>
+;;;<param name="ARGS:8">AI種類(敵の場合のみ 無くても問題が無いようにする)</param>
+;;;<param name="ARGS:9">性格(口上選択用に 無くても問題ないように作る)</param>
 @Demoslaviya20XX_Unit_Add(ARGS:0, ARGS:1, ARGS:2, ARGS:3, ARGS:4, ARGS:5, ARGS:6, ARGS:7, ARGS:8, ARGS:9)
 	#DIM DYNAMIC LCOUNT
 	#DIM DYNAMIC NewUnitID
@@ -19,125 +19,125 @@
 	#DIMS DYNAMIC StatusList,100
 
 	IsError = False
-	;#region �����̓��e�m�F
-		;�G�������ʕ���
-		IF ARGS:0 != "�G"&&ARGS:0 != "����"&&ARGS:0 != "None"
+	;#region 引数の内容確認
+		;敵味方識別符号
+		IF ARGS:0 != "敵"&&ARGS:0 != "味方"&&ARGS:0 != "None"
 			PRINTFORML 
-			PRINTFORML ���V�X�e�����b�Z�[�W
-			PRINTFORML ���\�b�h���FDemoslaviya20XX_Unit_Add
-			PRINTFORML �G�ł������ł��Ȃ����j�b�g���ݒ肳��܂�����
-			PRINTFORML �����ɐݒ肵�ėǂ����� "�G","����","None" �̎O����
-			PRINTFORML ��O���͂Ƃ��p�ӂ���ꍇ�́A������Demoslaviya20XX_Unit_Add�̋��G�������ʕ��������ɒǉ����Ă�
-			PRINTFORML (�ݒ肳�ꂽ�z = %ARGS:0%)
+			PRINTFORML ※システムメッセージ
+			PRINTFORML メソッド名：Demoslaviya20XX_Unit_Add
+			PRINTFORML 敵でも味方でもないユニットが設定されましたよ
+			PRINTFORML ここに設定して良い物は "敵","味方","None" の三つだよ
+			PRINTFORML 第三勢力とか用意する場合は、ちゃんとDemoslaviya20XX_Unit_Addの許可敵味方識別符号引数に追加してね
+			PRINTFORML (設定された奴 = %ARGS:0%)
 			IsError = True
 		ENDIF
 
-		;���j�b�g��ޖ�
-		IF Demoslaviya20XX_GET_UNITDATA(ARGS:1,"���j�b�g��") == "Error"
+		;ユニット種類名
+		IF Demoslaviya20XX_GET_UNITDATA(ARGS:1,"ユニット名") == "Error"
 			PRINTFORML 
-			PRINTFORML ���V�X�e�����b�Z�[�W
-			PRINTFORML ���\�b�h���FDemoslaviya_Unit_Add
-			PRINTFORML ���j�b�g��ޖ���DATA/Demoslavia20XX_���j�b�g�f�[�^.ERB�ɖ���������
-			PRINTFORML ���j�b�g�f�[�^�̒��Őݒ肵�Ă閼�O���ǂ����m�F���Ă�
-			PRINTFORML �ݒ肳�ꂽ�z = %ARGS:1%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+			PRINTFORML ※システムメッセージ
+			PRINTFORML メソッド名：Demoslaviya_Unit_Add
+			PRINTFORML ユニット種類名がDATA/Demoslavia20XX_ユニットデータ.ERBに無かったよ
+			PRINTFORML ユニットデータの中で設定してる名前かどうか確認してね
+			PRINTFORML 設定された奴 = %ARGS:1%(ダブルクォーテーションは表示されないはずだよ)
 			IsError = True
 		ENDIF
 
 		;HP
 		IF ISNUMERIC(ARGS:2) == 0
 			PRINTFORML 
-			PRINTFORML ���V�X�e�����b�Z�[�W
-			PRINTFORML ���V�X�e�����b�Z�[�W
-			PRINTFORML ���\�b�h���FDemoslaviya_Unit_Add
-			PRINTFORML HP��TOINT�o���Ȃ��f�[�^���ݒ肳�ꂽ��
-			PRINTFORML �ݒ肳�ꂽ�z = %ARGS:2%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+			PRINTFORML ※システムメッセージ
+			PRINTFORML ※システムメッセージ
+			PRINTFORML メソッド名：Demoslaviya_Unit_Add
+			PRINTFORML HPにTOINT出来ないデータが設定されたよ
+			PRINTFORML 設定された奴 = %ARGS:2%(ダブルクォーテーションは表示されないはずだよ)
 			IsError = True
 		ENDIF
 
-		;�c�s����
+		;残行動力
 		IF ISNUMERIC(ARGS:3) == 0
 			PRINTFORML 
-			PRINTFORML ���V�X�e�����b�Z�[�W
-			PRINTFORML ���\�b�h���FDemoslaviya_Unit_Add
-			PRINTFORML �c�s���͂�TOINT�o���Ȃ��f�[�^���ݒ肳�ꂽ��
-			PRINTFORML �ݒ肳�ꂽ�z = %ARGS:3%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+			PRINTFORML ※システムメッセージ
+			PRINTFORML メソッド名：Demoslaviya_Unit_Add
+			PRINTFORML 残行動力にTOINT出来ないデータが設定されたよ
+			PRINTFORML 設定された奴 = %ARGS:3%(ダブルクォーテーションは表示されないはずだよ)
 			IsError = True
 		ENDIF
 
-		;�c�w������
+		;残指統制率
 		IF ISNUMERIC(ARGS:4) == 0
 			PRINTFORML 
-			PRINTFORML ���V�X�e�����b�Z�[�W
-			PRINTFORML ���\�b�h���FDemoslaviya_Unit_Add
-			PRINTFORML �c�w����������TOINT�o���Ȃ��f�[�^���ݒ肳�ꂽ��
-			PRINTFORML �ݒ肳�ꂽ�z = %ARGS:4%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+			PRINTFORML ※システムメッセージ
+			PRINTFORML メソッド名：Demoslaviya_Unit_Add
+			PRINTFORML 残指揮統制率にTOINT出来ないデータが設定されたよ
+			PRINTFORML 設定された奴 = %ARGS:4%(ダブルクォーテーションは表示されないはずだよ)
 			IsError = True
 		ENDIF
 		
-		;�cERA
+		;残ERA
 		IF ISNUMERIC(ARGS:5) == 0
 			PRINTFORML 
-			PRINTFORML ���V�X�e�����b�Z�[�W
-			PRINTFORML ���\�b�h���FDemoslaviya_Unit_Add
-			PRINTFORML �cERA��TOINT�o���Ȃ��f�[�^���ݒ肳�ꂽ��
-			PRINTFORML �ݒ肳�ꂽ�z = %ARGS:5%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+			PRINTFORML ※システムメッセージ
+			PRINTFORML メソッド名：Demoslaviya_Unit_Add
+			PRINTFORML 残ERAにTOINT出来ないデータが設定されたよ
+			PRINTFORML 設定された奴 = %ARGS:5%(ダブルクォーテーションは表示されないはずだよ)
 			IsError = True
 		ENDIF
 
-		;����
+		;武装
 		SPLIT ARGS:6, ",", WeaponList
 			IF WeaponList:3 != ""
 				PRINTFORML 
-				PRINTFORML ���V�X�e�����b�Z�[�W
-				PRINTFORML ���\�b�h���FDemoslaviya_Unit_Add
-				PRINTFORML ���킪�O��ވȏ�ݒ肳�ꂽ��A�ꃆ�j�b�g�ɂ�����͎O��ނ܂ł���
-				PRINTFORML �ݒ肳�ꂽ�z = %ARGS:6%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+				PRINTFORML ※システムメッセージ
+				PRINTFORML メソッド名：Demoslaviya_Unit_Add
+				PRINTFORML 武器が三種類以上設定されたよ、一ユニットにつき武器は三種類までだよ
+				PRINTFORML 設定された奴 = %ARGS:6%(ダブルクォーテーションは表示されないはずだよ)
 				IsError = True
 			ENDIF 
-			FOR LCOUNT, 0, 3;�����3��ނ܂ŁA
-				IF WeaponList:LCOUNT != "" && Demoslaviya20XX_GET_WEAPONDATA(WeaponList:LCOUNT,"���햼") == "Error"
+			FOR LCOUNT, 0, 3;武器は3種類まで、
+				IF WeaponList:LCOUNT != "" && Demoslaviya20XX_GET_WEAPONDATA(WeaponList:LCOUNT,"武器名") == "Error"
 					PRINTFORML 
-					PRINTFORML ���V�X�e�����b�Z�[�W
-					PRINTFORML ���\�b�h���FDemoslaviya_Unit_Add
-					PRINTFORML ���햼�ɑ��݂��Ȃ����O���ݒ肳�ꂽ��
-					PRINTFORML ���햼�ɂ͐^����ݒ肵�ĂˁA������O������DATA/Demoslaviya20XX_���j�b�g�f�[�^.ERB�ɂ̓l�^�o�����ڂ�����C�����Ă�
-					PRINTFORML �ݒ肳�ꂽ�z = %WeaponList:LCOUNT%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+					PRINTFORML ※システムメッセージ
+					PRINTFORML メソッド名：Demoslaviya_Unit_Add
+					PRINTFORML 武器名に存在しない名前が設定されたよ
+					PRINTFORML 武器名には真名を設定してね、当たり前だけどDATA/Demoslaviya20XX_ユニットデータ.ERBにはネタバレ満載だから気をつけてね
+					PRINTFORML 設定された奴 = %WeaponList:LCOUNT%(ダブルクォーテーションは表示されないはずだよ)
 					IsError = True
 				ENDIF
 			NEXT
 		
-		;���
+		;状態
 		;SPLIT ARGS:7, ",", StatusList
-		;	FOR LCOUNT, 0, 100;�Ƃ肠����100��񂵂Ă���
-		;		IF Demoslaviya20XX_GET_STATEDATA(StatusList:LCOUNT,"��Ԗ�") == "Error"
+		;	FOR LCOUNT, 0, 100;とりあえず100回回しておく
+		;		IF Demoslaviya20XX_GET_STATEDATA(StatusList:LCOUNT,"状態名") == "Error"
 		;			PRINTFORML 
-		;			PRINTFORML ���V�X�e�����b�Z�[�W
-		;			PRINTFORML ���\�b�h���FDemoslaviya_Unit_Add
-		;			PRINTFORML DATA/Demoslaviya20XX_���.ERB�ɑ��݂��Ȃ��f�[�^���ݒ肳��܂�����[
-		;			PRINTFORML �ݒ肳�ꂽ�z = %WeaponList:LCOUNT%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+		;			PRINTFORML ※システムメッセージ
+		;			PRINTFORML メソッド名：Demoslaviya_Unit_Add
+		;			PRINTFORML DATA/Demoslaviya20XX_状態.ERBに存在しないデータが設定されましたよー
+		;			PRINTFORML 設定された奴 = %WeaponList:LCOUNT%(ダブルクォーテーションは表示されないはずだよ)
 		;			IsError = True
 		;		ENDIF
 		;	NEXT
-		;�G���[����������A��
+		;エラーがあったら帰る
 		SIF IsError == "True"
 			RETURN 1
 	;#endregion
 	
 
-	;#region �ǉ��ł���UnitID��������
+	;#region 追加できるUnitIDを見つける
 		NewUnitID = 1
-		FOR LCOUNT, 1, 10000;0�͉����Ȃ���ԂƂ����Ӗ��̃f�[�^�Ȃ̂�1����J�n��[
+		FOR LCOUNT, 1, 10000;0は何もない状態という意味のデータなので1から開始よー
 			IF Demoslaviya20XX_Unit:LCOUNT:0 == "None"
 				BREAK
 			ELSEIF LCOUNT == 9999
 				PRINTFORML 
-				PRINTFORML ���V�X�e�����b�Z�[�W��
-				PRINTFORML Demoslaviya20XX_Unit�z��ɂ���ȏ�f�[�^������Ȃ�������
-				PRINTFORML ���̃��b�Z�[�W���o��ꍇ����9�����o�O���ǂ����ɗL��Ǝv����̂ŋ����Ă�������
-				PRINTFORML �{����MAP���10001�̂����j�b�g�������ƃf�o�b�O�݂����ȃv���C���Ă��炲�߂��
-				PRINTFORML ������ƑΉ��o���Ė�������
-				PRINTFORML ���̂����l�������ɃL�����N�^�[�f�[�^��ێ��o����悤�ɂ��Ă����ƐM���Ă�
-				PRINTFORML ������f�[�^��N�����z��Ƃ��������Ă��ǂ����ǋ��E���ʕ�����ʂɗp�ӂ���̐h�����A�����ǂ݂ɂ���
+				PRINTFORML ※システムメッセージ※
+				PRINTFORML Demoslaviya20XX_Unit配列にこれ以上データが入らなかったよ
+				PRINTFORML このメッセージが出る場合って9割方バグがどこかに有ると思われるので教えてくだしい
+				PRINTFORML 本当にMAP上に10001体もユニットだそうとデバッグみたいなプレイしてたらごめんね
+				PRINTFORML ちょっと対応出来て無いっす
+				PRINTFORML 頭のいい人が無限にキャラクターデータを保持出来るようにしてくれると信じてる
+				PRINTFORML 文字列データでN次元配列とか実現しても良いけど境界識別符号大量に用意するの辛いし、何より読みにくい
 				PRINTFORMW Yeah
 				RETURN 1
 			ELSE
@@ -151,52 +151,52 @@
 	NEXT 
 	RETURN NewUnitID
 ;;;<Summary>
-;;;	������ԂŃ}�b�v�Ƀ��j�b�g��ǉ����郁�\�b�h
+;;;	初期状態でマップにユニットを追加するメソッド
 ;;;</Summary>
-;;;<param name="ARGS:0">X���W</param>
-;;;<param name="ARGS:1">Y���W</param>
-;;;<param name="ARGS:2">�G��������</param>
-;;;<param name="ARGS:2">���j�b�g��</param>
-;;;<param name="ARGS:3">(�ȗ���)����</param>
-;;;<param name="ARGS:4">(�ȗ���)AI���</param>
-;;;<param name="ARGS:5">(�ȗ���)���i</param>
+;;;<param name="ARGS:0">X座標</param>
+;;;<param name="ARGS:1">Y座標</param>
+;;;<param name="ARGS:2">敵味方識別</param>
+;;;<param name="ARGS:2">ユニット名</param>
+;;;<param name="ARGS:3">(省略可)武装</param>
+;;;<param name="ARGS:4">(省略可)AI種類</param>
+;;;<param name="ARGS:5">(省略可)性格</param>
 @Demoslaviya20XX_Unit_Add_Default(ARGS:0,ARGS:1,ARGS:2,ARGS:3,ARGS:4,ARGS:5,ARGS:6)
 	#DIMS DYNAMIC IsError
 	
 	#DIMS DYNAMIC Weapon
 	#DIMS DYNAMIC AI_Type
 	#DIMS DYNAMIC Personality
-	;X���W
+	;X座標
 	IF ISNUMERIC(ARGS:0) == 0
 		PRINTFORML 
-		PRINTFORML ���V�X�e�����b�Z�[�W
-		PRINTFORML ���\�b�h���FDemoslaviya20XX_Unit_Add_Default
-		PRINTFORML X���W�ɐ����ȊO���ݒ肳��܂�����
-		PRINTFORML �ݒ肳�ꂽ�z = %ARGS:0%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+		PRINTFORML ※システムメッセージ
+		PRINTFORML メソッド名：Demoslaviya20XX_Unit_Add_Default
+		PRINTFORML X座標に数字以外が設定されましたよ
+		PRINTFORML 設定された奴 = %ARGS:0%(ダブルクォーテーションは表示されないはずだよ)
 		IsError = True
 	ENDIF
-	;Y���W
+	;Y座標
 	IF ISNUMERIC(ARGS:1) == 0
 		PRINTFORML 
-		PRINTFORML ���V�X�e�����b�Z�[�W
-		PRINTFORML ���\�b�h���FDemoslaviya20XX_Unit_Add_Default
-		PRINTFORML Y���W�ɐ����ȊO���ݒ肳��܂�����
-		PRINTFORML �ݒ肳�ꂽ�z = %ARGS:1%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+		PRINTFORML ※システムメッセージ
+		PRINTFORML メソッド名：Demoslaviya20XX_Unit_Add_Default
+		PRINTFORML Y座標に数字以外が設定されましたよ
+		PRINTFORML 設定された奴 = %ARGS:1%(ダブルクォーテーションは表示されないはずだよ)
 		IsError = True
 	ENDIF
-	IF ARGS:2 != "�G"&& ARGS:2 != "����"
+	IF ARGS:2 != "敵"&& ARGS:2 != "味方"
 		PRINTFORML 
-		PRINTFORML ���V�X�e�����b�Z�[�W
-		PRINTFORML ���\�b�h���FDemoslaviya20XX_Unit_Add_Default
-		PRINTFORML �G�Ɩ����ȊO�̃f�[�^���G�������ʈ����ɓ����Ă��܂�����I
-		PRINTFORML �ݒ肳�ꂽ�z = %ARGS:2%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+		PRINTFORML ※システムメッセージ
+		PRINTFORML メソッド名：Demoslaviya20XX_Unit_Add_Default
+		PRINTFORML 敵と味方以外のデータが敵味方識別引数に入ってきましたわ！
+		PRINTFORML 設定された奴 = %ARGS:2%(ダブルクォーテーションは表示されないはずだよ)
 	ENDIF
-	IF Demoslaviya20XX_GET_UNITDATA(ARGS:3,"���j�b�g��") == "Error"
+	IF Demoslaviya20XX_GET_UNITDATA(ARGS:3,"ユニット名") == "Error"
 		PRINTFORML 
-		PRINTFORML ���V�X�e�����b�Z�[�W
-		PRINTFORML ���\�b�h���FDemoslaviya20XX_Unit_Add_Default
-		PRINTFORML �w�肳�ꂽ���j�b�g����������܂���ł������
-		PRINTFORML �ݒ肳�ꂽ�z = %ARGS:2%(�_�u���N�H�[�e�[�V�����͕\������Ȃ��͂�����)
+		PRINTFORML ※システムメッセージ
+		PRINTFORML メソッド名：Demoslaviya20XX_Unit_Add_Default
+		PRINTFORML 指定されたユニット名が見つかりませんでしたわよ
+		PRINTFORML 設定された奴 = %ARGS:2%(ダブルクォーテーションは表示されないはずだよ)
 		IsError = True
 	ENDIF
 	
@@ -206,30 +206,30 @@
 	IF ARGS:4 != ""
 		Weapon = ARGS:4
 	ELSE 
-		Weapon = Demoslaviya20XX_GET_UNITDATA(ARGS:3,"����")
+		Weapon = Demoslaviya20XX_GET_UNITDATA(ARGS:3,"武装")
 	ENDIF
 
 	IF ARGS:5 != ""
 		AI_Type = ARGS:5
 	ELSE 
-		;��X�����_����AI��I������悤�ɂ���
+		;後々ランダムにAIを選択するようにする
 		AI_Type = 
 	ENDIF
 
 	IF ARGS:6 != ""
 		Personality = ARGS:6
 	ELSE
-		;��X�����_���ɐ��m��I������悤�ɂ���
+		;後々ランダムに正確を選択するようにする
 		Personality = 
 	ENDIF
-	CALL Demoslaviya20XX_Unit_Add(ARGS:2,ARGS:3,Demoslaviya20XX_GET_UNITDATA(ARGS:3,"HP"),Demoslaviya20XX_GET_UNITDATA(ARGS:3,"�s����"),Demoslaviya20XX_GET_UNITDATA(ARGS:3,"�w��������"),Demoslaviya20XX_GET_UNITDATA(ARGS:3,"ERA"),Demoslaviya20XX_GET_UNITDATA(ARGS:3,"����"),"",AI_Type,Personality)
+	CALL Demoslaviya20XX_Unit_Add(ARGS:2,ARGS:3,Demoslaviya20XX_GET_UNITDATA(ARGS:3,"HP"),Demoslaviya20XX_GET_UNITDATA(ARGS:3,"行動力"),Demoslaviya20XX_GET_UNITDATA(ARGS:3,"指揮統制率"),Demoslaviya20XX_GET_UNITDATA(ARGS:3,"ERA"),Demoslaviya20XX_GET_UNITDATA(ARGS:3,"武装"),"",AI_Type,Personality)
 	;PRINTFORMW UnitID = {RESULT}
 	Demoslaviya20XX_MAP:TOINT(ARGS:1):TOINT(ARGS:0):1 = {RESULT}
 
 ;;;<Summary>
-;;;	������ԂŃ}�b�v�Ƀ��j�b�g��ǉ����郁�\�b�h
+;;;	初期状態でマップにユニットを追加するメソッド
 ;;;</Summary>
-;;;<param name="ARGS:0">�폜���郆�j�b�gID</param>
+;;;<param name="ARGS:0">削除するユニットID</param>
 @Demoslaviya20XX_Unit_Del(DellUnitID)
 	#DIM DYNAMIC DellUnitID
 	VARSET Demoslaviya20XX_Unit:DellUnitID:0, "None"

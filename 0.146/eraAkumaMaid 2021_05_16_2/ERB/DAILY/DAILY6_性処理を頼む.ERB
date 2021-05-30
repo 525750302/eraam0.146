@@ -1,12 +1,12 @@
-;-------------------------------------------------
-;���������Ă��炤�B�g�ł͂Ȃ��̂ŁA���Ȃ��̃��������̉����������ړI�ł�
-;�ꏊ���ڂ��Ă��ĖႤ�̂��l�������ǁA�ʏ�̐������ƑʁX���Ȃ̂Ŗ����I
+﻿;-------------------------------------------------
+;性処理してもらう。Ｈではないので、あなたのムラムラの解消だけが目的です
+;場所を移ってして貰うのも考えたけど、通常の性処理と駄々被りなので無し！
 ;-------------------------------------------------
 @MESSAGE_DAILY_SELECT6
 #DIM LCOUNT
-;�N������C�x���g�̔���Ɏg��
+;起きうるイベントの判定に使う
 #DIMS EVENT_TABLE
-;������Ƃ����n�̕��ǉ�
+;ちょっとした地の文追加
 #DIMS EXTRA_PLAY
 #DIM CHOICE
 #DIM MEMO_LINECOUNT
@@ -14,407 +14,407 @@
 
 EVENT_TABLE = 
 EXTRA_PLAY = 
-SAVESTR:���� = 
-STR:����C�x���g�� = 
-STR:�v���C���e = 
-STR:�Ȃ��琫���� = 
-TFLAG:�Ȃ��琫���� = 0
+SAVESTR:夢中 = 
+STR:日常イベント名 = 
+STR:プレイ内容 = 
+STR:ながら性処理 = 
+TFLAG:ながら性処理 = 0
 VARSET ACTOR
 
-;�܂��͏o���鎖�̔���B��������ĖႦ�邩�ȁH
+;まずは出来る事の判定。何をやって貰えるかな？
 CALL CHECK_COM_ABLE, TARGET
-CALL SETFLAG, "�������ł̃v���C���e�F�v�Z�̂�", TARGET
+CALL SETFLAG, "性処理でのプレイ内容：計算のみ", TARGET
 
-STR:�I���� = 
-;�݂�ȑ�D���A�Ȃ��琫�������[�h
-IF COND("�Ȃ��琫����")
-	SIF CANSS("���")
-		STR:�I���� += "���/"
-	SIF CANSS("�����")
-		STR:�I���� += "�u�Z�b�N�X/"
-	SIF CANSS("�A�i����w��")
-		STR:�I���� += "�`�Z�b�N�X/"
-	SIF CANSS("�A�������")
-		STR:�I���� += "�A���Z�b�N�X/"
-	SIF CANSS("�R��ʂŔƂ�")
-		STR:�I���� += "�u�Z�b�N�X����/"
+STR:選択肢 = 
+;みんな大好き、ながら性処理モード
+IF COND("ながら性処理")
+	SIF CANSS("手淫")
+		STR:選択肢 += "手淫/"
+	SIF CANSS("正常位")
+		STR:選択肢 += "Ｖセックス/"
+	SIF CANSS("アナル後背位")
+		STR:選択肢 += "Ａセックス/"
+	SIF CANSS("尿道正常位")
+		STR:選択肢 += "尿道セックス/"
+	SIF CANSS("騎乗位で犯す")
+		STR:選択肢 += "Ｖセックスする/"
 
-;�������͌�or�R��ʌ���ɂ��悤����
-ELSEIF COND("���C������")
-	SIF CANSS("�R���")
-		STR:�I���� += "�u�Z�b�N�X/"
-	SIF CANSS("�A�i���R���")
-		STR:�I���� += "�`�Z�b�N�X/"
-	SIF CANSS("�A���R���")
-		STR:�I���� += "�A���Z�b�N�X/"
+;こっちは口or騎乗位限定にしようかな
+ELSEIF COND("やる気性処理")
+	SIF CANSS("騎乗位")
+		STR:選択肢 += "Ｖセックス/"
+	SIF CANSS("アナル騎乗位")
+		STR:選択肢 += "Ａセックス/"
+	SIF CANSS("尿道騎乗位")
+		STR:選択肢 += "尿道セックス/"
 
-	;���~�����ė]���Ă��鎞�ɂ͉��y�D��
-	IF STR:�I���� != "" && (COND("�����") || CHOSE_DEVENT("���|���t�F��") || COND("�~���s��") >= 2)
+	;性欲を持て余している時には快楽優先
+	IF STR:選択肢 != "" && (COND("発情期") || CHOSE_DEVENT("お掃除フェラ") || COND("欲求不満") >= 2)
 	ELSE
-		SIF CANSS("�t�F���`�I")
-			STR:�I���� += "�t�F���`�I/"
-		SIF CANSS("�p�C�Y��")
-			STR:�I���� += "�p�C�Y��/"
-		SIF CANSS("�j�v���t�@�b�N")
-			STR:�I���� += "�j�v���t�@�b�N/"
+		SIF CANSS("フェラチオ")
+			STR:選択肢 += "フェラチオ/"
+		SIF CANSS("パイズリ")
+			STR:選択肢 += "パイズリ/"
+		SIF CANSS("ニプルファック")
+			STR:選択肢 += "ニプルファック/"
 	ENDIF
 ENDIF
 
-STR:�v���C���e = %TEXTR(STR:�I����)%
+STR:プレイ内容 = %TEXTR(STR:選択肢)%
 
-IF CFLAG:��������
-	PRINTFORMW %CALLNAME:TARGET%�ɒf���Ă��܂����c�c�ǂ����C��肪���Ȃ��l���B
-	CALL PRINT_STRW, "���F_(�������������ĖႦ��̂͊e���ԑт��ƂɈ�x�܂ŁA�ł�)"
+IF CFLAG:性処理済
+	PRINTFORMW %CALLNAME:TARGET%に断られてしまった……どうやら気乗りがしない様だ。
+	CALL PRINT_STRW, "黄色_(※性処理をして貰えるのは各時間帯ごとに一度まで、です)"
 	RETURN 0
-ELSEIF CHARA_NUM("���������Ӗ���")
-	PRINTFORMW %CALLNAME:TARGET%�ɒf���Ă��܂����B
-	CALL PRINT_STRW, "���F_(��[������]�̍��ӂ����Ă��Ȃ��l������ꏊ�ł͐����������Ă��炦�܂���)"
+ELSEIF CHARA_NUM("性処理合意無し")
+	PRINTFORMW %CALLNAME:TARGET%に断られてしまった。
+	CALL PRINT_STRW, "黄色_(※[性処理]の合意をしていない人が居る場所では性処理をしてもらえません)"
 	RETURN 0
-;���C�����Ȃ�
-ELSEIF STR:�v���C���e == "" || COND("�������ӗ~") == 0 || CFLAG:���~������
-	IF (COND("�������ӗ~") == 2 && STR:�v���C���e == "") || CFLAG:���~������
-		PRINTFORMW %CALLNAME:TARGET%�ɒf���Ă��܂����B
-		PRINTFORMW �ǂ���琫���������ōς܂��鎩�M�������悤���c�c%CALLNAME:TARGET%�͉��ڂŃ`���`����%NAMES("�x�b�h")%�����Ă���B
+;やる気がしない
+ELSEIF STR:プレイ内容 == "" || COND("性処理意欲") == 0 || CFLAG:性欲解消済
+	IF (COND("性処理意欲") == 2 && STR:プレイ内容 == "") || CFLAG:性欲解消済
+		PRINTFORMW %CALLNAME:TARGET%に断られてしまった。
+		PRINTFORMW どうやら性処理だけで済ませる自信が無いようだ……%CALLNAME:TARGET%は横目でチラチラと%NAMES("ベッド")%を見ている。
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%�ɒf���Ă��܂����c�c�ǂ����C��肪���Ȃ��l���B
-		CALL PRINT_STRW, "���F_(���J�߂ċ@�����������Â����t�𚑂����ŁA���C�ɂȂ��Ă���邩������Ȃ�)"
+		PRINTFORMW %CALLNAME:TARGET%に断られてしまった……どうやら気乗りがしない様だ。
+		CALL PRINT_STRW, "黄色_(※褒めて機嫌を取ったり甘い言葉を囁く事で、やる気になってくれるかもしれない)"
 	ENDIF
 	RETURN 0
 ENDIF
 
-;�Ȃ��琫�����Ȃ牽�����Ă�Ƃ���Ȃ̂���䎌�̑O�Ɍ��肳����
-SIF COND("�Ȃ��琫����")
-	SAVESTR:���� = %TEXTR("�X�}�z/�Q�[��/�Ǐ�/����{/�׋�/SNS/WEB�z�M")%
+;ながら性処理なら何をしてるところなのかを台詞の前に決定させる
+SIF COND("ながら性処理")
+	SAVESTR:夢中 = %TEXTR("スマホ/ゲーム/読書/漫画本/勉強/SNS/WEB配信")%
 
 MEMO_LINECOUNT = LINECOUNT
-CALL KOJO_DAILYCOM, "�������𗊂񂾍ۂ̔���", "���s����"
+CALL KOJO_DAILYCOM, "性処理を頼んだ際の反応", "改行無し"
 IF LINECOUNT == MEMO_LINECOUNT
-	IF TALENT:�p���炢 && COND("���C������")
-		CALL PRINT_STRW, "�u�c�c_�^�^�^_�v"
+	IF TALENT:恥じらい && COND("やる気性処理")
+		CALL PRINT_STRW, "「……_／／／_」"
 	ELSE
-		PRINTFORMW �u�c�c�c�c�v
+		PRINTFORMW 「…………」
 	ENDIF
 ENDIF
 CALL BLANKLINE
 
-;�Ȃ��琫�����Ȃ炵�Ă����
-IF COND("�Ȃ��琫����")
-	PRINTFORM %CALLNAME:TARGET%��
-	SELECTCASE SAVESTR:����
-	CASE "�X�}�z"
-		PRINTFORM %TEXTR("�X�}�z��M��̂ɖZ����/�X�}�z��ʂ𒭂߂������Ă���/�X�}�z�ŉ���������Ă���")%
-		STR:�Ȃ��琫���� = %TEXTR("�X�}�z��M��Ȃ���/�Ў�ŃX�}�z�𑀍삵�Ȃ���/��ʂɌ�����Ȃ���")%
-	CASE "�Q�[��"
-		PRINTFORM %TEXTR("�g�ы@�ŃQ�[�������Ă���^���Œ���/�Q�[�����ǂ��Ƃ����/�ɂԂ��ɃQ�[��������Ă���")%
-		STR:�Ȃ��琫���� = %TEXTR("�J�`�J�`�J�`�J�`�I�ƃ{�^����@���Ȃ���/���S�ɃQ�[���Ɉӎ��������Ȃ���/��p�ɕЎ�ő��삵�Ȃ���")%
-	CASE "�Ǐ�"
-		PRINTFORM %TEXTR("�Ǐ��ɖ�����/�{��ǂނ̂ɖZ����/�{�̐��E�ɖv�����Ă���")%
-		STR:�Ȃ��琫���� = %TEXTR("�{�̃y�[�W���߂���Ȃ���/���ʂɌ�����Ȃ���/��p�ɕЎ�Ńy�[�W���߂���Ȃ���")%
-	CASE "����{"
-		PRINTFORM %TEXTR("�ǂ�ł��閟�悪�ǂ��Ƃ����/�����ǂݎn�߂��Ƃ����/����ɖv�����Ă���")%
-		STR:�Ȃ��琫���� = %TEXTR("�{�̃y�[�W���߂���Ȃ���/���ʂɌ�����Ȃ���/��p�ɕЎ�Ńy�[�W���߂���Ȃ���")%
-	CASE "�׋�"
-		PRINTFORM %TEXTR("�׋������Ă���Œ���/���ȏ���ǂ݂���ł���/�o���ꂽ�ۑ���l���Ă���Œ���")%
-		STR:�Ȃ��琫���� = %TEXTR("���ȏ����߂���Ȃ���/�Q�l���Ɍ�����Ȃ���/��p�ɕЎ�Ńy�[�W���߂���Ȃ���")%
+;ながら性処理ならしてくれる
+IF COND("ながら性処理")
+	PRINTFORM %CALLNAME:TARGET%は
+	SELECTCASE SAVESTR:夢中
+	CASE "スマホ"
+		PRINTFORM %TEXTR("スマホを弄るのに忙しい/スマホ画面を眺めつつ何かしている/スマホで何かをやっている")%
+		STR:ながら性処理 = %TEXTR("スマホを弄りながら/片手でスマホを操作しながら/画面に見入りながら")%
+	CASE "ゲーム"
+		PRINTFORM %TEXTR("携帯機でゲームをしている真っ最中な/ゲームが良いところな/暇つぶしにゲームをやっている")%
+		STR:ながら性処理 = %TEXTR("カチカチカチカチ！とボタンを叩きながら/完全にゲームに意識を向けながら/器用に片手で操作しながら")%
+	CASE "読書"
+		PRINTFORM %TEXTR("読書に夢中な/本を読むのに忙しい/本の世界に没頭している")%
+		STR:ながら性処理 = %TEXTR("本のページをめくりながら/紙面に見入りながら/器用に片手でページをめくりながら")%
+	CASE "漫画本"
+		PRINTFORM %TEXTR("読んでいる漫画が良いところの/漫画を読み始めたところの/漫画に没頭している")%
+		STR:ながら性処理 = %TEXTR("本のページをめくりながら/紙面に見入りながら/器用に片手でページをめくりながら")%
+	CASE "勉強"
+		PRINTFORM %TEXTR("勉強をしている最中の/教科書を読みこんでいる/出された課題を考えている最中の")%
+		STR:ながら性処理 = %TEXTR("教科書をめくりながら/参考書に見入りながら/器用に片手でページをめくりながら")%
 	CASE "SNS"
-		PRINTFORM %TEXTR("�F�l��SNS�ł���肵�Ă���Œ���/SNS�ɏ������݂����Ă���/SNS�̖��ǂ��������Ă���r����")%
-		STR:�Ȃ��琫���� = %TEXTR("�Ί�ŉ�ʂ𒭂߂Ȃ���/��p�ɕЎ�ŕ�����ł����݂Ȃ���/��ʂɌ�����Ȃ���")%
-	CASE "WEB�z�M"
-		PRINTFORM %TEXTR("�z�M�����Ă���r����/�`�F�b�N���Ă����i�̔z�M�̎��Ԃ�/WEB�z�M���{�[���ƒ��߂Ă���")%
-		STR:�Ȃ��琫���� = %TEXTR("�W�J�ɂ̂߂荞�݂Ȃ���/�ދ��ȃX�g�[���[�ɖO�����\��������Ȃ���/�ǂ��V�[�����������̂����x�������߂��Ĕz�M�����Ȃ���")%
+		PRINTFORM %TEXTR("友人とSNSでやり取りしている最中の/SNSに書き込みをしている/SNSの未読を消化している途中の")%
+		STR:ながら性処理 = %TEXTR("笑顔で画面を眺めながら/器用に片手で文字を打ち込みながら/画面に見入りながら")%
+	CASE "WEB配信"
+		PRINTFORM %TEXTR("配信を見ている途中の/チェックしている作品の配信の時間の/WEB配信をボーっと眺めている")%
+		STR:ながら性処理 = %TEXTR("展開にのめり込みながら/退屈なストーリーに飽きた表情を見せながら/良いシーンがあったのか何度か巻き戻して配信を見ながら")%
 	ENDSELECT
-	PRINTFORMW �悤�ŁA%TEXTR("�Ԏ��͌��邩��ɋC��肵�Ă��Ȃ�/�Ԏ�����̋�/�Ў�ԂɕԎ������Ă���")%�B
-	SELECTCASE STR:�v���C���e
-	CASE "���"
-		PRINTFORM �c�c%TEXTR("�����Ă����D�悵�ėǂ��Ȃ�/����Ă鎖���ז����Ȃ��Ȃ�/�G�ȑΉ��ł��ǂ��Ȃ�")%��
-		PRINTFORMW ��ň������炢�͂��Ă���邻�������A�ǂ����悤�H
-	;�}���n
+	PRINTFORMW ようで、%TEXTR("返事は見るからに気乗りしていない/返事が上の空だ/片手間に返事をしてきた")%。
+	SELECTCASE STR:プレイ内容
+	CASE "手淫"
+		PRINTFORM ……%TEXTR("今してる方を優先して良いなら/やってる事を邪魔しないなら/雑な対応でも良いなら")%ば
+		PRINTFORMW 手で扱くぐらいはしてくれるそうだが、どうしよう？
+	;挿入系
 	CASEELSE
-		PRINTFORM �c�c%TEXTR("�����Ă鎖��D�悵�ėǂ��Ȃ�/����Ă鎖���ז����Ȃ��Ȃ�/���������Ȃ��Ȃ�")%��
-		SELECTCASE STR:�v���C���e
-		CASE "�u�Z�b�N�X"
-			PRINTFORM �O�̌�
-		CASE "�`�Z�b�N�X"
-			PRINTFORM ���K�̌�
-		CASE "�A���Z�b�N�X"
-			PRINTFORM ���������̌�
-		CASE "�u�Z�b�N�X����"
-			PRINTFORM �y�j�X
+		PRINTFORM ……%TEXTR("今してる事を優先して良いなら/やってる事を邪魔しないなら/激しくしないなら")%ば
+		SELECTCASE STR:プレイ内容
+		CASE "Ｖセックス"
+			PRINTFORM 前の穴
+		CASE "Ａセックス"
+			PRINTFORM お尻の穴
+		CASE "尿道セックス"
+			PRINTFORM おしっこの穴
+		CASE "Ｖセックスする"
+			PRINTFORM ペニス
 		ENDSELECT
-		PRINTFORMW %TEXTR("��݂���/���g�킹��")%�͂���邻�������A�ǂ����悤�H
+		PRINTFORMW %TEXTR("を貸して/を使わせて")%はくれるそうだが、どうしよう？
 	ENDSELECT
 
-	EVENT_TABLE = ���肢����/��߂Ă���/
-	SIF STR:�v���C���e != "���" && STRCOUNT(STR:�I����, "���")
-		EVENT_TABLE += "��ł��ė~����/"
-	SIF STR:�v���C���e != "�u�Z�b�N�X" && STRCOUNT(STR:�I����, "�u�Z�b�N�X") && COND("�������񐔁F�u�Z�b�N�X") > MAX(COND("�������񐔁F�`�Z�b�N�X"), COND("�������񐔁F�A���Z�b�N�X") )
-		EVENT_TABLE += "�O�̌����g�킹�ė~����/"
-	SIF STR:�v���C���e != "�`�Z�b�N�X" && STRCOUNT(STR:�I����, "�`�Z�b�N�X") && COND("�������񐔁F�`�Z�b�N�X") > MAX(COND("�������񐔁F�u�Z�b�N�X"), COND("�������񐔁F�A���Z�b�N�X") )
-		EVENT_TABLE += "���K�̌����g�킹�ė~����/"
-	SIF STR:�v���C���e != "�A���Z�b�N�X" && STRCOUNT(STR:�I����, "�A���Z�b�N�X") && COND("�������񐔁F�A���Z�b�N�X") > MAX(COND("�������񐔁F�`�Z�b�N�X"), COND("�������񐔁F�u�Z�b�N�X") )
-		EVENT_TABLE += "���������̌����g�킹�ė~����/"
+	EVENT_TABLE = お願いする/やめておく/
+	SIF STR:プレイ内容 != "手淫" && STRCOUNT(STR:選択肢, "手淫")
+		EVENT_TABLE += "手でして欲しい/"
+	SIF STR:プレイ内容 != "Ｖセックス" && STRCOUNT(STR:選択肢, "Ｖセックス") && COND("性処理回数：Ｖセックス") > MAX(COND("性処理回数：Ａセックス"), COND("性処理回数：尿道セックス") )
+		EVENT_TABLE += "前の穴を使わせて欲しい/"
+	SIF STR:プレイ内容 != "Ａセックス" && STRCOUNT(STR:選択肢, "Ａセックス") && COND("性処理回数：Ａセックス") > MAX(COND("性処理回数：Ｖセックス"), COND("性処理回数：尿道セックス") )
+		EVENT_TABLE += "お尻の穴を使わせて欲しい/"
+	SIF STR:プレイ内容 != "尿道セックス" && STRCOUNT(STR:選択肢, "尿道セックス") && COND("性処理回数：尿道セックス") > MAX(COND("性処理回数：Ａセックス"), COND("性処理回数：Ｖセックス") )
+		EVENT_TABLE += "おしっこの穴を使わせて欲しい/"
 
-	;���������[�g(�i�D�ɂ�蕪��\��)
-	IF COND("�������n�j")
-		;SIF CHECK_CLO("�����p")
-		;	EVENT_TABLE += "�����p���I�J�Y�ɂ����ė~����/"
-		;SIF CHECK_CLO("�u���}�I�o")
-		;	EVENT_TABLE += "�u���}���I�J�Y�ɂ����ė~����/"
+	;見抜きルート(格好により分岐予定)
+	IF COND("見抜きＯＫ")
+		;SIF CHECK_CLO("水着姿")
+		;	EVENT_TABLE += "水着姿をオカズにさせて欲しい/"
+		;SIF CHECK_CLO("ブルマ露出")
+		;	EVENT_TABLE += "ブルマをオカズにさせて欲しい/"
 
-		SIF CHECK_CLO("�p���c�I�o") && CHECK_PANTIES("�N���b�`") && CHECK_PANTIES("����") == 0
-			EVENT_TABLE += @"%PANTIES(TARGET, "�p���c")%���I�J�Y�ɂ����ė~����/"
+		SIF CHECK_CLO("パンツ露出") && CHECK_PANTIES("クロッチ") && CHECK_PANTIES("水着") == 0
+			EVENT_TABLE += @"%PANTIES(TARGET, "パンツ")%をオカズにさせて欲しい/"
 
-		;SIF PENIS(TARGET) == 0 && (CHECK_CLO("�ҊԘI�o") || CSTR:PREV_DAILYCOM == "�A�\�R�`�F�b�N")
-		;	EVENT_TABLE += "�A�\�R�𒭂߂Ȃ���V�R�肽��/"
+		;SIF PENIS(TARGET) == 0 && (CHECK_CLO("股間露出") || CSTR:PREV_DAILYCOM == "アソコチェック")
+		;	EVENT_TABLE += "アソコを眺めながらシコりたい/"
 	ENDIF
-;���̐l�̑O�Ő����������Ă����
+;他の人の前で性処理をしてくれる
 ELSE
-	SIF COND("�y�j�X�L�X�\") && COND("�~���s��") >= 2
-		EXTRA_PLAY += "�y�j�X�L�X/"
+	SIF COND("ペニスキス可能") && COND("欲求不満") >= 2
+		EXTRA_PLAY += "ペニスキス/"
 	EXTRA_PLAY = %TEXTR(EXTRA_PLAY)%
 
 	SELECTCASE EXTRA_PLAY
 	CASE ""
-		PRINTFORM �Őf���Ă݂��Ƃ���A%CALLNAME:TARGET%��
-	CASE "�y�j�X�L�X"
-		PRINTFORM �������̑Őf���󂯂�%CALLNAME:TARGET%��
-		;����܂芵��ĂȂ�
-		IF TALENT:���g + TALENT:�D�F + TALENT:������ == 0 && (MARK:�������� <= 1 || EXP:�t�F���o�� < 20)
-			PRINTFORMW %CALLNAME:MASTER%�̌ҊԂɊ�𖄂߁A%TEXTR("�p�����������Ƀy�j�X�ɃL�X����/���������ƃy�j�X�Ɍ��t��/�S�O�������Ƀy�j�X�ɃL�X����")%�Ă����B
+		PRINTFORM 打診してみたところ、%CALLNAME:TARGET%は
+	CASE "ペニスキス"
+		PRINTFORM 性処理の打診を受けた%CALLNAME:TARGET%は
+		;あんまり慣れてない
+		IF TALENT:献身 + TALENT:好色 + TALENT:小悪魔 == 0 && (MARK:屈服刻印 <= 1 || EXP:フェラ経験 < 20)
+			PRINTFORMW %CALLNAME:MASTER%の股間に顔を埋め、%TEXTR("恥ずかしそうにペニスにキスをし/おずおずとペニスに口付け/躊躇いがちにペニスにキスをし")%てきた。
 		ELSE
-			PRINTFORM ���C�ȗl�q��%CALLNAME:MASTER%�̌ҊԂɊ�𖄂߁A
-			IF COND("�푰�F����") + COND("�푰�F�V�g") + COND("�푰�F����") && MARK:�������� && RAND:2
-				PRINTFORMW %TEXTR("�����Ƃ����\��Ńy�j�X�ɃL�X����/�y�j�X�ɋ��������t�����s��/�҂�����Ȃ��Ƃ������l�q�Ńy�j�X�ɃL�X����")%�Ă����B
+			PRINTFORM 乗り気な様子で%CALLNAME:MASTER%の股間に顔を埋め、
+			IF COND("種族：悪魔") + COND("種族：天使") + COND("種族：淫魔") && MARK:屈服刻印 && RAND:2
+				PRINTFORMW %TEXTR("恍惚とした表情でペニスにキスをし/ペニスに恭しく口付けを行っ/待ちきれないといった様子でペニスにキスをし")%てきた。
 			ELSE
-				PRINTFORMW %TEXTR("�y�j�X�ɃL�X�̉J���~�点/���������Ƀy�j�X�Ɍ��t������/�y�j�X�ɏ�M�I�ȃL�X����")%�Ă����B
+				PRINTFORMW %TEXTR("ペニスにキスの雨を降らせ/嬉しそうにペニスに口付けをし/ペニスに情熱的なキスをし")%てきた。
 			ENDIF
 		ENDIF
 	ENDSELECT
 	SIF EXTRA_PLAY != ""
-		PRINTFORM �ǂ����A
+		PRINTFORM どうやら、
 
-	SIF CHOSE_DEVENT("���|���t�F��")
-		PRINTFORM ����̂��|���t�F���Ɉ���������
-	SELECTCASE STR:�v���C���e
-	CASE "���"
-		PRINTFORM ����g���Ă�
-	CASE "�t�F���`�I"
-		PRINTFORM �����g���Ă�
-	CASE "�p�C�Y��"
-		PRINTFORM �����ς����g���Ă�
-	CASE "�u�Z�b�N�X"
-		PRINTFORM �O�̌����g���Ă�
-	CASE "�`�Z�b�N�X"
-		PRINTFORM ���K�̌����g���Ă�
-	CASE "�A���Z�b�N�X"
-		PRINTFORM �A�����g���Ă�
-	CASE "�j�v���t�@�b�N"
-		PRINTFORM �����ς����g���Ă�
+	SIF CHOSE_DEVENT("お掃除フェラ")
+		PRINTFORM 先程のお掃除フェラに引き続いて
+	SELECTCASE STR:プレイ内容
+	CASE "手淫"
+		PRINTFORM 手を使っての
+	CASE "フェラチオ"
+		PRINTFORM 口を使っての
+	CASE "パイズリ"
+		PRINTFORM おっぱいを使っての
+	CASE "Ｖセックス"
+		PRINTFORM 前の穴を使っての
+	CASE "Ａセックス"
+		PRINTFORM お尻の穴を使っての
+	CASE "尿道セックス"
+		PRINTFORM 尿道を使っての
+	CASE "ニプルファック"
+		PRINTFORM おっぱいを使っての
 	ENDSELECT
-	PRINTFORMW �����������Ă����悤�ł��B
+	PRINTFORMW 性処理をしてくれるようです。
 
-	EVENT_TABLE = ���肢����/��߂Ă���/
-	SIF STR:�v���C���e != "���" && STRCOUNT(STR:�I����, "���")
-		EVENT_TABLE += "��ł��ė~����/"
-	SIF STR:�v���C���e != "�t�F���`�I" && STRCOUNT(STR:�I����, "�t�F���`�I")
-		EVENT_TABLE += "���ł��ė~����/"
-	SIF STR:�v���C���e != "�u�Z�b�N�X" && STRCOUNT(STR:�I����, "�u�Z�b�N�X") && COND("�������񐔁F�u�Z�b�N�X") > MAX(COND("�������񐔁F�`�Z�b�N�X"), COND("�������񐔁F�A���Z�b�N�X") )
-		EVENT_TABLE += "�O�̌��ł��ė~����/"
-	SIF STR:�v���C���e != "�`�Z�b�N�X" && STRCOUNT(STR:�I����, "�`�Z�b�N�X") && COND("�������񐔁F�`�Z�b�N�X") > MAX(COND("�������񐔁F�u�Z�b�N�X"), COND("�������񐔁F�A���Z�b�N�X") )
-		EVENT_TABLE += "���K�̌��ł��ė~����/"
-	SIF STR:�v���C���e != "�A���Z�b�N�X" && STRCOUNT(STR:�I����, "�A���Z�b�N�X") && COND("�������񐔁F�A���Z�b�N�X") > MAX(COND("�������񐔁F�`�Z�b�N�X"), COND("�������񐔁F�u�Z�b�N�X") )
-		EVENT_TABLE += "���������̌��ł��ė~����/"
+	EVENT_TABLE = お願いする/やめておく/
+	SIF STR:プレイ内容 != "手淫" && STRCOUNT(STR:選択肢, "手淫")
+		EVENT_TABLE += "手でして欲しい/"
+	SIF STR:プレイ内容 != "フェラチオ" && STRCOUNT(STR:選択肢, "フェラチオ")
+		EVENT_TABLE += "口でして欲しい/"
+	SIF STR:プレイ内容 != "Ｖセックス" && STRCOUNT(STR:選択肢, "Ｖセックス") && COND("性処理回数：Ｖセックス") > MAX(COND("性処理回数：Ａセックス"), COND("性処理回数：尿道セックス") )
+		EVENT_TABLE += "前の穴でして欲しい/"
+	SIF STR:プレイ内容 != "Ａセックス" && STRCOUNT(STR:選択肢, "Ａセックス") && COND("性処理回数：Ａセックス") > MAX(COND("性処理回数：Ｖセックス"), COND("性処理回数：尿道セックス") )
+		EVENT_TABLE += "お尻の穴でして欲しい/"
+	SIF STR:プレイ内容 != "尿道セックス" && STRCOUNT(STR:選択肢, "尿道セックス") && COND("性処理回数：尿道セックス") > MAX(COND("性処理回数：Ａセックス"), COND("性処理回数：Ｖセックス") )
+		EVENT_TABLE += "おしっこの穴でして欲しい/"
 ENDIF
 
-;�I�����̈ꊇ����
+;選択肢の一括処理
 VARSET LOCALS
 SPLIT EVENT_TABLE, "/", LOCALS
 CALL PRINT_SELECT, EVENT_TABLE
 
 SELECTCASE LOCALS:RESULT
-;�������̂��肢����艺����I��
-CASE "��߂Ă���", "����ς�߂�"
+;性処理のお願いを取り下げる選択
+CASE "やめておく", "やっぱやめる"
 	RETURN 0
-CASE "���肢����"
-;�������n
-CASE @"%PANTIES(TARGET, "�p���c")%���I�J�Y�ɂ����ė~����"
-	STR:�v���C���e = �p���c������
+CASE "お願いする"
+;見抜き系
+CASE @"%PANTIES(TARGET, "パンツ")%をオカズにさせて欲しい"
+	STR:プレイ内容 = パンツ見抜き
 
 	MEMO_LINECOUNT = LINECOUNT
-	CALL KOJO_DAILYCOM, "�������𗊂񂾍ۂ̔���", "���s����"
+	CALL KOJO_DAILYCOM, "見抜きを頼んだ際の反応", "改行無し"
 	SIF LINECOUNT == MEMO_LINECOUNT
-		PRINTFORMW �u�c�c�c�c�v
-;����ȊO�͂��Ȃ��̗v��
+		PRINTFORMW 「…………」
+;それ以外はあなたの要求
 CASEELSE
 	SELECTCASE LOCALS:RESULT
-	CASE "��ł��ė~����"
-		STR:�v���C���e = ���
-	CASE "���ł��ė~����"
-		STR:�v���C���e = �t�F���`�I
-	CASE "�O�̌��ł��ė~����", "�O�̌����g�킹�ė~����"
-		STR:�v���C���e = �u�Z�b�N�X
-	CASE "���K�̌��ł��ė~����", "���K�̌����g�킹�ė~����"
-		STR:�v���C���e = �`�Z�b�N�X
-	CASE "���������̌��ł��ė~����", "���������̌����g�킹�ė~����"
-		STR:�v���C���e = �A���Z�b�N�X
+	CASE "手でして欲しい"
+		STR:プレイ内容 = 手淫
+	CASE "口でして欲しい"
+		STR:プレイ内容 = フェラチオ
+	CASE "前の穴でして欲しい", "前の穴を使わせて欲しい"
+		STR:プレイ内容 = Ｖセックス
+	CASE "お尻の穴でして欲しい", "お尻の穴を使わせて欲しい"
+		STR:プレイ内容 = Ａセックス
+	CASE "おしっこの穴でして欲しい", "おしっこの穴を使わせて欲しい"
+		STR:プレイ内容 = 尿道セックス
 	ENDSELECT
 	MEMO_LINECOUNT = LINECOUNT
-	CALL KOJO_DAILYCOM, "�������̓��e�ύX�𗊂񂾍ۂ̔���", "���s����"
+	CALL KOJO_DAILYCOM, "性処理の内容変更を頼んだ際の反応", "改行無し"
 	SIF LINECOUNT == MEMO_LINECOUNT
-		PRINTFORMW �u�c�c�c�c�v
+		PRINTFORMW 「…………」
 ENDSELECT
 CALL BLANKLINE
 
-;���������s���t���OON
-SETBIT FLAG:�󋵔���, 37
+;性処理実行中フラグON
+SETBIT FLAG:状況判定, 37
 
-;�t���O���ā������ɍs�ׂ��c��
-IF COND("�Ȃ��琫����")
-	TFLAG:�Ȃ��琫���� = 1
-	CSTR:DAILYCOM���� = %CSTR:DAILYCOM����%���Ȃ���%STR:�v���C���e%������\/
+;フラグ建て＆履歴に行為を残す
+IF COND("ながら性処理")
+	TFLAG:ながら性処理 = 1
+	CSTR:DAILYCOM履歴 = %CSTR:DAILYCOM履歴%＠ながら%STR:プレイ内容%性処理\/
 ELSE
-	CSTR:DAILYCOM���� = %CSTR:DAILYCOM����%�����C%STR:�v���C���e%������\/
+	CSTR:DAILYCOM履歴 = %CSTR:DAILYCOM履歴%＠やる気%STR:プレイ内容%性処理\/
 ENDIF
-STR:����C�x���g�� = %DAILYCOMNAME(6)%
+STR:日常イベント名 = %DAILYCOMNAME(6)%
 
-;�������邩����
-SELECTCASE STR:�v���C���e
-CASE "�p���c������"
-	SELECTCOM = GETNUM(TRAINNAME, "���Ԃ���")
-CASE "�u�Z�b�N�X"
-	IF TFLAG:�Ȃ��琫����
-		SELECTCOM = GETNUM(TRAINNAME, "�����")
+;何をするか決定
+SELECTCASE STR:プレイ内容
+CASE "パンツ見抜き"
+	SELECTCOM = GETNUM(TRAINNAME, "自慰する")
+CASE "Ｖセックス"
+	IF TFLAG:ながら性処理
+		SELECTCOM = GETNUM(TRAINNAME, "正常位")
 	ELSE
-		SELECTCOM = GETNUM(TRAINNAME, "�R���")
+		SELECTCOM = GETNUM(TRAINNAME, "騎乗位")
 	ENDIF
-	;�S���t������
-	SIF COND("�����哱���Z�b�N�X") == 0
-		TEQUIP:PLAYER:�R���h�[�� = 1
-CASE "�`�Z�b�N�X"
-	IF TFLAG:�Ȃ��琫����
-		SELECTCOM = GETNUM(TRAINNAME, "�A�i����w��")
+	;ゴム付けたり
+	SIF COND("女性主導生セックス") == 0
+		TEQUIP:PLAYER:コンドーム = 1
+CASE "Ａセックス"
+	IF TFLAG:ながら性処理
+		SELECTCOM = GETNUM(TRAINNAME, "アナル後背位")
 	ELSE
-		SELECTCOM = GETNUM(TRAINNAME, "�A�i���R���")
+		SELECTCOM = GETNUM(TRAINNAME, "アナル騎乗位")
 	ENDIF
-CASE "�A���Z�b�N�X"
-	IF TFLAG:�Ȃ��琫����
-		SELECTCOM = GETNUM(TRAINNAME, "�A�������")
+CASE "尿道セックス"
+	IF TFLAG:ながら性処理
+		SELECTCOM = GETNUM(TRAINNAME, "尿道正常位")
 	ELSE
-		SELECTCOM = GETNUM(TRAINNAME, "�A���R���")
+		SELECTCOM = GETNUM(TRAINNAME, "尿道騎乗位")
 	ENDIF
-;�R�}���h��=�v���C���e�̕�
+;コマンド名=プレイ内容の物
 CASEELSE
-	SELECTCOM = GETNUM(TRAINNAME, STR:�v���C���e)
+	SELECTCOM = GETNUM(TRAINNAME, STR:プレイ内容)
 ENDSELECT
 
-;�����|���H
+;押し倒し？
 SELECTCASE SELECTCOM
 CASE 65, 75, 88
-	SIF TALENT:���C + TALENT:���� + TALENT:�e�� + MIN(ABL:�T�h���C, 5) > RAND:10
-		TEQUIP:�����|�� = 1
+	SIF TALENT:強気 + TALENT:高慢 + TALENT:粗野 + MIN(ABL:サドっ気, 5) > RAND:10
+		TEQUIP:押し倒し = 1
 ENDSELECT
 
 ;-------------------------------------------------
-;�����ɂ̓Z���t�݂̂�u��
+;ここにはセリフのみを置く
 ;-------------------------------------------------
 @MESSAGE_DAILY6
 #DIM LCOUNT
 #DIM MEMO_LINECOUNT
 
-SELECTCASE NAMES("������")
-;�����Q���C�x���g�͓��ꏈ��
-CASE "�p���c������"
-	;�p�[�g�i�[�����Z�b�g(���̕������Q������C�x���g�̍ۂɕK�v�ɂȂ�)
+SELECTCASE NAMES("性処理")
+;複数参加イベントは特殊処理
+CASE "パンツ見抜き"
+	;パートナーをリセット(他の部員が参加するイベントの際に必要になる)
 	CALL RESET_PARTNER
-	CALL EVENT_ACADEMY, "������������"
+	CALL EVENT_ACADEMY, "見抜き性処理"
 	RETURN 1
 ENDSELECT
 
-IF TFLAG:�n�̕��X�L�b�v == 0
-	IF TFLAG:�Ȃ��琫����
-		CALL DAILY_MESSAGE, "�Ȃ��琫����"
+IF TFLAG:地の文スキップ == 0
+	IF TFLAG:ながら性処理
+		CALL DAILY_MESSAGE, "ながら性処理"
 	ELSE
-		CALL DAILY_MESSAGE, "������"
+		CALL DAILY_MESSAGE, "性処理"
 	ENDIF
 ENDIF
 
-;����ł͍s�׊J�n
-;�Ⓒ�x���������Z�b�g
+;それでは行為開始
+;絶頂度合いをリセット
 VARSET EX
 VARSET NOWEX
 VARSET EX:PLAYER:0
 VARSET NOWEX:PLAYER:0
 
-;�O�����J�n
+;前準備開始
 CALL SIMULATE_TRAIN_FIRST
 
-;�������Ȃ̂ň��o������I���
+;性処理なので一回出したら終わり
 FOR LCOUNT, 0, 100
 	CALL SIMULATE_TRAIN_COM, SELECTCOM, 1
 
-	;�ː��ς݂Ȃ炱���ł����܂�
-	SIF NOWEX:PLAYER:�ː�
+	;射精済みならここでおしまい
+	SIF NOWEX:PLAYER:射精
 		BREAK
 NEXT
 
-;�o�����Ȃǂ̊l���ʌv�Z
+;経験や珠などの獲得量計算
 CALL SIMULATE_TRAIN_CALC
 
-;���ʔ��\
+;結果発表
 CALL SIMULATE_TRAIN_SHOW
 
-;���΂ɖڂɌ�����قǂ̉���͐@��
-CALL RESET_STAIN_EX, "�o", PLAYER
+;流石に目に見えるほどの汚れは拭く
+CALL RESET_STAIN_EX, "Ｐ", PLAYER
 
-;�t���O�̕ω��������ɍs�ׂ��c��
-SELECTCASE NAMES("������")
-CASE "�t�F���`�I"
-	CALL RESET_STAIN_EX, "�o", MASTER
-CASE "�u�Z�b�N�X", "�`�Z�b�N�X", "�A���Z�b�N�X"
-	IF TEQUIP:PLAYER:�R���h�[��
-		CSTR:DAILYCOM���� += @"��������%SUBSTRING(NAMES("������"), 0, STRLENS(NAMES("������")) - 8)%�S���ː�\/"
+;フラグの変化＆履歴に行為を残す
+SELECTCASE NAMES("性処理")
+CASE "フェラチオ"
+	CALL RESET_STAIN_EX, "Ｐ", MASTER
+CASE "Ｖセックス", "Ａセックス", "尿道セックス"
+	IF TEQUIP:PLAYER:コンドーム
+		CSTR:DAILYCOM履歴 += @"＠性処理%SUBSTRING(NAMES("性処理"), 0, STRLENS(NAMES("性処理")) - 8)%ゴム射精\/"
 	ELSE
-		CSTR:DAILYCOM���� += @"��������%SUBSTRING(NAMES("������"), 0, STRLENS(NAMES("������")) - 8)%���o��\/"
+		CSTR:DAILYCOM履歴 += @"＠性処理%SUBSTRING(NAMES("性処理"), 0, STRLENS(NAMES("性処理")) - 8)%中出し\/"
 	ENDIF
-	;�o�����ݒ�
-	SELECTCASE NAMES("������")
-	CASE "�u�Z�b�N�X"
-		CALL SETFLAG, "�o����F�u"
-	CASE "�`�Z�b�N�X"
-		CALL SETFLAG, "�o����F�`"
-	CASE "�A���Z�b�N�X"
-		CALL SETFLAG, "�o����F�A"
+	;Ｐ汚れを設定
+	SELECTCASE NAMES("性処理")
+	CASE "Ｖセックス"
+		CALL SETFLAG, "Ｐ汚れ：Ｖ"
+	CASE "Ａセックス"
+		CALL SETFLAG, "Ｐ汚れ：Ａ"
+	CASE "尿道セックス"
+		CALL SETFLAG, "Ｐ汚れ：尿"
 	ENDSELECT
 ENDSELECT
 
-SIF TFLAG:�n�̕��X�L�b�v
+SIF TFLAG:地の文スキップ
 	RETURN 0
 
 MEMO_LINECOUNT = LINECOUNT
 
-SELECTCASE NAMES("������")
-CASE "���"
-	IF TFLAG:�Ȃ��琫����
-		PRINTFORM %TEXTR("�s�ӂɈ��肵�߂��/��������߂��Ēɂ���/�r���Ŏ肪�~�܂�")%���肷��n�v�j���O�����������A
-		PRINTFORMW %CALLNAME:PLAYER%��%CALLNAME:TARGET%�̎�ŋC�����悭�ː������B
+SELECTCASE NAMES("性処理")
+CASE "手淫"
+	IF TFLAG:ながら性処理
+		PRINTFORM %TEXTR("不意に握りしめられ/強くされ過ぎて痛かっ/途中で手が止まっ")%たりするハプニングがあったが、
+		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%の手で気持ちよく射精した。
 	ELSE
 
 	ENDIF
-CASE "�t�F���`�I"
+CASE "フェラチオ"
 
-CASE "�p�C�Y��"
+CASE "パイズリ"
 
-CASE "�u�Z�b�N�X", "�`�Z�b�N�X", "�A���Z�b�N�X"
-	IF TFLAG:�Ȃ��琫����
-		PRINTFORM %TEXTR("���i�ɔ�ׂĊɂ������Ŏ��Ԃ�������͂������̂�/���ߕt�����C�܂���Ȃ����ōō��̃^�C�~���O�����x���킵���肵�����̂�/���΂ɂ����ɔ�ׂ�Ƃ��܂����ȋ��������")%�A
-		PRINTFORM %CALLNAME:PLAYER%��
-		SIF TALENT:PLAYER:�I�g�R && CHECK_COM("���S�}���\", INSERT("�Ή��R�}���h") )
-			PRINTFORM %TEXTR("�Ίۂ��A�O�ɓ�����܂Ő[���}����/����@�����ăy�j�X�����S�ɍ����܂Ŗ��ߍ���/�̏d�������ċʑ܂Ƒ�A�O�𖧒�����")%�Ȃ���
-		PRINTFORMW %CALLNAME:TARGET%�̌��ŋC�����悭�ː������B
+CASE "Ｖセックス", "Ａセックス", "尿道セックス"
+	IF TFLAG:ながら性処理
+		PRINTFORM %TEXTR("普段に比べて緩いせいで時間がかかりはしたものの/締め付けが気まぐれなせいで最高のタイミングを何度か逸したりしたものの/流石にいつもに比べるといまいちな具合だったが")%、
+		PRINTFORM %CALLNAME:PLAYER%は
+		SIF TALENT:PLAYER:オトコ && CHECK_COM("完全挿入可能", INSERT("対応コマンド") )
+			PRINTFORM %TEXTR("睾丸が陰唇に当たるまで深く挿入し/腰を叩きつけてペニスを完全に根元まで埋め込み/体重をかけて玉袋と大陰唇を密着させ")%ながら
+		PRINTFORMW %CALLNAME:TARGET%の穴で気持ちよく射精した。
 	ELSE
 
 	ENDIF
-CASE "�j�v���t�@�b�N"
+CASE "ニプルファック"
 
 ENDSELECT
 
@@ -423,83 +423,83 @@ SIF LINECOUNT == MEMO_LINECOUNT
 CALL BLANKLINE
 
 ;-------------------------------------------------
-;��ɐ�������̕`�ʂȂǂ�����BSTR:����C�x���g�� �͌����B
+;主に性処理後の描写などをする。STR:日常イベント名 は決定後。
 ;-------------------------------------------------
 @AFTERMESSAGE_DAILY6
 #DIM MEMO_LINECOUNT
 
 MEMO_LINECOUNT = LINECOUNT
-SELECTCASE NAMES("������")
-CASE "�p���c������"
-	;�Ō�͒��o�����ꂽ
-	IF STRCOUNT(CSTR:DAILYCOM����, "�������u���o��")
-		IF COND("�������񐔁F�u�Z�b�N�X") >= 10 && RAND:3 && TALENT:�p���� && TALENT:�e�� + TALENT:���� + TALENT:���C
-			PRINTFORM %TEXTR("�S����̉�����G�ɐ@���ăe�B�b�V�������ĂɎ̂Ă�/���o�����ꂽ�̂���ɋC�ɂ���ł��Ȃ�����/�ː����I������̂����ڂŊm�F����")%%CALLNAME:TARGET%�͂��炳�ꂽ%PANTIES(TARGET, "�p���c")%�𒼂��A
-			PRINTFORMW %TEXTR("������R��o�鐸�t���N���b�`�����������C�ɂ���/�҂��J�����܂܂̑̐���/�ҊԂ��ǂ�������i�D�̂܂܂�")%���߂č�Ƃɖv�����n�߂��c�c
+SELECTCASE NAMES("性処理")
+CASE "パンツ見抜き"
+	;最後は中出しされた
+	IF STRCOUNT(CSTR:DAILYCOM履歴, "性処理Ｖ中出し")
+		IF COND("性処理回数：Ｖセックス") >= 10 && RAND:3 && TALENT:恥薄い && TALENT:粗野 + TALENT:高慢 + TALENT:強気
+			PRINTFORM %TEXTR("膣周りの汚れを雑に拭いてティッシュを屑籠に捨てた/中出しされたのを特に気にするでもなさげな/射精が終わったのを横目で確認した")%%CALLNAME:TARGET%はずらされた%PANTIES(TARGET, "パンツ")%を直し、
+			PRINTFORMW %TEXTR("中から漏れ出る精液がクロッチを汚す事も気にせず/股を開いたままの体勢で/股間が良く見える格好のままで")%改めて作業に没頭し始めた……
 		ELSE
-			PRINTFORM %CALLNAME:TARGET%��%STR:�Ȃ��琫����%�d�˂��e�B�b�V�����S�����琂��鐸�t���葁���@���ƁA
-			IF TALENT:�p���� && TALENT:�e�� + TALENT:���� + TALENT:���C
-				PRINTFORM %CALLNAME:PLAYER%��%TEXTR("�w��n���x��/�w�������ꏊ�̑|���x��/�w���ʂ��Y��ɂ��鎖�x��")%�������āA�҂��J�����܂܂̑̐���
+			PRINTFORM %CALLNAME:TARGET%は%STR:ながら性処理%重ねたティッシュで膣口から垂れる精液を手早く拭くと、
+			IF TALENT:恥薄い && TALENT:粗野 + TALENT:高慢 + TALENT:強気
+				PRINTFORM %CALLNAME:PLAYER%に%TEXTR("『後始末』を/『汚した場所の掃除』を/『元通り綺麗にする事』と")%言いつけて、股を開いたままの体勢で
 			ELSE
-				PRINTFORM ���߂̗�����̂��̂��ƌy�����������%CALLNAME:PLAYER%�Ɍ�n�������肢����
+				PRINTFORM 着衣の乱れをのそのそと軽く直した後に%CALLNAME:PLAYER%に後始末をお願いして
 			ENDIF
-			PRINTFORMW �Ăэ�Ƃɖv�����������c�c
+			PRINTFORMW 再び作業に没頭しだした……
 		ENDIF
-	;�Ō�̓p���c�ɂ�����
-	ELSEIF STRCOUNT(CSTR:DAILYCOM����, "�������p���c�Ԃ�����")
-		PRINTFORM %CALLNAME:TARGET%��%STR:�Ȃ��琫����%�E�F�b�g�e�B�b�V����%PANTIES(TARGET, "�p���c")%�ɐ��ݍ��ݎn�߂����t��@���ƁA
-		IF TALENT:�p���� && TALENT:�e�� + TALENT:���� + TALENT:���C
-			PRINTFORM %CALLNAME:PLAYER%\@ PARTNER() ? �B # \@�Ɍ����Č҂��J�����܂܂̑̐���
+	;最後はパンツにかけた
+	ELSEIF STRCOUNT(CSTR:DAILYCOM履歴, "性処理パンツぶっかけ")
+		PRINTFORM %CALLNAME:TARGET%は%STR:ながら性処理%ウェットティッシュで%PANTIES(TARGET, "パンツ")%に染み込み始めた精液を拭くと、
+		IF TALENT:恥薄い && TALENT:粗野 + TALENT:高慢 + TALENT:強気
+			PRINTFORM %CALLNAME:PLAYER%\@ PARTNER() ? 達 # \@に向けて股を開いたままの体勢で
 		ELSE
-			PRINTFORM ���߂̗�����̂��̂��ƌy�����������
+			PRINTFORM 着衣の乱れをのそのそと軽く直した後に
 		ENDIF
-		PRINTFORMW �Ăэ�Ƃɖv�����������c�c
-	;�Ō�̓e�B�b�V���ɏo����
+		PRINTFORMW 再び作業に没頭しだした……
+	;最後はティッシュに出した
 	ELSE
-		PRINTFORMW %CALLNAME:PLAYER%\@ PARTNER() ? �B # \@�̔M���������̂𔧂Ŋ��������%CALLNAME:TARGET%�́A�����Ȃ��������̗l�ȑԓx�ō�Ƃɖv�����Ă���c�c
+		PRINTFORMW %CALLNAME:PLAYER%\@ PARTNER() ? 達 # \@の熱が引いたのを肌で感じ取った%CALLNAME:TARGET%は、何もなかったかの様な態度で作業に没頭している……
 	ENDIF
-CASE "���"
-	IF TFLAG:�Ȃ��琫����
+CASE "手淫"
+	IF TFLAG:ながら性処理
 		IF RAND:2
-			PRINTFORM %CALLNAME:TARGET%�͋ߏ�̃E�F�b�g�e�B�b�V��������ĉ��ꂽ���@���ƁA
-			PRINTFORMW %CALLNAME:PLAYER%�Ɂu��юU�������t���Y��ɂ���悤�Ɂv�Ɠ`���Ď����̎��@�����������n�����Ă����c�c
+			PRINTFORM %CALLNAME:TARGET%は近場のウェットティッシュを取って汚れた手を拭くと、
+			PRINTFORMW %CALLNAME:PLAYER%に「飛び散った精液も綺麗にするように」と伝えて自分の手を拭いたそれを手渡ししてきた……
 		ELSE
-			PRINTFORM �e�B�b�V�����߂��ɖ����������ߎw�ɕt�������t���r�߂ĉ��}���u����%CALLNAME:TARGET%�́A
-			PRINTFORMW %CALLNAME:PLAYER%�Ɂu�����ŉ������񂾂��琸�t��@���Ă����悤�Ɂv�ƌ����c���čĂэ�Ƃɖv�����������c�c
+			PRINTFORM ティッシュが近くに無かったため指に付いた精液を舐めて応急処置した%CALLNAME:TARGET%は、
+			PRINTFORMW %CALLNAME:PLAYER%に「自分で汚したんだから精液を拭いておくように」と言い残して再び作業に没頭しだした……
 		ENDIF
 	ELSE
 
 	ENDIF
-CASE "�t�F���`�I"
+CASE "フェラチオ"
 
-CASE "�p�C�Y��"
+CASE "パイズリ"
 
-CASE "�u�Z�b�N�X", "�`�Z�b�N�X", "�A���Z�b�N�X"
-	IF TFLAG:�Ȃ��琫����
-		IF COND("�Ⓒ")
-			PRINTFORM �Ⓒ�̗]�C�Ŋ��΂񂾗l�q��%CALLNAME:TARGET%��
+CASE "Ｖセックス", "Ａセックス", "尿道セックス"
+	IF TFLAG:ながら性処理
+		IF COND("絶頂")
+			PRINTFORM 絶頂の余韻で汗ばんだ様子の%CALLNAME:TARGET%は
 		ELSE
-			PRINTFORM %CALLNAME:TARGET%��%STR:�Ȃ��琫����%
+			PRINTFORM %CALLNAME:TARGET%は%STR:ながら性処理%
 		ENDIF
-		IF CFLAG:�J�n�p���� && (NAMES("������") == "�u�Z�b�N�X" || NAMES("������") == "�A���Z�b�N�X")
-			PRINTFORM �߂��ꂽ�J�n�p���ҊԂɓ\�蒼���ƁA
-		ELSEIF TEQUIP:PLAYER:�R���h�[��
-			PRINTFORM ���ꂽ�ҊԂ��e�B�b�V���Ŏ葁���@�����߂�ƁA
-		ELSEIF ABL:���t���� > RAND:10 && RAND:2 && TALENT:�p���� && TALENT:�e�� + TALENT:���� + TALENT:���C
-			PRINTFORM ���ɏo���ꂽ���t���w�ő~���o����%TEXTR("�y��/���R�̗l��/������������")%��������ƁA
+		IF CFLAG:絆創膏装着 && (NAMES("性処理") == "Ｖセックス" || NAMES("性処理") == "尿道セックス")
+			PRINTFORM めくれた絆創膏を股間に貼り直すと、
+		ELSEIF TEQUIP:PLAYER:コンドーム
+			PRINTFORM 汚れた股間をティッシュで手早く拭き清めると、
+		ELSEIF ABL:精液中毒 > RAND:10 && RAND:2 && TALENT:恥薄い && TALENT:粗野 + TALENT:高慢 + TALENT:強気
+			PRINTFORM 中に出された精液を指で掻き出して%TEXTR("軽く/当然の様に/美味しそうに")%味見すると、
 		ELSE
-			PRINTFORM �d�˂��e�B�b�V���Œ��ɏo���ꂽ���t���葁���@���ƁA
+			PRINTFORM 重ねたティッシュで中に出された精液を手早く拭くと、
 		ENDIF
-		IF TALENT:�p���� && TALENT:�e�� + TALENT:���� + TALENT:���C
-			PRINTFORM %CALLNAME:PLAYER%��%TEXTR("�w��n���x��/�w�������ꏊ�̑|���x��/�w���ʂ��Y��ɂ��鎖�x��")%�������āA�҂��J�����܂܂̑̐���
+		IF TALENT:恥薄い && TALENT:粗野 + TALENT:高慢 + TALENT:強気
+			PRINTFORM %CALLNAME:PLAYER%に%TEXTR("『後始末』を/『汚した場所の掃除』を/『元通り綺麗にする事』と")%言いつけて、股を開いたままの体勢で
 		ELSE
-			PRINTFORM ���߂̗�������������ƒ��������%CALLNAME:PLAYER%�Ɍ�n�������肢����
+			PRINTFORM 着衣の乱れをいそいそと直した後に%CALLNAME:PLAYER%に後始末をお願いして
 		ENDIF
-		PRINTFORMW �Ăэ�Ƃɖv�����������c�c
+		PRINTFORMW 再び作業に没頭しだした……
 	ELSE
 
 	ENDIF
-CASE "�j�v���t�@�b�N"
+CASE "ニプルファック"
 
 ENDSELECT
 

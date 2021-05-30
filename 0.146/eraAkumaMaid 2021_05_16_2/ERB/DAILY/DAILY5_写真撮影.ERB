@@ -1,10 +1,10 @@
-;-------------------------------------------------
-;�ʐ^�B�e
-;�����:hexagon
-;�ʐ^�̓��e��STR:�ʐ^��STR:�⑫�Ɋi�[���A���ۂɂ͓���������������񂪋L�^�����
-;��)		STR:�ʐ^ = ��ʂ����ς��ɃN���[�Y�A�b�v���ꂽ�r�L�j�p���c�z���̔G�G�̌N�̌Ҋ�
-;			STR:�⑫ = _�N���[�Y�A�b�v_����
-; ���ۂɕۑ�����镶���� = ��ʂ����ς��ɃN���[�Y�A�b�v���ꂽ�r�L�j�p���c�z���̔G�G�̌N�̌Ҋ�_�N���[�Y�A�b�v_����
+﻿;-------------------------------------------------
+;写真撮影
+;製作者:hexagon
+;写真の内容はSTR:写真とSTR:補足に格納し、実際には二つをくっつけた文字列が記録される
+;例)		STR:写真 = 画面いっぱいにクローズアップされたビキニパンツ越しの濡烏の君の股間
+;			STR:補足 = _クローズアップ_水着
+; 実際に保存される文字列 = 画面いっぱいにクローズアップされたビキニパンツ越しの濡烏の君の股間_クローズアップ_水着
 ;-------------------------------------------------
 @MESSAGE_DAILY_SELECT5
 #DIM LCOUNT
@@ -17,499 +17,499 @@ VARSET LOCALS
 VARSET EMPTY_MEMORY
 VARSET NUM_MEMORY
 
-;�������ɗ]�T���Ȃ��ꍇ�ɂ̓A���o��������ʂ�
-IF NUM("�ʐ^") >= 300
-	PRINTFORML �ʐ^���B�낤�Ǝv�������A����ȏ�͕ۑ��ł��Ȃ��悤�ł��B
-	PRINTFORMW �ʐ^�{����ʂŕs�v�Ȃ��̂������Ă��������B
+;メモリに余裕がない場合にはアルバム整理画面へ
+IF NUM("写真") >= 300
+	PRINTFORML 写真を撮ろうと思ったが、これ以上は保存できないようです。
+	PRINTFORMW 写真閲覧画面で不要なものを消してください。
 	CALL VIEW_PHOTO
 	RETURN 0
 ENDIF
 
 MEMO_LINECOUNT = LINECOUNT
-STR:����C�x���g�� = %DAILYCOMNAME(5)%
+STR:日常イベント名 = %DAILYCOMNAME(5)%
 
-;�N���Ă���ꍇ�͕ω����邱�Ƃ�����
-IF CFLAG:���� == 0
+;起きている場合は変化することがある
+IF CFLAG:睡眠 == 0
 	SELECTCASE DAILYCOMNAME(5)
-	CASE "�v���σp���c���B�e"
+	CASE "没収済パンツを撮影"
 
-	CASE "�X�J�[�g�̉����B�e"
+	CASE "スカートの下を撮影"
 
-	CASE "�ҊԂ��B�e����"
+	CASE "股間を撮影する"
 
-	CASE "�p���c��ڎʂ���"
+	CASE "パンツを接写する"
 
-	CASE "�A�\�R��ڎʂ���"
+	CASE "アソコを接写する"
 
-	CASE "�A�i����ڎʂ���"
+	CASE "アナルを接写する"
 
 	CASEELSE
-		IF DEVENT("����䎌") == 0
-		ELSEIF COND("�����C���") && CHOSE_DEVENT(STR:����C�x���g��) == 0
-		;���܂ɋC�Â��ă��A�N�V�������Ƃ�
-		ELSEIF COND("�B���B��\") && (CFLAG:�Q�N�� || RAND:5 || CHOSE_DEVENT(STR:����C�x���g��) == 0)
-			IF RAND:10 == 0 || RAND:(CHOSE_DEVENT(STR:����C�x���g��) + 1)
-				STR:����C�x���g�� = �B���B�莸�s
-			ELSEIF RAND:2 && CFLAG:�s���Q���� && CONDS("���O�s��") != ""
-				STR:����C�x���g�� = �B���B�莸�s
+		IF DEVENT("初回台詞") == 0
+		ELSEIF COND("お風呂上り") && CHOSE_DEVENT(STR:日常イベント名) == 0
+		;たまに気づいてリアクションをとる
+		ELSEIF COND("隠し撮り可能") && (CFLAG:寝起き || RAND:5 || CHOSE_DEVENT(STR:日常イベント名) == 0)
+			IF RAND:10 == 0 || RAND:(CHOSE_DEVENT(STR:日常イベント名) + 1)
+				STR:日常イベント名 = 隠し撮り失敗
+			ELSEIF RAND:2 && CFLAG:行動参加中 && CONDS("直前行動") != ""
+				STR:日常イベント名 = 隠し撮り失敗
 			ENDIF
-		ELSEIF COND("���ӁF�|�[�W���O") && CFLAG:�|�[�Y�B�e�I�� == 0
-			STR:����C�x���g�� = �|�[�Y�B�e
+		ELSEIF COND("合意：ポージング") && CFLAG:ポーズ撮影終了 == 0
+			STR:日常イベント名 = ポーズ撮影
 		ENDIF
 	ENDSELECT
 ENDIF
 
 ;-------------------------------------------------
-;�����ɂ̓Z���t�݂̂�u��
+;ここにはセリフのみを置く
 ;-------------------------------------------------
 @MESSAGE_DAILY5
-SIF TFLAG:�n�̕��X�L�b�v
+SIF TFLAG:地の文スキップ
 	RETURN 0
-STR:�ʐ^ = 
-STR:�⑫ = 
-SAVESTR:�ʐ^ = 
+STR:写真 = 
+STR:補足 = 
+SAVESTR:写真 = 
 
-SELECTCASE STR:����C�x���g��
-CASE "�v���σp���c���B�e"
-	PRINTFORMW %CALLNAME:MASTER%��%CALLNAME:TARGET%����v������%PANTIES(TARGET, "�p���c")%��%NAMES("�x�b�h")%�̏�ɒu���čL�����B
-	SWAP CSTR:�p���c, CSTR:�v���σp���c
-	STR:�ʐ^ += @"%CALLNAME:TARGET%�������Ă���%PANTIES(TARGET)%"
-	SWAP CSTR:�p���c, CSTR:�v���σp���c
+SELECTCASE STR:日常イベント名
+CASE "没収済パンツを撮影"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%から没収した%PANTIES(TARGET, "パンツ")%を%NAMES("ベッド")%の上に置いて広げた。
+	SWAP CSTR:パンツ, CSTR:没収済パンツ
+	STR:写真 += @"%CALLNAME:TARGET%が穿いていた%PANTIES(TARGET)%"
+	SWAP CSTR:パンツ, CSTR:没収済パンツ
 
-	STR:�⑫ += "_�p���c"
-CASE "�X�J�[�g�̉����B�e"
-	SELECTCASE CONDS("���O�s��")
-	CASE "�X�J�[�g���߂���"
-		PRINTFORMW %CALLNAME:MASTER%��%CALLNAME:TARGET%��%CLO("�X�J�[�g�߂���")%���߂���グ���܂܁A�X�}�z���\�����B
-		STR:�ʐ^ += @"%SKIRT(TARGET, "��")%���߂���グ���āA"
-	CASE "�X�J�[�g�������グ"
-		PRINTFORMW %CALLNAME:MASTER%�́A����̎��%CLO("�X�J�[�g�߂���")%�̉����������Ă���%CALLNAME:TARGET%�̎p���B�e���鎖�ɂ����B
-		STR:�ʐ^ += @"%SKIRT(TARGET, "��")%���������グ�āA"
+	STR:補足 += "_パンツ"
+CASE "スカートの下を撮影"
+	SELECTCASE CONDS("直前行動")
+	CASE "スカートをめくる"
+		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の%CLO("スカートめくり")%をめくり上げたまま、スマホを構えた。
+		STR:写真 += @"%SKIRT(TARGET, "略")%をめくり上げられて、"
+	CASE "スカートたくし上げ"
+		PRINTFORMW %CALLNAME:MASTER%は、自らの手で%CLO("スカートめくり")%の下を見せつけている%CALLNAME:TARGET%の姿を撮影する事にした。
+		STR:写真 += @"%SKIRT(TARGET, "略")%をたくし上げて、"
 	ENDSELECT
 
-	IF CHECK_CLO("�p���c���F�\") == 0
-		IF CHECK_CLO("�{�f�B�X�[�c�I�o")
-			STR:�ʐ^ += @"%CLO("�Ҋ�")%���������Ă���Ҋ�"
+	IF CHECK_CLO("パンツ視認可能") == 0
+		IF CHECK_CLO("ボディスーツ露出")
+			STR:写真 += @"%CLO("股間")%が密着している股間"
 		ELSE
-			STR:�ʐ^ += @"���̉���%CLO("�Ҋ�")%"
+			STR:写真 += @"その下の%CLO("股間")%"
 		ENDIF
 	ELSE
-		;�p���X�g�`��
-		SIF CHECK_CLO("�p���X�g�I�o")
-			STR:�ʐ^ += @"%OUTER(TARGET)%�z���Ɍ�����"
-		IF EQUIP:�p���c == 0
-			IF COND("�g�n�݁F�u�g��")
-				STR:�ʐ^ += "�g���p�̃o�C�u���}������"
-			ELSEIF CHECK_CLO("�u�I�o")
-				STR:�ʐ^ += "�ނ��o����"
+		;パンスト描写
+		SIF CHECK_CLO("パンスト露出")
+			STR:写真 += @"%OUTER(TARGET)%越しに見える"
+		IF EQUIP:パンツ == 0
+			IF COND("身嗜み：Ｖ拡張")
+				STR:写真 += "拡張用のバイブが挿さった"
+			ELSEIF CHECK_CLO("Ｖ露出")
+				STR:写真 += "むき出しの"
 			ENDIF
 			IF PENIS(TARGET)
-				STR:�ʐ^ += "�y�j�X"
+				STR:写真 += "ペニス"
 			ELSE
-				STR:�ʐ^ += "�A�\�R"
+				STR:写真 += "アソコ"
 			ENDIF
-		ELSEIF CHECK_PANTIES("�s�o�b�N")
-			STR:�ʐ^ += @"%PANTIES(TARGET)%���H������\@ COND("���K") ? �傫�� # \@���K"
-			STR:�⑫ += "_�p���c"
+		ELSEIF CHECK_PANTIES("Ｔバック")
+			STR:写真 += @"%PANTIES(TARGET)%が食い込む\@ COND("巨尻") ? 大きな # \@お尻"
+			STR:補足 += "_パンツ"
 		ELSE
-			STR:�ʐ^ += @"%PANTIES(TARGET)%"
-			STR:�⑫ += "_�p���c"
+			STR:写真 += @"%PANTIES(TARGET)%"
+			STR:補足 += "_パンツ"
 		ENDIF
 	ENDIF
-	STR:�ʐ^ += @"��I���\@ CONDS("���O�s��") == "�X�J�[�g���߂���" ? ���� # �� \@�Ă���%PHOTO_COSTUME(TARGET)%%CALLNAME:TARGET%"
+	STR:写真 += @"を露わに\@ CONDS("直前行動") == "スカートをめくる" ? され # し \@ている%PHOTO_COSTUME(TARGET)%%CALLNAME:TARGET%"
 
-CASE "�ҊԂ��B�e����"
-	PRINTFORM %CALLNAME:MASTER%��
-	IF CFLAG:����
-		PRINTFORMW ���h���ɖ����Ă���%CALLNAME:TARGET%�̌ҊԂɃX�}�z���߂Â����B
+CASE "股間を撮影する"
+	PRINTFORM %CALLNAME:MASTER%は
+	IF CFLAG:睡眠
+		PRINTFORMW 無防備に眠っている%CALLNAME:TARGET%の股間にスマホを近づけた。
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%�Ɍy���r���J���Ă��炤�ƁA�X�}�z���\���đ_�����߂��B
+		PRINTFORMW %CALLNAME:TARGET%に軽く脚を開いてもらうと、スマホを構えて狙いを定めた。
 	ENDIF
-	IF CHECK_CLO("�p���X�g�I�o")
-		IF EQUIP:�p���c && CHECK_PANTIES("�N���b�`")
-			STR:�ʐ^ += @"%OUTER(TARGET)%�z���Ɍ�����%CALLNAME:TARGET%��%PANTIES(TARGET)%�̃A�b�v"
-			STR:�⑫ += "_�p���c_�N���[�Y�A�b�v"
+	IF CHECK_CLO("パンスト露出")
+		IF EQUIP:パンツ && CHECK_PANTIES("クロッチ")
+			STR:写真 += @"%OUTER(TARGET)%越しに見える%CALLNAME:TARGET%の%PANTIES(TARGET)%のアップ"
+			STR:補足 += "_パンツ_クローズアップ"
 		ELSE
-			STR:�ʐ^ += @"%OUTER(TARGET)%�z���Ɍ�����%CALLNAME:TARGET%��"
+			STR:写真 += @"%OUTER(TARGET)%越しに見える%CALLNAME:TARGET%の"
 			IF PENIS(TARGET)
-				STR:�ʐ^ += "�y�j�X"
-				STR:�⑫ += "_�y�j�X"
+				STR:写真 += "ペニス"
+				STR:補足 += "_ペニス"
 			ELSE
-				STR:�ʐ^ += "�A�\�R"
-				STR:�⑫ += "_�A�\�R"
+				STR:写真 += "アソコ"
+				STR:補足 += "_アソコ"
 			ENDIF
 		ENDIF
-	;�T�[�r�X
-	ELSEIF COND("�A�\�R�̃`�������B�e�\") && CHECK_CLO("�߂���\") && (CHOSE_DEVENT(STR:����C�x���g��) || RAND:3 == 0)
-		STR:�ʐ^ += @"%CLO("�Ҋ�")%�����炵�Ď�������A�\�R�������Ă���%CALLNAME:TARGET%"
-		STR:�⑫ += "_�A�\�R"
-		STR:����C�x���g�� = �A�\�R�̃`�������B�e
+	;サービス
+	ELSEIF COND("アソコのチラ見せ撮影可能") && CHECK_CLO("めくり可能") && (CHOSE_DEVENT(STR:日常イベント名) || RAND:3 == 0)
+		STR:写真 += @"%CLO("股間")%をずらして自分からアソコを見せている%CALLNAME:TARGET%"
+		STR:補足 += "_アソコ"
+		STR:日常イベント名 = アソコのチラ見せ撮影
 	ELSE
-		STR:�ʐ^ += @"��ʂ����ς��ɃN���[�Y�A�b�v���ꂽ%CLO("�Ҋ�")%"
-		IF CHECK_CLO("�H������")
-			STR:�ʐ^ += @"���H������%CALLNAME:TARGET%�̌Ҋ�"
+		STR:写真 += @"画面いっぱいにクローズアップされた%CLO("股間")%"
+		IF CHECK_CLO("食い込み")
+			STR:写真 += @"が食い込む%CALLNAME:TARGET%の股間"
 		ELSE
 			IF PENIS(TARGET)
-				STR:�ʐ^ += @"�z���̂������肵��%CALLNAME:TARGET%�̌Ҋ�"
+				STR:写真 += @"越しのもっこりした%CALLNAME:TARGET%の股間"
 			ELSE
-				STR:�ʐ^ += @"�z����%CALLNAME:TARGET%�̌Ҋ�"
+				STR:写真 += @"越しの%CALLNAME:TARGET%の股間"
 			ENDIF
 		ENDIF
-		STR:�⑫ += "_�N���[�Y�A�b�v"
+		STR:補足 += "_クローズアップ"
 	ENDIF
 
-CASE "�p���c��ڎʂ���"
-	PRINTFORM %CALLNAME:MASTER%��
-	IF CFLAG:����
-		PRINTFORMW ���h���ɖ����Ă���%CALLNAME:TARGET%�̌ҊԂɃX�}�z���߂Â����B
+CASE "パンツを接写する"
+	PRINTFORM %CALLNAME:MASTER%は
+	IF CFLAG:睡眠
+		PRINTFORMW 無防備に眠っている%CALLNAME:TARGET%の股間にスマホを近づけた。
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%�̌ҊԂɊ�𖄂߂��p���̂܂܃X�}�z�����o�����B
+		PRINTFORMW %CALLNAME:TARGET%の股間に顔を埋めた姿勢のままスマホを取り出した。
 	ENDIF
 	CALL PHOTO_PANTIES
 
-CASE "�A�i����ڎʂ���"
-	PRINTFORM %CALLNAME:MASTER%��
-	IF CFLAG:����
-		PRINTFORMW ���h���ɖ����Ă���%CONDS("�ԕ�")%�́A�����o���̂��K�̌��ɃX�}�z���߂Â����B
+CASE "アナルを接写する"
+	PRINTFORM %CALLNAME:MASTER%は
+	IF CFLAG:睡眠
+		PRINTFORMW 無防備に眠っている%CONDS("間柄")%の、剥き出しのお尻の穴にスマホを近づけた。
 	ELSE
-		PRINTFORMW �ڂ̑O�ɎN����Ă���A%CALLNAME:TARGET%�̔����o���̂��K�̌��ɃX�}�z���߂Â����B
+		PRINTFORMW 目の前に晒されている、%CALLNAME:TARGET%の剥き出しのお尻の穴にスマホを近づけた。
 	ENDIF
 	CALL PHOTO_ANAL
 
-CASE "�A�\�R��ڎʂ���"
-	PRINTFORM %CALLNAME:MASTER%��
-	IF CFLAG:����
-		PRINTFORMW ���h���ɖ����Ă���%CONDS("�ԕ�")%�́A�����o���̌ҊԂɃX�}�z���߂Â����B
+CASE "アソコを接写する"
+	PRINTFORM %CALLNAME:MASTER%は
+	IF CFLAG:睡眠
+		PRINTFORMW 無防備に眠っている%CONDS("間柄")%の、剥き出しの股間にスマホを近づけた。
 	ELSE
-		PRINTFORMW �ڂ̑O�ɎN����Ă���A%CALLNAME:TARGET%�̔����o���̌ҊԂɃX�}�z���߂Â����B
+		PRINTFORMW 目の前に晒されている、%CALLNAME:TARGET%の剥き出しの股間にスマホを近づけた。
 	ENDIF
 	CALL PHOTO_PUSSY
 
-CASE "�B���B�莸�s"
-	PRINTFORMW %CALLNAME:MASTER%��%CALLNAME:TARGET%�Ɍ����āA��������ƃX�}�z���\�����B
-	PRINTFORMW �c�c%CALLNAME:TARGET%���B�e���O�ɂ�����ɋC�Â����I
-	IF TALENT:���R�I
-		STR:�ʐ^ += "�{���I��ɂ��Ă���"
-	ELSEIF TALENT:�p���炢 || TALENT:���C
-		STR:�ʐ^ += "����ĂĎ�Ŋ���B�����Ƃ��Ă���"
-	ELSEIF TALENT:�z�C || TALENT:�ڗ���������
-		STR:�ʐ^ += "�Ί�Ńs�[�X�����Ă���"
-	ELSEIF TALENT:����R����
-		STR:�ʐ^ += "����Ƃ�Ƃ���������Ă���"
+CASE "隠し撮り失敗"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に向けて、こっそりとスマホを構えた。
+	PRINTFORMW ……%CALLNAME:TARGET%が撮影直前にこちらに気づいた！
+	IF TALENT:反抗的
+		STR:写真 += "怒りを露わにしている"
+	ELSEIF TALENT:恥じらい || TALENT:内気
+		STR:写真 += "あわてて手で顔を隠そうとしている"
+	ELSEIF TALENT:陽気 || TALENT:目立ちたがり
+		STR:写真 += "笑顔でピースをしている"
+	ELSEIF TALENT:感情乏しい
+		STR:写真 += "きょとんとした顔をしている"
 	ELSE
-		STR:�ʐ^ += @"%TEXTR("���ꂽ�悤�ɏ΂��Ă���/�ʐH������悤�ȕ\������Ă���")%"
+		STR:写真 += @"%TEXTR("呆れたように笑っている/面食らったような表情をしている")%"
 	ENDIF
-	;�����Ɩ��O
-	STR:�ʐ^ += @"%PHOTO_COSTUME(TARGET)%%CALLNAME:TARGET%"
-CASE "�|�[�Y�B�e"
+	;服装と名前
+	STR:写真 += @"%PHOTO_COSTUME(TARGET)%%CALLNAME:TARGET%"
+CASE "ポーズ撮影"
 	CALL PHOTO_POSING
 CASEELSE
-	;�p���c�`�F�b�N�n�ȊO�̐Q�Ă鎞�͐Q��𒸂��܂�
-	IF CFLAG:����
-		PRINTFORMW %CALLNAME:MASTER%�͖��h���ɖ����Ă���%CALLNAME:TARGET%�ɃX�}�z���������B
-		IF PREVEX("�����ː�")
-			STR:�ʐ^ += @"���̒[���琸�t�𐂂炵�Ȃ��疰���Ă���%CALLNAME:TARGET%"
-		ELSEIF EXP_GAIN("�������o��")
-			STR:�ʐ^ += @"%TEXTR("�킸���ɖj���g�������Ȃ���/���ӎ��ɖѕz�̒[�����肵�߂Ȃ���/���߂𗐂��ꂽ�܂�")%�����Ă���%CALLNAME:TARGET%"
-		ELSEIF CONDS("���O�s��") == "���������"
-			STR:�ʐ^ += @"���Ȃ��̐��t%TEXTR("�Ŕ�������/���ׂ��Ƃ�ƕt����")%�Ă���%CALLNAME:TARGET%�̐Q��"
+	;パンツチェック系以外の寝てる時は寝顔を頂きます
+	IF CFLAG:睡眠
+		PRINTFORMW %CALLNAME:MASTER%は無防備に眠っている%CALLNAME:TARGET%にスマホを向けた。
+		IF PREVEX("口内射精")
+			STR:写真 += @"口の端から精液を垂らしながら眠っている%CALLNAME:TARGET%"
+		ELSEIF EXP_GAIN("睡眠姦経験")
+			STR:写真 += @"%TEXTR("わずかに頬を紅潮させながら/無意識に毛布の端を握りしめながら/着衣を乱されたまま")%眠っている%CALLNAME:TARGET%"
+		ELSEIF CONDS("直前行動") == "睡眠姦顔射"
+			STR:写真 += @"あなたの精液%TEXTR("で白く汚れ/がべっとりと付着し")%ている%CALLNAME:TARGET%の寝顔"
 		ELSE
-			IF COND("�N������")
-				STR:�ʐ^ += "���������Ђ��߂Ă���"
+			IF COND("起きそう")
+				STR:写真 += "少し眉をひそめている"
 			ELSE
-				STR:�ʐ^ += @"%TEXTR("���炩��/�K��������/���炵��")%"
+				STR:写真 += @"%TEXTR("安らかな/幸せそうな/可愛らしい")%"
 			ENDIF
-			STR:�ʐ^ += @"%CALLNAME:TARGET%�̐Q��"
+			STR:写真 += @"%CALLNAME:TARGET%の寝顔"
 		ENDIF
-	;�������畁�ʂ̎ʐ^
+	;ここから普通の写真
 	ELSE
-		PRINTFORMW %CALLNAME:MASTER%��%CALLNAME:TARGET%�Ɍ����āA��������ƃX�}�z���\�����B
-		;�ŏ��̈��A�̎�
-		IF DEVENT("����䎌") == 0
-			STR:�ʐ^ += "���ȏЉ�����Ă���"
-		;�Ƃ�Ă�
-		ELSEIF CONDS("���O�s��") == "�Â����t"
-			IF TALENT:����
-				STR:�ʐ^ += @"%TEXTR("�����p�������ŐԂ��Ȃ��Ă���/�炪�ɂ₯�Ă��܂��Ă���/�����Ƃ�Ƃ��Ă���")%"
+		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に向けて、こっそりとスマホを構えた。
+		;最初の挨拶の時
+		IF DEVENT("初回台詞") == 0
+			STR:写真 += "自己紹介をしている"
+		;照れてる
+		ELSEIF CONDS("直前行動") == "甘い言葉"
+			IF TALENT:恋慕
+				STR:写真 += @"%TEXTR("嬉し恥ずかしで赤くなっている/顔がにやけてしまっている/うっとりとしている")%"
 			ELSE
-				STR:�ʐ^ += @"%TEXTR("�������h���Ă���/�Ƃ�Ę낢�Ă���/���X�ł��Ȃ������Ȋ�����Ă���")%"
+				STR:写真 += @"%TEXTR("少し動揺している/照れて俯いている/満更でもなさそうな顔をしている")%"
 			ENDIF
-		;�F�X�����Ă���
-		ELSEIF CONDS("���O�s��") == "����������"
-			STR:�ʐ^ += "�w������"
-			IF STRCOUNTS(CSTR:SHOP_BUY����, "�R���h�[��") && (TALENT:�D�F || TALENT:����) && RANDIF(STRCOUNTS(CSTR:SHOP_BUY����, "�o�C�u"), 1)
-				STR:�ʐ^ += "�S�������ɂ��킦�Ă���������߂Ă���"
-			ELSEIF STRCOUNTS(CSTR:SHOP_BUY����, "�o�C�u")
-				IF ABL:�}�]���C >= 3 && STRCOUNTS(CSTR:SHOP_BUY����, "�ɑ�", "�r�^", "�n�^") && RAND:2
-					STR:�ʐ^ +=  "�����ȑ傫���̃o�C�u�����߂Ȃ���j���g�������Ă���"
-				ELSEIF (TALENT:�D�F || TALENT:����) && RAND:2
-					STR:�ʐ^ += "�o�C�u�ɐ�𔇂킹��悤�Ȏd���ł�����𒧔����Ă���"
+		;色々買ってきた
+		ELSEIF CONDS("直前行動") == "買い物する"
+			STR:写真 += "購入した"
+			IF STRCOUNTS(CSTR:SHOP_BUY履歴, "コンドーム") && (TALENT:好色 || TALENT:淫乱) && RANDIF(STRCOUNTS(CSTR:SHOP_BUY履歴, "バイブ"), 1)
+				STR:写真 += "ゴムを口にくわえてこちらを見つめている"
+			ELSEIF STRCOUNTS(CSTR:SHOP_BUY履歴, "バイブ")
+				IF ABL:マゾっ気 >= 3 && STRCOUNTS(CSTR:SHOP_BUY履歴, "極太", "腕型", "馬型") && RAND:2
+					STR:写真 +=  "凶悪な大きさのバイブを見つめながら頬を紅潮させている"
+				ELSEIF (TALENT:好色 || TALENT:淫乱) && RAND:2
+					STR:写真 += "バイブに舌を這わせるような仕草でこちらを挑発している"
 				ELSE
-					STR:�ʐ^ += @"�o�C�u��%TEXTR("�w�ŕ���/�����[���ɒ���/�����グ�Ċώ@��")%�Ă���"
+					STR:写真 += @"バイブを%TEXTR("指で撫で/興味深げに眺め/持ち上げて観察し")%ている"
 				ENDIF
 			ELSE
-				STR:�ʐ^ += "���i�������[���ɒ��߂Ă���"
+				STR:写真 += "商品を興味深げに眺めている"
 			ENDIF
-		;����
-		ELSEIF CFLAG:�Q�N��
-			IF TALENT:�e�� && RAND:3 == 0
-				STR:�ʐ^ += "�傫���L�т����Ȃ��猇�L�����Ă���"
-			ELSEIF TALENT:�C�i && RAND:3 == 0
-				STR:�ʐ^ += "���Ɏ�𓖂ĂČ��L�����Ă���"
+		;眠い
+		ELSEIF CFLAG:寝起き
+			IF TALENT:粗野 && RAND:3 == 0
+				STR:写真 += "大きく伸びをしながら欠伸をしている"
+			ELSEIF TALENT:気品 && RAND:3 == 0
+				STR:写真 += "口に手を当てて欠伸をしている"
 			ELSE
-				STR:�ʐ^ += @"%TEXTR("�N�����΂���łځ[����/�܂��������Ȋ��/�C���邰�ȕ\���")%���Ă���"
+				STR:写真 += @"%TEXTR("起きたばかりでぼーっと/まだ眠そうな顔を/気だるげな表情を")%している"
 			ENDIF
-		;�����I
-		ELSEIF COND("������") && (COND("�����u���B�e�\") || CFLAG:PREV_DAILYCATE == 6 || RAND:3 == 0)
-			IF COND("�u������") && COND("�����u���B�e�\")
-				;����������
+		;暑い！
+		ELSEIF COND("汗かき") && (COND("透けブラ撮影可能") || CFLAG:PREV_DAILYCATE == 6 || RAND:3 == 0)
+			IF COND("ブラ透け") && COND("透けブラ撮影可能")
+				;性処理直後
 				SIF CFLAG:PREV_DAILYCATE == 6
-					STR:�ʐ^ += @"%TEXTR("�������Ă�/��d���I���ğ���")%"
-				IF EQUIP:�u�� && CHECK_BRA("����I�o") == 0
-					STR:�ʐ^ += @"����%BRA(TARGET)%�������Č����Ă���"
+					STR:写真 += @"%TEXTR("かきたての/一仕事終えて滲んだ")%"
+				IF EQUIP:ブラ && CHECK_BRA("乳首露出") == 0
+					STR:写真 += @"汗で%BRA(TARGET)%が透けて見えている"
 				ELSE
-					;���񂪘I�o���Ă���u��
-					IF EQUIP:�u��
-						STR:�ʐ^ += @"����%BRA(TARGET)%��"
+					;乳首が露出しているブラ
+					IF EQUIP:ブラ
+						STR:写真 += @"汗で%BRA(TARGET)%と"
 					ELSE
-						STR:�ʐ^ += "����"
+						STR:写真 += "汗で"
 					ENDIF
-					IF TALENT:�j�v���s�A�X && RAND:2
-						STR:�ʐ^ += @"%TEXTR("�s�A�X���P��/�s�A�X�ŏ���ꂽ")%����"
-					ELSEIF COND("������") && RAND:2
-						STR:�ʐ^ += @"%TEXTR("���h��/�傫��")%����"
-					ELSEIF COND("������")
-						STR:�ʐ^ += @"%TEXTR("�傫�߂�/��債��/���h��")%����"
+					IF TALENT:ニプルピアス && RAND:2
+						STR:写真 += @"%TEXTR("ピアスが輝く/ピアスで飾られた")%乳首"
+					ELSEIF COND("巨乳輪") && RAND:2
+						STR:写真 += @"%TEXTR("立派な/大きな")%乳輪"
+					ELSEIF COND("乳首肥大")
+						STR:写真 += @"%TEXTR("大きめの/肥大した/立派な")%乳首"
 					ELSE
-						STR:�ʐ^ += "����"
+						STR:写真 += "乳首"
 					ENDIF
-					STR:�ʐ^ += "����������Ɠ����Ă���"
+					STR:写真 += "がうっすらと透けている"
 				ENDIF
 			ELSE
-				;����������
+				;性処理直後
 				SIF CFLAG:PREV_DAILYCATE == 6
-					STR:�ʐ^ += @"%TEXTR("�����������΂����/��d���I����/�g�ȉ^���ɗ�񂾒����")%"
-				IF COND("������")
-					STR:�ʐ^ += "�����Ƃ�Ɗ��������Ă���"
+					STR:写真 += @"%TEXTR("性処理したばかりで/一仕事終えて/Ｈな運動に励んだ直後で")%"
+				IF COND("汗だく")
+					STR:写真 += "じっとりと汗をかいている"
 				ELSE
-					STR:�ʐ^ += "�������΂�ł���"
+					STR:写真 += "少し汗ばんでいる"
 				ENDIF
 			ENDIF
-		;�V�����[�łق��ق�
-		ELSEIF COND("�����C���")
-			STR:�ʐ^ += @"�����C����%TEXTR("���������Ƃ�ƔG��Ă���/�炪�ق�̂�Ԃ�/�����ς�Ƃ����\������Ă���")%"
-		;�|����
-		ELSEIF CHECK_BRA("�}�C�N��") && EQUIP:�� == 0 && COND("������") && RAND:4 == 0
-			STR:�ʐ^ += "����������u������傫�ȓ��ւ��͂ݏo���Ă��܂��Ă���"
-		;���~�j���ƃp���`�����B���
-		ELSEIF CHECK_SKIRT("���~�j") && CHECK_CLO("�p���c�I�o") && CONDS("���O�s��") != "�~�j�X�J�p���`��" && RAND:3 == 0
-			STR:�ʐ^ += @"%SKIRT(TARGET, "��")%���Z������"
-			IF EQUIP:�p���c == 0 || CHECK_PANTIES("�O�\��") || CHECK_PANTIES("�}�C�N��")
-				STR:�ʐ^ += "���K���`������"
-				CALL SETFLAG_DAILY, "�p���c���ڂ낰�m�F"
+		;シャワーでほかほか
+		ELSEIF COND("お風呂上り")
+			STR:写真 += @"お風呂上りで%TEXTR("髪がしっとりと濡れている/顔がほんのり赤い/さっぱりとした表情をしている")%"
+		;ポロリ
+		ELSEIF CHECK_BRA("マイクロ") && EQUIP:服 == 0 && COND("巨乳輪") && RAND:4 == 0
+			STR:写真 += "小さすぎるブラから大きな乳輪がはみ出してしまっている"
+		;超ミニだとパンチラも撮れる
+		ELSEIF CHECK_SKIRT("超ミニ") && CHECK_CLO("パンツ露出") && CONDS("直前行動") != "ミニスカパンチラ" && RAND:3 == 0
+			STR:写真 += @"%SKIRT(TARGET, "略")%が短すぎて"
+			IF EQUIP:パンツ == 0 || CHECK_PANTIES("前貼り") || CHECK_PANTIES("マイクロ")
+				STR:写真 += "お尻がチラリと"
+				CALL SETFLAG_DAILY, "パンツおぼろげ確認"
 			ELSE
-				STR:�ʐ^ += @"%PANTIES(TARGET)%��"
-				STR:�⑫ += "_�p���c"
+				STR:写真 += @"%PANTIES(TARGET)%が"
+				STR:補足 += "_パンツ"
 			ENDIF
-			STR:�ʐ^ += "�����Ă��܂��Ă���"
-		;�����͋@����̂Ń����_���ŃX���[
-		ELSEIF CFLAG:���� && RAND:3 == 0
+			STR:写真 += "見えてしまっている"
+		;お茶は機会多いのでランダムでスルー
+		ELSEIF CFLAG:お茶 && RAND:3 == 0
 			IF RAND:2
-				STR:�ʐ^ += @"�����َq%TEXTR("�Ɏ��L�΂��Ă���/��H�ׂĂ���")%"
+				STR:写真 += @"お茶菓子%TEXTR("に手を伸ばしている/を食べている")%"
 			ELSE
-				STR:�ʐ^ += @"���ۂ�%TEXTR("��Ў�Ɏ����Ă���/��T��ɒu���Ă���/�Ɍ���t���悤�Ƃ��Ă���")%"
+				STR:写真 += @"湯呑み%TEXTR("を片手に持っている/を傍らに置いている/に口を付けようとしている")%"
 			ENDIF
-		;����ς炢
-		ELSEIF STATE("����", TARGET) && RAND:2
-			STR:�ʐ^ += @"������%TEXTR("�ڂ��Ƃ��Ƃ��Ă���/�炪�Ԃ��Ȃ��Ă���")%"
-		;���������Ƃ����u�z�Ƃ�
-		ELSEIF PLACE("�o��")
-			IF TALENT:�D�F || TALENT:������ || TALENT:�p����
-				STR:�ʐ^ += "�y�������ɔ��΂�ł���"
-			ELSEIF TALENT:����R���� || TALENT:�D��S
-				STR:�ʐ^ += "����낫���Ƃ���������񂵂Ă���"
+		;よっぱらい
+		ELSEIF STATE("酔い", TARGET) && RAND:2
+			STR:写真 += @"酔って%TEXTR("目がとろんとしている/顔が赤くなっている")%"
+		;ヤリ部屋とかラブホとか
+		ELSEIF PLACE("出先")
+			IF TALENT:好色 || TALENT:小悪魔 || TALENT:恥薄い
+				STR:写真 += "楽しそうに微笑んでいる"
+			ELSEIF TALENT:感情乏しい || TALENT:好奇心
+				STR:写真 += "きょろきょろとあたりを見回している"
 			ELSE
-				STR:�ʐ^ += "�����ْ����Ă���悤�Ɍ�����"
+				STR:写真 += "少し緊張しているように見える"
 			ENDIF
-		;�������ł������
-		ELSEIF PLACE("����")
+		;おうちでゆっくり
+		ELSEIF PLACE("自宅")
 			SELECTCASE NO:TARGET
-			;�Ǝ�������l�����B���ɂ����邩�ȁH
+			;家事をする人たち。他にもいるかな？
 			CASE 1, 20
-				STR:�ʐ^ += @"%TEXTR("�Z������������Ă���/�e�L�p�L�ƉƎ������Ȃ��Ă���")%"
+				STR:写真 += @"%TEXTR("忙しく動き回っている/テキパキと家事をこなしている")%"
 			CASEELSE
-				STR:�ʐ^ += @"%TEXTR("�������芰���ł���/�����茳�����߂Ă���/�����C�𔲂��Ă���悤�Ɍ�����")%"
+				STR:写真 += @"%TEXTR("すっかり寛いでいる/何やら手元を見つめている/少し気を抜いているように見える")%"
 			ENDSELECT
-		;�����Ń_���_��
-		ELSEIF PLACE("����")
-			STR:�ʐ^ += @"%TEXTR("�����őʕق��Ă���/�����茳�����߂Ă���/�ɂԂ������Ă���")%"
+		;部室でダラダラ
+		ELSEIF PLACE("部室")
+			STR:写真 += @"%TEXTR("部室で駄弁っている/何やら手元を見つめている/暇つぶしをしている")%"
 		ELSE
 			
 		ENDIF
-		;�����Ɩ��O
-		STR:�ʐ^ += @"%PHOTO_COSTUME(TARGET)%%CALLNAME:TARGET%"
+		;服装と名前
+		STR:写真 += @"%PHOTO_COSTUME(TARGET)%%CALLNAME:TARGET%"
 	ENDIF
 ENDSELECT
 
-STR:�⑫ += @"_%CALLNAME:TARGET%"
-SIF CHECK_CLO("�����p")
-	STR:�⑫ += "_����"
-SIF CHECK_CLO("�̑����p")
-	STR:�⑫ += "_�̑���"
-SIF CHECK_CLO("�w�����p")
-	STR:�⑫ += "_�w����"
-SIF CFLAG:����
-	STR:�⑫ += "_������"
+STR:補足 += @"_%CALLNAME:TARGET%"
+SIF CHECK_CLO("水着姿")
+	STR:補足 += "_水着"
+SIF CHECK_CLO("体操服姿")
+	STR:補足 += "_体操服"
+SIF CHECK_CLO("学生服姿")
+	STR:補足 += "_学生服"
+SIF CFLAG:睡眠
+	STR:補足 += "_睡眠中"
 
-;���t�̋L�^
-STR:�⑫ += @"_���t%TOSTR(DAY*10 + TIME)%"
+;日付の記録
+STR:補足 += @"_日付%TOSTR(DAY*10 + TIME)%"
 
 
-;�N���Ă���ꍇ�̎B�e���s����
-IF CFLAG:���� == 0
+;起きている場合の撮影失敗判定
+IF CFLAG:睡眠 == 0
 	SELECTCASE DAILYCOMNAME(5)
-	CASE "�X�J�[�g�̉����B�e"
-		IF CHECK_CLO("�u�I�o")
-			SIF COND("���ӁF�g�Ȏʐ^") == 0
-				STR:����C�x���g�� = �B�e���s
+	CASE "スカートの下を撮影"
+		IF CHECK_CLO("Ｖ露出")
+			SIF COND("合意：Ｈな写真") == 0
+				STR:日常イベント名 = 撮影失敗
 		ELSE
-			SIF COND("���ӁF�����ʐ^") == 0
-				STR:����C�x���g�� = �B�e���s
+			SIF COND("合意：下着写真") == 0
+				STR:日常イベント名 = 撮影失敗
 		ENDIF
-	CASE "�ҊԂ��B�e����"
-		SIF COND("���ӁF�����ʐ^") == 0 && TALENT:�p���� == 0
-			STR:����C�x���g�� = �B�e���s
-	CASE "�p���c��ڎʂ���"
-		SIF COND("���ӁF�����ʐ^") == 0
-			STR:����C�x���g�� = �B�e���s
-	CASE "�A�\�R��ڎʂ���", "�A�i����ڎʂ���"
-		SIF COND("���ӁF�g�Ȏʐ^") == 0
-			STR:����C�x���g�� = �B�e���s
+	CASE "股間を撮影する"
+		SIF COND("合意：下着写真") == 0 && TALENT:恥薄い == 0
+			STR:日常イベント名 = 撮影失敗
+	CASE "パンツを接写する"
+		SIF COND("合意：下着写真") == 0
+			STR:日常イベント名 = 撮影失敗
+	CASE "アソコを接写する", "アナルを接写する"
+		SIF COND("合意：Ｈな写真") == 0
+			STR:日常イベント名 = 撮影失敗
 	ENDSELECT
 ENDIF
 
-;�B�e���s�Ȃ炱���܂�
-SIF STR:����C�x���g�� == "�B�e���s"
+;撮影失敗ならここまで
+SIF STR:日常イベント名 == "撮影失敗"
 	RETURN 0
 
-;�⑫����Ńt���O����
-SIF STRCOUNT(STR:�⑫, "�p���c")
-	CALL SETFLAG_DAILY, "�p���c�`��m�F"
+;補足次第でフラグ建て
+SIF STRCOUNT(STR:補足, "パンツ")
+	CALL SETFLAG_DAILY, "パンツ形状確認"
 
-SAVESTR:PREV_PHOTO += @"\/%STR:����C�x���g��%"
+SAVESTR:PREV_PHOTO += @"\/%STR:日常イベント名%"
 
-SAVESTR:�ʐ^ = %STR:�ʐ^%
+SAVESTR:写真 = %STR:写真%
 
-SIF TFLAG:�B�e�����܂� == 0
-	CALL SAVE_PHOTO, @"%STR:�ʐ^%%STR:�⑫%"
+SIF TFLAG:撮影おしまい == 0
+	CALL SAVE_PHOTO, @"%STR:写真%%STR:補足%"
 
-;����ɋC�Â���Ă��Ȃ��ꍇ�ɂ͎��Ԍo�߂��N���Ȃ�
-IF CFLAG:���� || STR:����C�x���g�� == "�X�}�z�Ŏʐ^�B�e"
-	PRINTFORML �߯
-	PRINTFORMW %CALLNAME:MASTER%�́w%SAVESTR:�ʐ^%�x���ʐ^�Ɏ��߂��B
-	;�����ɂ͎c��
-	CSTR:DAILYCOM���� = %CSTR:DAILYCOM����%��%STR:����C�x���g�I��%\/
-	STR:����C�x���g�� = 
+;相手に気づかれていない場合には時間経過が起きない
+IF CFLAG:睡眠 || STR:日常イベント名 == "スマホで写真撮影"
+	PRINTFORML ﾋﾟｯ
+	PRINTFORMW %CALLNAME:MASTER%は『%SAVESTR:写真%』を写真に収めた。
+	;履歴には残す
+	CSTR:DAILYCOM履歴 = %CSTR:DAILYCOM履歴%＠%STR:日常イベント選択名%\/
+	STR:日常イベント名 = 
 ENDIF
 
 
 ;-------------------------------------------------
-;�ʐ^�B�e��ɉ����C�x���g���N���������ꍇ�͂����ɏ����Ă��ǂ�
+;写真撮影後に何かイベントを起こしたい場合はここに書いても良い
 ;-------------------------------------------------
 @AFTERMESSAGE_DAILY5
-SELECTCASE STR:����C�x���g��
-CASE "�B�e���s"
-	PRINTFORM �c�c%CALLNAME:TARGET%��
+SELECTCASE STR:日常イベント名
+CASE "撮影失敗"
+	PRINTFORM ……%CALLNAME:TARGET%は
 	SELECTCASE DAILYCOMNAME(5)
-	CASE "�X�J�[�g�̉����B�e"
-		IF CHECK_SKIRT("�X�J�[�g")
-			PRINTFORM �X�J�[�g�̉���
-		ELSEIF CHECK_CLO("�u�I�o")
-			PRINTFORM �厖�ȏ���
+	CASE "スカートの下を撮影"
+		IF CHECK_SKIRT("スカート")
+			PRINTFORM スカートの下を
+		ELSEIF CHECK_CLO("Ｖ露出")
+			PRINTFORM 大事な所を
 		ELSE
-			PRINTFORM ���̏�ԂŎʐ^��
+			PRINTFORM この状態で写真を
 		ENDIF
-	CASE "�ҊԂ��B�e����"
-		SIF CHECK_CLO("�A�E�^�[�I�o") || CHECK_CLO("�{�f�B�X�[�c�I�o") || EQUIP:�p���c
-			PRINTFORM %CLO("�Ҋ�")%�z���Ƃ͂����A
-		PRINTFORM �ҊԂ��A�b�v��
-	CASE "�p���c��ڎʂ���"
-		PRINTFORM �������A�b�v��
-	CASE "�A�i����ڎʂ���"
-		PRINTFORM �����A�b�v��
-	CASE "�A�\�R��ڎʂ���"
-		PRINTFORM �厖�ȏ����A�b�v��
+	CASE "股間を撮影する"
+		SIF CHECK_CLO("アウター露出") || CHECK_CLO("ボディスーツ露出") || EQUIP:パンツ
+			PRINTFORM %CLO("股間")%越しとはいえ、
+		PRINTFORM 股間をアップで
+	CASE "パンツを接写する"
+		PRINTFORM 下着をアップで
+	CASE "アナルを接写する"
+		PRINTFORM 肛門をアップで
+	CASE "アソコを接写する"
+		PRINTFORM 大事な所をアップで
 	ENDSELECT
-	PRINTFORMW �B����̂ɂ͒�R������悤���B
-	PRINTFORMW %CALLNAME:MASTER%�͎ʐ^���B�邱�Ƃ��ł��Ȃ������B
-CASE "�B���B�莸�s"
-	PRINTFORML �߯
-	PRINTFORMW %CALLNAME:MASTER%�́w%SAVESTR:�ʐ^%�x���ʐ^�Ɏ��߂��I
-	;PRINTFORMW �c�c���̎��ԑт�%CALLNAME:TARGET%���B���B�肷��̂́A���������������B
-CASE "�A�\�R�̃`�������B�e"
-	PRINTFORM �ҊԂ��B���鎖���@����%CALLNAME:TARGET%��%PHOTO_SHOWING()%�_���Ă���ꏊ�Ɏw��L�΂��A
+	PRINTFORMW 撮られるのには抵抗があるようだ。
+	PRINTFORMW %CALLNAME:MASTER%は写真を撮ることができなかった。
+CASE "隠し撮り失敗"
+	PRINTFORML ﾋﾟｯ
+	PRINTFORMW %CALLNAME:MASTER%は『%SAVESTR:写真%』を写真に収めた！
+	;PRINTFORMW ……この時間帯で%CALLNAME:TARGET%を隠し撮りするのは、もう無理そうだ。
+CASE "アソコのチラ見せ撮影"
+	PRINTFORM 股間を撮られる事を察した%CALLNAME:TARGET%は%PHOTO_SHOWING()%狙われている場所に指を伸ばし、
 	SELECTCASE DAILYCOMNAME(5)
-	CASE "�ҊԂ��B�e����"
-		PRINTFORM �z�n�����炵��
-	CASE "�p���c��ڎʂ���"
-		PRINTFORM �z�n���߂�����
+	CASE "股間を撮影する"
+		PRINTFORM 布地をずらして
+	CASE "パンツを接写する"
+		PRINTFORM 布地をめくって
 	ENDSELECT
-	PRINTFORMW %TEXTS("�����")%�������Y�̑O�ɎN�����B
+	PRINTFORMW %TEXTS("割れ目")%をレンズの前に晒した。
 	PRINTL 
-	PRINTFORML �߯
-	PRINTFORMW %CALLNAME:MASTER%�́w%SAVESTR:�ʐ^%�x���ʐ^�Ɏ��߂��I
-CASE "�A�i���̌������B�e"
-	IF COND("�g�n�݁F�`�g��") && STRCOUNT(STR:�⑫, "���")
-		PRINTFORM ���K�̌����B���鎖���@����%CALLNAME:TARGET%��%PHOTO_SHOWING()%�����ǂ��ł���
-		SELECTCASE COND("�g�n�݁F�`�g��")
+	PRINTFORML ﾋﾟｯ
+	PRINTFORMW %CALLNAME:MASTER%は『%SAVESTR:写真%』を写真に収めた！
+CASE "アナルの見せつけ撮影"
+	IF COND("身嗜み：Ａ拡張") && STRCOUNT(STR:補足, "肛門")
+		PRINTFORM お尻の穴を撮られる事を察した%CALLNAME:TARGET%は%PHOTO_SHOWING()%肛門を塞いでいる
+		SELECTCASE COND("身嗜み：Ａ拡張")
 		CASE IS >= 4
-			PRINTFORM ����̃A�i���v���O���Y������
+			PRINTFORM 特大のアナルプラグをズルリと
 		CASE 3
-			PRINTFORM �ɑ��̃A�i���v���O���Y������
+			PRINTFORM 極太のアナルプラグをズルリと
 		CASEELSE
-			PRINTFORM �A�i���v���O���k������
+			PRINTFORM アナルプラグをヌルリと
 		ENDSELECT
-		PRINTFORMW ���������A%TEXTR("�ɂ�/�o�ɂ���/�J�����܂܂�")%�A�i����%CALLNAME:MASTER%�Ɍ��������B
+		PRINTFORMW 引き抜き、%TEXTR("緩んだ/弛緩した/開いたままの")%アナルを%CALLNAME:MASTER%に見せつけた。
 	ELSE
-		PRINTFORM ���K�̌����B���鎖���@����%CALLNAME:TARGET%��%PHOTO_SHOWING()%�\���Ɏ��L�΂��A
-		PRINTFORMW %TEXTR("�O�C����/�O�b��/���ɂ��c����")%�����L�������������Y�̑O�ɎN�����B
+		PRINTFORM お尻の穴を撮られる事を察した%CALLNAME:TARGET%は%PHOTO_SHOWING()%臀部に手を伸ばし、
+		PRINTFORMW %TEXTR("グイっと/グッと/ぐにぃ…っと")%押し広げて肛門をレンズの前に晒した。
 	ENDIF
 	PRINTL 
-	PRINTFORML �߯
-	PRINTFORMW %CALLNAME:MASTER%�́w%SAVESTR:�ʐ^%�x���ʐ^�Ɏ��߂��I
-CASE "�A�\�R�̌������B�e"
-	IF COND("�g�n�݁F�u�g��") && STRCOUNT(STR:�⑫, "�S")
-		PRINTFORM �ҊԂ��B���鎖���@����%CALLNAME:TARGET%��%PHOTO_SHOWING()%�S�𖄂߂Ă���
-		SELECTCASE COND("�g�n�݁F�u�g��")
+	PRINTFORML ﾋﾟｯ
+	PRINTFORMW %CALLNAME:MASTER%は『%SAVESTR:写真%』を写真に収めた！
+CASE "アソコの見せつけ撮影"
+	IF COND("身嗜み：Ｖ拡張") && STRCOUNT(STR:補足, "膣")
+		PRINTFORM 股間を撮られる事を察した%CALLNAME:TARGET%は%PHOTO_SHOWING()%膣を埋めている
+		SELECTCASE COND("身嗜み：Ｖ拡張")
 		CASE IS >= 4
-			PRINTFORM %TEXTR("�o�J�ł����ߋ�/�r���炢�̑����̂���o�C�u/20cm���̋ɑ��o�C�u")%���Y������
+			PRINTFORM %TEXTR("バカでかい玩具/腕ぐらいの太さのあるバイブ/20cm超の極太バイブ")%をズルリと
 		CASE 3
-			PRINTFORM %TEXTR("�g���p�̊ߋ�/�ɑ��̃o�C�u/20cm��͂���ɑ��o�C�u")%���Y������
+			PRINTFORM %TEXTR("拡張用の玩具/極太のバイブ/20cm弱はある極太バイブ")%をズルリと
 		CASE 2
-			PRINTFORM %TEXTR("������͂����ߋ�/�傫�ȃo�C�u/15cm���̑�^�o�C�u")%���k������
+			PRINTFORM %TEXTR("巨根を模した玩具/大きなバイブ/15cm程の大型バイブ")%をヌルリと
 		CASEELSE
-			PRINTFORM %TEXTR("�g���p�̊ߋ�/���ϓI�Ȓj����قǂ̃T�C�Y������o�C�u/�o�C�u")%���k������
+			PRINTFORM %TEXTR("拡張用の玩具/平均的な男性器ほどのサイズがあるバイブ/バイブ")%をヌルリと
 		ENDSELECT
-		PRINTFORM ���������A%TEXTR("���܂��Ă������t/�����~�߂��Ă������t/�S�x�̍������t")%��%TEXTR("���炷/�낷/�R�炷")%
-		PRINTFORMW %TEXTR("�ɂ�/�o�ɂ���/�J�����܂܂�")%�S����%CALLNAME:MASTER%�Ɍ��������B
+		PRINTFORM 引き抜き、%TEXTR("溜まっていた愛液/堰き止められていた愛液/粘度の高い愛液")%を%TEXTR("垂らす/零す/漏らす")%
+		PRINTFORMW %TEXTR("緩んだ/弛緩した/開いたままの")%膣口を%CALLNAME:MASTER%に見せつけた。
 	ELSE
-		PRINTFORM �ҊԂ��B���鎖���@����%CALLNAME:TARGET%��%PHOTO_SHOWING()%%TEXTS("�����")%�Ɏw��L�΂��A
-		PRINTFORMW %TEXTR("�O��������/�N�j�b��/���ɂ��c����")%�����L���ē����̔S���������Y�̑O�ɎN�����B
+		PRINTFORM 股間を撮られる事を察した%CALLNAME:TARGET%は%PHOTO_SHOWING()%%TEXTS("割れ目")%に指を伸ばし、
+		PRINTFORMW %TEXTR("外側の襞を/クニッと/ぐにぃ…っと")%押し広げて内部の粘膜をレンズの前に晒した。
 	ENDIF
 	PRINTL 
-	PRINTFORML �߯
-	PRINTFORMW %CALLNAME:MASTER%�́w%SAVESTR:�ʐ^%�x���ʐ^�Ɏ��߂��I
-CASE "�|�[�Y�B�e"
-	IF TFLAG:�B�e�����܂�
-		PRINTFORMW %CALLNAME:TARGET%�́A���ǂ������q�Łw�����܂��x�̃W�F�X�`���[������Ă���c�c�B�e��͂��J���炵���B
-		CFLAG:�|�[�Y�B�e�I�� = 1
+	PRINTFORML ﾋﾟｯ
+	PRINTFORMW %CALLNAME:MASTER%は『%SAVESTR:写真%』を写真に収めた！
+CASE "ポーズ撮影"
+	IF TFLAG:撮影おしまい
+		PRINTFORMW %CALLNAME:TARGET%は、おどけた調子で『おしまい』のジェスチャーを取っている……撮影会はお開きらしい。
+		CFLAG:ポーズ撮影終了 = 1
 	ELSE
-		PRINTFORML �߯
-		PRINTFORMW %CALLNAME:MASTER%�́w%SAVESTR:�ʐ^%�x���ʐ^�Ɏ��߂��B
+		PRINTFORML ﾋﾟｯ
+		PRINTFORMW %CALLNAME:MASTER%は『%SAVESTR:写真%』を写真に収めた。
 	ENDIF
 CASEELSE
-	PRINTFORML �߯
-	PRINTFORMW %CALLNAME:MASTER%�́w%SAVESTR:�ʐ^%�x���ʐ^�Ɏ��߂��B
+	PRINTFORML ﾋﾟｯ
+	PRINTFORMW %CALLNAME:MASTER%は『%SAVESTR:写真%』を写真に収めた。
 ENDSELECT
 
 

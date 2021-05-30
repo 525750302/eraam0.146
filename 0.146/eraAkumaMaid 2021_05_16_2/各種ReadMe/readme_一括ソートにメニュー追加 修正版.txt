@@ -1,28 +1,28 @@
-
-era�����Ń��C�h ver0.059�p �ꊇ�\�[�g�Ƀ��j���[�ǉ� �C���� readme
-
-
-[555]�R���t�B�O �� [40] ���ёւ� �� [200]�ꊇ�\�[�g �̃��j���[�ɁA
- [ 6]  ���̑� CFLAG
- [ 7]  ���̑� ABL
- [ 8]  ���̑� EXP
- [ 9]  ���̑� TALENT
- [10]  ���̑� BASE
-���ǉ�����܂��B
-���ꂼ��ACSV�Ŗ��O���t���Ă���C�ӂ̍��ڂŃ\�[�g�ł���悤�ɂȂ�܂��B�������ACFLAG��1100�ȍ~�͏��O���܂��B
+﻿
+era悪魔でメイド ver0.059用 一括ソートにメニュー追加 修正版 readme
 
 
-
-2019/03/28�ɃA�b�v���[�h�������́A���̂܂�era�����Ń��C�hver0.059�Ŏg���̂ł���Ζ��Ȃ��Ǝv�����ǁA�Ԉ�����p�����[�^�� @SORT_CHARA2 ���Ă񂾂�h�b�y�����Ȃ����������܂܂ɂȂ��Ă��܂��s����������̂ŏ����܂����B
-�Ƃ����킯�ŏC���łł��B����ő��v�Ȃ͂��c�c
-���łɃR�����g��ǉ����܂����B
+[555]コンフィグ → [40] 並び替え → [200]一括ソート のメニューに、
+ [ 6]  その他 CFLAG
+ [ 7]  その他 ABL
+ [ 8]  その他 EXP
+ [ 9]  その他 TALENT
+ [10]  その他 BASE
+が追加されます。
+それぞれ、CSVで名前が付いている任意の項目でソートできるようになります。ただし、CFLAGの1100以降は除外します。
 
 
 
-CONFIGURE.ERB �̃��C�Z���X�F
-ver0.059�̓����t�@�C���̓��e��1�����ǉ����������Ȃ̂ŁA����ver0.059�Ɋ܂܂�� CONFIGURE.ERB ���g���̂Ɠ����ł��B
+2019/03/28にアップロードした物は、そのままera悪魔でメイドver0.059で使うのであれば問題ないと思うけど、間違ったパラメータで @SORT_CHARA2 を呼んだらドッペルあなたが消えたままになってしまう不具合があったので消しました。
+というわけで修正版です。これで大丈夫なはず……
+ついでにコメントを追加しました。
 
-CONFIGURE_SORT.ERB �̃��C�Z���X�F
-����ver0.059�Ɋ܂܂�� @CHARA_SORT �� @SORT_CHARA ���R�s�y���ĉ��ς�������������܂����ASYSTEM_DEBUG.ERB���Q�l�ɂ�������������܂����A�uera�����Ń��C�h�ɓ��L���Ă킯�ł͂Ȃ��ėp�I�ȏ�������ȁv�Ƃ�������������܂��B
-�R�s�y���������̃��C�Z���X�́A����ver0.059�Ɋ܂܂��t�@�C���̈ꕔ�����g���̂Ɠ����B
-�R�s�y�ł͂Ȃ����L���Ă킯�ł��Ȃ��ėp�I�ȏ����Ɋւ��ẮA���̃p�b�`�P�ƂŃ_�E�����[�h�������e���痬�p���đ��̃o���A���g�Ŏg���Ă������񂶂�Ȃ��ł����ˁB���p���l�����邩�ǂ����͒m��񂯂ǁB
+
+
+CONFIGURE.ERB のライセンス：
+ver0.059の同名ファイルの内容に1文字追加しただけなので、元のver0.059に含まれる CONFIGURE.ERB を使うのと同じです。
+
+CONFIGURE_SORT.ERB のライセンス：
+元のver0.059に含まれる @CHARA_SORT と @SORT_CHARA をコピペして改変した部分もありますし、SYSTEM_DEBUG.ERBを参考にした部分もありますし、「era悪魔でメイドに特有ってわけではない汎用的な処理だよな」という部分もあります。
+コピペした部分のライセンスは、元のver0.059に含まれるファイルの一部分を使うのと同じ。
+コピペではなく特有ってわけでもない汎用的な処理に関しては、このパッチ単独でダウンロードした内容から流用して他のバリアントで使ってもいいんじゃないですかね。利用価値があるかどうかは知らんけど。

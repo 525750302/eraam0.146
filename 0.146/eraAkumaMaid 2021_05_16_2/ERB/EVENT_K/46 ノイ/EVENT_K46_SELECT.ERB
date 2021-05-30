@@ -1,94 +1,94 @@
+﻿;-------------------------------------------------
+;ここに記述する事で各コマンドの選択肢を増やすことができる
+;X1はキャラ番号に置換してください
 ;-------------------------------------------------
-;�����ɋL�q���鎖�Ŋe�R�}���h�̑I�����𑝂₷���Ƃ��ł���
-;X1�̓L�����ԍ��ɒu�����Ă�������
-;-------------------------------------------------
-;���肢�E����ł̑I������ǉ��B�ԍ���60�`89���g���Ă悢
+;お願い・取引での選択肢を追加。番号は60～89を使ってよい
 @WISH_K46_ADDSELECT
-;����or�j���Ɏp��ς��邨�肢
-;�m�m����̏��������̂܂܈ڐA��������
-IF CEVENT("����")
-	STR:�I���� = %STR:�I����% [60] %TEXT_LJ("����߂���", 16)% �c %CALLNAME:TARGET%�̕���߂��Ă��炢�܂�/
+;女装or男装に姿を変えるお願い
+;ノノくんの女装をそのまま移植したもの
+IF CEVENT("女装")
+	STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("服を戻して", 16)% … %CALLNAME:TARGET%の服を戻してもらいます/
 ELSE
-	STR:�I���� = %STR:�I����% [60] %TEXT_LJ("��������", 16)% �c %CALLNAME:TARGET%�ɏ������Ă��炢�܂�/
+	STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("女装して", 16)% … %CALLNAME:TARGET%に女装してもらいます/
 ENDIF
 
-SIF CEVENT("�m�C���ω�")
-	STR:�I���� = %STR:�I����% [61] %TEXT_LJ("������ς���", 16)% �c %CALLNAME:TARGET%�ƃG�b�`����Ƃ��̌�����ς��Ă��炢�܂�/
+SIF CEVENT("ノイ七変化")
+	STR:選択肢 = %STR:選択肢% [61] %TEXT_LJ("口調を変えて", 16)% … %CALLNAME:TARGET%とエッチするときの口調を変えてもらいます/
 
-;���肢�E����ő��₵���I�����̒n�̕��Ƒ䎌
+;お願い・取引で増やした選択肢の地の文と台詞
 @KOJO_WISH_K46_ADDSELECT, ARGS
 #DIMS R_SELECT
 #DIMS R_CHOICE
 
-PRINTFORMW %CALLNAME:MASTER%��%ARGS%�Ƃ��肢�����B
+PRINTFORMW %CALLNAME:MASTER%は%ARGS%とお願いした。
 PRINTL 
 SELECTCASE ARGS
-CASE "����߂���"
-	PRINTFORMW �u�ق��H �����̊��D�ŗ��Ăق����Ȃ����̂��H�v
-	PRINTFORMW �u�����B�������̓��������A��������͂��������v
+CASE "服を戻して"
+	PRINTFORMW 「ほう？ いつもの恰好で来てほしくなったのか？」
+	PRINTFORMW 「了解。今すぐはムリだが、明日からはそうするよ」
 	PRINTL 
-	PRINTFORMW %CALLNAME:TARGET%�͖�������j���̕��𒅂ĕ����ɗV�тɂ���悤�ɂȂ�܂����B
-	CALL DEL_CEVENT, "����"
+	PRINTFORMW %CALLNAME:TARGET%は明日から男物の服を着て部室に遊びにくるようになりました。
+	CALL DEL_CEVENT, "女装"
 	CALL TIMEEVENT_K46
-	;�t���O��M��ꍇ�͂���������ōs��
-CASE "��������"
-	PRINTFORMW �u�ق��A�������珗�����ė��Ăق����̂��v
-	PRINTFORMW �u����������B�c�c�΂��Ȃ�H�v
+	;フラグを弄る場合はそれもここで行う
+CASE "女装して"
+	PRINTFORMW 「ほう、明日から女装して来てほしいのか」
+	PRINTFORMW 「分かったよ。……笑うなよ？」
 	PRINTL 
-	PRINTFORMW %CALLNAME:TARGET%�͖������珗�����ĕ����ɗV�тɂ���悤�ɂȂ�܂����B
-	CALL SET_CEVENT, "����"
+	PRINTFORMW %CALLNAME:TARGET%は明日から女装して部室に遊びにくるようになりました。
+	CALL SET_CEVENT, "女装"
 	CALL TIMEEVENT_K46
-	;�t���O��M��ꍇ�͂���������ōs��
-CASE "������ς���"
-	PRINTFORMW �u��H�@������ς��Ăق������āH�v
-	PRINTFORMW �u���鎞����Ȃ�ʂɂ������c�c�ǂ�Ȋ����������񂾁H�v
-	CALL PRINT_SELECT, "����������������/�h��Œ��J��/�����ɊÂ��Ă���銴����/�c���f�����ۂ�/�����Ɠ���������", "����ς�߂�"
+	;フラグを弄る場合はそれもここで行う
+CASE "口調を変えて"
+	PRINTFORMW 「ん？　口調を変えてほしいって？」
+	PRINTFORMW 「ヤる時限定なら別にいいが……どんな感じがいいんだ？」
+	CALL PRINT_SELECT, "落ち着いた感じで/敬語で丁寧に/自分に甘えてくれる感じで/ツンデレっぽく/いつもと同じ感じで", "やっぱやめる"
 	IF RESULT == 100
-		PRINTFORMW �u��A�~�߂Ă����̂��B�킩�����v
+		PRINTFORMW 「ん、止めておくのか。わかった」
 	ELSE
-		;PRINT_SELECT�������̕������ۑ����Ȃ��̂�Y��Ă����̂ŁA������R_CHOICE�Ɉڂ��Ă���
+		;PRINT_SELECTが答えの文字列を保存しないのを忘れていたので、ここでR_CHOICEに移しておく
 		SELECTCASE RESULT
 		CASE 0
-			R_CHOICE = ����������������
+			R_CHOICE = 落ち着いた感じで
 		CASE 1
-			R_CHOICE = �h��Œ��J��
+			R_CHOICE = 敬語で丁寧に
 		CASE 2
-			R_CHOICE = �����ɊÂ��Ă���銴����
+			R_CHOICE = 自分に甘えてくれる感じで
 		CASE 3
-			R_CHOICE = �c���f�����ۂ�
+			R_CHOICE = ツンデレっぽく
 		CASE 4
-			R_CHOICE = �����Ɠ���������
+			R_CHOICE = いつもと同じ感じで
 		ENDSELECT
-		CALL DEL_CEVENT, "�����F���₩"
-		CALL DEL_CEVENT, "�����F���J"
-		CALL DEL_CEVENT, "�����F�Â����"
-		CALL DEL_CEVENT, "�����F�c���f��"
-		PRINTFORMW �u�Ȃ�قǁc�c%R_CHOICE%�Œ����Ăق������P���v
-		PRINTFORM �u���ꂶ�Ⴓ�������c�c
+		CALL DEL_CEVENT, "口調：穏やか"
+		CALL DEL_CEVENT, "口調：丁寧"
+		CALL DEL_CEVENT, "口調：甘えんぼ"
+		CALL DEL_CEVENT, "口調：ツンデレ"
+		PRINTFORMW 「なるほど……%R_CHOICE%で喋ってほしいワケだ」
+		PRINTFORM 「それじゃさっそく……
 		SELECTCASE R_CHOICE
-		CASE "����������������"
-			PRINTFORMW ����Ȋ����ł����H�v
-			PRINTFORMW �u���ꂩ��%CALLNAME:MASTER%����ƃG�b�`�Ȃ��Ƃ�����Ƃ��́A����ȕ��ɒ��邱�Ƃɂ����v
-			PRINTFORMW �u���ꂶ�Ⴀ�A���ꂩ����F�X�Ȃ��Ƃ������ĂˁA%CALLNAME:MASTER%����v
-			CALL SET_CEVENT, "�����F���₩"
-		CASE "�h��Œ��J��"
-			PRINTFORMW ���̂悤�Ȋ����ł�낵���ł��傤���v
-			PRINTFORMW �u%CALLNAME:MASTER%�l�Ɛ��I�Ȃ��Ƃ�����ꍇ�́A���̂悤�Șb�����ɂ������܂��ˁv
-			PRINTFORMW �u����ł́A���ꂩ����ς�炸���������������v
-			CALL SET_CEVENT, "�����F���J"
-		CASE "�����ɊÂ��Ă���銴����"
-			PRINTFORMW ����Ȋ����ł����c�c���ȁH�v
-			PRINTFORMW �u%CALLNAME:MASTER%\@TRUE_SEX(MASTER) == "�I�g�R" && TALENT:MASTER:�j�̖� == 0 ? ���� # �����\@�ƃG�b�`�Ȃ��Ƃ���Ƃ��́A����ȕ��ɂ���ׂ�ˁv
-			CALL PRINT_STRW, @"�u�t�t_H_�ڂ��A�L�~�̂��Ƃ���D��������A�����ς������ς����܂��Ă�_H_�v"
-			CALL SET_CEVENT, "�����F�Â����"
-		CASE "�c���f�����ۂ�"
-			PRINTFORMW ����Ŗ������v
-			PRINTFORMW �u���̒�����̓I�}�G�Ƃ���Ƃ����肾�c�c���A�ςȊ��Ⴂ����Ȃ�v
-			PRINTFORMW �u�Ƃ肠�����A��낵���v
-			CALL SET_CEVENT, "�����F�c���f��"
-		CASE "�����Ɠ���������"
-			PRINTFORMW ���Ă��A�����ƒ�����ς��˂����ǂȁv
-			PRINTFORMW �u���߂āA���ꂩ�����낵���ȁH�@%CNAME("��l")%�v
+		CASE "落ち着いた感じで"
+			PRINTFORMW こんな感じでいい？」
+			PRINTFORMW 「これから%CALLNAME:MASTER%さんとエッチなことをするときは、こんな風に喋ることにするよ」
+			PRINTFORMW 「それじゃあ、これからも色々なことを教えてね、%CALLNAME:MASTER%さん」
+			CALL SET_CEVENT, "口調：穏やか"
+		CASE "敬語で丁寧に"
+			PRINTFORMW このような感じでよろしいでしょうか」
+			PRINTFORMW 「%CALLNAME:MASTER%様と性的なことをする場合は、このような話し方にいたしますね」
+			PRINTFORMW 「それでは、これからも変わらずご教授ください」
+			CALL SET_CEVENT, "口調：丁寧"
+		CASE "自分に甘えてくれる感じで"
+			PRINTFORMW こんな感じでいい……かな？」
+			PRINTFORMW 「%CALLNAME:MASTER%\@TRUE_SEX(MASTER) == "オトコ" && TALENT:MASTER:男の娘 == 0 ? くん # ちゃん\@とエッチなことするときは、こんな風にしゃべるね」
+			CALL PRINT_STRW, @"「フフ_H_ぼく、キミのことが大好きだから、いっぱいいっぱいかまってね_H_」"
+			CALL SET_CEVENT, "口調：甘えんぼ"
+		CASE "ツンデレっぽく"
+			PRINTFORMW これで満足か」
+			PRINTFORMW 「この喋り方はオマエとするとき限定だ……あ、変な勘違いすんなよ」
+			PRINTFORMW 「とりあえず、よろしく」
+			CALL SET_CEVENT, "口調：ツンデレ"
+		CASE "いつもと同じ感じで"
+			PRINTFORMW つっても、いつもと喋り方変わらねえけどな」
+			PRINTFORMW 「改めて、これからもよろしくな？　%CNAME("主人")%」
 		ENDSELECT
 	ENDIF
 ENDSELECT

@@ -1,43 +1,43 @@
+﻿;-------------------------------------------------
+;ここに記述する事で各コマンドの選択肢を増やすことができる
+;X1はキャラ番号に置換してください
 ;-------------------------------------------------
-;�����ɋL�q���鎖�Ŋe�R�}���h�̑I�����𑝂₷���Ƃ��ł���
-;X1�̓L�����ԍ��ɒu�����Ă�������
-;-------------------------------------------------
-;���肢�E����ł̑I������ǉ��B�ԍ���60�`89���g���Ă悢
+;お願い・取引での選択肢を追加。番号は60～89を使ってよい
 @WISH_K50_ADDSELECT
-IF CEVENT("�w���F���Ă߂���")
-	IF CEVENT("�ዾ�n�m") == 0
-		STR:�I���� = %STR:�I����% [60] %TEXT_LJ("�ዾ���|����", 16)% �c %CALLNAME:TARGET%�Ɋዾ���|���Ă��炢�܂�/
+IF CEVENT("購入：だてめがね")
+	IF CEVENT("眼鏡ＯＮ") == 0
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("眼鏡を掛けて", 16)% … %CALLNAME:TARGET%に眼鏡を掛けてもらいます/
 	ELSE
-		STR:�I���� = %STR:�I����% [60] %TEXT_LJ("�ዾ���O����", 16)% �c %CALLNAME:TARGET%�Ɋዾ���O���Ă��炢�܂�/
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("眼鏡を外して", 16)% … %CALLNAME:TARGET%に眼鏡を外してもらいます/
 	ENDIF
 ENDIF
-STR:�I���� = %STR:�I����% [80] %TEXT_LJ("�t�H���g�J���[", 16)% �c %CALLNAME:TARGET%�̃Z���t�̐F��ς��܂�/
-STR:�I���� = %STR:�I����% [81] %TEXT_LJ("�j����̌Ăѕ�", 16)% �c %CALLNAME:TARGET%�̒j����̌Ăѕ���ς��܂�/
-STR:�I���� = %STR:�I����% [82] %TEXT_LJ("������̌Ăѕ�", 16)% �c %CALLNAME:TARGET%�̏�����̌Ăѕ���ς��܂�/
-;���肢�E����ő��₵���I�����̒n�̕��Ƒ䎌
+STR:選択肢 = %STR:選択肢% [80] %TEXT_LJ("フォントカラー", 16)% … %CALLNAME:TARGET%のセリフの色を変えます/
+STR:選択肢 = %STR:選択肢% [81] %TEXT_LJ("男性器の呼び方", 16)% … %CALLNAME:TARGET%の男性器の呼び方を変えます/
+STR:選択肢 = %STR:選択肢% [82] %TEXT_LJ("女性器の呼び方", 16)% … %CALLNAME:TARGET%の女性器の呼び方を変えます/
+;お願い・取引で増やした選択肢の地の文と台詞
 @KOJO_WISH_K50_ADDSELECT, ARGS
 #DIM MEMO_LINECOUNT
 SELECTCASE ARGS
-CASE "�ዾ���|����"
-	CALL SET_OTHER, "�ዾ"
-	CALL SET_CEVENT, "�ዾ�n�m"
+CASE "眼鏡を掛けて"
+	CALL SET_OTHER, "眼鏡"
+	CALL SET_CEVENT, "眼鏡ＯＮ"
 	PRINTL
-	CALL EMOTION_PLUS, "���Z�b�g"
-	PRINTFORMDW %CALLNAME:TARGET%�Ɋዾ���|���Ă��炢�܂����B
-CASE "�ዾ���O����"
-	CALL RESET_OTHER, "�ዾ"
-	CALL DEL_CEVENT, "�ዾ�n�m"
+	CALL EMOTION_PLUS, "リセット"
+	PRINTFORMDW %CALLNAME:TARGET%に眼鏡を掛けてもらいました。
+CASE "眼鏡を外して"
+	CALL RESET_OTHER, "眼鏡"
+	CALL DEL_CEVENT, "眼鏡ＯＮ"
 	PRINTL
-	CALL EMOTION_PLUS, "���Z�b�g"
-	PRINTFORMDW %CALLNAME:TARGET%�Ɋዾ���O���Ă��炢�܂����B
-CASE "�t�H���g�J���["
+	CALL EMOTION_PLUS, "リセット"
+	PRINTFORMDW %CALLNAME:TARGET%に眼鏡を外してもらいました。
+CASE "フォントカラー"
 	MEMO_LINECOUNT = LINECOUNT
-	PRINTFORMDL %CALLNAME:TARGET%�̃Z���t�̃t�H���g�J���[��ݒ肵�܂�
-	CALL CHANGE_OFC, "�Z�b�g"
+	PRINTFORMDL %CALLNAME:TARGET%のセリフのフォントカラーを設定します
+	CALL CHANGE_OFC, "セット"
 	GETCOLOR
-	PRINTFORML ���͂��̐F�ł��F%TOSTR(RESULT, "X")%
-	CALL CHANGE_OFC, "���Z�b�g"
-	CALL PRINT_SELECT, "�ݒ�Ȃ�/�W���ݒ�/�J�X�^��", "�ݒ����߂�"
+	PRINTFORML 今はこの色です：%TOSTR(RESULT, "X")%
+	CALL CHANGE_OFC, "リセット"
+	CALL PRINT_SELECT, "設定なし/標準設定/カスタム", "設定をやめる"
 	IF RESULT == 100
 		RETURN 1
 	ELSEIF RESULT == 0
@@ -45,23 +45,23 @@ CASE "�t�H���g�J���["
 	ELSEIF RESULT == 1
 		CFLAG:OFC = 0x90AAFF
 	ELSE
-		PRINTFORML "FFFFFF"�̌`���Ŏw�肵�Ă��������B"000000"�͎w��ł��܂���B
+		PRINTFORML "FFFFFF"の形式で指定してください。"000000"は指定できません。
 		CALL INPUTS_SELECT, 6
 		CALL COLOR_CODE_CHECK, RESULTS
 		IF RESULT == 0
-			PRINTFORMW �G���[�F���p�����A���p�p����6���œ��͂��Ă�������
+			PRINTFORMW エラー：半角数字、半角英字の6桁で入力してください
 		ELSE
 			CFLAG:OFC = RESULT
 		ENDIF
 	ENDIF
 	CLEARLINE LINECOUNT - MEMO_LINECOUNT
 	RESTART
-CASE "�j����̌Ăѕ�"
-	CALL GENITALNAME_CONVERT, "�j����"
-CASE "������̌Ăѕ�"
-	CALL GENITALNAME_CONVERT, "������"
+CASE "男性器の呼び方"
+	CALL GENITALNAME_CONVERT, "男性器"
+CASE "女性器の呼び方"
+	CALL GENITALNAME_CONVERT, "女性器"
 ENDSELECT
-;16�i���ϊ�
+;16進数変換
 @COLOR_CODE_CHECK, ARGS
 #DIM COLOR_NUM
 #DIMS COLOR_STR
@@ -78,61 +78,61 @@ RETURN COLOR_NUM
 @GENITALNAME_CONVERT, ARGS
 #DIMS MEMO_RESULTS
 PRINTL 
-PRINTFORMDL %CALLNAME:TARGET%��%ARGS%�̌Ăѕ��i���݂�%CNAME(ARGS)%)��ύX���܂�
-PRINTFORMDL �S�p10����(���p�Ȃ�20����)�ȓ��œ��͂��Ă�������
-PRINTFORMDL �������͂��Ȃ��ꍇ�͕ύX���܂���
-CALL PRINT_STRL, "_�܂��A���Ƃ��Ƃ̌Ăѕ��ɖ߂������ꍇ�ɂ�_���F_���Ƃɂ��ǂ�_�Ɠ��͂��Ă�������"
+PRINTFORMDL %CALLNAME:TARGET%の%ARGS%の呼び方（現在は%CNAME(ARGS)%)を変更します
+PRINTFORMDL 全角10文字(半角なら20文字)以内で入力してください
+PRINTFORMDL 何も入力しない場合は変更しません
+CALL PRINT_STRL, "_また、もともとの呼び方に戻したい場合には_黄色_もとにもどす_と入力してください"
 CALL INPUTS_SELECT, 20
 PRINTL 
 SELECTCASE RESULTS
 CASE "", CEVENTS(ARGS)
-	PRINTFORMW �ύX���܂���ł���
-CASE "���Ƃɂ��ǂ�"
-	CALL DEL_CEVENT_GROUP, @"%ARGS%��"
-	PRINTFORMW �ݒ�����������܂���
+	PRINTFORMW 変更しませんでした
+CASE "もとにもどす"
+	CALL DEL_CEVENT_GROUP, @"%ARGS%呼"
+	PRINTFORMW 設定を初期化しました
 CASEELSE
-	CALL DEL_CEVENT_GROUP, @"%ARGS%��"
+	CALL DEL_CEVENT_GROUP, @"%ARGS%呼"
 	MEMO_RESULTS = %RESULTS%
-	PRINTFORMW %CALLNAME:TARGET%��%ARGS%�̌Ăѕ����A%MEMO_RESULTS%�ɂ��܂���
+	PRINTFORMW %CALLNAME:TARGET%の%ARGS%の呼び方を、%MEMO_RESULTS%にしました
 	PRINTL 
-	PRINTFORML �����āA���̌Ăѕ��̂ӂ肪�Ȃ����߂܂��B
-	PRINTFORML �i�������͂��Ȃ��ꍇ��%MEMO_RESULTS%���ӂ肪�ȂƂȂ�܂��j
+	PRINTFORML 続けて、この呼び方のふりがなを決めます。
+	PRINTFORML （何も入力しない場合は%MEMO_RESULTS%がふりがなとなります）
 	PRINTL 
-	PRINTFORML �S�p20����(���p�Ȃ�40����)�ȓ��œ��͂��Ă�������
+	PRINTFORML 全角20文字(半角なら40文字)以内で入力してください
 	CALL INPUTS_SELECT, 40
 	SELECTCASE RESULTS
 	CASE ""
-		CALL SET_CEVENT, @"%ARGS%�āF%MEMO_RESULTS%_%MEMO_RESULTS%"
+		CALL SET_CEVENT, @"%ARGS%呼：%MEMO_RESULTS%_%MEMO_RESULTS%"
 	CASEELSE
-		CALL SET_CEVENT, @"%ARGS%�āF%MEMO_RESULTS%_%RESULTS%"
+		CALL SET_CEVENT, @"%ARGS%呼：%MEMO_RESULTS%_%RESULTS%"
 	ENDSELECT
-		CALL PRINT_STRL, @"%CALLNAME:TARGET%��%ARGS%�̌Ăѕ����A_���F_%CNAME(ARGS)%_"
-		CALL PRINT_STRW, @"���̂ӂ肪�Ȃ�_���F_%CNAME(ARGS, "����")%_�ɕύX���܂���"
+		CALL PRINT_STRL, @"%CALLNAME:TARGET%の%ARGS%の呼び方を、_黄色_%CNAME(ARGS)%_"
+		CALL PRINT_STRW, @"そのふりがなを_黄色_%CNAME(ARGS, "かな")%_に変更しました"
 ENDSELECT
 ;-------------------------------------------------
-;�g�[�N�R�}���h�̑I������ǉ�
+;トークコマンドの選択肢を追加
 @DAILY1_K50_ADDSELECT
 [IF_DEBUG]
-	STR:�I���� += "�Z���t�`�F�b�N/"
-	STR:�I���� += "����`�F�b�N/"
+	STR:選択肢 += "セリフチェック/"
+	STR:選択肢 += "動作チェック/"
 
 [ENDIF]
-;�g�[�N�R�}���h�ő��₵���I�����̒n�̕��Ƒ䎌
+;トークコマンドで増やした選択肢の地の文と台詞
 @KOJO_DAILY1_K50_ADDSELECT, ARGS
 SELECTCASE ARGS
-CASE "�Z���t�`�F�b�N"
+CASE "セリフチェック"
 	INPUTS
 	PRINTL
 	SELECTCASE RESULTS
 	CASE ""
 		RETURN 1
 	CASEELSE
-		CALL CHANGE_OFC, "�Z�b�g"
+		CALL CHANGE_OFC, "セット"
 		CALL OFC_PRINT_STRL, @"%RESULTS%"
-		CALL CHANGE_OFC, "���Z�b�g"
+		CALL CHANGE_OFC, "リセット"
 	ENDSELECT
 	RESTART
-CASE "����`�F�b�N"
+CASE "動作チェック"
 	INPUTS
 	PRINTL
 	SELECTCASE RESULTS
@@ -158,65 +158,65 @@ ELSE
 ENDIF
 DRAWLINE
 ;-------------------------------------------------
-;���ĂȂ��R�}���h�̑I������ǉ�
+;もてなすコマンドの選択肢を追加
 @DAILY2_K50_ADDSELECT
-;STR:�I���� += @"%CALLNAME:TARGET%�ƗV��/"
-;STR:�I���� += "�ǉ��I�������̂Q/"
+;STR:選択肢 += @"%CALLNAME:TARGET%と遊ぶ/"
+;STR:選択肢 += "追加選択肢その２/"
 
-;���ĂȂ��R�}���h�ő��₵���I�����̒n�̕��Ƒ䎌
+;もてなすコマンドで増やした選択肢の地の文と台詞
 @KOJO_DAILY2_K50_ADDSELECT, ARGS
 #DIMS GAMES
 #DIM LCOUNT
 
 SELECTCASE ARGS
-CASE @"%CALLNAME:TARGET%�ƗV��"
+CASE @"%CALLNAME:TARGET%と遊ぶ"
 
 
-CASE "�ǉ��I�������̂Q"
-	PRINTFORMW %CALLNAME:MASTER%��%ARGS%�������B
+CASE "追加選択肢その２"
+	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
 	PRINTL 
-	PRINTFORMW �u�䎌�v
+	PRINTFORMW 「台詞」
 	PRINTL 
-	PRINTFORMW %ARGS%���󂯂Ă�%CALLNAME:TARGET%�̔���
+	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
 ENDSELECT
 
-;�f�[�g�s����̑I������ǉ��B
+;デート行き先の選択肢を追加。
 @DATE_K50_ADDSELECT
-;�����ő��₵���I������I�ԂƁA���ꂪSAVESTR:�f�[�g �ɑ�������d�g�݂ł�
-;STR:�I���� += "�ǉ��I�������̂P/"
-;STR:�I���� += "�ǉ��I�������̂Q/"
+;ここで増やした選択肢を選ぶと、それがSAVESTR:デート に代入される仕組みです
+;STR:選択肢 += "追加選択肢その１/"
+;STR:選択肢 += "追加選択肢その２/"
 
-;���₵���s��ł̒n�̕��Ƒ䎌�B�N������C�x���g�̃t���O�������Ō��߂�
+;増やした行先での地の文と台詞。起きうるイベントのフラグもここで決める
 @KOJO_DATE_K50_ADDSELECT
-SELECTCASE SAVESTR:�f�[�g
-CASE "�ǉ��I�������̂P"
-	PRINTFORMW �u�䎌�v
-	;�n�̕�
-	PRINTFORMW %SAVESTR:�f�[�g%�ł�%CALLNAME:TARGET%�̔���
-	;�n�̕���p�ӂ��Ă��Ȃ��ꍇ�ɂ͔ėp�̂��̂��g��
-	;CALL DAILY_MESSAGE, "�f�[�g�{��"
+SELECTCASE SAVESTR:デート
+CASE "追加選択肢その１"
+	PRINTFORMW 「台詞」
+	;地の文
+	PRINTFORMW %SAVESTR:デート%での%CALLNAME:TARGET%の反応
+	;地の文を用意していない場合には汎用のものを使う
+	;CALL DAILY_MESSAGE, "デート本番"
 	PRINTL 
-	;���[�h�{�[�i�X�������ꏊ��FLAG:���[�h+60�A���ʂȂ�FLAG:���[�h+30�A�f�[�g���ۂ��Ȃ��ꏊ���ƏC���Ȃ�
-	FLAG:���[�h += 30
-	;���ꂼ��\�Ȃ��̂̃R�����g�A�E�g���O��
-	;TFLAG:�f�[�g�G���\ = 1
-	;TFLAG:�f�[�g��Ȃ��\ = 1
-	;TFLAG:�����`�������\ = 1
-	;TFLAG:�����f�[�g = 1
-CASE "�ǉ��I�������̂Q"
-	PRINTFORMW �u�䎌�v
-	;�n�̕�
-	PRINTFORMW %SAVESTR:�f�[�g%�ł�%CALLNAME:TARGET%�̔���
-	;�n�̕���p�ӂ��Ă��Ȃ��ꍇ�ɂ͔ėp�̂��̂��g��
-	;CALL DAILY_MESSAGE, "�f�[�g�{��"
+	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+	FLAG:ムード += 30
+	;それぞれ可能なもののコメントアウトを外す
+	;TFLAG:デートエロ可能 = 1
+	;TFLAG:デート手つなぎ可能 = 1
+	;TFLAG:下着チラ見え可能 = 1
+	;TFLAG:水着デート = 1
+CASE "追加選択肢その２"
+	PRINTFORMW 「台詞」
+	;地の文
+	PRINTFORMW %SAVESTR:デート%での%CALLNAME:TARGET%の反応
+	;地の文を用意していない場合には汎用のものを使う
+	;CALL DAILY_MESSAGE, "デート本番"
 	PRINTL 
-	;���[�h�{�[�i�X�������ꏊ��FLAG:���[�h+60�A���ʂȂ�FLAG:���[�h+30�A�f�[�g���ۂ��Ȃ��ꏊ���ƏC���Ȃ�
-	FLAG:���[�h += 30
-	;���ꂼ��\�Ȃ��̂̃R�����g�A�E�g���O��
-	;TFLAG:�f�[�g�G���\ = 1
-	;TFLAG:�f�[�g��Ȃ��\ = 1
-	;TFLAG:�����`�������\ = 1
-	;TFLAG:�����f�[�g = 1
+	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+	FLAG:ムード += 30
+	;それぞれ可能なもののコメントアウトを外す
+	;TFLAG:デートエロ可能 = 1
+	;TFLAG:デート手つなぎ可能 = 1
+	;TFLAG:下着チラ見え可能 = 1
+	;TFLAG:水着デート = 1
 ENDSELECT
 
 

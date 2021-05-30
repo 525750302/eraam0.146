@@ -1,234 +1,234 @@
-;-------------------------------------------------
-;�������m�ł̌𗬁B������TARGET�Ƃ��ČĂ΂�A�b����̕�����PARTNER()�Ƃ��ČĂ΂��
-;�b����ւ̌Ăт�����CNAME("�p�[�g�i�[")�ŏo����
-;TFLAG:�䎌�X�L�b�v = 1�Řb���Ă��鑊��̃Z���t�̃X�L�b�v�ATFLAG:�n�̕��X�L�b�v = 1�ő����n�̕��̃X�L�b�v�����鎖���o����
+﻿;-------------------------------------------------
+;部員同士での交流。自分はTARGETとして呼ばれ、話相手の部員はPARTNER()として呼ばれる
+;話相手への呼びかけはCNAME("パートナー")で出来る
+;TFLAG:台詞スキップ = 1で話している相手のセリフのスキップ、TFLAG:地の文スキップ = 1で続く地の文のスキップをする事が出来る
 ;-------------------------------------------------
 @KOJO_COMM_K57, ARGS
 #DIM MEMO_LINECOUNT
-;�Θb����ɂ������L�����̖��O��/��؂�ł���ɓ˂������FIND_TaiTa(EVENT_TABLE)�Ƃ���Ƃ��̂�����l���I�΂��
+;対話相手にしたいキャラの名前を/区切りでこれに突っ込んでFIND_TaiTa(EVENT_TABLE)とするとそのうち一人が選ばれる
 #DIMS EVENT_TABLE
 
 EVENT_TABLE = 
 MEMO_LINECOUNT = LINECOUNT
 
 SELECTCASE ARGS
-;�b�������鑤�̃Z���t�BCOND("�Θb�\")�𖞂��������I���PARTNER()�ɂ��鎖�ŁA����̑���ɘb�������邱�Ƃ��ł���
-CASE "���U������"
-	;����̑���ɘb��������ꍇ��EVENT_TABLE�ɑΘb����̌Ăі�(CALLNAME)�� / ��؂�ŕ��ׂ� ; ������
-	;��P�j�t�F���V�G��or�G�G�̌Nor���񂸂����l�I�ԏꍇ
-	EVENT_TABLE = �/�^/��/
-	;��Q�j�����S�Ă����l�I�ԏꍇ
-	;EVENT_TABLE = �S��
+;話しかける側のセリフ。COND("対話可能")を満たす相手を選んでPARTNER()にする事で、特定の相手に話しかけることもできる
+CASE "お誘いする"
+	;特定の相手に話しかける場合はEVENT_TABLEに対話相手の呼び名(CALLNAME)を / 区切りで並べて ; を消す
+	;例１）フェリシエルor濡烏の君orあんずから一人選ぶ場合
+	EVENT_TABLE = 莉/真/灯/
+	;例２）部員全てから一人選ぶ場合
+	;EVENT_TABLE = 全員
 
 	IF FIND_TaiTa(EVENT_TABLE)
-		;�b��������p�[�g�i�[�ɂ���
+		;話し相手をパートナーにする
 		CALL SET_PARTNER, FIND_TaiTa(EVENT_TABLE)
 
-		SIF !(CEVENT("�w�̂����x��") && TALENT:���v���� == 0 && CEVENT("��y�̈ӌ�") == 0 && CALLNAME:PARTNER() == "�")
-			CALL EMOTION_PLUS, "�𗬒�", TARGET, PARTNER()
-		TFLAG:�n�̕��X�L�b�v = 1
+		SIF !(CEVENT("『のぞき』見") && TALENT:相思相愛 == 0 && CEVENT("先輩の意見") == 0 && CALLNAME:PARTNER() == "莉")
+			CALL EMOTION_PLUS, "交流中", TARGET, PARTNER()
+		TFLAG:地の文スキップ = 1
 		SELECTCASE CALLNAME:PARTNER()
-		CASE "�^"
-			IF CEVENT("�^����b") == 0
-				PRINTFORMW �u�c�c���A%CNAME("�p�[�g�i�[")%�v
-				PRINTFORMW �w�����Ɓc�c�c�c�x
-				PRINTFORMW �u%NAME:TARGET%���Ă����񂾁I�@���[�A���������Ƃ��Ɍ����Ă�͂������[�H�v
-				PRINTFORMW �w�����A���������c�c�͂́B���߂�ˁx
-				PRINTFORMW �u�n�n�b�A����ȂɋC�ɂ��Ă�킯����Ȃ����炢�[���Ă��[���āI�@�c�c���āA��������Ȃ��āI�@%CNAME("�p�[�g�i�[")%����仂����̂��o���񂾂�H�v
-				PRINTFORMW �w����A���������ǁc�c�N�́H �N���X���C�g����ˁx
-				PRINTFORMW �u�����I�@���������I�@�c�c����ŁA���́A仂����ɂ��āA�F�X�����Ăق����ȁ[���āc�c�v
-				PRINTFORMW �w�����A仂����c�c���̎q���ǂ��������́H�x
-				PRINTFORMW �u����́c�c���́c�c�v
-				PRINTFORMW �w���A���A���������ăE�`��仂���񂪉��������������񂶂�c�c�I�x
-				PRINTFORMW �u����A������ƁI�@�ʂɂ���Ȃ񂶂�Ȃ�����I�@����ȏł����炵�Ȃ��Ă�������I�v
-				PRINTFORMW �w�ق�ƂɁH�@�ق�ƂɂȂɂ��Ȃ��H�x
-				PRINTFORMW �u�Ȃ����Ă΁I�@�c�c�Ƃɂ����I�@仂����A�����Â���΂����肵�Ă邩�炳�A���ŗ~�����āc�c�v
-				PRINTFORMW �w�c�c�I�x
-				PRINTFORMW �i�����A���������c�c�����������Ƃ����c�c����ς胂�e��񂾂Ȃ��A仂������āc�c�j
-				PRINTFORMW �u���A����c�c%CNAME("�p�[�g�i�[")%�c�c�H�v
-				PRINTFORMW �w���񂤂�A�킩�����I�@�����������ƂȂ�C���āI�x
-				PRINTFORMW �u���A�����c�c�H�v
-				PRINTFORMW �w����Z���񂾂ƁA�΂����ꂷ���ĂĂǂ����悤���������Ƃ������āc�c�x
-				PRINTFORMW �w������%CALLNAME:TARGET%����A�ł�����苦�͂��Ă����邩��ˁI�x
-				PRINTFORMW �u���H�@���A�����I�@�悭�킩��񂪔C����I�v
-				CALL SET_CEVENT, "�^����b"
-			ELSEIF FIND_COND("���ݑ���", "�") && RAND:2
-				PRINTFORMW �w�ŋ�仂����Ƃ͂ǂ��H�x
-				IF CEVENT("�w�̂����x��") && TALENT:���v���� == 0 && CEVENT("��y�̈ӌ�") == 0
-					PRINTFORMW �u���[�c�c�����Ɓc�c�{�`�{�`�A�ł��c�c�v
+		CASE "真"
+			IF CEVENT("真初会話") == 0
+				PRINTFORMW 「……あ、%CNAME("パートナー")%」
+				PRINTFORMW 『えっと…………』
+				PRINTFORMW 「%NAME:TARGET%っていうんだ！　もー、入部したときに言ってるはずだぞー？」
+				PRINTFORMW 『あぁ、そうそう……はは。ごめんね』
+				PRINTFORMW 「ハハッ、そんなに気にしてるわけじゃないからいーっていーって！　……って、そうじゃなくて！　%CNAME("パートナー")%って莉ちゃんのお姉さんだろ？」
+				PRINTFORMW 『うん、そうだけど……君は？ クラスメイトだよね』
+				PRINTFORMW 「おう！　そうだぞ！　……それで、その、莉ちゃんについて、色々教えてほしいなーって……」
+				PRINTFORMW 『あぁ、莉ちゃん……あの子がどうかしたの？』
+				PRINTFORMW 「それは……その……」
+				PRINTFORMW 『え、あ、もしかしてウチの莉ちゃんが何かやっちゃったんじゃ……！』
+				PRINTFORMW 「ちょ、ちょっと！　別にそんなんじゃないから！　そんな焦った顔しなくていいから！」
+				PRINTFORMW 『ほんとに？　ほんとになにもない？』
+				PRINTFORMW 「ないってば！　……とにかく！　莉ちゃん、いつも暗い顔ばっかりしてるからさ、喜んで欲しくて……」
+				PRINTFORMW 『……！』
+				PRINTFORMW （あぁ、そっかぁ……そういうことかぁ……やっぱりモテるんだなぁ、莉ちゃんって……）
+				PRINTFORMW 「あ、あれ……%CNAME("パートナー")%……？」
+				PRINTFORMW 『うんうん、わかった！　そういうことなら任せて！』
+				PRINTFORMW 「お、おう……？」
+				PRINTFORMW 『私や兄さんだと、歳が離れすぎててどうしようも無いことも多くて……』
+				PRINTFORMW 『だから%CALLNAME:TARGET%くん、できる限り協力してあげるからね！』
+				PRINTFORMW 「え？　お、おう！　よくわからんが任せろ！」
+				CALL SET_CEVENT, "真初会話"
+			ELSEIF FIND_COND("現在存在", "莉") && RAND:2
+				PRINTFORMW 『最近莉ちゃんとはどう？』
+				IF CEVENT("『のぞき』見") && TALENT:相思相愛 == 0 && CEVENT("先輩の意見") == 0
+					PRINTFORMW 「あー……えっと……ボチボチ、です……」
 				ELSE
-					IF COND("������", FIND_NO("�") )
-						PRINTFORMW �u�����I�@���Ȃ蒇�ǂ��Ȃꂽ���I�v
-						PRINTFORMW �u�ꏏ�ɘb����悤�ɂ��Ȃꂽ���A����Ɂ\�\�v
-					ELSEIF COND("������", FIND_NO("�") )
-						PRINTFORMW �u���������ǂ��Ȃ�Ă�c�c�C�͂���v
-						PRINTFORMW �u�̂��ԓx�����炩���Ȃ����C�����邵�c�c�v
+					IF COND("相性◎", FIND_NO("莉") )
+						PRINTFORMW 「おう！　かなり仲良くなれたぜ！」
+						PRINTFORMW 「一緒に話するようにもなれたし、それに――」
+					ELSEIF COND("相性○", FIND_NO("莉") )
+						PRINTFORMW 「少しずつ仲良くなれてる……気はする」
+						PRINTFORMW 「昔より態度もやわらかくなった気がするし……」
 					ELSE
-						PRINTFORMW �u���[�c�c�܂��܂��X�^�[�g���C�����ĂƂ��낾�ȁc�c�v
+						PRINTFORMW 「あー……まだまだスタートラインってところだな……」
 					ENDIF
 				ENDIF
-			ELSEIF COND("������", PARTNER() )
-				PRINTFORMW �u%CNAME("�p�[�g�i�[")%�[�I�@�ꏏ�ɃQ�[�����悤���[�I�v
-				PRINTFORMW �w���[�H�@�ł�%CALLNAME:TARGET%���񋭂������x
-				PRINTFORMW �u�����炢���񂶂��I�@%CNAME("��l��")%�����[���Ə��Ă�񂾂��[�v
-				PRINTFORMW �w���ӋC�Ȍ�y���Ȃ��c�c�悵�I�@������I�@�҂��Ă���A��΂ɕ����点�Ă��c�c�I�x
+			ELSEIF COND("相性◎", PARTNER() )
+				PRINTFORMW 「%CNAME("パートナー")%ー！　一緒にゲームしようぜー！」
+				PRINTFORMW 『えー？　でも%CALLNAME:TARGET%くん強いじゃん』
+				PRINTFORMW 「だからいいんじゃん！　%CNAME("一人称")%がずーっと勝てるんだしー」
+				PRINTFORMW 『生意気な後輩だなぁ……よし！　いいよ！　待っていろ、絶対に分からせてやる……！』
 			ELSE
-				PRINTFORMW �u�c�c���A���������ċْ�����������Ă�c�c�H�v
-				PRINTFORMW �w���A����I�@���v�I�x
-				SIF COND("������", PARTNER() )
-					PRINTFORMW �w�����A������Ɛl���m��łˁc�c�x
+				PRINTFORMW 「……あ、もしかして緊張させちゃってる……？」
+				PRINTFORMW 『い、いや！　大丈夫！』
+				SIF COND("相性○", PARTNER() )
+					PRINTFORMW 『ただ、ちょっと人見知りでね……』
 			ENDIF
-		CASE "��"
-			IF CEVENT("������b") == 0
-				IF FIND_COND("���ݑ���", "�") && COND("������", FIND_NO("�") )
-					PRINTFORMW �u���A%CNAME("�p�[�g�i�[")%�v
-					PRINTFORMW �w��H�@���O�́c�c�y�������H�x
-					PRINTFORMW �u���������I�@%CNAME("�")%����b�͕����Ă�����ȁA�ǂ�Ȑl�Ȃ̂��Ȃ��ċ����������񂾁[�v
-					PRINTFORMW �w�ف[�H�@���������l�Ɖ�b���˂��c�c�ǂ�Ȏ�i�g�����񂾁A���N�H�x
-					; IF (AIZOU() == 0 && TALENT:����) || TALENT:���v����
-					; 	PRINTFORMW �w仂������Ƒ�_�ɂȂ������񂶂�˂����x
+		CASE "灯"
+			IF CEVENT("灯初会話") == 0
+				IF FIND_COND("現在存在", "莉") && COND("相性◎", FIND_NO("莉") )
+					PRINTFORMW 「あ、%CNAME("パートナー")%」
+					PRINTFORMW 『ん？　お前は……遥だっけ？』
+					PRINTFORMW 「そうそう！　%CNAME("莉")%から話は聞いてたからな、どんな人なのかなって興味あったんだー」
+					PRINTFORMW 『ほー？　あいつが他人と会話をねえ……どんな手品使ったんだ、少年？』
+					; IF (AIZOU() == 0 && TALENT:恋慕) || TALENT:相思相愛
+					; 	PRINTFORMW 『莉も随分と大胆になったもんじゃねえか』
 					; ELSE
-					; 	PRINTFORMW �ŁA������%CALLNAME:TARGET%�N���͂��Z���������Ăǂ��v�����̂��ȁH�x
+					; 	PRINTFORMW で、恋する%CALLNAME:TARGET%クンはお兄ちゃんを見てどう思ったのかな？』
 					; ENDIF
-					PRINTFORMW �u���A����Ȃ񂶂�Ȃ��āI�@�����̗F�B�I�@�����̗F�B������I�v
-					; IF (AIZOU() == 0 && TALENT:����) || TALENT:���v����
-					; 	PRINTFORMW �w����Ⴀ����B�c�c����A���ꂩ���仂ƒ��ǂ����Ă���x
+					PRINTFORMW 「そ、そんなんじゃなくて！　ただの友達！　ただの友達だから！」
+					; IF (AIZOU() == 0 && TALENT:恋慕) || TALENT:相思相愛
+					; 	PRINTFORMW 『そりゃあ失礼。……じゃ、これからも莉と仲良くしてくれ』
 					; ELSE
-					; 	PRINTFORMW �w�ӂނӂށA����Ⴀ���������B�c�c����A�����������Ƃɂ��Ă����Ă���x
+					; 	PRINTFORMW 『ふむふむ、そりゃあ悪かった。……じゃ、そういうことにしておいてやるよ』
 					; ENDIF
-					PRINTFORMW �w�������c�c�x
+					PRINTFORMW 『あそぉ……』
 				ELSE
-					PRINTFORMW �u���O��%CALLNAME:TARGET%���ȁI�v
-					PRINTFORMW �w�����H�@�ǂ������`�r�x
-					PRINTFORMW �u���O��仂�����߂��܂��Ă�񂾂�I�v
-					PRINTFORMW �w�͂��H�@�����H�@仂��H�x
-					PRINTFORMW �w�Ȃ�ł���Ȃ��Ƃ��Ȃ���Ȃ�˂��񂾂�H�x
-					PRINTFORMW �u���A����́c�c�v
-					IF (AIZOU() == 0 && TALENT:����) || TALENT:���v����
-						PRINTFORMW �i�����`�c�c�����������ȃ`�r���Ȃ��c�c�߂�ǂ����j
-						PRINTFORMW �w�ʂɉ��A�ȁ[������Ă˂����ǁx
-						PRINTFORMW �u���A����Ȃ̐M�����邩�I�v
-						PRINTFORMW �w����������Ȃ��c�c����Ȃ�{�l�ɂł������Ă݂��炢������˂�����c�c�x
-						PRINTFORMW �i�ق���ƁA�ǂ��s���Ă��l�̃n�i�V�����˂��z�΂����c�c�j
+					PRINTFORMW 「お前が%CALLNAME:TARGET%だな！」
+					PRINTFORMW 『おぉ？　どうしたチビ』
+					PRINTFORMW 「お前が莉ちゃんを悲しませてるんだろ！」
+					PRINTFORMW 『はあ？　俺が？　莉を？』
+					PRINTFORMW 『なんでそんなことしなきゃならねえんだよ？』
+					PRINTFORMW 「そ、それは……」
+					IF (AIZOU() == 0 && TALENT:恋慕) || TALENT:相思相愛
+						PRINTFORMW （あぁ～……おせっかいなチビだなぁ……めんどくさ）
+						PRINTFORMW 『別に俺、なーんもしてねえけど』
+						PRINTFORMW 「そ、そんなの信じられるか！」
+						PRINTFORMW 『うるっせぇなぁ……それなら本人にでも聞いてみたらいいじゃねえかよ……』
+						PRINTFORMW （ほんっと、どこ行っても人のハナシ聞かねえ奴ばっか……）
 					ELSE
-						PRINTFORMW �i�c�c���A�Ӂ[��B���̃`�r���������荇���ˁj
-						PRINTFORMW �w�ŁH�@���ꂪ�ǂ������񂾂�x
-						PRINTFORMW �u��A仂����Ɏӂ点��I�v
-						PRINTFORMW �w�������B���ꂶ�Ⴙ�������撣���A���N�x
-						PRINTFORMW �u�����Ȃ��Ă�����Ă��I�v
+						PRINTFORMW （……あ、ふーん。このチビそういう手合いね）
+						PRINTFORMW 『で？　それがどうしたんだよ』
+						PRINTFORMW 「れ、莉ちゃんに謝らせる！」
+						PRINTFORMW 『あっそ。それじゃせいぜい頑張れよ、少年』
+						PRINTFORMW 「いわれなくてもやってやる！」
 					ENDIF
-					PRINTFORMW %CALLNAME:TARGET%��%CALLNAME:PARTNER()%�ɓ˂��������Ă���悤���c�c�B
-					CALL SET_CEVENT, "���G��"
+					PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PARTNER()%に突っかかっているようだ……。
+					CALL SET_CEVENT, "灯敵視"
 				ENDIF
-				CALL SET_CEVENT, "������b"
-			ELSEIF CEVENT("���G��")
-				PRINTFORMW �u�c�c%CNAME("�p�[�g�i�[", "�ǂ���")%�c�c�v
-				PRINTFORMW �w��H �ǂ����A���N�x
-				PRINTFORMW �u���́c�c���A���߂�Ȃ����I�v
-				PRINTFORMW �u���̌�仂���񂩂畷�����񂾁B��������ʂɒ������Ȃ����āA�ނ���ǂ����Ă�����Ă���Č����āc�c�v
-				PRINTFORMW �u%CNAME("��l��")%�A���Ⴂ���ĐF�X�ƍ������ƌ�����������c�c�I�v
-				IF (AIZOU() == 0 && TALENT:����) || TALENT:���v����
-					PRINTFORMW �w���[�A����Ȃ��ƁB�ʂɂȂ���C�ɂ��Ă˂����ǂȁx
-					PRINTFORMW �u���A�����Ȃ̂��H�v
-					PRINTFORMW �w�܂����ӂ������������Ă�Ȃ�H�@�ו��������炢�ŋ����Ă���x
-					PRINTFORMW �u�s���I�@�Ȃ�ł��n���Ă���I�v
-					PRINTFORMW �w�悧���A���܂�B�A��ɕ������ɍs�������낵���[�x
-					PRINTFORMW �i���������ǁj
+				CALL SET_CEVENT, "灯初会話"
+			ELSEIF CEVENT("灯敵視")
+				PRINTFORMW 「……%CNAME("パートナー", "どもり")%……」
+				PRINTFORMW 『ん？ どした、少年』
+				PRINTFORMW 「その……ご、ごめんなさい！」
+				PRINTFORMW 「あの後莉ちゃんから聞いたんだ。そしたら別に仲悪くないって、むしろ良くしてもらってるって言われて……」
+				PRINTFORMW 「%CNAME("一人称")%、勘違いして色々と酷いこと言っちゃった……！」
+				IF (AIZOU() == 0 && TALENT:恋慕) || TALENT:相思相愛
+					PRINTFORMW 『あー、そんなこと。別になんも気にしてねえけどな』
+					PRINTFORMW 「そ、そうなのか？」
+					PRINTFORMW 『まぁ誠意を見せたいってんなら？　荷物持ちくらいで許してやるよ』
+					PRINTFORMW 「行く！　なんでも渡してくれ！」
+					PRINTFORMW 『よぉし、決まり。帰りに服買いに行くからよろしくー』
+					PRINTFORMW （女物だけど）
 				ELSE
-					PRINTFORMW �w���`�H�@���܂��炻��Ȃ��ƌ����Ă��Ȃ��`�H�x
-					PRINTFORMW �w�N��ɂ����Ȃ�˂��������Ă����Ȃ��̂Ђ�Ԃ��Ƃ��A������ƐM�����Ȃ���Ȃ��`�x
-					PRINTFORMW �u�����c�c�v
-					PRINTFORMW �w�܂��܂��A�ʂɁH�@�������Đ�΋����Ȃ��Ȃ�Ċ�łł��Ȃ�����ȁx
-					PRINTFORMW �w������Ƃ��n�i�V�ɕt�������Ă��ꂽ��J���x�����Ă��񂱂Ƃ��Ȃ��x
-					PRINTFORMW �w�ǂ���A%CALLNAME:TARGET%���N�B���傢�Ƃ����̖����ɂ��Č�荇��������Ȃ��́x
-					PRINTFORMW �u���c�c���A����_�炩�ɂ��肢���܂��c�c�v
+					PRINTFORMW 『え～？　いまさらそんなこと言われてもなぁ～？』
+					PRINTFORMW 『年上にいきなり突っかかっていきなり手のひら返すとか、ちょっと信じらんないよなぁ～』
+					PRINTFORMW 「うぅ……」
+					PRINTFORMW 『まぁまぁ、別に？　俺だって絶対許さないなんて頑固でもないからな』
+					PRINTFORMW 『ちょっとおハナシに付き合ってくれたらカンベンしてやらんこともない』
+					PRINTFORMW 『どうよ、%CALLNAME:TARGET%少年。ちょいとうちの末妹について語り合おうじゃないの』
+					PRINTFORMW 「う……お、お手柔らかにお願いします……」
 				ENDIF
-				CALL DEL_CEVENT, "���G��"
-			ELSEIF CEVENT("�w�̂����x��") && TALENT:���� == 0 && CEVENT("��y�̈ӌ�") == 0
-				PRINTFORMW �w��[�H�@�ǂ������N�B���C�Ȃ����x
-				PRINTFORMW �u�c�c�����A%CNAME("�p�[�g�i�[")%���v
-				PRINTFORMW �w�N���ɐU��ꂽ��H�x
-				PRINTFORMW �u�c�c����B%CNAME(CALLNAME:MASTER)%��%CNAME("�")%���ꏏ�ɃG�b�`���Ă�Ƃ������������āc�c�v
-				PRINTFORMW �w�ӂ���B�������Г�����˂����N�x
-				PRINTFORMW �u�c�c%CNAME("��l��")%�A�ǂ������炢���񂾂낤���āc�c�v
-				PRINTFORMW �w���߂���H�x
-				PRINTFORMW �u���A���߂�����āc�c�v
-				PRINTFORMW �w�ʂɎ����Ȃ񂴒N�����Ă��邾�낤���B�����珉����������Ă������߂�����A���N�x
-				PRINTFORMW �u�c�c�v
-				PRINTFORMW �w����ȂɌ�����邭�炢�Ȃ�A�������ƍ���Ȃ肵���܂��΂悩��������˂�����x
-				PRINTFORMW �w���ɑ΂��Ă����Ȃ�˂��������Ă����C�T���A�����Ɍ�����΍ς񂾃n�i�V��x
-				PRINTFORMW �u�c�c����v
-				PRINTFORMW �w�܁[�ǂ�������ł��U��ꂽ���낤���ǁB�ǂ������������炻�������������ݓI�����������H�x
-				PRINTFORMW �u�c�c�c�c����v
-				PRINTFORMW �w�c�c�Ӂ[���x
-				PRINTFORMW �w�܁A���ꂩ���A���ꂩ��B�Ⴂ�E�`���炻��ȍǂ����ނȂ��āx
-				PRINTFORMW �w���O���ʂɈ����z����Ȃ����B���̂����ǂ����Ƃ�����āx
-				PRINTFORMW �u�c�c���肪�Ɓc�c�v
-				PRINTFORMW �w���B�n���ɏ��߂Ċ��ӂ��ꂽ�񂶂�ˁx
-				PRINTFORMW �u���邳���B�c�c�w�w�b�v
-				CALL SET_CEVENT, "��y�̈ӌ�"
-			ELSEIF TALENT:�j�̖�
-				PRINTFORMW �u%CNAME("�p�[�g�i�[")%�[�A�I�X�X���̕������Ă����v
-				PRINTFORMW �w�͂��H�@�߂�ǂ����[�Ȃ��B����Ȃ�l�b�g�ł��傿�傢�ƒ��ׂāc�c�x
-				PRINTFORMW �u�c�c���߁H�v
-				PRINTFORMW �w�c�c���[���A�ǂ��Ŋo���Ă��₪�������̖ځI�x
+				CALL DEL_CEVENT, "灯敵視"
+			ELSEIF CEVENT("『のぞき』見") && TALENT:恋慕 == 0 && CEVENT("先輩の意見") == 0
+				PRINTFORMW 『んー？　どした少年。元気ないぞ』
+				PRINTFORMW 「……ああ、%CNAME("パートナー")%か」
+				PRINTFORMW 『誰かに振られたん？』
+				PRINTFORMW 「……うん。%CNAME(CALLNAME:MASTER)%と%CNAME("莉")%が一緒にエッチしてるところを見ちゃって……」
+				PRINTFORMW 『ふぅん。そいつぁ災難だったねぇ少年』
+				PRINTFORMW 「……%CNAME("一人称")%、どうしたらいいんだろうって……」
+				PRINTFORMW 『諦めたら？』
+				PRINTFORMW 「あ、諦めたらって……」
+				PRINTFORMW 『別に失恋なんざ誰だってするだろうが。いくら初恋だからってこだわり過ぎだよ、少年』
+				PRINTFORMW 「……」
+				PRINTFORMW 『そんなに後悔するくらいなら、さっさと告るなりしちまえばよかったじゃねえかよ』
+				PRINTFORMW 『俺に対していきなり突っかかってきた気概を、あいつに向ければ済んだハナシよ』
+				PRINTFORMW 「……うん」
+				PRINTFORMW 『まーどうせそれでも振られただろうけど。どっちかっつったらそうした方が建設的だったじゃん？』
+				PRINTFORMW 「…………うん」
+				PRINTFORMW 『……ふーっ』
+				PRINTFORMW 『ま、これからよ、これから。若いウチからそんな塞ぎ込むなって』
+				PRINTFORMW 『お前も別に悪い奴じゃないし。そのうち良いことあるって』
+				PRINTFORMW 「……ありがと……」
+				PRINTFORMW 『お。地味に初めて感謝されたんじゃね』
+				PRINTFORMW 「うるさい。……ヘヘッ」
+				CALL SET_CEVENT, "先輩の意見"
+			ELSEIF TALENT:男の娘
+				PRINTFORMW 「%CNAME("パートナー")%ー、オススメの服教えてくれよ」
+				PRINTFORMW 『はぁ？　めんどくせーなぁ。そんなんネットでちょちょいと調べて……』
+				PRINTFORMW 「……だめ？」
+				PRINTFORMW 『……かーっ、どこで覚えてきやがったその目！』
 			ELSE
-				PRINTFORMW �u%CNAME("�p�[�g�i�[")%�[�A�Ȃ�ŏ������Ă�񂾁H�v
-				PRINTFORMW �w�������Ă邾��H�x
-				PRINTFORMW �u�m���Ɏ��������Ⴂ�邯�ǂ��[�c�c�v
+				PRINTFORMW 「%CNAME("パートナー")%ー、なんで女装してるんだ？」
+				PRINTFORMW 『似合ってるだろ？』
+				PRINTFORMW 「確かに似合っちゃいるけどさー……」
 			ENDIF
-		CASE "�"
-			IF CEVENT("仏���b") == 0
-				PRINTFORMW �u�c�c���I�H�@%CNAME("�p�[�g�i�[")%�I�H�v
-				PRINTFORMW �w�c�c�ȂɁH�x
-				PRINTFORMW �u%CNAME("�p�[�g�i�[")%�����̕����ɓ����Ă����̂��c�c�v
-				PRINTFORMW �u�c�c�Ȃ񂾂��A�������悤�ȁA�������悤�ȁc�c�v
-				PRINTFORMW �w�����A�����c�c�i�c�c�N�������c�c�j�x
-				CALL SET_CEVENT, "仏���b"
-			;�����؂ꂽ�Ƃ��Ă���͂���Ƃ��ċC�܂����͂����˂Ə���͐����؂��Ă�������ʂ�悤��
-			ELSEIF CEVENT("�w�̂����x��") && TALENT:���v���� == 0 && (CEVENT("��y�̈ӌ�") == 0 || CEVENT("������ƋC�܂���") == 0)
-				IF COND("������", PARTNER() )
-					PRINTFORMW �w�c�c���A�y�N�A�v���Ԃ�x
-					PRINTFORMW �u���A�����A�v���Ԃ�c�c�v
-					PRINTFORMW %CALLNAME:PARTNER()%�ɐ���������ꂽ%CALLNAME:TARGET%���������A���̓����͂ǂ����������Ȃ��c�c�B
+		CASE "莉"
+			IF CEVENT("莉初会話") == 0
+				PRINTFORMW 「……え！？　%CNAME("パートナー")%！？」
+				PRINTFORMW 『……なに？』
+				PRINTFORMW 「%CNAME("パートナー")%もこの部活に入っていたのか……」
+				PRINTFORMW 「……なんだか、嬉しいような、悔しいような……」
+				PRINTFORMW 『あぁ、そう……（……誰だっけ……）』
+				CALL SET_CEVENT, "莉初会話"
+			;吹っ切れたとしてそれはそれとして気まずくはあるよねと初回は吹っ切ってもここを通るように
+			ELSEIF CEVENT("『のぞき』見") && TALENT:相思相愛 == 0 && (CEVENT("先輩の意見") == 0 || CEVENT("ちょっと気まずい") == 0)
+				IF COND("相性◎", PARTNER() )
+					PRINTFORMW 『……あ、遥君、久しぶり』
+					PRINTFORMW 「お、おう、久しぶり……」
+					PRINTFORMW %CALLNAME:PARTNER()%に声をかけられた%CALLNAME:TARGET%だったが、その動きはどこかぎこちない……。
 				ELSE
-					PRINTFORMW �u�����c�c�c�c�v
-					PRINTFORMW %CALLNAME:TARGET%��%CALLNAME:PARTNER()%����������ƁA�C�܂������Ɋ��w�����B
+					PRINTFORMW 「あっ…………」
+					PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PARTNER()%を見かけると、気まずそうに顔を背けた。
 				ENDIF
-				CALL SET_CEVENT, "������ƋC�܂���"
+				CALL SET_CEVENT, "ちょっと気まずい"
 			ELSEIF RAND:2
-				PRINTFORMW �u%CNAME("�p�[�g�i�[")%�I�@���َq�����Ă����񂾂��ǁA�ꏏ�ɐH�ׂȂ����H�v
-				PRINTFORM �w��c�c
-				IF COND("������", PARTNER() )
-					PRINTFORM ���Ⴀ�A�ЂƂ���
+				PRINTFORMW 「%CNAME("パートナー")%！　お菓子持ってきたんだけど、一緒に食べないか？」
+				PRINTFORM 『ん……
+				IF COND("相性◎", PARTNER() )
+					PRINTFORM じゃあ、ひとつだけ
 				ELSE
-					PRINTFORM �ʂ�
+					PRINTFORM 別に
 				ENDIF
-				PRINTFORMW �c�c�x
+				PRINTFORMW ……』
 			ELSE
-				PRINTFORMW �u%CNAME("�p�[�g�i�[")%�`�A�׋������Ă���`�v
-				PRINTFORMW �u���̃e�X�g���{���{���ɂȂ肻���ŕ|���񂾂�`�v
-				PRINTFORMW �w�c�c
-				IF COND("������", PARTNER() )
-					PRINTFORMW �ǂ��H�x	
+				PRINTFORMW 「%CNAME("パートナー")%～、勉強教えてくれ～」
+				PRINTFORMW 「次のテストがボロボロになりそうで怖いんだよ～」
+				PRINTFORMW 『……
+				IF COND("相性◎", PARTNER() )
+					PRINTFORMW どこ？』	
 				ELSE
-					PRINTFORMW ����A���̂ЂƂɕ����΂�������Ȃ��c�c�H�x
+					PRINTFORMW いや、他のひとに聞けばいいじゃない……？』
 				ENDIF
 			ENDIF
 		ENDSELECT
 	ENDIF
 
-;�b���������鑤�̃Z���t�B���ʂ́w�x���g���̂��]�܂���
-CASE "�U��ꂽ"
-	IF CALLNAME:PARTNER() == "�t�F���V�G��"
-		IF COND("������", PARTNER() )
-			SIF TEXTS("�G��") == "����"
-				PRINTFORMW �w���A�������ǁA%CNAME("��l��")%�ő��v�Ȃ̂��H�x
+;話しかけられる側のセリフ。括弧は『』を使うのが望ましい
+CASE "誘われた"
+	IF CALLNAME:PARTNER() == "フェリシエル"
+		IF COND("相性○", PARTNER() )
+			SIF TEXTS("季節") == "初夏"
+				PRINTFORMW 『え、いいけど、%CNAME("一人称")%で大丈夫なのか？』
 		ELSE
-			IF CFLAG:������ >= 7
-				PRINTFORMW �w�����I�@%CNAME("�p�[�g�i�[")%�͕��m�肾����ȁ[�A�������y���݂��I�x
+			IF CFLAG:加入日 >= 7
+				PRINTFORMW 『おう！　%CNAME("パートナー")%は物知りだからなー、今日も楽しみだ！』
 			ELSE
-				PRINTFORMW �w%CNAME("�p�[�g�i�[")%���ǂ�Ȑl�Ȃ̂��c�c�C�ɂȂ邺�c�c�I�x
+				PRINTFORMW 『%CNAME("パートナー")%がどんな人なのか……気になるぜ……！』
 			ENDIF
 		ENDIF
 	ENDIF

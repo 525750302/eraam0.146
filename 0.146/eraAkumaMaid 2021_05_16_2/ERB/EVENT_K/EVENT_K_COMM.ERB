@@ -1,29 +1,29 @@
+﻿;--------------------------------------------------
+;キャラ間やり取りは例外的に全キャラ分ここに置く
+;やり取りを思いついたり台詞を思いついた人は加筆してみてください
 ;--------------------------------------------------
-;�L�����Ԃ����͗�O�I�ɑS�L�����������ɒu��
-;�������v��������䎌���v�������l�͉��M���Ă݂Ă�������
-;--------------------------------------------------
-;��b���Ă�l�̊�O�������ɕ��ׂ�
+;会話してる人の顔グラを横に並べる
 ;--------------------------------------------------
 @PRINT_TaiTaChara, ARG, ARG:1, ARG:2
 #DIM LCOUNT
 
-CVARSET CFLAG, GETNUM(CFLAG, "�𗬒�")
+CVARSET CFLAG, GETNUM(CFLAG, "交流中")
 
 SIF ARG
-	CFLAG:�𗬒� = 1
+	CFLAG:交流中 = 1
 FOR LCOUNT, 0, 3
 	SIF ARG:LCOUNT
-		CFLAG:(ARG:LCOUNT):�𗬒� = 1
+		CFLAG:(ARG:LCOUNT):交流中 = 1
 NEXT
 
 CALL REPRINT_SHOP_NAME
 
-CVARSET CFLAG, GETNUM(CFLAG, "�𗬒�")
-;�ĕ`������Ă������Z���t���o��悤�ɗ�������
+CVARSET CFLAG, GETNUM(CFLAG, "交流中")
+;再描画をしても同じセリフが出るように乱数調整
 CALL RESET_RANDOMIZE
 
 ;--------------------------------------------------
-;�R�~���j�P�[�V�����C�x���g�ł̑䎌�B
+;コミュニケーションイベントでの台詞。
 ;--------------------------------------------------
 @KOJO_COMM, ARGS
 #DIM MEMO_LINECOUNT
@@ -35,368 +35,368 @@ SIF LINECOUNT != MEMO_LINECOUNT
 	PRINTL 
 
 ;--------------------------------------------------
-;�n�i
-;���񂸂������ォ�炨�؂肵�܂���
+;ハナ
+;あんずちゃん口上からお借りしました
 ;--------------------------------------------------
 @TaiTaChara_K7
-;�C�x���g���N����L�����̖��O��/��؂�ł���ɓ˂����݁ATEXTR�Ŏ��o��
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
 #DIMS EVENT_TABLE
-;�C�x���g�������̃L����
+;イベント発生中のキャラ
 #DIM ACTOR
-;�C�x���g�������̃L�����̃f�t�H��CALLNAME
+;イベント発生中のキャラのデフォのCALLNAME
 #DIMS CALLNAME_ACTOR
 
-;���݂��̏�ɂ���A�����ȊO�̑S�L�����̖��O���擾����
-EVENT_TABLE = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
-;�N�����Ȃ��Ȃ�I���
+;現在この場にいる、自分以外の全キャラの名前を取得する
+EVENT_TABLE = %NAMES("対話可能キャラ一覧", TARGET)%
+;誰も居ないなら終わり
 SIF EVENT_TABLE == ""
 	RETURN 0
 
-;���̃L�����̃C�x���g���N����
+;このキャラのイベントが起きる
 CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
 ACTOR = FIND_COND(CALLNAME_ACTOR)
 CALL PRINT_TaiTaChara, ACTOR
 
-;���̕����TEXTR(EVENT_TABLE)��EVENT_TABLE�ɉ��������ĂȂ��Ȃ�CASEELSE�ցA�t�F���V�G��/���e/�n�i/�Ȃ瓙�m���łR�l�̂ǂꂩ�̕���ɍs��
+;この分岐はTEXTR(EVENT_TABLE)はEVENT_TABLEに何も入ってないならCASEELSEへ、フェリシエル/小菊/ハナ/なら等確率で３人のどれかの分岐に行く
 SELECTCASE CALLNAME_ACTOR
-CASE "�t�F���V�G��"
-	IF CEVENT("�t�F���V�G������b") == 0
-		IF COND("��")
-			PRINTFORML �u�������A���C�h����Ƃ����߂Č������X�@���[��%CNAME("��l��")%��%NAME:TARGET%���X�I�I��낵�����肢���܂��I�I�v
-			PRINTFORML �w�͂��A�����炱���B�t�t�t�x
+CASE "フェリシエル"
+	IF CEVENT("フェリシエル初会話") == 0
+		IF COND("夜")
+			PRINTFORML 「おぉう、メイドさんとか初めて見たっス　えーと%CNAME("一人称")%は%NAME:TARGET%っス！！よろしくお願いします！！」
+			PRINTFORML 『はい、こちらこそ。フフフ』
 		ELSE
-			PRINTFORML �u�����A%CNAME("�t�F���V�G��")%���ă��C�h���񂾂�����X���I�H�@�������Z���p�C��p�I�H�v
-			PRINTFORML �w�͂��A���̓��C�h��������ł��B����l�l��p�ł͖����ł����ǂˁx
+			PRINTFORML 「えっ、%CNAME("フェリシエル")%ってメイドさんだったんスか！？　しかもセンパイ専用！？」
+			PRINTFORML 『はい、実はメイドだったんです。ご主人様専用では無いですけどね』
 		ENDIF
-		CALL SET_CEVENT, "�t�F���V�G������b"
+		CALL SET_CEVENT, "フェリシエル初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�ց[���A%CONDS("����", ACTOR)%������ă��C�h����Ȃ��������ĉƎ��S�ʓ��ӂȂ���X�ˁ[�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̎d���Ԃ�Ɋ��S���Ă���
+			PRINTFORML 「へーっ、%CONDS("略称", ACTOR)%さんってメイドさんなだけあって家事全般得意なんっスねー」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の仕事ぶりに感心している
 		ELSEIF RAND:3
-			PRINTFORML �u���C�h������ĉƎ��S�ʈȊO�ɉ������X���H�@�ց[�A����Ȃ��Ƃ܂Łc�v
-			PRINTFORML �w�����B����l�l���āA���������Č��\�����Ȃ�ł���x
-			CALL PRINT_STRL, "�w�c�c�t�t_H_�x"
+			PRINTFORML 「メイドさんって家事全般以外に何するんスか？　へー、そんなことまで…」
+			PRINTFORML 『ええ。ご主人様って、ああ見えて結構お上手なんですよ』
+			CALL PRINT_STRL, "『……フフ_H_』"
 		ELSE
-			PRINTFORML �u%CONDS("����", ACTOR)%����ƃ��C�h�i���̃��C�h������ĕ��S�R�Ⴄ���X�ˁ[�v
-			PRINTFORML �w�t�t�B�Ƃ��낪�ł��ˁA���������Ė{���͌��\���Ă��ł���x
+			PRINTFORML 「%CONDS("略称", ACTOR)%さんとメイド喫茶のメイドさんって服全然違うっスねー」
+			PRINTFORML 『フフ。ところがですね、そう見えて本質は結構似てるんですよ』
 		ENDIF
 	ENDIF
-CASE "�G�G�̌N"
-	IF CEVENT("�G�G�̌N����b") == 0
-		PRINTFORML �u�Z���p�C���ČςȂ�X���H�@%CNAME("��l��")%�͘T�Ȃ�X��A���ꂩ���낵�����肢���܂��I�I�v
-		PRINTFORML �w���C�̂����z���ȁB���������낵���肨���x
-		CALL SET_CEVENT, "�G�G�̌N����b"
+CASE "濡烏の君"
+	IF CEVENT("濡烏の君初会話") == 0
+		PRINTFORML 「センパイって狐なんスか？　%CNAME("一人称")%は狼なんスよ、これからよろしくお願いします！！」
+		PRINTFORML 『元気のいい奴だな。私からもよろしく願おう』
+		CALL SET_CEVENT, "濡烏の君初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u%CONDS("����", ACTOR)%�Z���p�C�̔����Ă��炳����Y����X�ˁ[�A%CNAME("��l��")%�͂ǂ������Ƃ����ƌł߂������ςȂ�X��[�v
-			PRINTFORML �w�ӂ��A�����ɂ�������������̂��B���O�������Ȃ�̗ǂ���͍����邪�����x
-			PRINTFORML %CALLNAME:ACTOR%�͖J�߂��Ċ������̂��A�C���ǂ������ɐ�y���𐁂����Ă���
+			PRINTFORML 「%CONDS("略称", ACTOR)%センパイの髪ってさらさらで綺麗っスねー、%CNAME("一人称")%はどっちかというと固めだから大変なんスよー」
+			PRINTFORML 『ふっ、何事にも長所があるものだ。お前も自分なりの良さを模索するがいい』
+			PRINTFORML %CALLNAME:ACTOR%は褒められて嬉しいのか、気分良さそうに先輩風を吹かせている
 		ELSEIF RAND:3
-			PRINTFORML �u%CONDS("����", ACTOR)%�Z���p�C���ǂ�ł��X���H�v
-			PRINTFORML �w��c�c�����A���w�̎Q�l������B�ǂ������łȁx
+			PRINTFORML 「%CONDS("略称", ACTOR)%センパイ何読んでるんスか？」
+			PRINTFORML 『ん……あぁ、数学の参考書だよ。どうも苦手でな』
 		ELSE
-			PRINTFORML �u�������Ă��X���[�H%CONDS("����", ACTOR)%�Z���p�C�@�Ȃ񂩓�����Ȏ����X�ˁ[�v
-			PRINTFORML �w���ꂩ�A����́c�c�܂��A���E�݂����Ȃ��̂��ȁB�ɂȂ炨�O�������Ă݂邩�H�x
+			PRINTFORML 「何書いてるんスかー？%CONDS("略称", ACTOR)%センパイ　なんか難しそうな字っスねー」
+			PRINTFORML 『これか、これは……まぁ、内職みたいなものだな。暇ならお前も書いてみるか？』
 		ENDIF
 	ENDIF
-CASE "�c�F�c�B�[���A"
-	IF CEVENT("�c�F�c�B�[���A����b") == 0
-		PRINTFORML �u�Z���p�C���Ă܂ف[�g���Ȃ�X���I�@�΂΁[����ė��Ƃ����Ƃ��o����X���I�I�v
-		CALL SET_CEVENT, "�c�F�c�B�[���A����b"
+CASE "ツェツィーリア"
+	IF CEVENT("ツェツィーリア初会話") == 0
+		PRINTFORML 「センパイってまほー使いなんスか！　ばばーんって雷とか炎とか出るっスか！！」
+		CALL SET_CEVENT, "ツェツィーリア初会話"
 	ELSE
-		IF CEVENT("�c�F�c�B�[���A�ď̊��X") == 0
-			PRINTFORML �u�����[�c�@�������[�c�@�����[�@���߂�Ȃ����Ȃ�ł��Ȃ����X�c�v
-			CALL SET_CEVENT, "�c�F�c�B�[���A�ď̊��X"
+		IF CEVENT("ツェツィーリア呼称噛々") == 0
+			PRINTFORML 「つぇちー…　ちぇつぃー…　うぅー　ごめんなさいなんでもないっス…」
+			CALL SET_CEVENT, "ツェツィーリア呼称噛々"
 		ELSEIF RAND:3 == 0
-			PRINTFORML �u���[�H�@�Z���p�C���ǂ�ł���X���H�@���R�w�̂�[����_�H����ĕ�����Ȃ����X�c�v
+			PRINTFORML 「んんー？　センパイ何読んでるっスか？　自然学のれーこん論？難しくて分かんないっス…」
 		ELSE
-			PRINTFORML �u�܂ف[���Ăǂ�Ȏ��ł����X���H�@%CNAME("��l��")%�ł��g�����X���ˁ[�H�v
+			PRINTFORML 「まほーってどんな事できるんスか？　%CNAME("一人称")%でも使えるんスかねー？」
 		ENDIF
 	ENDIF
-CASE "�A���[�k"
-	IF CEVENT("�A���[�k����b") == 0
-		PRINTFORML �u�ی��̐搶���X���I�I�@%CNAME("��l��")%�͉��䑽�������Ԃ������Ⴄ�������X���ǁ@��낵�����肢���܂��I�I�v
-		CALL SET_CEVENT, "�A���[�k����b"
+CASE "アリーヌ"
+	IF CEVENT("アリーヌ初会話") == 0
+		PRINTFORML 「保健の先生っスか！！　%CNAME("一人称")%は怪我多いから手間かけちゃうかもっスけど　よろしくお願いします！！」
+		CALL SET_CEVENT, "アリーヌ初会話"
 	ELSE
-		PRINTFORM �u�搶�I�搶�I�I�w�I���[�L�т�N�X�����Ė������X���I�I
-		SIF FIND_COND("�Z��") && BASE:FIND_COND("�Z��"):�g�� >= BASE:�g��
-			PRINTFORM �@%CNAME("��l��")%�͕������Ȃ����X�c�@�������̎q�Ɂc
-		PRINTFORML �v
+		PRINTFORM 「先生！先生！！背！せー伸びるクスリって無いっスか！！
+		SIF FIND_COND("六華") && BASE:FIND_COND("六華"):身長 >= BASE:身長
+			PRINTFORM 　%CNAME("一人称")%は負けられないっス…　初等部の子に…
+		PRINTFORML 」
 	ENDIF
-CASE "�Z��"
-	IF CEVENT("�Z�؏���b") == 0
-		IF TALENT:ACTOR:���� == 2
-			PRINTFORML �u�����[�@%CNAME("��l��")%�Ɠ������炢�̔w�Ȃ�Ē��������X�ˁA�����c�@�����c���c�H�v
+CASE "六華"
+	IF CEVENT("六華初会話") == 0
+		IF TALENT:ACTOR:小柄 == 2
+			PRINTFORML 「おぉー　%CNAME("一人称")%と同じくらいの背なんて珍しいっスね、えっ…　初等…部…？」
 		ELSE
-			PRINTFORML �u���߂܂��Ă��X�I%CNAME("��l��")%�͐l�T�̃n�i���X�@�Z�؂����͎ւ̐_�l�Ȃ�X�ˁ[�v
+			PRINTFORML 「初めましてっス！%CNAME("一人称")%は人狼のハナっス　六華ちゃんは蛇の神様なんスねー」
 		ENDIF
-		CALL SET_CEVENT, "�Z�؏���b"
+		CALL SET_CEVENT, "六華初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u��[�H�Z�؂����ǁ[�������X���H�@����H�Q�[���@���X��I�@����ɂ��Ă�_��|���Ɓ[�@�������ɓ������X��v
+			PRINTFORML 「んー？六華ちゃんどーしたっスか？　これ？ゲーム機っスよ！　これについてる棒を倒すとー　そっちに動くっスよ」
 		ELSEIF RAND:3
-			PRINTFORML �u�Z�؂����͊Â����̂��|�����X���[�@��[�c�@%CNAME("��l��")%�͂������|�����X�ˁv
+			PRINTFORML 「六華ちゃんは甘いものが怖いっスかー　んー…　%CNAME("一人称")%はお肉が怖いっスね」
 		ELSE
-			IF BASE:ACTOR:�g�� >= BASE:�g��
-				PRINTFORML �u����[�c�@����c�������̎q�ɔw�ŕ������c�v
+			IF BASE:ACTOR:身長 >= BASE:身長
+				PRINTFORML 「んんんー…　しょ…初等部の子に背で負けた…」
 			ELSE
-				PRINTFORML �u��ւց[�A�Â����̂΂����肶��w�͐L�тȂ����X��[�H�v
+				PRINTFORML 「んへへー、甘いものばっかりじゃ背は伸びないっスよー？」
 			ENDIF
 		ENDIF
 	ENDIF
-CASE "������"
-	IF CEVENT("�����珉��b") == 0
-		CALL PRINT_STR, @"�u���A�����炿���т�[�����v�Ȃ�X���H�@�R�R�ɋ�����Ď��́c�@�`�`�`�`�`�`��_�^�^�^_�v_L_"
-		CALL SET_CEVENT, "�����珉��b"
+CASE "さくら"
+	IF CEVENT("さくら初会話") == 0
+		CALL PRINT_STR, @"「さ、さくらちゃんびょーき大丈夫なんスか？　ココに居るって事は…　～～～～～～っ_／／／_」_L_"
+		CALL SET_CEVENT, "さくら初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�����[�A�����炿��񉽓ǂ�ł���X���H�@���H�@%TEXTR("�}���^�̉�/�K���X�ʂ̂��P�l/�t�H���i����L/�g���N����/�����C��/��̓��̃G�C���A��/���Փ`")%�H%TEXTR("���̊C�A��̘T/�����̖������܂�ɂ���������/�����ƃX�p�C�X�Ƒf�G�Ȕ��e/�E�҂��܂͎�����~�I/�K���̉��q�͏΂�Ȃ�/�G���t�̂���l�l/�ǉ��̋�")%�H%TEXTR("�������Ȑ��E�̎��ւ��q/�R�������̉�ꂽ���E/���̔ގ�/�}���َi���Ƌ@�֏e/���C�K�X�E�t�B�[���h/���z�V����/�f�̓i�C�g���A")%�H%TEXTR("���ł��킩��l�Ԋ֌W����/�������炮���Ɖ����Ȃ��l�̃��C�N/�J���̈ݑ܂�����������ށ@�f�L�鏗�̉ƒ뗿��/�j�̎q�̓R�R�����Ă���@���q�̓A�b�v����/�������ɂȂ邽�߂̎��̔閧/�������ݎv�ĂȂ��Ȃ��̂��߂̕��I��/�����܂������̈���藿��")%�c�H�v
+			PRINTFORML 「おぉー、さくらちゃん何読んでるっスか？　んん？　%TEXTR("マンタの夏/ガラス玉のお姫様/フォルナム戦記/トルク歩き/幻視砲塔/南の島のエイリアン/竜虎伝")%？%TEXTR("金の海、銀の狼/うちの妹があまりにも可愛すぎる/砂糖とスパイスと素敵な爆弾/勇者さまは時給千円！/幸福の王子は笑わない/エルフのご主人様/追憶の空")%？%TEXTR("おかしな世界の取り替え子/嘘つきたちの壊れた世界/私の彼氏/図書館司書と機関銃/メイガス・フィールド/白陽天動乱/断章ナイトメア")%？%TEXTR("猿でもわかる人間関係入門/明日からぐっと可愛くなる大人のメイク/カレの胃袋をがっちりつかむ　デキる女の家庭料理/男の子はココを見ている　女子力アップ大作戦/恋愛上手になるための七つの秘密/引っ込み思案なあなたのための服選び/召しませ乙女の愛情手料理")%…？」
 		ELSEIF RAND:3
-			PRINTFORML �u�ǁ[�������X�������炿���H�@�����A�I�X�X���̖{���X���H�@��[�c�@%TEXTR("�ΐ��R�̖��@�g��/�c���c/�letro2033")%�Ƃ��ǁ[���X���H�v
+			PRINTFORML 「どーしたっスかさくらちゃん？　えっ、オススメの本っスか？　んー…　%TEXTR("火吹山の魔法使い/Ｄ＆Ｄ/Ｍetro2033")%とかどーっスか？」
 		ELSE
-			PRINTFORML �u�����[�I�I�@���A���ĂȂ��c�@�����炿���%TEXTR("�p�Y��/���y�Q�[��/���[�X�Q�[��/�N�C�Y�Q�[��/�X�g���e�W�[")%���߂����X��v
+			PRINTFORML 「んんんんー！！　か、勝てない…　さくらちゃん%TEXTR("パズル/音楽ゲーム/レースゲーム/クイズゲーム/ストラテジー")%強過ぎっスよ」
 		ENDIF
 	ENDIF
-CASE "����"
-	IF CEVENT("��������b") == 0
-		PRINTFORML �u���A�����[�c�@�����Z���p�C�������A���c�@�����A%CNAME("��l��", "�ǂ���")%�̓n�i���Č������X�I�v
-		CALL SET_CEVENT, "��������b"
+CASE "ユリ"
+	IF CEVENT("ユリ初会話") == 0
+		PRINTFORML 「お、おぉー…　ユリセンパイすごい、服…　あっ、%CNAME("一人称", "どもり")%はハナって言うっス！」
+		CALL SET_CEVENT, "ユリ初会話"
 	ELSE
 		;IF RAND:3 == 0
-			PRINTFORML �u��A�����Z���p�C���I�I�@���������Ⴍ�Ă��Ă�ɂȂ�������Ă���X����I�I�v
+			PRINTFORML 「ゆ、ユリセンパイ服！！　服ちっちゃくてつんつるてんになっちゃってるっスから！！」
 		;ELSEIF RAND:3
 			
 		;ELSE
 			
 		;ENDIF
 	ENDIF
-CASE "�p���`�l"
-	IF CEVENT("�p���`�l����b") == 0
-		PRINTFORML �u�����A�V�X�^�[������X�I�V�X�^�[����I�I�@�E�`�_�������炠��܂�ւ�薳��������X��ˁ[�@��낵�����肢���܂��I�I�p���`�l�Z���p�C�v
-		CALL SET_CEVENT, "�p���`�l����b"
+CASE "パラチネ"
+	IF CEVENT("パラチネ初会話") == 0
+		PRINTFORML 「おぉ、シスターさんっス！シスターさん！！　ウチ神道だからあんまり関わり無かったんスよねー　よろしくお願いします！！パラチネセンパイ」
+		CALL SET_CEVENT, "パラチネ初会話"
 	ELSE
 		IF RAND:2 == 0
-			PRINTFORML �u�����A�N�����b�N���ĂԂ�Ԃ񃁃C�X�U��񂵂ă��K�N���b�V���ŃA���f�b�h���򉻂���񂶂�Ȃ���X���I�H�v
+			PRINTFORML 「えっ、クレリックってぶんぶんメイス振り回してメガクラッシュでアンデッドを浄化するんじゃないんスか！？」
 		ELSE
-			PRINTFORML �u%CNAME("��l��", "�ǂ���")%�̓��[�E���t���ᖳ�����X��c�H�v
+			PRINTFORML 「%CNAME("一人称", "どもり")%はワーウルフじゃ無いっスよ…？」
 		ENDIF
 	ENDIF
-CASE "�����B�G�[�i"
-	IF CEVENT("�����B�G�[�i����b") == 0
-		PRINTFORML �u�����c�@�ׂ��A�ʂɃR�R�ł�܂��[���Ƃ��ĂȂ����X��c�H�@�ʂɁc�@�����H�搶�������Łc�H�v
-		CALL SET_CEVENT, "�����B�G�[�i����b"
+CASE "メリィエーナ"
+	IF CEVENT("メリィエーナ初会話") == 0
+		PRINTFORML 「あっ…　べっ、別にココでやましーことしてないっスよ…？　別に…　えっ？先生もここで…？」
+		CALL SET_CEVENT, "メリィエーナ初会話"
 	ELSE
-		IF CEVENT("�����B�G�[�i�֌W�b") == 0 && COND("����", ACTOR)
-			PRINTFORML �u�ց[���A�搶�ƃZ���p�C���Đe�q��������X���@���Ď��́c�v
-			CALL SET_CEVENT, "�����B�G�[�i�֌W�b"
-		ELSEIF RAND:2 == 0 && COND("������", ACTOR) && COND("������") == 0
-			PRINTFORML �u�ց[�A�Z���p�C���ċx�݂̓�����Ȋ����Ȃ�X���[�v
+		IF CEVENT("メリィエーナ関係話") == 0 && COND("実母", ACTOR)
+			PRINTFORML 「へーっ、先生とセンパイって親子だったんスか　って事は…」
+			CALL SET_CEVENT, "メリィエーナ関係話"
+		ELSEIF RAND:2 == 0 && COND("同棲中", ACTOR) && COND("同棲中") == 0
+			PRINTFORML 「へー、センパイって休みの日そんな感じなんスかー」
 		ELSE
-			PRINTFORML �u�搶�A���񂹁[�I�@���̕�����������Ƃ킩��Ȃ���X���ǁc�v
+			PRINTFORML 「先生、せんせー！　この部分がちょっとわかんないんスけど…」
 		ENDIF
 	ENDIF
-CASE "���A��"
-	IF CEVENT("���A������b") == 0
-		PRINTFORML �u������c�H�@%CNAME("��l��")%�Ƃ��ˁ[������ď��Ζʂł��������c�H�@�ǂ����Ō������Ƃ���悤�Ȗ����悤�ȁc�v
-		CALL SET_CEVENT, "���A������b"
+CASE "リアラ"
+	IF CEVENT("リアラ初会話") == 0
+		PRINTFORML 「あれっ…？　%CNAME("一人称")%とおねーさんって初対面でしたっけ…？　どっかで見たことあるような無いような…」
+		CALL SET_CEVENT, "リアラ初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�ӂ��ӂ��Ӂc�@%CNAME("��l��")%�̐΃f�b�L�ɑς�������X���[�I�I�v
+			PRINTFORML 「ふっふっふ…　%CNAME("一人称")%の青緑デッキに耐えられるっスかー！！」
 		ELSEIF RAND:3
-			PRINTFORML �u�ӂ��ӂ��Ӂc�@�΂ɂ̓R���g���[���͐h���񂶂�Ȃ����X���[�H�@���A�A���c�H�@����c�܂��āc�v
+			PRINTFORML 「ふっふっふ…　緑にはコントロールは辛いんじゃないっスかー？　あ、アレ…？　ちょ…まって…」
 		ELSE
-			PRINTFORML �u�ӂւց[�@%CNAME("���A��")%�̓������ė����������X�ˁ[�v
+			PRINTFORML 「ふへへー　%CNAME("リアラ")%の匂いって落ち着くっスねー」
 		ENDIF
 	ENDIF
-CASE "����"
-	IF CEVENT("��������b") == 0
-		PRINTFORML �u�����A�Z���p�C�̃N���X�̈ψ���������X���I�@�Z���p�C���ăN���X�ł͂ǂ�Ȋ����Ȃ�X���H�v
-		CALL SET_CEVENT, "��������b"
+CASE "成美"
+	IF CEVENT("成美初会話") == 0
+		PRINTFORML 「おぉ、センパイのクラスの委員長さんっスか！　センパイってクラスではどんな感じなんスか？」
+		CALL SET_CEVENT, "成美初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�Z���p�C�Z���p�C�A�����Z���p�C�I�@���͐܂�����đ��k���c�v
+			PRINTFORML 「センパイセンパイ、成美センパイ！　実は折り入って相談が…」
 			PRINTFORML 
 			PRINTFORML 
-			PRINTFORML �u�׋������Ă��������c�v
+			PRINTFORML 「勉強教えてください…」
 		ELSEIF RAND:3
-			PRINTFORML �u���ނނށc�@�����Z���p�C�̔��̖т��܂��������Y����X�ˁ[�@�A�܂������X�c�v
+			PRINTFORML 「うむむむ…　成美センパイの髪の毛もまっすぐで綺麗っスねー　羨ましいっス…」
 		ELSE
-			PRINTFORML �u�����A�������H�@�������ɑ��������X���I�H�@�����H�����c�H�v
+			PRINTFORML 「えっ、こっち？　こっちに代入するっスか！？　えっ？えっ…？」
 		ENDIF
 	ENDIF
-CASE "�A�C��"
-	IF CEVENT("�A�C������b") == 0
-		PRINTFORML �u�����c�H�@�����I�I�@�Z���p�C�͔L���X���I�@%CNAME("��l��")%�͘T���X��I
-		PRINTFORML �u�ӂց[�A�����Ǝ��ƐK�������X�ˁ[�@%CNAME("��l��")%�̌��؂͎��̂���Ȃ�����A�܂������X�v
-		PRINTFORML �w�����c�H�ڗ���������̂����\��ςȂ̂�H�x
-		CALL SET_CEVENT, "�A�C������b"
+CASE "アイリ"
+	IF CEVENT("アイリ初会話") == 0
+		PRINTFORML 「んんっ…？　おぉ！！　センパイは猫っスか！　%CNAME("一人称")%は狼っスよ！
+		PRINTFORML 「ふへー、ちゃんと耳と尻尾あるんスねー　%CNAME("一人称")%の血筋は実体じゃないから羨ましいっス」
+		PRINTFORML 『そう…？目立ちすぎるのも結構大変なのよ？』
+		CALL SET_CEVENT, "アイリ初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�{���ǂ����X���Ǔ؂������b���t����������X�c�@������Ɗm���߂�̂ɏē����ǂ����X�ˁ[�v
-			PRINTFORML �w�c�n�i���H�ׂ�����������Ȃ��́H������āc�x
+			PRINTFORML 「鶏も良いっスけど豚も牛も甲乙付けがたいんス…　ちょっと確かめるのに焼肉が良いっスねー」
+			PRINTFORML 『…ハナが食べたいだけじゃないの？それって…』
 		ELSEIF RAND:3
-			PRINTFORML �u�A�C���Z���p�C��������X�c�@�͂���[�����Đh�����X��˂��c�v
-			PRINTFORML �w�������̈ӎv�Ƃ͂��\���Ȃ��Ȃ̂�ˁc�{���ɍ����c�x
+			PRINTFORML 「アイリセンパイ分かるっス…　はつじょーきって辛いっスよねぇ…」
+			PRINTFORML 『こっちの意思とはお構いなしなのよね…本当に困るわ…』
 		ELSE
-			PRINTFORML �u�ǁ[���܂����A�C���Z���p�C�H�@�����A�͂���[���̉��������X���H�@�������Ⴂ���͋삯����ĂĂ悭������Ȃ��������X���ǁc�@�ŋ߂̓Z���p�C�Ɓc�v
-			PRINTFORML �w�����c����ς肻�ꂵ���Ȃ��̂�����c�c�H�x
+			PRINTFORML 「どーしましたアイリセンパイ？　えっ、はつじょーきの解消方っスか？　ちっちゃい頃は駆け回っててよく分かんなかったっスけど…　最近はセンパイと…」
+			PRINTFORML 『うぅ…やっぱりそれしかないのかしら……？』
 		ENDIF
 	ENDIF
-CASE "�V�L"
-	IF CEVENT("�V�L����b") == 0
-		PRINTFORML �u���߂܂��Ă��X�A�V�L�Z���p�C�I�@�z���S���Ď��͖��ɂȂ�����o�����X���H�v
-		CALL SET_CEVENT, "�V�L����b"
+CASE "シキ"
+	IF CEVENT("シキ初会話") == 0
+		PRINTFORML 「初めましてっス、シキセンパイ！　吸血鬼って事は霧になったり出来るんスか？」
+		CALL SET_CEVENT, "シキ初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u���[�����΃��@���p�C�A�ƃ��[�E���t���ēV�G���m���Č����f��ł̐ݒ肠�������X�ˁ[�v
+			PRINTFORML 「そーいえばヴァンパイアとワーウルフって天敵同士って言う映画での設定あったっスねー」
 		ELSEIF RAND:3
-			PRINTFORML �u�V�L�Z���p�C���ċ؃g���D���Ȃ�X���H�@%CNAME("��l��")%���^���̓L���C����Ȃ����X�I�v
+			PRINTFORML 「シキセンパイって筋トレ好きなんスか？　%CNAME("一人称")%も運動はキライじゃないっス！」
 		ELSE
-			PRINTFORML �u�����Č����΃u���b�h�\�[�Z�[�W�Ƃ��ǂ����X��ˁ[�v
+			PRINTFORML 「血って言えばブラッドソーセージとか良いっスよねー」
 		ENDIF
 	ENDIF
-CASE "�לZ"
-	IF CEVENT("�לZ����b") == 0
-		PRINTFORML �u����ɂ��́H����΂��H�@��[�c�@�킩��Ȃ��c�@%CNAME("��l��")%�̓n�i���X�I�I�v
-		CALL SET_CEVENT, "�לZ����b"
+CASE "槞彁"
+	IF CEVENT("槞彁初会話") == 0
+		PRINTFORML 「こんにちは？こんばんわ？　んー…　わかんない…　%CNAME("一人称")%はハナっス！！」
+		CALL SET_CEVENT, "槞彁初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u����A�R�����X���H�@�R���͂��炠�����Č������X�v
-			PRINTFORML �u���[���[�A���炠���@�{�����Č����ā[�{�ɂɂ����ς��j���g���������X��v
-			PRINTFORML �u�]�T�͂�����X���ǂ��イ���イ�Ƃ����Ă����������m��Ȃ����X�ˁv
-			PRINTFORML �u�����A����̓t�H�A�O���̍������X�@�Ȃɂ��ꂱ�킢�v
+			PRINTFORML 「んっ、コレっスか？　コレはからあげって言うっス」
+			PRINTFORML 「そーそー、からあげ　鶏肉って言ってー鶏舎にいっぱいニワトリが居るんスよ」
+			PRINTFORML 「余裕はあるっスけどぎゅうぎゅうといってもいいかも知れないっスね」
+			PRINTFORML 「えっ、それはフォアグラの作り方っス　なにそれこわい」
 		ELSEIF RAND:3
-			IF BASE:ACTOR:�g�� >= BASE:�g��
-				PRINTFORML �u�����`�`�`�`���I�I�@�Ȃ�Łc�@�Ȃ�ł��X���[�I�I�@�������ɔw�ŕ�����Ȃ�āc�v
+			IF BASE:ACTOR:身長 >= BASE:身長
+				PRINTFORML 「んんんん～～～～っ！！　なんで…　なんでっスかー！！　中等部に背で負けるなんて…」
 			ELSE
-				PRINTFORML �u�ӂւց[�A%CNAME("��l��")%�̕������[�������X�I�v
-				PRINTFORML %CALLNAME:TARGET%�͔N����%CALLNAME:ACTOR%�Ƃ̔w��ׂɏ������ď����ւ��Ă���c
+				PRINTFORML 「ふへへー、%CNAME("一人称")%の方がせー高いっス！」
+				PRINTFORML %CALLNAME:TARGET%は年下の%CALLNAME:ACTOR%との背比べに勝利して勝ち誇っている…
 			ENDIF
 		ELSE
-			PRINTFORML �u�ӂց[�A�לZ�����̂���[�Ǘ������Ĕ������������X�ˁ[�v
+			PRINTFORML 「ふへー、槞彁ちゃんのきょーど料理って美味しそうっスねー」
 		ENDIF
 	ENDIF
-CASE "����"
-	IF CEVENT("���񂸏���b") == 0
-		PRINTFORML �u�����I�Z���p�C�̓��������X���I�@���v���X���H�@���񂸃Z���p�C�ςȎ�����ĂȂ����X���H�v
-		CALL SET_CEVENT, "���񂸏���b"
+CASE "あんず"
+	IF CEVENT("あんず初会話") == 0
+		PRINTFORML 「おぉ！センパイの同級生っスか！　大丈夫っスか？　あんずセンパイ変な事されてないっスか？」
+		CALL SET_CEVENT, "あんず初会話"
 	ELSE
 		IF RAND:2 == 0
-			PRINTFORML �u������A���񂸃Z���p�C���̃L�����Ђ���[���X��[�v
+			PRINTFORML 「うわっ、あんずセンパイそのキャラひきょーっスよー」
 		ELSE
-			SELECTCASE TEXTS("�G��")
-				CASE "�t"
-					PRINTFORML �u�t���X�ˁ[���񂸃Z���p�C�A���[�����΍��݂��ĉԂт�����Ă��X���ˁv
-				CASE "��"
-					PRINTFORML �u���J�Â��J���X�`�A���񂸃Z���p�C�J�L�X�H�ׂɍs���Ȃ����X���c�v
-				CASE "�H"
-					PRINTFORML �u�����t�����ς����X�˂��A�Ă����Ƃ��ǁ[���X���H�v
-				CASE "�~"
-					PRINTFORML �u�ӂց[�A���񂸃Z���p�C���ė₦���Ȃ�X���@�ꏏ�ɂЂƂ����肵�đ��g�߂܂��傤���I�I�v
+			SELECTCASE TEXTS("季節")
+				CASE "春"
+					PRINTFORML 「春っスねーあんずセンパイ、そーいえば桜餅って花びら入ってるんスかね」
+				CASE "夏"
+					PRINTFORML 「あ゛づい゛っス～、あんずセンパイカキ氷食べに行かないっスか…」
+				CASE "秋"
+					PRINTFORML 「落ち葉いっぱいっスねぇ、焼き芋とかどーっスか？」
+				CASE "冬"
+					PRINTFORML 「ふへー、あんずセンパイって冷え性なんスか　一緒にひとっ走りして足暖めましょうか！！」
 			ENDSELECT
 		ENDIF
 	ENDIF
-CASE "���e"
-	IF CEVENT("���e����b") == 0
-		PRINTFORML �u�������A���e����񂨐l�`����݂������X�ˁ[�@��H�E�`�̑��ɂ����e�����Ɏ��������̐l�`�������悤�ȁc�v
-		CALL SET_CEVENT, "���e����b"
+CASE "小菊"
+	IF CEVENT("小菊初会話") == 0
+		PRINTFORML 「おぉう、小菊ちゃんお人形さんみたいっスねー　ん？ウチの蔵にも小菊ちゃんに似た感じの人形あったような…」
+		CALL SET_CEVENT, "小菊初会話"
 	ELSE
 		;IF RAND:3 == 0
-			;PRINTFORML �u�v
+			;PRINTFORML 「」
 		;ELSEIF RAND:3
 			
 		;ELSE
 			
 		;ENDIF
 	ENDIF
-CASE "�z����"
-	IF CEVENT("�z��������b") == 0
-		PRINTFORML �u���Ђ႟���A%CNAME("�z����", "�ǂ���")%�c�H�@�ׁA�ʂɂ�܂��[���Ȃ�Ă��ĂȂ����X��c�H
-		PRINTFORML �Ƃ������搶���Ȃ�ł����Ɂc�@�����I�I�v
-		CALL SET_CEVENT, "�z��������b"
+CASE "ホムラ"
+	IF CEVENT("ホムラ初会話") == 0
+		PRINTFORML 「うひゃぁっ、%CNAME("ホムラ", "どもり")%…？　べ、別にやましー事なんてしてないっスよ…？
+		PRINTFORML というか先生がなんでここに…　あっ！！」
+		CALL SET_CEVENT, "ホムラ初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u���񂹁[�@%CNAME("�z����")%�A�}���\���ł̃t�H�[�����Ă����ŗǂ���X���H�v
+			PRINTFORML 「せんせー　%CNAME("ホムラ")%、マラソンでのフォームってこうで良いんスか？」
 		ELSEIF RAND:3
-			PRINTFORML �u�搶�搶�I�@�~�ɂ͐ፇ������ƂɂƂ��I�I�@���A���[���X��ˁc�@�_�����X��ˁv
+			PRINTFORML 「先生先生！　冬には雪合戦を授業にとか！！　あ、そーっスよね…　ダメっスよね」
 		ELSE
-			PRINTFORML �u��ނނށ`�c�@�׋������X���ǁA�ԓ_��C��������X�c�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ɐԓ_���̉Ȗڂ����Ă�����Ă���悤��
+			PRINTFORML 「んむむむ～…　勉強苦手っスけど、赤点補修もいやっス…」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%に赤点候補の科目を見てもらっているようだ
 		ENDIF
 	ENDIF
-CASE "�}�m��"
-	IF CEVENT("�}�m������b") == 0
-		PRINTFORML �u������A�����ς��������c�@�����A���߂�Ȃ����@%CNAME("��l��")%�̓n�i���Č������X�c�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̑傫�ȋ��Ɉ��|����Ă���c
-		CALL SET_CEVENT, "�}�m������b"
+CASE "マノン"
+	IF CEVENT("マノン初会話") == 0
+		PRINTFORML 「うわっ、おっぱいすごい…　あっ、ごめんなさい　%CNAME("一人称")%はハナって言うっス…」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の大きな胸に圧倒されている…
+		CALL SET_CEVENT, "マノン初会話"
 	ELSE
 		IF RAND:2 == 0
-			PRINTFORML �u�ނނށc�@�ǂ������炻��Ȃɂ����ς����c�v
+			PRINTFORML 「むむむ…　どうしたらそんなにおっぱいが…」
 		ELSE
-			PRINTFORML �u�ӂց[�A�������Ă̂���ςȂ�X�ˁ[�v
+			PRINTFORML 「ふへー、淫魔ってのも大変なんスねー」
 		ENDIF
 	ENDIF
-CASE "�J���X�^"
-	IF CEVENT("�J���X�^����b") == 0
-		PRINTFORML �u%CNAME("��l��")%�̓n�i���Č������X�I
-		PRINTFORML �u�����A�Z���p�C�ŏ��̎q��������X���I�H�@������������Ă�����j�̎q���Ɓc�v
-		CALL SET_CEVENT, "�J���X�^����b"
+CASE "カリスタ"
+	IF CEVENT("カリスタ初会話") == 0
+		PRINTFORML 「%CNAME("一人称")%はハナって言うっス！
+		PRINTFORML 「えっ、センパイで女の子だったんスか！？　執事服だからてっきり男の子かと…」
+		CALL SET_CEVENT, "カリスタ初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�Z���p�C�Z���p�C�A�J���X�^�Z���p�C�I�@���x�c���c�ł��ǁ[���X���H�@���l��������l���U���ā[�v
+			PRINTFORML 「センパイセンパイ、カリスタセンパイ！　今度Ｄ＆Ｄでもどーっスか？　何人か分かる人も誘ってー」
 		ELSEIF RAND:3
-			PRINTFORML �u��[�A���̂�������Ăǁ[����ĕ����Ă��X���H�@�V�g������Ƃ�����Ȋ������X���H�v
+			PRINTFORML 「んー、そのわっかってどーやって浮いてるんスか？　天使ちからとかそんな感じっスか？」
 		ELSE
-			PRINTFORML �u�����[���Ǝ���������̂��Ĕ��Ȃ����X���H�@���������v���X�ăp�����Ƃ�������Łc�v
+			PRINTFORML 「きちーっと執事服着るのって疲れないっスか？　毎日服をプレスてパリっとさせたりで…」
 		ENDIF
 	ENDIF
-CASE "�ˎq"
-	IF CEVENT("�ˎq����b") == 0
-		PRINTFORML �u�������c�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̎p�ɂ������茩�Ƃ�Ă��܂��Ă���c
-		PRINTFORML �u�����A���߂�Ȃ����c�@%CNAME("��l��")%�̓n�i���X�c�v
-		CALL SET_CEVENT, "�ˎq����b"
+CASE "祥子"
+	IF CEVENT("祥子初会話") == 0
+		PRINTFORML 「おぉう…」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の姿にすっかり見とれてしまっている…
+		PRINTFORML 「あっ、ごめんなさい…　%CNAME("一人称")%はハナっス…」
+		CALL SET_CEVENT, "祥子初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u����[���Z���p�C������������X���[�c�@���̎��������͒��X�h�����X��˂��c�v
+			PRINTFORML 「しょーこセンパイも発情期あるんスかー…　あの時期だけは中々辛いっスよねぇ…」
 		ELSEIF RAND:3
-			PRINTFORML �u���̂����ۂ̉΂��ĔM���Ȃ���X���H�@�ց[���A���ɂ͉e�����Ȃ���X���[�v
+			PRINTFORML 「そのしっぽの火って熱くないんスか？　へーっ、物には影響しないんスかー」
 		ELSE
-			PRINTFORML �u�Q���Ō����Ă����X���ǁA����[���Z���p�C�̎��H�ׂȂ����X��H�v
+			PRINTFORML 「寝言で言ってたっスけど、しょーこセンパイの事食べないっスよ？」
 		ENDIF
 	ENDIF
-CASE "�����[�i"
-	IF CEVENT("�����[�i����b") == 0
-		PRINTFORML �u���A�������c�@�ŁA�`���̃����[�i�Z���p�C���X���I�I�������c�@%CNAME("��l��", "�ǂ���")%��%CALLNAME:TARGET%���Č������X�I�I�@��낵�����˂������܂����I�I�v
-		CALL SET_CEVENT, "�����[�i����b"
+CASE "リューナ"
+	IF CEVENT("リューナ初会話") == 0
+		PRINTFORML 「あ、あぁあ…　で、伝説のリューナセンパイっスか！！あわわわわ…　%CNAME("一人称", "どもり")%は%CALLNAME:TARGET%って言うっス！！　よろしくおねがいしまっす！！」
+		CALL SET_CEVENT, "リューナ初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�����c�@�����[�i�Z���p�C��%CNAME("��l��")%�̎��G����X�ˁc�@�G���l�قƂ�ǋ��Ȃ����犵��Ė������āc�v
-			PRINTFORML �w�����܂ő債����������Ȃ����ǁA���̖��͓I�ȉ���������̂͊m�����ȁ@���A�ɂ������������S�����ˁH�x
+			PRINTFORML 「んんっ…　リューナセンパイは%CNAME("一人称")%の耳触れるんスね…　触れる人ほとんど居ないから慣れて無くって…」
+			PRINTFORML 『そこまで大したモンじゃないけど、竜の魔力的な何かがあるのは確かかな　あ、痛くしちゃったらゴメンね？』
 		ELSEIF RAND:3
-			PRINTFORML �u�����A�����[�i�Z���p�C�I�������s�������X�I�I�@�܂ā[�I�I�v
+			PRINTFORML 「あっ、リューナセンパイ！そっち行ったっス！！　まてー！！」
 		ELSE
-			PRINTFORML �u����`�`�`�c�@���A���̐����������ɓ����āc�@�����A���ꂪ���������X�ˁ@�����[�i�Z���p�C�I�v
-			PRINTFORML �w���������I�@���Ⴀ�o���邶���A���̂��̂���x
+			PRINTFORML 「んんん～～～…　こ、この数字がここに入って…　あっ、これがこっちっスね　リューナセンパイ！」
+			PRINTFORML 『そうそう！　やりゃあ出来るじゃん、このこのっ♪』
 		ENDIF
 	ENDIF
-CASE "�}���["
-	IF CEVENT("�}���[") == 0
-		PRINTFORML �u��낵�����肢���܂��I�}���[�Z���p�C�I�I�@�}���[�Z���p�C���p���`�l�Z���p�C�Ƃ���Ȃ�%TEXTR("�����܂΂炢�H/�V�X�^�[����")%�Ȃ�X�ˁ[�@����σ��C�X�Ԃ�Ԃ�Ȃ�X���H�v
-		CALL SET_CEVENT, "�}���["
+CASE "マリー"
+	IF CEVENT("マリー") == 0
+		PRINTFORML 「よろしくお願いします！マリーセンパイ！！　マリーセンパイもパラチネセンパイとおんなじ%TEXTR("あくまばらい？/シスターさん")%なんスねー　やっぱメイスぶんぶんなんスか？」
+		CALL SET_CEVENT, "マリー"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�����A�}���[�Z���p�C���x�}���\�������X���ǁA�̗͂���ɂǁ[���X���H�v
+			PRINTFORML 「あっ、マリーセンパイ今度マラソン大会あるんスけど、体力つくりにどーっスか？」
 		ELSE
-			PRINTFORML �u�������c�@�Ȃ�X���A���̑��H�ł��������X�ˁ[�A�����������X�ˁ[�v
+			PRINTFORML 「おぉう…　なんスか、その槍？でっかいっスねー、おっきいっスねー」
 		ENDIF
 	ENDIF
-;�ۗ���
-;CASE "���"
-	;IF CEVENT("���") == 0
-		;PRINTFORML �u
-		;CALL SET_CEVENT, "���"
+;保留中
+;CASE "千穂"
+	;IF CEVENT("千穂") == 0
+		;PRINTFORML 「
+		;CALL SET_CEVENT, "千穂"
 	;ELSE
 		;IF RAND:3 == 0
 			
@@ -406,816 +406,816 @@ CASE "�}���["
 			
 		;ENDIF
 	;ENDIF
-CASE "�m�m"
-	IF CEVENT("�m�m") == 0
-		PRINTFORML �u�͂��߂܂��ăm�m�����I�@�m�m�����������̂���%CNAME("��l��")%�Ȃ�X�ˁA�����[����Ƃ�����Ȃ����[�Ƃ����āA���c�H�j�c�H�@����Ȃɂ��킢���̂Ɂc�H�����c�H�v
-		CALL SET_CEVENT, "�m�m"
+CASE "ノノ"
+	IF CEVENT("ノノ") == 0
+		PRINTFORML 「はじめましてノノちゃん！　ノノちゃんも自分のこと%CNAME("一人称")%なんスね、おかーさんとかからなおせーとかって、え…？男…？　こんなにかわいいのに…？えっ…？」
+		CALL SET_CEVENT, "ノノ"
 	ELSE
 		IF RAND:3 == 0
-			IF FIND_COND("���ݑ���", "�J���X�^")
-				PRINTFORML �u�m�m�����̂�������V�g������Ƃ��ŕ����Ă��X���H�v
+			IF FIND_COND("現在存在", "カリスタ")
+				PRINTFORML 「ノノちゃんのわっかも天使ちからとかで浮いてるんスか？」
 			ELSE
-				PRINTFORML �u�m�m�����̂�����������Ă�̂��ēV�g������Ƃ��Ȃ�X���ˁc�v
+				PRINTFORML 「ノノちゃんのわっかが浮いてるのって天使ちからとかなんスかね…」
 			ENDIF
 		ELSE
-			PRINTFORML �u���ނނށc�@���q�����畉���Ă�C��������X�A����A������ƃR�c�Ƃ��c�v
+			PRINTFORML 「うむむむ…　女子ちから負けてる気がするっス、ちょ、ちょっとコツとか…」
 		ENDIF
 	ENDIF
-CASE "���q"
-	IF CEVENT("���q") == 0
-		PRINTFORM �u�������A
-			IF FIND_COND("���ݑ���", "�c�F�c�B�[���A")
-				PRINTFORML ���q�������w�����[�肠�x�Z���p�C�݂����ɂ܂ف[�����Ȃ�X���A���H���@�����H�ǂ��Ⴄ��X���H�v
+CASE "恭子"
+	IF CEVENT("恭子") == 0
+		PRINTFORM 「おおぅ、
+			IF FIND_COND("現在存在", "ツェツィーリア")
+				PRINTFORML 恭子ちゃんも『つぇちーりあ』センパイみたいにまほーつかいなんスか、え？魔法少女？どう違うんスか？」
 			ELSE
-				PRINTFORML ���q�������Ă܂ف[�����Ȃ�X���A���@�����c�H�ǂ��Ⴄ�񂾂낤�c�@�A���������V���������[�݂����Ȋ������X���v
+				PRINTFORML 恭子ちゃんってまほーつかいなんスか、魔法少女…？どう違うんだろう…　アレっすかシャランラーみたいな感じっスか」
 			ENDIF
-		CALL SET_CEVENT, "���q"
+		CALL SET_CEVENT, "恭子"
 	ELSE
-		PRINTFORML �u�Q���ł��傭����́[���Č����Ă����X���ǁA�������ɂ��ɂ傤�ɂ債�Ă���X����˂Ȃ܂��Ƃ������ڃA�����X���ǂ���������X��H�v
-		PRINTFORML ����%CALLNAME:TARGET%���v�������ׂĂ���G��Ƃ͂܂������Ⴄ���̂��낤
+		PRINTFORML 「寝言でしょくしゅはーって言ってたっスけど、たしかにうにょうにょしてるっスもんねなまことか見た目アレっスけどおいしいんスよ？」
+		PRINTFORML 多分%CALLNAME:TARGET%が思い浮かべている触手とはまったく違うものだろう
 	ENDIF
-CASE "�ې�"
-	IF CEVENT("�ې�") == 0
-		PRINTFORML �u�͂��߂܂��āI�ې��Z���p�C�I�I%CNAME("��l��")%�̓n�i���Č������X
-		PRINTFORML �ې��Z���p�C�Ꮧ�̃n�[�t�Ȃ�X���A%CNAME("��l��")%�͖w�ǐl�݂����Ȑl�T���X�v
-		CALL SET_CEVENT, "�ې�"
+CASE "維吹"
+	IF CEVENT("維吹") == 0
+		PRINTFORML 「はじめまして！維吹センパイ！！%CNAME("一人称")%はハナって言うっス
+		PRINTFORML 維吹センパイ雪女のハーフなんスか、%CNAME("一人称")%は殆ど人みたいな人狼っス」
+		CALL SET_CEVENT, "維吹"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�ې��Z���p�C�R�Ƃ��D���Ȃ�X���H�@���[���X�ˁ[�R�A�������Ⴂ����F�B�ƎR�ŗV�񂾂ȁ[�v
+			PRINTFORML 「維吹センパイ山とか好きなんスか？　いーっスねー山、ちっちゃいころ友達と山で遊んだなー」
 		ELSEIF RAND:3
-			PRINTFORML �u�ې��Z���p�C�͎R�ŉ������X���H�@�U���H�@�����Ƃ����߂܂�����͂��Ȃ���X���H�v
+			PRINTFORML 「維吹センパイは山で何するんスか？　散歩？　虫取りとか鳥捕まえたりはしないんスか？」
 		ELSE
-			PRINTFORML �u��R�����[���X��ˁ@�N������łȂ��V��Ƃ��A�~�т̓e��ρc�@�ᒆ�s�R�Ƃ��c�v
+			PRINTFORML 「雪山もいーっスよね　誰も踏んでない新雪とか、冬毛の兎や狐…　雪中行軍とか…」
 		ENDIF
 	ENDIF
 CASEELSE
 	CALL PRINT_TaiTaChara
-	PRINTFORML �u��`�H���X��%CNAME("��l��")%�v
+	PRINTFORML 「ん～？何スか%CNAME("二人称")%」
 ENDSELECT
 
 ;--------------------------------------------------
-;��d�A�C��
-;���񂸂���������̍\�������؂肵�܂���
+;九重アイリ
+;あんずちゃん口上内の構文をお借りしました
 ;--------------------------------------------------
 @TaiTaChara_K13
-;�C�x���g���N����L�����̖��O��/��؂�ł���ɓ˂����݁ATEXTR�Ŏ��o��
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
 #DIMS EVENT_TABLE
-;�C�x���g�������̃L����
+;イベント発生中のキャラ
 #DIM ACTOR
-;�C�x���g�������̃L�����̃f�t�H��CALLNAME
+;イベント発生中のキャラのデフォのCALLNAME
 #DIMS CALLNAME_ACTOR
 
-;�܂��͏�����
+;まずは初期化
 EVENT_TABLE = 
 
-SIF FIND_COND("�t�F���V�G��", "�Θb�\")
-	EVENT_TABLE += "�t�F���V�G��/"
-SIF FIND_COND("�G�G�̌N", "�Θb�\")
-	EVENT_TABLE += "�G�G�̌N/"
-SIF FIND_COND("�c�F�c�B�[���A", "�Θb�\")
-	EVENT_TABLE += "�c�F�c�B�[���A/"
-SIF FIND_COND("�Z��", "�Θb�\")
-	EVENT_TABLE += "�Z��/"
-SIF FIND_COND("������", "�Θb�\")
-	EVENT_TABLE += "������/"
-SIF FIND_COND("�n�i", "�Θb�\")
-	EVENT_TABLE += "�n�i/"
-SIF FIND_COND("�����B�G�[�i", "�Θb�\")
-	EVENT_TABLE += "�����B�G�[�i/"
-SIF FIND_COND("���A��", "�Θb�\")
-	EVENT_TABLE += "���A��/"
-SIF FIND_COND("�V�L", "�Θb�\")
-	EVENT_TABLE += "�V�L/"
-SIF FIND_COND("�לZ", "�Θb�\")
-	EVENT_TABLE += "�לZ/"
-SIF FIND_COND("����", "�Θb�\")
-	EVENT_TABLE += "����/"
-SIF FIND_COND("�ˎq", "�Θb�\")
-	EVENT_TABLE += "�ˎq/"
-SIF FIND_COND("�����[�i", "�Θb�\")
-	EVENT_TABLE += "�����[�i/"
-SIF FIND_COND("�m�m", "�Θb�\")
-	EVENT_TABLE += "�m�m/"
-SIF FIND_COND("�I�X�J�[", "�Θb�\")
-	EVENT_TABLE += "�I�X�J�[/"
-SIF FIND_COND("�J�q", "�Θb�\")
-	EVENT_TABLE += "�J�q/"
-SIF FIND_COND("��", "�Θb�\")
-	EVENT_TABLE += "��/"
-SIF FIND_COND("���T", "�Θb�\")
-	EVENT_TABLE += "���T/"
-SIF FIND_COND("�x", "�Θb�\")
-	EVENT_TABLE += "�x/"
-SIF FIND_COND("����", "�Θb�\")
-	EVENT_TABLE += "����/"
-SIF FIND_COND("�V���g���[", "�Θb�\")
-	EVENT_TABLE += "�V���g���[/"
+SIF FIND_COND("フェリシエル", "対話可能")
+	EVENT_TABLE += "フェリシエル/"
+SIF FIND_COND("濡烏の君", "対話可能")
+	EVENT_TABLE += "濡烏の君/"
+SIF FIND_COND("ツェツィーリア", "対話可能")
+	EVENT_TABLE += "ツェツィーリア/"
+SIF FIND_COND("六華", "対話可能")
+	EVENT_TABLE += "六華/"
+SIF FIND_COND("さくら", "対話可能")
+	EVENT_TABLE += "さくら/"
+SIF FIND_COND("ハナ", "対話可能")
+	EVENT_TABLE += "ハナ/"
+SIF FIND_COND("メリィエーナ", "対話可能")
+	EVENT_TABLE += "メリィエーナ/"
+SIF FIND_COND("リアラ", "対話可能")
+	EVENT_TABLE += "リアラ/"
+SIF FIND_COND("シキ", "対話可能")
+	EVENT_TABLE += "シキ/"
+SIF FIND_COND("槞彁", "対話可能")
+	EVENT_TABLE += "槞彁/"
+SIF FIND_COND("あんず", "対話可能")
+	EVENT_TABLE += "あんず/"
+SIF FIND_COND("祥子", "対話可能")
+	EVENT_TABLE += "祥子/"
+SIF FIND_COND("リューナ", "対話可能")
+	EVENT_TABLE += "リューナ/"
+SIF FIND_COND("ノノ", "対話可能")
+	EVENT_TABLE += "ノノ/"
+SIF FIND_COND("オスカー", "対話可能")
+	EVENT_TABLE += "オスカー/"
+SIF FIND_COND("寧子", "対話可能")
+	EVENT_TABLE += "寧子/"
+SIF FIND_COND("灯", "対話可能")
+	EVENT_TABLE += "灯/"
+SIF FIND_COND("綾乃", "対話可能")
+	EVENT_TABLE += "綾乃/"
+SIF FIND_COND("栞", "対話可能")
+	EVENT_TABLE += "栞/"
+SIF FIND_COND("小夜", "対話可能")
+	EVENT_TABLE += "小夜/"
+SIF FIND_COND("シュトリー", "対話可能")
+	EVENT_TABLE += "シュトリー/"
 
-;���݂��̏�ɂ���A�����ȊO�̑S�L�����̖��O���擾����ꍇ�͂���
-;EVENT_TABLE = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
+;現在この場にいる、自分以外の全キャラの名前を取得する場合はこれ
+;EVENT_TABLE = %NAMES("対話可能キャラ一覧", TARGET)%
 
-;�N�����Ȃ��Ȃ炭����݂��ďI���
+;誰も居ないならくしゃみして終わり
 IF EVENT_TABLE == ""
-	PRINTFORML �u�������I�v
-	PRINTFORML �u���[�c���ׂ�����H�v
+	PRINTFORML 「くしゅん！」
+	PRINTFORML 「うー…風邪かしら？」
 	RETURN 0
 ENDIF
 
-;���̃L�����̃C�x���g���N����
+;このキャラのイベントが起きる
 CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
 ACTOR = FIND_COND(CALLNAME_ACTOR)
 CALL PRINT_TaiTaChara, ACTOR
 
-;���̕����EVENT_TABLE���Ⴆ�΃t�F���V�G��/���e/�n�i/�Ȃ瓙�m���łR�l�̂ǂꂩ�̕���ɍs��
+;この分岐はEVENT_TABLEが例えばフェリシエル/小菊/ハナ/なら等確率で３人のどれかの分岐に行く
 SELECTCASE CALLNAME_ACTOR
-CASE "�t�F���V�G��"
-	IF CFLAG:���ٓ� && RAND:2
-		PRINTFORML �u�����̂��ٓ��A����������i���܂�Ȃ��Ȃ��c�v
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�c�Ȃ񂩂������V�s�m��Ȃ��H�v
-		CALL PRINT_STRL, "�w�����������ɂ́A�A�C�����񂪐H�ׂ������̂�����̂��ǂ��Ǝv���܂���_H_�x"
-		PRINTFORML �w��鑤�ɂ��y���݂�����܂���ƂˁA�t�t��x
+CASE "フェリシエル"
+	IF CFLAG:お弁当 && RAND:2
+		PRINTFORML 「明日のお弁当、おかずが一品決まらないなあ…」
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%…なんかいいレシピ知らない？」
+		CALL PRINT_STRL, "『そういう時には、アイリさんが食べたいものを入れるのが良いと思いますよ_H_』"
+		PRINTFORML 『作る側にも楽しみがありませんとね、フフ♪』
 	ELSE
-		PRINTFORML �u���H%CNAME(CALLNAME_ACTOR)%�c�H�v
-		PRINTFORML �u�c%TEXTR("����A���󕨁H���ł����Ă��ꂽ�́H/�����A���̔ԑg�^�悵�Ƃ��Ă��ꂽ�́H/��A�N�b�L�[�Ă����񂾁c������Ă����́H")%���A���肪�Ƃ��c�v
+		PRINTFORML 「何？%CNAME(CALLNAME_ACTOR)%…？」
+		PRINTFORML 「…%TEXTR("これ、洗濯物？畳んでおいてくれたの？/えっ、あの番組録画しといてくれたの？/ん、クッキー焼いたんだ…もらっていいの？")%あ、ありがとう…」
 		SIF RAND:2
-			PRINTFORML �u�����������c���̂܂܂���%CNAME("��l��")%�A�m���ɑ������c�v
-		PRINTFORML �w���������A�Ƃ�ł��������܂���B�t�t�t�x
+			PRINTFORML 「さすが悪魔…このままだと%CNAME("一人称")%、確実に堕落するわ…」
+		PRINTFORML 『いえいえ、とんでもございません。フフフ』
 	ENDIF
-CASE "�G�G�̌N"
-;���������u�N�v���h�̂�����Ăю̂Ă������̂��Ȃ��̏ꍇ�@�ł����O�ς���P�[�X�����邩�����όh�̂���
+CASE "濡烏の君"
+;そもそも「君」が敬称だから呼び捨てがいいのかなこの場合　でも名前変えるケースもあるからやっぱ敬称つける
 	IF RAND:2
-		PRINTFORML �u���̂��D���āA�ǂ��������ʂ������ł����H%CNAME(CALLNAME_ACTOR)%�v
-		IF DEVENT("�A�C�����D") == 0
-			PRINTFORML �w�t�c�c����������悤�Ȃ�ꖇ��낤�B�k���̕ǂɂł��\�邪�����x
-			PRINTFORML �u�c�c���H���A���肪�Ƃ��������܂��c�c�����ɓ\���Ă݂܂��c�v
-			CALL SET_DEVENT, "�A�C�����D"
+		PRINTFORML 「そのお札って、どういう効果があるんですか？%CNAME(CALLNAME_ACTOR)%」
+		IF DEVENT("アイリお札") == 0
+			PRINTFORML 『フ……興味があるようなら一枚やろう。北東の壁にでも貼るがいい』
+			PRINTFORML 「……え？あ、ありがとうございます……部屋に貼ってみます…」
+			CALL SET_DEVENT, "アイリお札"
 		ELSE
-			PRINTFORML �u���̑O��������̂������ɓ\������ł����ǁc���ɉ����N�����ĂȂ��āv
-			PRINTFORML �w�̂��猾�����낤�H�x
-			PRINTFORML �w����肪�Ȃ��̂͗ǂ��ւ�A�Ƃȁx
+			PRINTFORML 「この前もらったのも部屋に貼ったんですけど…特に何も起こってなくて」
+			PRINTFORML 『昔から言うだろう？』
+			PRINTFORML 『たよりがないのは良い便り、とな』
 		ENDIF
 	ELSE
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�̔��̖сA�Y�킾�Ȃ��c�v
-		IF TALENT:ACTOR:������ && RAND:2
-			PRINTFORML �u�b�������Ă������O�͎������̂ˁc%CNAME("��l��")%���L�΂��Ă݂Ă����������c�v
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%の髪の毛、綺麗だなぁ…」
+		IF TALENT:ACTOR:動物耳 && RAND:2
+			PRINTFORML 「獣耳あってもロングは似合うのね…%CNAME("一人称")%も伸ばしてみてもいいかも…」
 		ELSE
-			PRINTFORML �u%CNAME("��l��")%���L�΂��Ă݂������ǁA����ꂪ��ς����Ȃ̂�ˁc�v
+			PRINTFORML 「%CNAME("一人称")%も伸ばしてみたいけど、手入れが大変そうなのよね…」
 		ENDIF
 	ENDIF
-CASE "�c�F�c�B�[���A"
-	IF RAND:2 && COND("����") && STRCOUNTS(CSTR:ACTOR:DAILYCOM����, "�����🹂��", "��������")
-		PRINTFORML �u�c�c�I%CNAME(CALLNAME_ACTOR, "�ǂ���")%�c�I�v
-		PRINTFORML �u�����̃n�[�u�e�B�[�A�����A�������āc�c���������I�v
+CASE "ツェツィーリア"
+	IF RAND:2 && COND("お茶") && STRCOUNTS(CSTR:ACTOR:DAILYCOM履歴, "お茶を淹れる", "お茶汲み")
+		PRINTFORML 「……！%CNAME(CALLNAME_ACTOR, "どもり")%…！」
+		PRINTFORML 「今日のハーブティー、匂い、強すぎて……くしゅんっ！」
 	ELSE
-		PRINTFORML �u���߂�Ȃ����A%CNAME(CALLNAME_ACTOR)%�c�Ñ�G�W�v�g�̘b�͂���܂苻���Ȃ����āc�v
-		PRINTFORML �u�o�X�e�g�c�H�����܂���A������悭�킩��Ȃ��ł��c�v
+		PRINTFORML 「ごめんなさい、%CNAME(CALLNAME_ACTOR)%…古代エジプトの話はあんまり興味なくって…」
+		PRINTFORML 「バステト…？すいません、それもよくわからないです…」
 	ENDIF
-CASE "�Z��"
-	PRINTFORML �u%CNAME(CALLNAME_ACTOR)%���Ė{���ɐ_�l�������̂ˁc�v
-	PRINTFORML �u�b�l���Ԃ��A�Ƃ��v���ċC�������������蓪���ł��肵����������Ƃ���񂾂��ǁc�v
-	PRINTFORML �u���ꂪ���Ƃ��M��ꂽ��Ƃ��c���������́A�������ˁH�v
-CASE "������"
-	;�Q�[����D�������炿���
-	PRINTFORML �u�����c�I�܂����ꂽ�c�I�v
-	PRINTFORML �u���H%TEXTR("���̂͒��i�Z�����痧���ĂȂ��ƃK�[�h�ł��Ȃ�/�{���͂ǂ��Ŏg���̂����炩���ߌ��߂Ă�������������/�����܂ŋߋ����Ȃ�e�����i�C�t���g���ׂ�")%�c�H�v
-	PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�c����ς��������{�����Ă��炦��c�H�v
-CASE "�n�i"
-	IF COND("�����", ACTOR)
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�����������Ă�݂����ˁc�v
-			IF TALENT:ACTOR:���� && TALENT:ACTOR:���� == 0
-				PRINTFORML �w���A�������傤�ԁc���v���X��H�@������ƂЂƂ����肵�Ă���Ύ��܂�͂����X�c����A�́A�����c�x
+CASE "六華"
+	PRINTFORML 「%CNAME(CALLNAME_ACTOR)%って本当に神様だったのね…」
+	PRINTFORML 「獣人仲間だ、とか思って気安く声かけたり頭撫でたりしちゃったことあるんだけど…」
+	PRINTFORML 「それがもとで祟られたりとか…そういうの、無いわよね？」
+CASE "さくら"
+	;ゲーム大好きさくらちゃん
+	PRINTFORML 「あっ…！またやられた…！」
+	PRINTFORML 「え？%TEXTR("今のは中段技だから立ってないとガードできない/ボムはどこで使うのかあらかじめ決めておいた方がいい/そこまで近距離なら銃よりもナイフを使うべき")%…？」
+	PRINTFORML 「%CNAME(CALLNAME_ACTOR)%…やっぱりもう一回手本見せてもらえる…？」
+CASE "ハナ"
+	IF COND("発情期", ACTOR)
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%が発情しちゃってるみたいね…」
+			IF TALENT:ACTOR:処女 && TALENT:ACTOR:恋慕 == 0
+				PRINTFORML 『だ、だいじょうぶ…大丈夫っスよ？　ちょっとひとっ走りしてくれば収まるはずっス…んっ、は、んんっ…』
 			ELSE
-				PRINTFORML �w���A���ւցc�@���������c�@�Z���p�C�Ɓc�@���ւցc�x
+				PRINTFORML 『え、えへへ…　あかちゃん…　センパイと…　うへへ…』
 			ENDIF
-		PRINTFORML �u������Ɛh���������A�����]�T�������Ȃ�\���Ă�������H�v
+		PRINTFORML 「ちょっと辛そうだし、もし余裕があるんなら構ってあげたら？」
 	ELSE
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�ɂ͈������ǁA����΂�����͏���Ȃ���c�v
-		PRINTFORML �u����؂�������ς�{�I%CNAME("��l��")%�̓����͕ς��Ȃ��񂾂���I�v
-		PRINTFORML �w�{���X���[�A�R���͊m���߂邽�߂�%TEXTR("�ē�/�Ă���")%�����c�H�x
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%には悪いけど、こればっかりは譲れないわ…」
+		PRINTFORML 「牛や豚よりもやっぱり鶏！%CNAME("一人称")%の答えは変わらないんだから！」
+		PRINTFORML 『鶏っスかー、コレは確かめるために%TEXTR("焼肉/焼き鳥")%しか…？』
 	ENDIF
-CASE "�����B�G�[�i"
-	PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�c���̖��ł�����ƕ������������c�v
-	PRINTFORML �u�c�c�Ȃ�قǁA%TEXTR("�����~�X���Ă���ł���/�����������p�̎d����/����o���Ƃ��Ȃ���")%�c�v
-CASE "���A��"
-	PRINTFORML �u���ł����A%CNAME(CALLNAME_ACTOR)%�c�H�v
-	PRINTFORML �u%TEXTR("�I�i�j�[�̂Ƃ��̗�����͂ǂ�����/���̌��͂��Ȃ�/���ł����ƃC����^�C�v��")%�A���āc���A�����܂����A����Ȃ́I�v
-CASE "�V�L"
-	IF RAND:2 && COND("��")
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�c�c���̐ȁA��������Ȃ��H�v
-		PRINTFORML �u�ǂ���΂������Ƒւ�邯�ǁc�c�ǂ�����H�v
+CASE "メリィエーナ"
+	PRINTFORML 「%CNAME(CALLNAME_ACTOR)%…この問題でちょっと聞きたい事が…」
+	PRINTFORML 「……なるほど、%TEXTR("そこミスってたんですね/そういう応用の仕方が/これ覚えとかないと")%…」
+CASE "リアラ"
+	PRINTFORML 「何ですか、%CNAME(CALLNAME_ACTOR)%…？」
+	PRINTFORML 「%TEXTR("オナニーのときの利き手はどっちか/初体験はいつなの/中でちゃんとイけるタイプか")%、って…お、教えませんよ、そんなの！」
+CASE "シキ"
+	IF RAND:2 && COND("昼")
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%……その席、日当たらない？」
+		PRINTFORML 「良ければこっちと替わるけど……どうする？」
 	ELSE
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�c���́A���I�тƂ���������A���ł����k���Ă�������ˁv
-		PRINTFORML �u���H�ǂ������̂�c�H����ȂɌ�����Ȃ��Ă������ł���c�v
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%…その、服選びとか困ったら、いつでも相談していいからね」
+		PRINTFORML 「何？どうしたのよ…？そんなに嫌がらなくてもいいでしょ…」
 	ENDIF
-CASE "�לZ"
+CASE "槞彁"
 	IF RAND:4 == 0
-		CALL EVENT_�לZCOMM_LIBRARY("����g�[�N�F�A�C���P")
+		CALL EVENT_槞彁COMM_LIBRARY("日常トーク：アイリ１")
 	ELSEIF RAND:3 == 0
-		CALL EVENT_�לZCOMM_LIBRARY("����g�[�N�F�A�C���Q")
+		CALL EVENT_槞彁COMM_LIBRARY("日常トーク：アイリ２")
 	ELSEIF RAND:2
-		CALL EVENT_�לZCOMM_LIBRARY("����g�[�N�F�A�C���R")
+		CALL EVENT_槞彁COMM_LIBRARY("日常トーク：アイリ３")
 	ELSE
-		CALL EVENT_�לZCOMM_LIBRARY("����g�[�N�F�A�C���S")
+		CALL EVENT_槞彁COMM_LIBRARY("日常トーク：アイリ４")
 	ENDIF
-CASE "����"
-	PRINTFORML �u�ǂ������́H%CNAME(CALLNAME_ACTOR)%�c�H�v
+CASE "あんず"
+	PRINTFORML 「どうしたの？%CNAME(CALLNAME_ACTOR)%…？」
 	IF RAND:3 == 0
-		PRINTFORML �u�c��������Ƃ̃~�P���A�ŋߌ��C�Ȃ������H�v
-		PRINTFORML �u�����ˁA�������\����������񂾂����͂������c�d���Ȃ��̂����ˁv
+		PRINTFORML 「…○○さん家のミケが、最近元気なさそう？」
+		PRINTFORML 「そうね、もう結構おじいちゃんだったはずだし…仕方ないのかもね」
 	ELSEIF RAND:2
-		PRINTFORML �u�c��������Ƃ��̃^�}�A�܂��Əo�����񂾁H�v
-		PRINTFORML �u�܂��A�����̂��Ƃ����c���̂��������������ċA���ė���ł���c�v
+		PRINTFORML 「…□□さんとこのタマ、また家出したんだ？」
+		PRINTFORML 「まあ、いつものことだし…そのうちお腹すかせて帰って来るでしょ…」
 	ELSE
-		PRINTFORML �u���̑O%TEXTR("�w�Z�̋߂�/��̓y��/�X�[�p�[�̕�")%�Ł~�~����Ƃ��̃g���������H�v
-		PRINTFORML �u���[�c���̎q�����ƍs���͈͍L�����ˁv
+		PRINTFORML 「この前%TEXTR("学校の近く/川の土手/スーパーの方")%で××さんとこのトラを見た？」
+		PRINTFORML 「あー…あの子も割と行動範囲広いわよね」
 	ENDIF
-CASE "�ˎq"
-	PRINTFORML �u������%CNAME(CALLNAME_ACTOR)%���l�Ɏ��߂���Ă邩����Ď���|����K�v�͂Ȃ��Ǝv����ł����ǁc�v
-	PRINTFORML �u��́A�H�ׂ镨�Ȃ瑼�ɂ��������񂠂�܂����c�v
-	PRINTFORML �u�c�c���I����A�w���ɂ��x���Ă̂͌����ԈႢ�ŁI���Ƃ��ƐH�ׂ����͂Ȃ��ł�����I�v
-CASE "�����[�i"
-	PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�c�H���ł������̖ڂ��́A�����Ă��̎���́c�v
-	PRINTFORML �u�c�c���������狗���߂��Ȃ��ł����H���́A������ƁA�����Ă܂��I�H�v
-CASE "�m�m"
+CASE "祥子"
+	PRINTFORML 「いくら%CNAME(CALLNAME_ACTOR)%が鼠に取り憑かれてるからって私を怖がる必要はないと思うんですけど…」
+	PRINTFORML 「大体、食べる物なら他にもたくさんありますし…」
+	PRINTFORML 「……あ！いや、『他にも』ってのは言い間違いで！もともと食べるつもりはないですから！」
+CASE "リューナ"
+	PRINTFORML 「%CNAME(CALLNAME_ACTOR)%…？何ですかその目つきは、そしてその手つきは…」
+	PRINTFORML 「……さっきから距離近くないですか？あの、ちょっと、聞いてます！？」
+CASE "ノノ"
 	IF RAND:2
-		PRINTFORML �u�͂��A�`�[�Y�c�c���Ɓv
-		PRINTFORML �u�B�ꂽ���A%CNAME(CALLNAME_ACTOR)%�c����Ȋ����ł����H�v
+		PRINTFORML 「はい、チーズ……っと」
+		PRINTFORML 「撮れたわよ、%CNAME(CALLNAME_ACTOR)%…こんな感じでいい？」
 	ELSE
-		PRINTFORML �u�c�c%CNAME(CALLNAME_ACTOR)%�A���ꌾ������ςȊ����ɂȂ邩������Ȃ����ǁc�v
-		PRINTFORML �u��������Č��Ă�ƁA�A���^���I�g�R�����Ă��ƖY�ꂻ���ɂȂ�̂�ˁc�v
+		PRINTFORML 「……%CNAME(CALLNAME_ACTOR)%、これ言ったら変な感じになるかもしれないけど…」
+		PRINTFORML 「こうやって見てると、アンタがオトコだってこと忘れそうになるのよね…」
 	ENDIF
-CASE "�I�X�J�["
+CASE "オスカー"
 	IF RAND:2
-		PRINTFORML �u����c�c�H�v
-		IF MARK:����
-			PRINTFORML �u���A����������Łc�I�H�{���ɑ��v�Ȃ�ł���%CNAME(CALLNAME_ACTOR)%�c�v
+		PRINTFORML 「淫紋……？」
+		IF MARK:淫紋
+			PRINTFORML 「あ、あれを自分で…！？本当に大丈夫なんですか%CNAME(CALLNAME_ACTOR)%…」
 		ELSE
-			PRINTFORML �u���ꂪ%CNAME(CALLNAME_ACTOR)%�̂����Ɂc�Ӂ[��c�v
-			PRINTFORML �u���������̂��āA��炵�����Ƃ����l���ĂȂ����������������̂ˁA�����Ɓc�c�v
+			PRINTFORML 「それが%CNAME(CALLNAME_ACTOR)%のお腹に…ふーん…」
+			PRINTFORML 「そういうのって、やらしいことしか考えてない悪魔が発明したのね、きっと……」
 		ENDIF
 	ELSE
-		PRINTFORML �u�c�c���H���A���߂�Ȃ���%CNAME(CALLNAME_ACTOR)%�c�v
-		PRINTFORML �u�ʂɁA�p������킯����Ȃ��āc�c�K�����A���́A�����Ă�����C�ɂȂ��āc�v
+		PRINTFORML 「……え？あ、ごめんなさい%CNAME(CALLNAME_ACTOR)%…」
+		PRINTFORML 「別に、用があるわけじゃなくて……尻尾が、その、動いてたから気になって…」
 	ENDIF
-CASE "�J�q"
+CASE "寧子"
 	IF RAND:3 == 0
-		PRINTFORML �u�ϊ����˂��c�����������ǁA������Ɩ��Z���Ȃ��H�v
+		PRINTFORML 「煮干しねえ…おいしいけど、ちょっと味濃くない？」
 			IF RAND:2
-				PRINTFORML �u%CNAME(CALLNAME_ACTOR)%������܂�H�׉߂��Ȃ��ق����c�c���ė]�v�Ȃ����b���v
+				PRINTFORML 「%CNAME(CALLNAME_ACTOR)%もあんまり食べ過ぎないほうが……って余計なお世話か」
 			ELSE
-				PRINTFORML �u�����₵���A���Ă����Ȃ�%CNAME("��l��")%�̂��َq�����Ă����Ă��������ǁc�v
+				PRINTFORML 「口が寂しい、ってだけなら%CNAME("一人称")%のお菓子分けてあげてもいいけど…」
 			ENDIF
 	ELSEIF RAND:2
-		PRINTFORML �u�J�q�A�����Ƃ����ǁA�������̋󂫒n�ɂ͓�������_��������ˁv
-		PRINTFORML �u�Ȃ�ŁA���āc%CNAME("��l��")%�̃i���o���������A�ꉞ�o���Ƃ��Ă�ˁv
+		PRINTFORML 「寧子、言っとくけど、○○町の空き地には入っちゃダメだからね」
+		PRINTFORML 「なんで、って…%CNAME("一人称")%のナワバリだからよ、一応覚えといてよね」
 	ELSE
-		PRINTFORML �u�L�Ƃ��Ă̐�y�c���Č����Ă��Ȃ��c�v
-		PRINTFORML �u%CNAME("��l��")%��%CNAME(CALLNAME_ACTOR)%���l�Ԃɍ������Đ����Ă�킯�����֌W�Ȃ��񂶂�Ȃ��c�H�v
+		PRINTFORML 「猫としての先輩…って言われてもなあ…」
+		PRINTFORML 「%CNAME("一人称")%も%CNAME(CALLNAME_ACTOR)%も人間に混じって生きてるわけだし関係ないんじゃない…？」
 	ENDIF
-CASE "��"
+CASE "灯"
 	IF RAND:2
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�c�����������̎q�炵���ł��Ȃ��́c�H�d���Ƃ��A���t�Ƃ��c�v
-		PRINTFORML �w�Ȃ�ŁH�ʂɂ��������D���ɂ��ĂĂ��x
-		PRINTFORML �u�c�c������ƁA�s���̂����������j�A�s�[�����Ȃ��ł�v
-		PRINTFORML �w�����Ēj�����`��x
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%…もう少し女の子らしくできないの…？仕草とか、言葉とか…」
+		PRINTFORML 『なんで？別にいいじゃん好きにしててさ』
+		PRINTFORML 「……ちょっと、都合のいい時だけ男アピールしないでよ」
+		PRINTFORML 『だって男だも～ん』
 	ELSE
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�A%TEXTR("����������/���̉��ϕi")%���āc�ǂ��Ŕ����Ă�́H�����炭�炢�H�v
-		PRINTFORML �w���H���ꉴ�ɕ����́H�x
-		PRINTFORML �u���₾���āA�A���^�m���͊m�������c�c�j�Ȃ̂Ɂv
-		PRINTFORML �w�����c�c�܂��ʂɂ������ǂ��B�����R�~���̃c�e�Œm�����z�ł��\��Ȃ��H�x
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%、%TEXTR("ああいう服/あの化粧品")%って…どこで売ってるの？いくらくらい？」
+		PRINTFORML 『え？それ俺に聞くの？』
+		PRINTFORML 「いやだって、アンタ知識は確かだし……男なのに」
+		PRINTFORML 『あぁ……まあ別にいいけどさ。女装コミュのツテで知った奴でも構わない？』
 	ENDIF
-CASE "���T"
+CASE "綾乃"
 	IF RAND:2
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%��y�c%TEXTR("302����/�S�l�a��/�Z�Z�搶")%�̉\���Ė{���Ȃ�ł����c�H�v
-		PRINTFORML �u���H���H�ǂ��������Ƃł����c�H�ے肷��Ȃ�͂�����ے肵�Ă��������c�v
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%先輩…%TEXTR("302教室/百人斬り/〇〇先生")%の噂って本当なんですか…？」
+		PRINTFORML 「え？え？どういうことですか…？否定するならはっきり否定してください…」
 	ELSE
-		PRINTFORML �u�ӂ��H���A�Ȃ�ł��Ȃ��ł��c���݂܂���%CNAME(CALLNAME_ACTOR)%��y�c�v
-		PRINTFORML �u�����Ȃ��A�������茩�Ƃ�Ă���c�����������v
+		PRINTFORML 「ふぇ？あ、なんでもないです…すみません%CNAME(CALLNAME_ACTOR)%先輩…」
+		PRINTFORML 「いけない、うっかり見とれてたわ…さすが淫魔」
 	ENDIF
-CASE "�x"
+CASE "栞"
 	IF RAND:2
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%��y�c%TEXTR("�����̓V�C/���̎����͈̔�/���T�̃h���}�̓W�J")%�Ƃ����āc�킩��܂��H�v
-		PRINTFORML �u���������A���߂�Ȃ����c������Ȃ����ƕ���������āc�v
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%先輩…%TEXTR("明日の天気/次の試験の範囲/来週のドラマの展開")%とかって…わかります？」
+		PRINTFORML 「ああいえ、ごめんなさい…くだらないこと聞いちゃって…」
 	ELSE
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%��y�c����炵�Ă܂����ǁc�������Ă��ł����H�v
-		PRINTFORML �u���c�c�H���͒��Ȃ̂ɁA�ł����H�v
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%先輩…難しい顔してますけど…何を見てるんですか？」
+		PRINTFORML 「星……？今は昼なのに、ですか？」
 	ENDIF
-CASE "����"
+CASE "小夜"
 	IF RAND:2
-		PRINTFORML �u��c�H�Ȃ�ł����A%CNAME(CALLNAME_ACTOR)%��y�c�ǂ������܂������H�v
-		PRINTFORML �u�c�c���c�H�����܂���A������x�����Ă��炦�܂��c�H�v
-		PRINTFORML �u�������A������ƁI���߂Ȃ��ł����������āc�����ƕ����܂�����c�I�v
+		PRINTFORML 「ん…？なんですか、%CNAME(CALLNAME_ACTOR)%先輩…どうかしましたか？」
+		PRINTFORML 「……え…？すいません、もう一度言ってもらえます…？」
+		PRINTFORML 「あああ、ちょっと！諦めないでくださいって…ちゃんと聞きますから…！」
 	ELSE
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%��y�c�����j���j�����Ă��ł����H�v
-		PRINTFORML �u�c�c�v
-		PRINTFORML �u�c�K�����������A�����Ƃ��Ƃ��Ă����悤���ȁc�v
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%先輩…何をニヤニヤしてるんですか？」
+		PRINTFORML 「……」
+		PRINTFORML 「…幸せそうだし、そっとしといてあげようかな…」
 	ENDIF
-CASE "�V���g���["
+CASE "シュトリー"
 	IF RAND:2
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�c�������ǁA���ꂢ�ȐF��ˁv
-		PRINTFORML �u�ł��A������ă��C�N�͂ǂ�����́c�H����Ƃ����炾���ǁv
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%…肌青いけど、きれいな色よね」
+		PRINTFORML 「でも、それってメイクはどうするの…？するとしたらだけど」
 	ELSE
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�c����܂�A�C�c�̌������Ɛ^�Ɏ󂯂Ȃ�������������ˁv
-		PRINTFORML �u���^�Ȏq�ɕςȂ��Ɛ������܂Ȃ��łق�����A�ق�ƂɁc�v
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%…あんまりアイツの言うこと真に受けない方がいいからね」
+		PRINTFORML 「純真な子に変なこと吹き込まないでほしいわ、ほんとに…」
 	ENDIF
 CASEELSE
 	CALL PRINT_TaiTaChara
-	PRINTFORML �u�������I�v
-	PRINTFORML �u���[�c���ׂ�����H�v
+	PRINTFORML 「くしゅん！」
+	PRINTFORML 「うー…風邪かしら？」
 ENDSELECT
 
 
 ;--------------------------------------------------
-;�ʊ񂠂�
+;玉寄あんず
 ;--------------------------------------------------
 @TaiTaChara_K16
-;�C�x���g���N����L�����̖��O��/��؂�ł���ɓ˂����݁ATEXTR�Ŏ��o��
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
 #DIMS EVENT_TABLE
-;�C�x���g�������̃L����
+;イベント発生中のキャラ
 #DIM ACTOR
-;�C�x���g�������̃L�����̃f�t�H��CALLNAME
+;イベント発生中のキャラのデフォのCALLNAME
 #DIMS CALLNAME_ACTOR
 
-;�܂��͏�����
+;まずは初期化
 EVENT_TABLE = 
 
-SIF FIND_COND("�t�F���V�G��", "�Θb�\")
-	EVENT_TABLE += "�t�F���V�G��/"
-SIF FIND_COND("���e", "�Θb�\")
-	EVENT_TABLE += "���e/"
-SIF FIND_COND("�n�i", "�Θb�\")
-	EVENT_TABLE += "�n�i/"
-SIF FIND_COND("�לZ", "�Θb�\")
-	EVENT_TABLE += "�לZ/"
+SIF FIND_COND("フェリシエル", "対話可能")
+	EVENT_TABLE += "フェリシエル/"
+SIF FIND_COND("小菊", "対話可能")
+	EVENT_TABLE += "小菊/"
+SIF FIND_COND("ハナ", "対話可能")
+	EVENT_TABLE += "ハナ/"
+SIF FIND_COND("槞彁", "対話可能")
+	EVENT_TABLE += "槞彁/"
 
-;���݂��̏�ɂ���A�����ȊO�̑S�L�����̖��O���擾����ꍇ�͂���
-;EVENT_TABLE = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
+;現在この場にいる、自分以外の全キャラの名前を取得する場合はこれ
+;EVENT_TABLE = %NAMES("対話可能キャラ一覧", TARGET)%
 
-;�N�����Ȃ��Ȃ�I���
+;誰も居ないなら終わり
 IF EVENT_TABLE == ""
-	PRINTFORML �u�ւ������I�v
+	PRINTFORML 「へっくし！」
 	RETURN 0
 ENDIF
 
-;���̃L�����̃C�x���g���N����
+;このキャラのイベントが起きる
 CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
 ACTOR = FIND_COND(CALLNAME_ACTOR)
 CALL PRINT_TaiTaChara, ACTOR
 
-;���̕����EVENT_TABLE���Ⴆ�΃t�F���V�G��/���e/�n�i/�Ȃ瓙�m���łR�l�̂ǂꂩ�̕���ɍs��
+;この分岐はEVENT_TABLEが例えばフェリシエル/小菊/ハナ/なら等確率で３人のどれかの分岐に行く
 SELECTCASE CALLNAME_ACTOR
-CASE "�t�F���V�G��"
-	PRINTFORML �u%CNAME(CALLNAME_ACTOR)%���Ă��`�A%CNAME("��l��")%�̑O����ǂ����m��Ȃ����� ���\�C�W������H�v
-	PRINTFORML �u�V���ׂŃJ�[�h��������~�߂邵 ����Ƃ�ł� �� �΂�����g���Ă��邵���[�v
-CASE "���e"
-	PRINTFORML �Ȃ��%CALLNAME:TARGET%��%CALLNAME:ACTOR%�ɖ{��ǂݕ������Ă���悤���B
-	PRINTFORML �u���[�Ɓc�H �w%TEXTR("�{�[���܂Ă܂āx/���������̂͂ǂ����H�x/�Ԃ�񂱂̂��āx/�ттł� �΂тłȁx")%�v
-CASE "�n�i"
-	PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%���삯���Ȃ���ߋ�̌����e�Ō��������Ă���c�B
-	PRINTFORML �u�΂���[��I �΂���[��I %TEXTR("���̃\�t�@�[�͐�Ζh�q���C�����I ���点��[/�ق�ǂ����ǂ����I �����͐�ꂾ���[�I/���@���@�ā@���������[�[�₩�Ɂ[�[��/����[���I ������ێ��ł��܂��[��I�I/���Č��ā[�I �n���͓n���񂼁[�I")%�v
+CASE "フェリシエル"
+	PRINTFORML 「%CNAME(CALLNAME_ACTOR)%ってさ～、%CNAME("二人称")%の前じゃどうか知らないけど 結構イジワルよ？」
+	PRINTFORML 「７並べでカードがっちり止めるし しりとりでも り ばっかり使ってくるしさー」
+CASE "小菊"
+	PRINTFORML なんと%CALLNAME:TARGET%が%CALLNAME:ACTOR%に本を読み聞かせているようだ。
+	PRINTFORML 「えーと…？ 『%TEXTR("ボールまてまて』/おおきいのはどっち？』/ぶらんこのせて』/びびでな ばびでな』")%」
+CASE "ハナ"
+	PRINTFORML %CALLNAME:TARGET%と%CALLNAME:ACTOR%が駆け回りながら玩具の光線銃で撃ち合っている…。
+	PRINTFORML 「ばきゅーん！ ばきゅーん！ %TEXTR("このソファーは絶対防衛ラインだ！ 死守せよー/ほらどいたどいた！ ここは戦場だぞー！/そ　し　て　時がすこーーやかにーー♪/うわーっ！ 戦線を維持できませーん！！/撃て撃てー！ 地球は渡さんぞー！")%」
 		IF RAND:3 == 0
-			PRINTFORML �w�ӂ͂͂͂́[�A�n���͂��̃n�i�鍑�̂��̂��X�I�Ђ�ӂ��̂��[�I�I�x
+			PRINTFORML 『ふははははー、地球はこのハナ帝国のものっス！ひれふすのだー！！』
 		ELSEIF RAND:3
-			PRINTFORML �w�āA�P�ނ��X�I������ꎞ��������X�I�I�x
+			PRINTFORML 『て、撤退っス！戦線を一時下げるっス！！』
 		ELSE
-			PRINTFORML �w���A�e���c�@�A�p���A�e�����Ă�����X�A�p�[���I�I�x
+			PRINTFORML 『た、弾が…　アパム、弾持ってくるっスアパーム！！』
 		ENDIF
-CASE "�לZ"
-	PRINTFORML �u�ق�A %CNAME(CALLNAME_ACTOR)% %TEXTR("��ŗ�/���َq/�v����/�{���^���A��/�z�b�g�P�[�L")% �H�ׂȁ`��v
-	PRINTFORML �u%TEXTR("�������̃R �Ƃ肠�������������ς��ɂ����Ă��������킟�`/��`����`���A�D���Ȃ����H�ׂȂ� ���Ȃ������/�������Ă邩�͂킩��Ȃ����ǂ����󂢂Ă�̂͂킩�邼�`/�C�ɂ��Ȃ��C�ɂ��Ȃ��I �ǁ[���N��������ɐH�ׂ��Ⴄ�񂾂���I")%�v
+CASE "槞彁"
+	PRINTFORML 「ほら、 %CNAME(CALLNAME_ACTOR)% %TEXTR("ゆで卵/お菓子/プリン/ボンタンアメ/ホットケーキ")% 食べな～♪」
+	PRINTFORML 「%TEXTR("何かこのコ とりあえずお腹いっぱいにさせてあげたいわぁ～/よ～しよ～し、好きなだけ食べなよ 取らないかんね/何喋ってるかはわかんないけどお腹空いてるのはわかるぞ～/気にしない気にしない！ どーせ誰かが勝手に食べちゃうんだから！")%」
 CASEELSE
 	CALL PRINT_TaiTaChara
-	PRINTFORML �u�ւ������I�v
+	PRINTFORML 「へっくし！」
 ENDSELECT
 
 
 ;--------------------------------------------------
-;�J���X�^
+;カリスタ
 ;--------------------------------------------------
-;�_���Ȃ�X���ł̕񍐂��A�C���ł��������Ē�����Ə�����܂��B
+;ダメならスレでの報告か、修正版をうｐして頂けると助かります。
 @TaiTaChara_K20
-;�C�x���g���N����L�����̖��O��/��؂�ł���ɓ˂����݁ATEXTR�Ŏ��o��
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
 #DIMS EVENT_TABLE
-;�C�x���g�������̃L����
+;イベント発生中のキャラ
 #DIM ACTOR
-;�C�x���g�������̃L�����̃f�t�H��CALLNAME
+;イベント発生中のキャラのデフォのCALLNAME
 #DIMS CALLNAME_ACTOR
 
-;���݂��̏�ɂ���A�����ȊO�̑S�L�����̖��O���擾����
-EVENT_TABLE = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
-;�N�����Ȃ��Ȃ�I���
+;現在この場にいる、自分以外の全キャラの名前を取得する
+EVENT_TABLE = %NAMES("対話可能キャラ一覧", TARGET)%
+;誰も居ないなら終わり
 IF EVENT_TABLE == ""
-	PRINTFORML �u�c��������B�v
-	PRINTFORML �u�c�c�c�H�v
+	PRINTFORML 「…っくしゅ。」
+	PRINTFORML 「………？」
 	RETURN 0
 ENDIF
 
-;���̃L�����̃C�x���g���N����
+;このキャラのイベントが起きる
 CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
 ACTOR = FIND_COND(CALLNAME_ACTOR)
 CALL PRINT_TaiTaChara, ACTOR
 
-;���̕����EVENT_TABLE���Ⴆ�΃t�F���V�G��/���e/�n�i/�Ȃ瓙�m���łR�l�̂ǂꂩ�̕���ɍs��
+;この分岐はEVENT_TABLEが例えばフェリシエル/小菊/ハナ/なら等確率で３人のどれかの分岐に行く
 SELECTCASE CALLNAME_ACTOR
-CASE "�n�i"
-	IF CEVENT("�n�i����b") == 0
-		PRINTFORML �u%CNAME("�n�i")%�A%CNAME("��l��")%��%CALLNAME:TARGET%�Ɛ\���܂��B�v
-		PRINTFORML �u�i���ƐK�����҂傱�҂傱�����ĂĂ��킢���c�j�v
-		CALL SET_CEVENT, "�n�i����b"
+CASE "ハナ"
+	IF CEVENT("ハナ初会話") == 0
+		PRINTFORML 「%CNAME("ハナ")%、%CNAME("一人称")%は%CALLNAME:TARGET%と申します。」
+		PRINTFORML 「（耳と尻尾がぴょこぴょこ動いててかわいい…）」
+		CALL SET_CEVENT, "ハナ初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�c���c�ł��ˁA�ł͉�����낵���ł��傤���H�v
-			PRINTFORM �w�����A5�Ŏ����Ă���X��@
+			PRINTFORML 「Ｄ＆Ｄですね、版は何がよろしいでしょうか？」
+			PRINTFORM 『あっ、5版持ってるっスよ　
 			IF RAND:2 == 0
-				PRINTFORML ����̓{�N���}�X�^�[���Ƃ��܂��傤���ˁ[�A�Z���p�C���ꏏ�ɂǁ[���X���H�x
+				PRINTFORML 今回はボクがマスターしときましょうかねー、センパイも一緒にどーっスか？』
 			ELSE
-				PRINTFORML ���Ⴀ�푰�̓h���[�t�Ł[�A�E�̓t�@�C�^�[���ȁ[�x
+				PRINTFORML じゃあ種族はドワーフでー、職はファイターかなー』
 			ENDIF
 		ELSEIF RAND:3
-			PRINTFORML �u�V�g�̗ւ��b�l�̐K�����A�ʏ�̐l�Ԃɂ͌����Ȃ��ȏ�A
-			PRINTFORML �@�{���̕����@���Ƃ͈Ⴄ�͂������Ă��邱�Ƃ���������܂���ˁc�B�v
-			PRINTFORML �w�����@���Ƃ͈Ⴄ�c�@��͂�V�g������c�H�x
+			PRINTFORML 「天使の輪も獣人の尻尾も、通常の人間には見えない以上、
+			PRINTFORML 　本来の物理法則とは違う力が働いていることしか分かりませんね…。」
+			PRINTFORML 『物理法則とは違う…　やはり天使ちから…？』
 		ELSE
-			PRINTFORML �u�������ɂ��Ăł����A�t�H�[�}���X�[�c�̂悤�ɁA
-			PRINTFORML �@����I�Ȏ���ꓙ�ɂ��Ă͐S�|���Ă��܂���B�v
-			PRINTFORML �w�ӂց[�A���X�Ɏ�Ԍ��������X�ˁ[�x
+			PRINTFORML 「執事服についてですが、フォーマルスーツのように、
+			PRINTFORML 　定期的な手入れ等については心掛けていますよ。」
+			PRINTFORML 『ふへー、中々に手間隙かかるんスねー』
 		ENDIF
 	ENDIF
-CASE "�p���`�l"
-	;��҂��񂪗���������������[�I�H
-	IF CEVENT("�p���`�l����b") == 0
-		PRINTFORML �u���c���̕��ł��ˁB%CNAME("��l��")%��%CALLNAME:TARGET%�Ɛ\���܂��B�X�������肢�v���܂��B�v
-		CALL SET_CEVENT, "�p���`�l����b"
+CASE "パラチネ"
+	;作者さんが来た時困るやつだこれー！？
+	IF CEVENT("パラチネ初会話") == 0
+		PRINTFORML 「教皇庁の方ですね。%CNAME("一人称")%は%CALLNAME:TARGET%と申します。宜しくお願い致します。」
+		CALL SET_CEVENT, "パラチネ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u���̓V�g�̕��X�ɂ��Ăł��傤���H�����ł��ˁc�c�B�v
+			PRINTFORML 「他の天使の方々についてでしょうか？そうですね……。」
 		ELSE
-			PRINTFORML �u���c���͍��ǂ�ȏ󋵂Ȃ̂ł��傤���H�v
+			PRINTFORML 「教皇庁は今どんな状況なのでしょうか？」
 		ENDIF
 	ENDIF
-CASE "�����[�i"
-	IF CEVENT("�����[�i����b") == 0
-		PRINTFORML �u%CNAME("�����[�i")%�͗��l�c�ł��傤���H�v
-		PRINTFORML �u���l�̓Q�[���ł������Ă��Ȃ��̂ŗǂ�������Ȃ��āc�B�v
-		CALL SET_CEVENT, "�����[�i����b"
+CASE "リューナ"
+	IF CEVENT("リューナ初会話") == 0
+		PRINTFORML 「%CNAME("リューナ")%は竜人…でしょうか？」
+		PRINTFORML 「竜人はゲームでしか見ていないので良く分からなくて…。」
+		CALL SET_CEVENT, "リューナ初会話"
 	ELSEIF RAND:2 == 0
-		PRINTFORML �u%TEXTR("�ł́A�������Ă݂܂��傤�B/�v�]�ʂ��������܂����B/���[��A�������܂����c/�i���΂Ƀ��A���t�@�C�g�͎~�߂ĉ������c�j/�ŋ߁A����x�Q�[������Ă܂���H")%�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%��%TEXTR("�i���Q�[��/���[�X�Q�[��/�o�b�N�M������/�p�Y���Q�[��/�I�Z��")%�ɋ����Ă���悤���B
+		PRINTFORML 「%TEXTR("では、これやってみましょう。/要望通り手加減しませんよ。/うーん、そう来ますか…/（流石にリアルファイトは止めて下さい…）/最近、来る度ゲームやってません？")%」
+		PRINTFORML %CALLNAME:TARGET%と%CALLNAME:ACTOR%は%TEXTR("格闘ゲーム/レースゲーム/バックギャモン/パズルゲーム/オセロ")%に興じているようだ。
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u�\���ĕ|���ł��ˁc�B�v
-			PRINTFORML �u�V�g�ɂ��\�͂̂����őV�g�ł��邩�^����������܂����B�v
+			PRINTFORML 「噂って怖いですね…。」
+			PRINTFORML 「天使にも能力のせいで堕天使であるか疑われる方もいますし。」
 		ELSEIF RAND:2 == 0
-			PRINTFORML �u�ӂނӂށA���΂��g���Ė{���̎p�ɖ߂邱�Ƃ͖����̂ł��ˁB�v
-			;PRINTFORML %CALLNAME:TARGET%�A����FE��B
+			PRINTFORML 「ふむふむ、竜石を使って本来の姿に戻ることは無いのですね。」
+			;PRINTFORML %CALLNAME:TARGET%、それFEや。
 		ELSE
-			PRINTFORML �u�V�g�ɂ����ʂ͂���܂���B�v
-			PRINTFORML �u�����I�ȗe�e�̕��X�������I�ɑ������̗��R�ŕ�����Ȃ��Ȃ��Ă��邾���ŁB�v
+			PRINTFORML 「天使にも性別はありますよ。」
+			PRINTFORML 「中性的な容貌の方々が割合的に多い等の理由で分からなくなっているだけで。」
 		ENDIF
 	ENDIF
-CASE "�m�m"
-	IF CEVENT("�m�m����b") == 0
-		PRINTFORML �u���߂܂��Ăł��傤���A%CNAME("��l��")%��%CALLNAME:TARGET%�Ɛ\���܂��B�v
-		PRINTFORML �u�ӂނӂށA%CNAME("�m�m")%�͑V�g�̎q������Ȃ̂ł��ˁc�B�v
-		CALL SET_CEVENT, "�m�m����b"
+CASE "ノノ"
+	IF CEVENT("ノノ初会話") == 0
+		PRINTFORML 「初めましてでしょうか、%CNAME("一人称")%は%CALLNAME:TARGET%と申します。」
+		PRINTFORML 「ふむふむ、%CNAME("ノノ")%は堕天使の子供さんなのですね…。」
+		CALL SET_CEVENT, "ノノ初会話"
 	ELSE
 		IF RAND:2 == 0
-			PRINTFORML �u�V�g�̊Ԃł͑V�g�̃C���[�W�͂�͂舫���悤�ł��B�v
-			PRINTFORML �u���܂ꂾ���őV�g�ƈ����āA��ςł������c�H�v
+			PRINTFORML 「天使の間では堕天使のイメージはやはり悪いようです。」
+			PRINTFORML 「生まれだけで堕天使と扱われて、大変でしたか…？」
 		ELSE
-			;�w���̎��s�v�c�ɂ��Ă�EVENT_K25_DAILY���Q�ƁB
-			PRINTFORML �u���̊w���̎��s�v�c�͐��\������̂ł����I�H�v
-			PRINTFORML �u���\������Ȃ�A���͂⎵�s�v�c�ł͂���܂���ˁc�B�v
-			;PRINTFORML ���̊w�����̂��̂��s�v�c��ԂƂł��������肩�B
+			;学園の七不思議についてはEVENT_K25_DAILYを参照。
+			PRINTFORML 「この学園の七不思議は数十個もあるのですか！？」
+			PRINTFORML 「数十個もあるなら、もはや七不思議ではありませんね…。」
+			;PRINTFORML この学園そのものが不思議空間とでも言うつもりか。
 		ENDIF
 	ENDIF
 CASEELSE
 	CALL PRINT_TaiTaChara
-	PRINTFORML �u�c��������B�v
-	PRINTFORML �u�c�c�c�H�v
+	PRINTFORML 「…っくしゅ。」
+	PRINTFORML 「………？」
 ENDSELECT
 
 
 ;--------------------------------------------------
-;�ˎq
-;�������Q�l�ɂ��ď����܂����B���肪�Ƃ��������܂��I
+;祥子
+;ここを参考にして書きました。ありがとうございます！
 ;--------------------------------------------------
-;�_���Ȃ牓���Ȃ����Ă�������
+;ダメなら遠慮なく仰ってください
 @TaiTaChara_K21
-;�C�x���g���N����L�����̖��O��/��؂�ł���ɓ˂����݁ATEXTR�Ŏ��o��
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
 #DIMS EVENT_TABLE
-;�C�x���g�������̃L����
+;イベント発生中のキャラ
 #DIM ACTOR
-;�C�x���g�������̃L�����̃f�t�H��CALLNAME
+;イベント発生中のキャラのデフォのCALLNAME
 #DIMS CALLNAME_ACTOR
 
-;������ɂ͉�b�͂Ȃ�
-SIF COND("�����")
+;発情期には会話はなし
+SIF COND("発情期")
 	RETURN 0
 
-;���݂��̏�ɂ���A�����ȊO�̑S�L�����̖��O���擾����
-EVENT_TABLE = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
-;�N�����Ȃ��Ȃ�I���
+;現在この場にいる、自分以外の全キャラの名前を取得する
+EVENT_TABLE = %NAMES("対話可能キャラ一覧", TARGET)%
+;誰も居ないなら終わり
 SIF EVENT_TABLE == ""
 	RETURN 0
 
-;���̃L�����̃C�x���g���N����
+;このキャラのイベントが起きる
 CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
 ACTOR = FIND_COND(CALLNAME_ACTOR)
 CALL PRINT_TaiTaChara, ACTOR
 
-;���̕����EVENT_TABLE���Ⴆ�΃t�F���V�G��/���e/�n�i/�Ȃ瓙�m���łR�l�̂ǂꂩ�̕���ɍs��
+;この分岐はEVENT_TABLEが例えばフェリシエル/小菊/ハナ/なら等確率で３人のどれかの分岐に行く
 SELECTCASE CALLNAME_ACTOR
-CASE "�����[�i"
+CASE "リューナ"
 	IF RAND:2
-		PRINTFORML �u%CNAME("�����[�i")%�̕��E�`�͐�����ł���I�v
-		PRINTFORM �u�Ȃ�ł�
+		PRINTFORML 「%CNAME("リューナ")%の武勇伝は凄いんですよ！」
+		PRINTFORM 「なんでも
 		IF RAND:4 == 0
-			PRINTFORM �G���W�����̂ŉ��サ����s�@��������x���čZ��ɉ��낵�A�������̐l�����~����
+			PRINTFORM エンジン事故で炎上した飛行機を下から支えて校庭に下ろし、数多くの人命を救った
 		ELSEIF RAND:3 == 0
-			PRINTFORM ���̃A���j���C�ȓ��ŕǃh������đ������q�͐��m�ꂸ�A���h�����̉��̉B�����̐�Ɉ��̑�������
+			PRINTFORM そのアンニュイな瞳で壁ドンされて堕ちた女子は数知れず、旧宿直室の奥の隠し扉の先に愛の巣がある
 		ELSEIF RAND:2
-			PRINTFORM 10000�N�ȏ�O�ɋN���������΂����̒n�ɑ�ЊQ�������炵�A��̌΂������������%CNAME("�����[�i")%�̎Y����
+			PRINTFORM 10000年以上前に起こった噴火がこの地に大災害をもたらし、南の湖を作った原因が%CNAME("リューナ")%の産声だ
 		ELSE
-			PRINTFORM %CNAME("�����[�i")%�̗��ɂ͐Ζ��������āA����c���⌧�m���͂������A�Z���Ȃ�Ċ{�Ŏg����
+			PRINTFORM %CNAME("リューナ")%の裏には石油王が居て、国会議員や県知事はもちろん、校長なんて顎で使える
 		ENDIF
-		PRINTFORML �����ł��A�{���Ȃ�ł����I�H�v
-		PRINTFORML �w�����c�����̂ǂ���A����ȉ\�������́c�x
+		PRINTFORML そうです、本当なんですか！？」
+		PRINTFORML 『えぇ…何処のどいつよ、そんな噂流したの…』
 	ELSE
-		PRINTFORML �u�킟�A�G�߂̐H�ו��������ς��ł��ˁB�v
-		PRINTFORML �u������������Ȃ�A%CNAME("��l��")%�ɂ���`�킹�Ă����������B�v
-		PRINTFORML �w��`���Ă����́H�@���肪�ƂˁA�ǂ���y�����ĂĊ�������[�x
+		PRINTFORML 「わぁ、季節の食べ物がいっぱいですね。」
+		PRINTFORML 「お料理をするなら、%CNAME("一人称")%にも手伝わせてくださいっ。」
+		PRINTFORML 『手伝ってくれるの？　ありがとね、良い後輩を持てて嬉しいよー』
 	ENDIF
-CASE "�J���X�^"
-	IF CEVENT("�J���X�^����b") == 0
-		PRINTFORML �u�j�̎q�ŕ����Ƃ����̂͒������ł��ˁB�v
-		PRINTFORML �u�����A���̎q�Ȃ�ł����H�Ă�����%CNAME("��l")%�����ʂ̊_���𒴂����̂��Ǝv���܂����B�v
-		CALL SET_CEVENT, "�J���X�^����b"
+CASE "カリスタ"
+	IF CEVENT("カリスタ初会話") == 0
+		PRINTFORML 「男の子で部員というのは珍しいですね。」
+		PRINTFORML 「えっ、女の子なんですか？てっきり%CNAME("主人")%が性別の垣根を超えたのかと思いました。」
+		CALL SET_CEVENT, "カリスタ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u�肪�͂��܂��񂩁H���̂��M�ł���ˁB%CNAME("��l��")%�ɔC���Ă��������B�v
+			PRINTFORML 「手が届きませんか？このお皿ですよね。%CNAME("一人称")%に任せてください。」
 		ELSE
-			PRINTFORML �u%CNAME("�J���X�^")%��������Ă��Ƃ͓V���������ł��ˁB�ǂ�ȂƂ���Ȃ�ł����H�v
+			PRINTFORML 「%CNAME("カリスタ")%がいるってことは天国もあるんですね。どんなところなんですか？」
 		ENDIF
 	ENDIF
-CASE "�}�m��"
-	IF CEVENT("�}�m������b") == 0
-		PRINTFORML �u���̂����ς��A�{���c�c�ł����H�܂��܂����k����v
-		PRINTFORML �u����ȐG���Ă��������Ȃ�ċU���Ȃ̂��΂�܁c�c�I�I�I�I�I�v
-		PRINTFORML �u%CNAME("��l��")%���c�c����c�c%CNAME("�}�m��")%���I�����ɂȂ�ɂ͂ǂ������炢����ł����I�H�v
-		;���������悤�Ȃ�����
-		CALL SET_CEVENT, "�}�m������b"
+CASE "マノン"
+	IF CEVENT("マノン初会話") == 0
+		PRINTFORML 「このおっぱい、本物……ですか？またまた御冗談を♪」
+		PRINTFORML 「そんな触ってもいいだなんて偽物なのがばれま……！！！！！」
+		PRINTFORML 「%CNAME("一人称")%が……これ……%CNAME("マノン")%っ！淫魔になるにはどうしたらいいんですか！？」
+		;今も似たようなもんやで
+		CALL SET_CEVENT, "マノン初会話"
 	ELSE
-		PRINTFORML �u%CNAME("�}�m��")%�͈����ł�����A���́A���������Փ��ɂ͏ڂ����ł���ˁB�v
-		PRINTFORML �u�����A�h�o�C�X�Ƃ��A����܂��񂩁H�v
-		IF CEVENT("�����o���F�}�m��", ACTOR)
-			PRINTFORML �w������ǂ��ɂ����āc�c�q���Ȃ������{�\���̂��̂𖳂������炽���ւ�ł��傤�H�x
-			PRINTFORML �w��������%CNAMET(ACTOR, "��l")%������񂾂��A���₩�����炢���̂Ɂc�c���Ă��߂Ȃ́H�x
-			PRINTFORML �u%CNAME("��l��")%������%CNAMET(ACTOR, "��l")%�ƂȂ�A�ł����ꂩ�������܂����c�c�B�v
-			PRINTFORML �w�Ă̖{�\�̂܂܂ɂ���́A���̐��̈�Ԃ̎����Ȃ̂ɁB���������Ȃ��x
+		PRINTFORML 「%CNAME("マノン")%は淫魔ですから、その、こういう衝動には詳しいですよね。」
+		PRINTFORML 「何かアドバイスとか、ありませんか？」
+		IF CEVENT("淫魔覚醒：マノン", ACTOR)
+			PRINTFORML 『発情をどうにかって……子をなしたい本能そのものを無くしたらたいへんでしょう？』
+			PRINTFORML 『せっかく%CNAMET(ACTOR, "主人")%がいるんだし、あやかったらいいのに……ってだめなの？』
+			PRINTFORML 「%CNAME("一人称")%だって%CNAMET(ACTOR, "主人")%となら、でもこれからもありますし……。」
+			PRINTFORML 『牝の本能のままにするの、この世の一番の至福なのに。もったいない』
 		ELSE
-			PRINTFORML �w���A�����A%CNAMET(ACTOR, "��l��")%�ɕ�����Ă��c�c���A���́A���ߍ��ނƂ悭�Ȃ�����K�x�ɔ��U�Ƃ��x
-			PRINTFORML �w���ꂪ�ł��Ȃ�����Y�܂������āA���A����́A���������C�����͂������A�悭�킩�邯�ǁx
-			PRINTFORML �w���A���������ꍇ���āA%CNAMET(ACTOR, "��l")%�ɂ��������������Ă��肢����񂶂�A���߂Ȃ̂��ȁx
-			PRINTFORML �y��A�킽�������āA�C���˂Ȃ���������A���������ǁc�c�z
-			PRINTFORML �u���ʂȕ��@�́A������ł��ˁB���肪�Ƃ��������܂��B�v
+			PRINTFORML 『え、えっ、%CNAMET(ACTOR, "一人称")%に聞かれても……そ、その、ため込むとよくないから適度に発散とか』
+			PRINTFORML 『それができないから悩ましいって、そ、それは、そういう気持ちはすごく、よくわかるけど』
+			PRINTFORML 『そ、そういう場合って、%CNAMET(ACTOR, "主人")%にえっちしたいってお願いするんじゃ、だめなのかな』
+			PRINTFORML 【わ、わたしだって、気兼ねなくしたいよ、したいけど……】
+			PRINTFORML 「特別な方法は、無いんですね。ありがとうございます。」
 		ENDIF
 	ENDIF
-CASE "�z����"
-	IF CEVENT("�z��������b") == 0
-		PRINTFORML �u%CNAME("�z����")%�͑f�G�Ȃ����ǂ�v�w���ƕ����Ă����̂ňӊO�ł��B�v
-		PRINTFORML �u�\�ł͒��̑������ԂɋN���ĒU�߂���Ɉ��ȕٓ�������Ă����Ă�����ĕ����Ă����̂ɁB�v
-		PRINTFORML �u�����A�L���ł���B�n���̉��̒��삯���āB�v
-		CALL SET_CEVENT, "�z��������b"
+CASE "ホムラ"
+	IF CEVENT("ホムラ初会話") == 0
+		PRINTFORML 「%CNAME("ホムラ")%は素敵なおしどり夫婦だと聞いていたので意外です。」
+		PRINTFORML 「噂では朝の早い時間に起きて旦那さんに愛妻弁当を作ってあげているって聞いていたのに。」
+		PRINTFORML 「えっ、有名ですよ。地獄の焔の朝駆けって。」
+		CALL SET_CEVENT, "ホムラ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u%CNAME("��l��")%���{�C�ő����ĂȂ��A�ł����H�����C�̂����ł���c�c�B�v
+			PRINTFORML 「%CNAME("一人称")%が本気で走ってない、ですか？きっ気のせいですよ……。」
 		ELSE
-			PRINTFORML �u�������ŖZ�����Ƃ���Ⴂ�͑������̂Ȃ�ł��ˁB�v
+			PRINTFORML 「共働きで忙しいとすれ違いは多いものなんですね。」
 		ENDIF
 	ENDIF
-CASE "���e"
-	IF CEVENT("���e����b") == 0
-		PRINTFORML �u�T���T���̔����Y��Ȃ������I%CNAME("��l")%�A���̎q�ǂ�����A��ė�����ł����I�H�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̌����ڂɊ������Ă���B
-		CALL SET_CEVENT, "���e����b"
+CASE "小菊"
+	IF CEVENT("小菊初会話") == 0
+		PRINTFORML 「サラサラの髪に綺麗なお着物！%CNAME("主人")%、この子どこから連れて来たんですか！？」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の見た目に感激している。
+		CALL SET_CEVENT, "小菊初会話"
 	ELSE
-		PRINTFORML �u����Ȃ��Y��ł��A���k�b�ɓo�ꂷ��Ƃ��ǂ남�ǂ낵���Ȃ����Ⴄ��ł��ˁB�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ɍ����Ȃ��悤�ɂ��ߑ��������B
+		PRINTFORML 「こんなに綺麗でも、怪談話に登場するとおどろおどろしくなっちゃうんですね。」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%に見えないようにため息をついた。
 	ENDIF
-CASE "����"
+CASE "あんず"
 	IF RAND:2
-		PRINTFORML �u���A�K���̉�����������ǂ��Ȃ邩�A�ł����H�v
-		PRINTFORML �u%CNAME("��l��")%�ɂ�������Ɓc�c�����͕̂|���ł����B�v
-		PRINTFORML %CALLNAME:ACTOR%�͖ڂ̑O�ł����ƔR����%CALLNAME:TARGET%�̐K���̐�𗼎�ŋ��ނ悤�ɒ͂�
-		PRINTFORML �u�ӂӂ��A��ł͏����܂������B���Đ��̓_���ł��I�_���ȋC�������ł��I�v
+		PRINTFORML 「え、尻尾の炎が消えたらどうなるか、ですか？」
+		PRINTFORML 「%CNAME("一人称")%にもちょっと……試すのは怖いですし。」
+		PRINTFORML %CALLNAME:ACTOR%は目の前でゆらゆらと燃える%CALLNAME:TARGET%の尻尾の先を両手で挟むように掴んだ
+		PRINTFORML 「ふふっ、手では消えませんよっ。って水はダメです！ダメな気がするんです！」
 	ELSE
-		PRINTFORML �u�����A�����Ȃ�ł����H�ւ��A���̂���l���B�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ɖ\�b�����Ă���B
+		PRINTFORML 「えっ、そうなんですか？へぇ、あのお二人が。」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と噂話をしている。
 	ENDIF
-CASE "�לZ"
-;�l�ԔN���14�`15�΂��炢�́u�����v�������ł�
-	IF CEVENT("�לZ����b") == 0
-		PRINTFORML �u%CNAME("�לZ")%�́A���E�ł́A�����A�H�ׂĂ�����ł����H�v
-		PRINTFORML �u���A���[��B�����̖��O�������Ă���͕̂������ł����c�c�B�v
-		PRINTFORML �u���̃|�[�Y�͂Ȃ񂾂��s���߂��܂��񂩂��I�H�v
-		CALL SET_CEVENT, "�לZ����b"
+CASE "槞彁"
+;人間年齢で14～15歳くらいの「巨乳」だそうです
+	IF CEVENT("槞彁初会話") == 0
+		PRINTFORML 「%CNAME("槞彁")%は、魔界では、何を、食べていたんですか？」
+		PRINTFORML 「う、うーん。何かの名前を言っているのは分かるんですが……。」
+		PRINTFORML 「そのポーズはなんだか不穏過ぎませんかっ！？」
+		CALL SET_CEVENT, "槞彁初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u�����[��A%CNAME("�לZ")%��%CNAME("��l��")%���N���̂͂��ł���ˁB�Ȃ�ł���Ȃɋ����B�v
+			PRINTFORML 「ううーん、%CNAME("槞彁")%は%CNAME("一人称")%より年下のはずですよね。なんでこんなに胸が。」
 		ELSE
-			PRINTFORML �u����Ό���قǕs�v�c�Ȃ��m���ł��B���ߍׂ��Ȋ��G�Ō�����Y��ł����A���ŏo���Ă����ł����H�v
+			PRINTFORML 「見れば見るほど不思議なお洋服です。きめ細かな感触で光沢も綺麗ですし、何で出来ているんですか？」
 		ENDIF
 	ENDIF
-CASE "�V�L"
-	IF CEVENT("�V�L����b") == 0
-		PRINTFORML �u�z���S���Ă��́I��Ȗ�ȏ����̌���T����Ă����I�����I�����ł��I�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̎��͂݃u���u���ƐU��񂷂悤�Ɉ��肵�Ă���B
-		CALL SET_CEVENT, "�V�L����b"
+CASE "シキ"
+	IF CEVENT("シキ初会話") == 0
+		PRINTFORML 「吸血鬼ってあの！夜な夜な処女の血を啜るっていう！凄い！感激です！」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の手を掴みブンブンと振り回すように握手している。
+		CALL SET_CEVENT, "シキ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u%CNAME("��l")%�̍���������Ȃ��Č������I�H�v
+			PRINTFORML 「%CNAME("主人")%の魂だけじゃなくて血もっ！？」
 		ELSE
-			PRINTFORML �u%CNAME("�V�L")%�͒j�̎q�����Ǐ��̎q��%CNAME("��l")%�̂��Ƃ��D���Ȃ�ł���ˁI�v
+			PRINTFORML 「%CNAME("シキ")%は男の子だけど女の子で%CNAME("主人")%のことが好きなんですよね！」
 		ENDIF
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̘b��ڂ��P�����Ȃ��畷���Ă���B
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の話を目を輝かせながら聞いている。
 	ENDIF
-CASE "�A�C��"
-;�V�G���̂S
-	IF CEVENT("�A�C������b") == 0
-		PRINTFORML �u%CNAME("��l��")%��%NAME:TARGET%�ƌ����܂��B%CNAME("�A�C��")%�B��낵�����˂��I�I�I�v
-		PRINTFORML (�s���Ɨ������O�p�̎��ɐl��U���悤�ɗh���K���c�c�ˁA�L�I�I�I)
-		PRINTFORML �w%CNAMET(ACTOR, CALLNAME:TARGET)%�H�ǂ������܂������H�x
-		PRINTFORML �u�����c�c�����A���肢���܂��c�c�B�v
-		PRINTFORML �����𕂂��׊�F������%CALLNAME:TARGET%�͂���Ƃ̂��ƂŌ��t���i��o�����B
-		CALL SET_CEVENT, "�A�C������b"
+CASE "アイリ"
+;天敵その４
+	IF CEVENT("アイリ初会話") == 0
+		PRINTFORML 「%CNAME("一人称")%は%NAME:TARGET%と言います。%CNAME("アイリ")%。よろしくおねｇ！！！」
+		PRINTFORML (ピンと立った三角の耳に人を誘うように揺れる尻尾……ね、猫！！！)
+		PRINTFORML 『%CNAMET(ACTOR, CALLNAME:TARGET)%？どうかしましたか？』
+		PRINTFORML 「あっ……いえ、お願いします……。」
+		PRINTFORML 脂汗を浮かべ顔色が悪い%CALLNAME:TARGET%はやっとのことで言葉を絞り出した。
+		CALL SET_CEVENT, "アイリ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u%CNAME("�A�C��")%�A���́A�F�B���ł��I����ŉ��Ƃ��I�v
-			PRINTFORML �w����%CNAMET(ACTOR, CALLNAME:TARGET)%�H����Ȃ̎󂯎��܂����B�������܂��񂩂�I�x
-			PRINTFORML �u�ł��ł��C���ς�邩������܂��񂵁A���g��%CNAME("��l��")%�̎����%TEXTR("�`�[�Y�P�[�L/�X���[�N�`�[�Y/�N�b�L�[/�啟")%�ł��I�v
-			PRINTFORML �w���ʂɁI���ʂɂȂ�Ⴂ�܂�����I�~�߂Ă��������I�x
+			PRINTFORML 「%CNAME("アイリ")%、その、友達料です！これで何とか！」
+			PRINTFORML 『えっ%CNAMET(ACTOR, CALLNAME:TARGET)%？こんなの受け取れませんよ。何もしませんから！』
+			PRINTFORML 「でっでも気が変わるかもしれませんし、中身は%CNAME("一人称")%の手作りの%TEXTR("チーズケーキ/スモークチーズ/クッキー/大福")%です！」
+			PRINTFORML 『普通に！普通になら貰いますから！止めてください！』
 		ELSE
-			PRINTFORML �u�����ł����A%CNAME("�A�C��")%�ɂ���������c�c�h���ł���ˁB�v
+			PRINTFORML 「そうですか、%CNAME("アイリ")%にも発情期が……辛いですよね。」
 		ENDIF
 	ENDIF
-CASE "����"
-	IF CEVENT("��������b") == 0
-		PRINTFORML �u%CNAME("��l")%�̃N���X���C�g�ł��ˁA��낵�����肢���܂��B�v
-		PRINTFORML (���%CNAME("��l��")%�A�Ќ��ŕ����Ă܂���A��ˁH������y�ł������B)
-		CALL SET_CEVENT, "��������b"
+CASE "成美"
+	IF CEVENT("成美初会話") == 0
+		PRINTFORML 「%CNAME("主人")%のクラスメイトですね、よろしくお願いします。」
+		PRINTFORML (わっ%CNAME("一人称")%、威厳で負けてません、よね？せっ先輩ですしっ。)
+		CALL SET_CEVENT, "成美初会話"
 	ELSE
-		CALL PRINT_STR, "�u���́A�ǂ�ȋC���Ȃ�ł����H�����j�̐l�̂��Ă�_�^�^�^_�v_L"
+		CALL PRINT_STR, "「その、どんな気分なんですか？おっ男の人のってっ_／／／_」_L"
 	ENDIF
 
-CASE "���A��"
-	IF CEVENT("���A������b") == 0
-		PRINTFORML �u���߂܂��āA�ł͂Ȃ��ł���ˁH�ł��ǂ��Łc�c�����A���݂܂���ڂ̑O�ōl�����񂶂���Ă��B�v
-		PRINTFORML %CALLNAME:TARGET%�͐e���݂₷����C������%CALLNAME:ACTOR%�Ƌ^��Ɏv���Ȃ����b���Ă���B
-		CALL SET_CEVENT, "���A������b"
+CASE "リアラ"
+	IF CEVENT("リアラ初会話") == 0
+		PRINTFORML 「初めまして、ではないですよね？でもどこで……ああ、すみません目の前で考えこんじゃってっ。」
+		PRINTFORML %CALLNAME:TARGET%は親しみやすい空気を持つ%CALLNAME:ACTOR%と疑問に思いながら会話している。
+		CALL SET_CEVENT, "リアラ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u�\�ł́A���̊w�Z��������Ă���H�삪����炵����ł��B�v
-			PRINTFORML �u�����������������Ă��ꂽ�Ƃ��A�D�����������āA���́A�G�b�`�Ȃ��Ƃ����ꂽ��Ƃ��v
-			PRINTFORML �u����Ȃ��ƁA����킯�Ȃ��ł���ˁA�����͂͂́c�c�B�v
+			PRINTFORML 「噂では、この学校を見守っている幽霊がいるらしいんです。」
+			PRINTFORML 「無くした物を見つけてくれたとか、優しく介抱されて、その、エッチなことをされたりとか」
+			PRINTFORML 「そんなこと、あるわけないですよね、あっははは……。」
 		ELSE
-			PRINTFORML �u%CNAME("���A��")%�͕s�v�c�Ȑl�ł��ˁB�v
-			PRINTFORML �u���̎q�Əo����Ă���F�X�ȕ���������悤�ɂȂ�܂����B�ł��A���̂ǂ�Ƃ��Ⴄ�C�����܂��B�v
+			PRINTFORML 「%CNAME("リアラ")%は不思議な人ですね。」
+			PRINTFORML 「この子と出会ってから色々な物が見えるようになりました。でも、そのどれとも違う気がします。」
 		ENDIF
 	ENDIF
-CASE "�����B�G�[�i"
-	IF CEVENT("�����B�G�[����b") == 0
-		PRINTFORML �u%CNAME("�����B�G�[�i")%�ɂ͂��q���񂪋�����ĉ\�ł͕����Ă܂������A%CNAME("��l")%�̕�e��������ł����I�H�v
-		PRINTFORML �u���A�����Ƃ����A���Ȃ������ق���������ł��傤���H\@ TRUE_SEX(MASTER) == "�I�g�R" ? ���q # �� \@����ɂ͂��������b�ɂȂ��Ă��܂����B�v
-		CALL SET_CEVENT, "�����B�G�[����b"
+CASE "メリィエーナ"
+	IF CEVENT("メリィエー初会話") == 0
+		PRINTFORML 「%CNAME("メリィエーナ")%にはお子さんが居るって噂では聞いてましたが、%CNAME("主人")%の母親だったんですか！？」
+		PRINTFORML 「え、えっとっ挨拶しなおしたほうがいいんでしょうか？\@ TRUE_SEX(MASTER) == "オトコ" ? 息子 # 娘 \@さんにはいつもお世話になっていますっ。」
+		CALL SET_CEVENT, "メリィエー初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u%CNAME("�����B�G�[�i")%�A�����̎��ƂȂ�ł����c�c�B�v
+			PRINTFORML 「%CNAME("メリィエーナ")%、今日の授業なんですが……。」
 		ELSE
-			PRINTFORML �u�搶�Ȃ瑽���m���Ă܂���ˁc�c�B�v
-			PRINTFORML �u%CNAME("��l��")%�̋��͂ǂ�������傫���Ȃ�Ǝv���܂����I�v
+			PRINTFORML 「先生なら多分知ってますよね……。」
+			PRINTFORML 「%CNAME("一人称")%の胸はどうしたら大きくなると思いますか！」
 		ENDIF
 	ENDIF
-CASE "�p���`�l"
-	IF CEVENT("�p���`�l����b") == 0
-		PRINTFORML �u�{���̃V�X�^�[����Ȃ�ď��߂Ăł��I��낵�����肢���܂��I�v
-		CALL SET_CEVENT, "�p���`�l����b"
+CASE "パラチネ"
+	IF CEVENT("パラチネ初会話") == 0
+		PRINTFORML 「本物のシスターさんなんて初めてです！よろしくお願いします！」
+		CALL SET_CEVENT, "パラチネ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u�F��̍�@�������Ă���܂��񂩁H�����������牽���ς�邩������܂���B�v
+			PRINTFORML 「祈りの作法を教えてくれませんか？もしかしたら何か変わるかもしれません。」
 		ELSE
-			PRINTFORML �u��������I�{��̃`�[�Y�ł���ˁI�������ł����I���肪�Ƃ��������܂��I�v
+			PRINTFORML 「こっこれ！本場のチーズですよね！頂けるんですか！ありがとうございます！」
 		ENDIF
 	ENDIF
-CASE "����"
-;��҂��񂪗������������I
-	;PRINTFORML �u%CALLNAME:ACTOR%�͊o���Ă��Ȃ���������܂���%CNAME("��l��")%�B�A��N���̍��͓����N���X��������ł���B�v
-	;PRINTFORML �u���̍��͘b��������E�C������܂���ł������A���Ƃ����͕̂s�v�c�Ȃ��̂ł��ˁB���b�ł��Ċ������ł��B�v
-CASE "�n�i"
-;�V�G���̂R
-	IF CEVENT("�n�i����b") == 0
-	;�n�i����̌���ƑΉ����Ă��܂��B
-		PRINTFORML �u����ɂ��́A%CNAME("�n�i")%�B%CNAME("��l��")%��%NAME:TARGET%�ƌ����܂��B�v
-		PRINTFORML �w�����A���߂�Ȃ����c�@%CNAMET(ACTOR, "��l��")%��%CALLNAME:ACTOR%���X�c�x
-		PRINTFORML (�c�c����H�ӂ��Ă��܂��܂����B�����Ԃ�����܂������B)
-		PRINTFORML (����ɓ��ɕt���Ă��邠����āc�c�T�̎��I�H�i��߂���Ă�I�H)
-		PRINTFORML �u���A����_�炩�ɂ��肢���܂����B�v
-		CALL SET_CEVENT, "�n�i����b"
+CASE "ユリ"
+;作者さんが来た時困るやつだ！
+	;PRINTFORML 「%CALLNAME:ACTOR%は覚えていないかもしれませんが%CNAME("一人称")%達、一年生の頃は同じクラスだったんですよ。」
+	;PRINTFORML 「あの頃は話しかける勇気がありませんでしたが、縁というのは不思議なものですね。お話できて嬉しいです。」
+CASE "ハナ"
+;天敵その３
+	IF CEVENT("ハナ初会話") == 0
+	;ハナさんの口上と対応しています。
+		PRINTFORML 「こんにちは、%CNAME("ハナ")%。%CNAME("一人称")%は%NAME:TARGET%と言います。」
+		PRINTFORML 『あっ、ごめんなさい…　%CNAMET(ACTOR, "一人称")%は%CALLNAME:ACTOR%っス…』
+		PRINTFORML (……あれ？謝られてしまいました。少し間もありましたし。)
+		PRINTFORML (それに頭に付いているあれって……狼の耳！？品定めされてる！？)
+		PRINTFORML 「お、お手柔らかにお願いしますっ。」
+		CALL SET_CEVENT, "ハナ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �w%CNAMET(ACTOR, CALLNAME:TARGET)%�I�x
-			PRINTFORML �u���႟�����[�[�[�I���ˁA���肢�ł��B����Ă��A����Ă��[�I�I�I�v
-			PRINTFORML �w�ǂ�������X���H�|���Ȃ����X��B�x
-			PRINTFORML (�����ł��Ă�A�����܂܂��Ԃ�Ƃ��ꂿ�Ⴄ�񂾁c�c�B)
+			PRINTFORML 『%CNAMET(ACTOR, CALLNAME:TARGET)%！』
+			PRINTFORML 「きゃぁぁぁーーー！おね、お願いです。離れてっ、離れてぇー！！！」
+			PRINTFORML 『どうしたんスか？怖くないっスよ。』
+			PRINTFORML (頭撫でられてる、ここままがぶりとやられちゃうんだ……。)
 		ELSE
-			PRINTFORML �u%CNAME("�n�i")%�͏����Ȃ��납�甭����ō����Ă����ł���ˁB�v
-			PRINTFORML �u%CNAME("��l��")%�͂����ŋ߂���Ȃ̂ŕ�����Ȃ����Ƃ������āB�v
-			PRINTFORML �u��y�Ƃ��ĉ����A�h�o�C�X�͂���܂��񂩁H�v
-			PRINTFORML �w�^�����X�I�I�@�������́c�@�Z���p�C��%TEXTR("���񂿂�/����")%���X���ˁc�B�x
-			CALL PRINT_STR, "�u�����_�^�^�^_�����ƁA�^�������鎞�͌Ă�ł��������ˁB�v_L"
+			PRINTFORML 「%CNAME("ハナ")%は小さなころから発情期で困っているんですよね。」
+			PRINTFORML 「%CNAME("一人称")%はごく最近からなので分からないことが多くて。」
+			PRINTFORML 「先輩として何かアドバイスはありませんか？」
+			PRINTFORML 『運動っス！！　もしくは…　センパイの%TEXTR("ちんちん/ちんこ")%っスかね…。』
+			CALL PRINT_STR, "「ちんっ_／／／_えっと、運動をする時は呼んでくださいね。」_L"
 		ENDIF
 	ENDIF
-CASE "������"
-	IF CEVENT("�����珉��b") == 0
-		PRINTFORML �\�t�@�[�ɍ����Ă���%CALLNAME:ACTOR%��%CALLNAME:TARGET%�͌����g���g���ƒ@�����ł������B
-		PRINTFORML (���́A�����ɂ����%CNAME("��l")%�ƒN�����A���́A�Â��܂����A%CNAME("������")%�͂����ɂ͂��Ȃ��ق���)
-		PRINTFORML �S�z����%CALLNAME:TARGET%��%CALLNAME:ACTOR%�͏����Â�����������A�����ɋ��𒣂��ē��R�̂悤�ɐ錾�����B
-		PRINTFORML �w���S���Ă�������%CNAMET(ACTOR, "��l��")%��%CNAMET(ACTOR, "�Ώ�")%�̌����Â����ɓ����Ă��܂�����I�x
-		PRINTFORML �u�����Ă���āA�������������������[�[�[�I�v
-		CALL SET_CEVENT, "�����珉��b"
+CASE "さくら"
+	IF CEVENT("さくら初会話") == 0
+		PRINTFORML ソファーに座っている%CALLNAME:ACTOR%に%CALLNAME:TARGET%は肩をトントンと叩き耳打ちした。
+		PRINTFORML (あの、ここにいると%CNAME("主人")%と誰かが、その、催しますし、%CNAME("さくら")%はここにはいないほうが)
+		PRINTFORML 心配する%CALLNAME:TARGET%に%CALLNAME:ACTOR%は少し暗い顔をしたが、すぐに胸を張って当然のように宣言した。
+		PRINTFORML 『安心してください%CNAMET(ACTOR, "一人称")%も%CNAMET(ACTOR, "対象")%の言う催す内に入っていますから！』
+		PRINTFORML 「入ってるって、えっえええええええーーー！」
+		CALL SET_CEVENT, "さくら初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �����߂̏����A�ł����H������%TEXTR("�o�����钲��/�V��藈����Ēn�𔇂����m/�l�匳�f�𓝂ׂ���/�j�œI�Ȍ��ƍR��������/�k�J�̗��R��/�X�̖��̎O��/���̐l�H�V�g/�h�肵������/�d�ˍ��킹�̐^��")%�Ȃ�Ă������ł����H
+			PRINTFORML お勧めの小説、ですか？ええと%TEXTR("覚醒する調律/天より来たりて地を這うモノ/四大元素を統べた先/破滅的な光と抗いし恐竜/渓谷の龍騎兵/氷の民の三つ首竜/堕落の人工天使/蘇りし感染者/重ね合わせの真実")%なんていかがですか？
 		ELSE
-			PRINTFORML �u%CNAME("��l")%�Ƃ���Ȃ��Ƃ��c�c�B�v
-			PRINTFORML �u%CNAME("�t�F���V�G��")%���Đ�����ł��ˁB%CNAME("��l��")%���������Ă΂���ł��B�v
+			PRINTFORML 「%CNAME("主人")%とそんなことが……。」
+			PRINTFORML 「%CNAME("フェリシエル")%って凄いんですね。%CNAME("一人称")%も助けられてばかりです。」
 		ENDIF
 	ENDIF
-CASE "�Z��"
-;�V�G���̂Q
-	IF CEVENT("�Z�؏���b") == 0
-		PRINTFORML �u%CNAME("�Z��")%�B���ꂩ��A��낵�����肢���܂��B�v
-		PRINTFORML (�Ȃ�Ƃ����ʂɈ��A�ł����Ǝv���܂����A���̏����ȖڂŌ�����Ɛ������S�n�����܂���c�c�B)
-		PRINTFORML %CALLNAME:TARGET%�͗E�C��U��i���ēw�߂ĕ��Â𑕂����B
-		CALL SET_CEVENT, "�Z�؏���b"
+CASE "六華"
+;天敵その２
+	IF CEVENT("六華初会話") == 0
+		PRINTFORML 「%CNAME("六華")%。これから、よろしくお願いします。」
+		PRINTFORML (なんとか普通に挨拶できたと思いますが、あの純粋な目で見られると生きた心地がしません……。)
+		PRINTFORML %CALLNAME:TARGET%は勇気を振り絞って努めて平静を装った。
+		CALL SET_CEVENT, "六華初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u���������������ȓ���������I�H%CNAME("��l��")%�͂܂����������Ă��A�ǂ������΂���́I�H�v
-			PRINTFORML �u�c�c����A���ł����H�X���[�N�`�[�Y���Č�����ł���B����A�ǂ��ł����H�v
+			PRINTFORML 「えっ美味しそうな匂いがする！？%CNAME("一人称")%はまだ生きたくてっ、どうか命ばかりは！？」
+			PRINTFORML 「……あれ、鞄ですか？スモークチーズって言うんですよ。お一つ、どうですか？」
 		ELSE
-			PRINTFORML �u%CNAME("�Z��")%�͂��̒n��̎��_�Ȃ�ł���ˁB�v
-			PRINTFORML �u����������ĉ������Ă��肪�Ƃ��������܂��I�v
+			PRINTFORML 「%CNAME("六華")%はこの地域の守り神なんですよね。」
+			PRINTFORML 「いつも見守って下さってありがとうございます！」
 		ENDIF
 	ENDIF
-CASE "�A���[�k"
-		PRINTFORML �u���~��}������@���Ă���܂����H�v
-		PRINTFORML �u�����Ƃ��ɂ�%CNAME("��l��")%��%CNAME("��l��")%�łȂ��Ȃ�悤�ȁA����ȏ�ԂɂȂ��ł��B�v
-CASE "�c�F�c�B�[���A"
-	IF CEVENT("�c�F�c�B�[���A����b") == 0
-		PRINTFORML �u�����~�X�R�[�A�ł����H�v
-		PRINTFORML �w�����A���}�ɓ`���d���Ƃ��ē]�������l���A���������ĂƎv���ĂˁB�x
-		PRINTFORML ���̏�ɖ��p�����L����%CALLNAME:ACTOR%�͑l�̊G���`����Ă��镔�����w�������B
-		PRINTFORML �u�����ł��ˁA�S�g�^���Ԃł����ǁc�c���̎q����Ȃ��Ǝv���܂��B�v
-		PRINTFORML �w�Ȃ炢���A�����C�������܂��A���̑l�͐G�ꂽ�������ŋꂵ�߂������Ȃ��̂�����ˁB�x
-		PRINTFORML �w�ނ����ɕ�����΁A����̂�%CNAMET(ACTOR, CALLNAME:TARGET)%�����ł͂Ȃ����Ƃ����m���Ă������Ƃ��B�x
-		PRINTFORML �u%CNAME("�c�F�c�B�[���A")%���ĕ��m��Ȃ�ł��ˁI�܂����낢�닳���Ă��������I�v
-		CALL SET_CEVENT, "�c�F�c�B�[���A����b"
+CASE "アリーヌ"
+		PRINTFORML 「性欲を抑える方法ってありますか？」
+		PRINTFORML 「酷いときには%CNAME("一人称")%が%CNAME("一人称")%でなくなるような、そんな状態になるんです。」
+CASE "ツェツィーリア"
+	IF CEVENT("ツェツィーリア初会話") == 0
+		PRINTFORML 「ロルミスコー、ですか？」
+		PRINTFORML 『ああ、ロマに伝わる妖精として転生した鼠さ、もしかしてと思ってね。』
+		PRINTFORML 机の上に魔術書を広げた%CALLNAME:ACTOR%は鼠の絵が描かれている部分を指さした。
+		PRINTFORML 「そうですね、全身真っ赤ですけど……この子じゃないと思います。」
+		PRINTFORML 『ならいい、だが気をつけたまえ、この鼠は触れた相手を腫物で苦しめるやっかなものだからね。』
+		PRINTFORML 『彼が床に伏せれば、困るのは%CNAMET(ACTOR, CALLNAME:TARGET)%だけではないことを承知しておくことだ。』
+		PRINTFORML 「%CNAME("ツェツィーリア")%って物知りなんですね！またいろいろ教えてください！」
+		CALL SET_CEVENT, "ツェツィーリア初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u�����[��A�����ƗD�����{�͂���܂��񂩁H%CNAME("��l��")%�ɂ͓���ł��B�v
+			PRINTFORML 「うぅーん、もっと優しい本はありませんか？%CNAME("一人称")%には難しいです。」
 		ELSE
-			PRINTFORML �u���̖X�q�A�����Ɣ���Ă܂���ˁB���C�ɓ���Ȃ�ł����H�v
+			PRINTFORML 「その帽子、ずっと被ってますよね。お気に入りなんですか？」
 		ENDIF
 	ENDIF
-CASE "�G�G�̌N"
-;�V�G���̂P
-	IF CEVENT("�G�G�̌N����b") == 0
-		PRINTFORML (���̔��e���牽���Ɩڗ������Ǝv���Ă܂������A�O�������݊����������悤�ȁc�c�B)
-		PRINTFORML (�ς�����̂͂���������%CNAME("��l��")%�ł��傤���H�c�c�Ȃ񂾂��ߊ���C�����܂��B)
-		PRINTFORML �w�������Ă���H�l���B����%CNAMET(ACTOR, CALLNAME:TARGET)%������ĐH������͂��񂼁B�x
-		PRINTFORML �u�����A�͂͂͂��c�c�o���o���ł��ˁA����_�炩�ɂ��肢���܂����B�v
-		CALL SET_CEVENT, "�G�G�̌N����b"
+CASE "濡烏の君"
+;天敵その１
+	IF CEVENT("濡烏の君初会話") == 0
+		PRINTFORML (その美貌から何かと目立つ方だと思ってましたが、前よりも存在感が増したような……。)
+		PRINTFORML (変わったのはもしかして%CNAME("一人称")%でしょうか？……なんだか近寄り難い気がします。)
+		PRINTFORML 『何を見ている？鼠娘。私は%CNAMET(ACTOR, CALLNAME:TARGET)%を取って食ったりはせんぞ。』
+		PRINTFORML 「あっ、はははっ……バレバレですね、お手柔らかにお願いしますっ。」
+		CALL SET_CEVENT, "濡烏の君初会話"
 	ELSE
-		IF RAND:2 && TALENT:ACTOR:������
-			PRINTFORML �u�����Ȃ瑛����܂��񂵂ǂ��ł����H�v
-			PRINTFORML �u�K�����o���C�ɂ͂Ȃ�܂��񂩁H�����Ɖ����������܂���I�v
+		IF RAND:2 && TALENT:ACTOR:しっぽ
+			PRINTFORML 「ここなら騒がれませんしどうですか？」
+			PRINTFORML 「尻尾を出す気にはなりませんか？きっと解放感がありますよ！」
 		ELSE
-			PRINTFORML �u%CONDS("����", ACTOR)%����͙z�X�����āA�������X�Ƃ��Ă��đA�܂����ł��B�v
-			PRINTFORML �u%CNAME("��l��")%�Ȃ񂩂܂��܂��ŁB�v
+			PRINTFORML 「%CONDS("略称", ACTOR)%さんは凛々しくて、いつも堂々としていて羨ましいです。」
+			PRINTFORML 「%CNAME("一人称")%なんかまだまだで。」
 		ENDIF
 	ENDIF
-CASE "�t�F���V�G��"
-	IF CEVENT("�t�F���V�G������b") == 0 && DEVENT("����P") >= 0
-		PRINTFORML �u%CONDS("����", ACTOR)%����A%TEXTR("�|��/����/����")%�̂��d���A����`�����܂��ˁB�v
-		PRINTFORML �w����A���̈��t�񓹂̃G���G�������ɉ�����p�ł����H�x
-		PRINTFORML �u�����A����͊��Ⴂ���������āA�ӂ�������Ȃ��ł������B�v
-		CALL SET_CEVENT, "�t�F���V�G������b"
+CASE "フェリシエル"
+	IF CEVENT("フェリシエル初会話") == 0 && DEVENT("質問１") >= 0
+		PRINTFORML 「%CONDS("略称", ACTOR)%さん、%TEXTR("掃除/洗濯/料理")%のお仕事、お手伝いしますね。」
+		PRINTFORML 『あら、この悪逆非道のエロエロ悪魔に何か御用ですか？』
+		PRINTFORML 「もう、あれは勘違いだったって、謝ったじゃないですかぁ。」
+		CALL SET_CEVENT, "フェリシエル初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u%CONDS("����", ACTOR)%����̉Ǝ��͖��ʂ��Ȃ��ł��ˁB�׋��ɂȂ�܂��B�v
+			PRINTFORML 「%CONDS("略称", ACTOR)%さんの家事は無駄がないですね。勉強になります。」
 		ELSE
-			PRINTFORML �u�������āA�ǂ������푰�Ȃ�ł����H�v
-			PRINTFORML �u%CNAME("��l��")%�B�Ɠ����悤�ɐ������Ă܂����ǁA�Ⴄ��ł���ˁH�v
+			PRINTFORML 「悪魔って、どういう種族なんですか？」
+			PRINTFORML 「%CNAME("一人称")%達と同じように生活してますけど、違うんですよね？」
 		ENDIF
 	ENDIF
 CASEELSE
@@ -1224,26 +1224,26 @@ ENDSELECT
 
 
 ;--------------------------------------------------
-;�����[�i
+;リューナ
 ;--------------------------------------------------
 @TaiTaChara_K22
-;�C�x���g���N����L�����̖��O��/��؂�ł���ɓ˂����݁ATEXTR�Ŏ��o��
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
 #DIMS EVENT_TABLE
-;�C�x���g�������̃L����
+;イベント発生中のキャラ
 #DIM ACTOR
 #DIM ACTOR2
 #DIM ACTOR3
-;�C�x���g�������̃L�����̃f�t�H��CALLNAME
+;イベント発生中のキャラのデフォのCALLNAME
 #DIMS CALLNAME_ACTOR
 
 
-;���݂��̏�ɂ���A�����ȊO�̑S�L�����̖��O���擾����
-EVENT_TABLE = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
-;�N�����Ȃ��Ȃ�I���
+;現在この場にいる、自分以外の全キャラの名前を取得する
+EVENT_TABLE = %NAMES("対話可能キャラ一覧", TARGET)%
+;誰も居ないなら終わり
 SIF EVENT_TABLE == ""
 	RETURN 0
 
-;���̃L�����̃C�x���g���N����
+;このキャラのイベントが起きる
 CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
 ACTOR = FIND_COND(CALLNAME_ACTOR)
 CALL PRINT_TaiTaChara, ACTOR
@@ -1251,998 +1251,998 @@ CALL PRINT_TaiTaChara, ACTOR
 VARSET ACTOR2
 VARSET ACTOR3
 
-;���̕����EVENT_TABLE���Ⴆ�΃t�F���V�G��/���e/�n�i/�Ȃ瓙�m���łR�l�̂ǂꂩ�̕���ɍs��
+;この分岐はEVENT_TABLEが例えばフェリシエル/小菊/ハナ/なら等確率で３人のどれかの分岐に行く
 SELECTCASE CALLNAME_ACTOR
-CASE "�I�X�J�["
-	IF CEVENT("�I�X�J�[����b") == 0 && CEVENT("�����[�i����b", ACTOR) == 0
-		PRINTFORML �u�Ӂ[��A���E�̂��̂����񂩂��c�v
-		PRINTFORML �w���A�����ȁB�����������Ȃ��́H�x
-		PRINTFORML �u�w���ɋ��󂵂Ă邽���̃h���S������v
-		PRINTFORML �w�ӂށA�������c�܂���낵�����ނ��A%CNAMET(ACTOR, CALLNAME:TARGET)%��x
-		PRINTFORML �u�ӂӁA�����炱���v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�͂��݂�������Ɍ������Ȃ������������ƈ��肵���B
-		CALL SET_CEVENT, "�I�X�J�[����b"
+CASE "オスカー"
+	IF CEVENT("オスカー初会話") == 0 && CEVENT("リューナ初会話", ACTOR) == 0
+		PRINTFORML 「ふーん、魔界のお偉いさんかぁ…」
+		PRINTFORML 『元、だがな。そう言うそなたは？』
+		PRINTFORML 「学園に居候してるただのドラゴンだよ」
+		PRINTFORML 『ふむ、そうか…まぁよろしく頼むぞ、%CNAMET(ACTOR, CALLNAME:TARGET)%よ』
+		PRINTFORML 「ふふ、こちらこそ」
+		PRINTFORML %CALLNAME:TARGET%と%CALLNAME:ACTOR%はお互いを微妙に牽制しながらもしっかりと握手した。
+		CALL SET_CEVENT, "オスカー初会話"
 	;ELSEIF RAND:4 == 0
 		;PRINTFORML 
 	ELSEIF RAND:3 == 0
-		PRINTFORML �u%CNAME("�I�X�J�[")%�̐ԍ�����Ȃ��Đ����ȁ[�J�b�R�����ȁ[�A�A�܂����ȁ[�I�v
-		PRINTFORML �w��������%CNAMET(ACTOR, CALLNAME:TARGET)%��A���Ȃ��̑��Ƌ��̉����ؗ�Ō��h�����ǂ��ł͂Ȃ����x
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�݂͌��̓����I�ȍU����i�ɂ��Č�荇���Ă���c�B
+		PRINTFORML 「%CNAME("オスカー")%の赤黒い稲妻って凄いなーカッコいいなー、羨ましいなー！」
+		PRINTFORML 『何を言う%CNAMET(ACTOR, CALLNAME:TARGET)%よ、そなたの蒼と金の炎も華麗で見栄えが良いではないか』
+		PRINTFORML %CALLNAME:TARGET%と%CALLNAME:ACTOR%は互いの特徴的な攻撃手段について語り合っている…。
 	ELSEIF RAND:2
-		PRINTFORML �u�����c�c�����́c�Łc�c%CNAME("�I�X�J�[")%�́c�Łc���c�c�ӂӂӁc�c�v
-		PRINTFORML �w�ق��ق��c�c�c������c�c%CNAMET(ACTOR, CALLNAME:TARGET)%���c����΁c�c�N�N�b�c�c�x
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�͉�������ނ悤�ɂ��������Ƙb������ł���B
-		PRINTFORML �ǂ����%TEXTR(@"�w�����̉ʎ��̕s�@���n/�^���Ƃ������ڂ̎荇�킹/�@���ɂ���%CALLNAME:MASTER%�̒������󂯂邩")%�̌v��𗧂ĂĂ���悤���c�B
+		PRINTFORML 「そう……そこの…で……%CNAME("オスカー")%の…で…を……ふふふ……」
+		PRINTFORML 『ほうほう………それを……%CNAMET(ACTOR, CALLNAME:TARGET)%が…すれば……ククッ……』
+		PRINTFORML %CALLNAME:TARGET%と%CALLNAME:ACTOR%は何かを企むようにこそこそと話し込んでいる。
+		PRINTFORML どうやら%TEXTR(@"学園内の果実の不法収穫/運動という名目の手合わせ/如何にして%CALLNAME:MASTER%の寵愛を受けるか")%の計画を立てているようだ…。
 	ELSE
-		PRINTFORML �w�ق�%CNAMET(ACTOR, CALLNAME:TARGET)%��A�n�[�u�e�B�[���B���Ɍ������x
-		PRINTFORML �u�������`�T���L���[%CNAME("�I�X�J�[")%�c�͂��`�ǂ����股�c�v
-		PRINTFORML %CALLNAME:TARGET%�͓��E�̋x�e����%CALLNAME:ACTOR%�ɂ����🹂�Ă�����Ă���B
+		PRINTFORML 『ほら%CNAMET(ACTOR, CALLNAME:TARGET)%よ、ハーブティーだ。疲れに効くぞ』
+		PRINTFORML 「おぁぁ～サンキュー%CNAME("オスカー")%…はぁ～良い香りぃ…」
+		PRINTFORML %CALLNAME:TARGET%は内職の休憩中に%CALLNAME:ACTOR%にお茶を淹れてもらっている。
 	ENDIF
-CASE "�ې�"
-	IF CEVENT("�ې�����b") == 0
-		PRINTFORML �u�ւ��A�Ꮧ�Ɛl�Ԃ̃n�[�t�����c��낵���ˁv
-		PRINTFORML �u�c�Ȃ��ɁA����ȂɌx�����āH�@�c�����A�w�\�́x�˂��c�v
-		PRINTFORML �u���v���v�A���Âɉ΂��������肵�Ȃ����A�܂��Ă�\�͂Ȃ�Ă����Ă̊O������c�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̌x���������悤�ɁA��������ƈ��肵���B
-		PRINTFORML �c�y�э��ŁA�Ȃ����K�����ْ��C���Ƀs���Ƃ����Ȃ���c�B
-		CALL SET_CEVENT, "�ې�����b"
+CASE "維吹"
+	IF CEVENT("維吹初会話") == 0
+		PRINTFORML 「へぇ、雪女と人間のハーフかぁ…よろしくね」
+		PRINTFORML 「…なぁに、そんなに警戒して？　…ああ、『噂の』ねぇ…」
+		PRINTFORML 「大丈夫大丈夫、無暗に火ぃ噴いたりしないし、ましてや暴力なんてもっての外だから…」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の警戒を解くように、しっかりと握手した。
+		PRINTFORML …及び腰で、なおかつ尻尾を緊張気味にピンとさせながら…。
+		CALL SET_CEVENT, "維吹初会話"
 	ELSE
-		IF RAND:4 == 0 && CEVENT("�o��2", ACTOR)
-			PRINTFORML �u%TEXTR("���ق���/�͂Ђ���/�Ђ႟���/���Ђ���")%�I�H�@������A�����A�w���₽�����H�I�v
-			PRINTFORML %TEXTR("���E�����Ă���/�{��ǂ�ł���/�ڂ��肵�Ă���")%%CALLNAME:TARGET%�����A�����Ȃ�f���ڋ��Ȑ����グ�Ė�₵�������B
-			PRINTFORML �ǂ����%CALLNAME:ACTOR%������ƂȂ���΂����X�򂪋ݎ񂩂�������悤���c�B
+		IF RAND:4 == 0 && CEVENT("覚醒2", ACTOR)
+			PRINTFORML 「%TEXTR("おほぉっ/はひぃっ/ひゃぁんっ/うひぇっ")%！？　ちょっ、せっ、背中冷たぁっ？！」
+			PRINTFORML %TEXTR("内職をしていた/本を読んでいた/ぼんやりしていた")%%CALLNAME:TARGET%だが、いきなり素っ頓狂な声を上げて悶絶しだした。
+			PRINTFORML どうやら%CALLNAME:ACTOR%がそれとなく飛ばした氷塊が襟首から入ったようだ…。
 		ELSEIF RAND:3 == 0
-			IF CEVENT("�o��1", ACTOR)
-				PRINTFORML �u�˂��A�O�݂����ȋ������̍������Ă��Ȃ��́H�v
-				PRINTFORML �u�������̕����J�b�R�ǂ��čD���������񂾂��ǂȂ��c�v
-				PRINTFORML %CALLNAME:ACTOR%�̔��Ɏ�������Ȃ���A%CALLNAME:TARGET%�͏����c�O�����ɂ��Ă���c�B
+			IF CEVENT("覚醒1", ACTOR)
+				PRINTFORML 「ねぇ、前みたいな銀交じりの黒髪ってやらないの？」
+				PRINTFORML 「あっちの方がカッコ良くて好きだったんだけどなぁ…」
+				PRINTFORML %CALLNAME:ACTOR%の髪に手櫛を入れながら、%CALLNAME:TARGET%は少し残念そうにしている…。
 			ELSE
-				PRINTFORML �u�Ȃ�Ă��������c%CNAME("�ې�")%�̔����ăJ�b�R�ǂ���ˁv
-				PRINTFORML �u%CNAME("��l��")%�͂��������̍D������A����v
-				PRINTFORML ����������%CALLNAME:TARGET%��%CALLNAME:ACTOR%�̔���M���Ă���B
+				PRINTFORML 「なんていうかさ…%CNAME("維吹")%の髪ってカッコ良いよね」
+				PRINTFORML 「%CNAME("一人称")%はこういうの好きだよ、うん」
+				PRINTFORML そう言って%CALLNAME:TARGET%は%CALLNAME:ACTOR%の髪を弄っている。
 			ENDIF
 		ELSEIF RAND:2
-			PRINTFORML �u���x���A�ꏏ�ɗ��R�s���Ȃ��H�v
-			PRINTFORML �u�搶���m��Ȃ��Ǝ����[�g������񂾂��ǁc�ǂ��H�v
-			PRINTFORML %CALLNAME:TARGET%�͔M�S�ȗl�q��%CALLNAME:ACTOR%��U���Ă���c�B
+			PRINTFORML 「今度さ、一緒に裏山行かない？」
+			PRINTFORML 「先生も知らない独自ルートがあるんだけど…どう？」
+			PRINTFORML %CALLNAME:TARGET%は熱心な様子で%CALLNAME:ACTOR%を誘っている…。
 		ELSE
-			PRINTFORML �u�˂��A�����������%TEXTR("���������Ȃ�B/����������Ȃ��H")%�@�����Ƌ߂���%CNAME(CALLNAME_ACTOR)%�Ƙb�������Ȃ��v
+			PRINTFORML 「ねぇ、もうちょっと%TEXTR("こっち来なよ。/こっち来れない？")%　もっと近くで%CNAME(CALLNAME_ACTOR)%と話したいなぁ」
 			IF RAND:2
-				PRINTFORML �u�c�ނ��A���Ȃ��Ȃ炱��������s�����Ⴄ����ˁv
-				PRINTFORML %CALLNAME:TARGET%�͖ʓ|���������ɂ��ߑ�����%CALLNAME:ACTOR%�̉��ɍ���A�ϋɓI�ɘb�������Ă���c�B
+				PRINTFORML 「…むぅ、来ないならこっちから行っちゃうもんね」
+				PRINTFORML %CALLNAME:TARGET%は面倒くさそうにため息をつく%CALLNAME:ACTOR%の横に座り、積極的に話しかけている…。
 			ELSE
-				PRINTFORML �u�c�ӂӁA�������Ȋ炵�ĂĂ�����[��Ɨ��Ă����񂶂��A�̂��̂��v
-				PRINTFORML �a�X�A�Ƃ������l�q�ŋ߂��ɍ�����%CALLNAME:ACTOR%�ɁA%CALLNAME:TARGET%�͊��������Ȋ�Řb�������Ă���B
+				PRINTFORML 「…ふふ、嫌そうな顔しててもちゃーんと来てくれるんじゃん、偉い偉い」
+				PRINTFORML 渋々、といった様子で近くに座った%CALLNAME:ACTOR%に、%CALLNAME:TARGET%は嬉しそうな顔で話しかけている。
 			ENDIF
 		ENDIF
 	ENDIF
-CASE "���q"
-	IF CEVENT("���q����b") == 0
-		PRINTFORML �u�܁A���@���������āH�I�v
-		PRINTFORML �u�ؗ�Ȋ��􂪓��j�̒��ɕ������Ă���́c���Ȃ��H�@�ނ���[��A�j���H�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ɋ����[�X�ȗl�q���c�B
-		CALL SET_CEVENT, "���q����b"
+CASE "恭子"
+	IF CEVENT("恭子初会話") == 0
+		PRINTFORML 「ま、魔法少女だって？！」
+		PRINTFORML 「華麗な活躍が日曜の朝に放送してたりは…しない？　むしろ深夜アニメ？」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%に興味深々な様子だ…。
+		CALL SET_CEVENT, "恭子初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �i�ނށc���@�����Ƃ�����������������Ȃ��c�H�j
-			PRINTFORML %CALLNAME:TARGET%�͕��G�����Ȗڐ���%CALLNAME:ACTOR%�Ɍ����Ă���c�B
+			PRINTFORML （むむ…魔法少女というよりも小悪魔じゃない…？）
+			PRINTFORML %CALLNAME:TARGET%は複雑そうな目線を%CALLNAME:ACTOR%に向けている…。
 		ELSE
-			CALL PRINT_STR, @"�u�G�肩���A%TEXTR(@"�Η��̖���i�y�g���A�C�Y�j�Ȃ�]�T�őΏ��o����炵������/�ǂ��̒N������Ȃ��񐶂ݏo���񂾂낤�˂�")%�c�v_L"
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ƐG��ɂ��ĉ�b���Ă���B
+			CALL PRINT_STR, @"「触手かぁ、%TEXTR(@"石竜の魔眼（ペトラアイズ）なら余裕で対処出来るらしいけど/どこの誰がそんなもん生み出すんだろうねぇ")%…」_L"
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と触手について会話している。
 		ENDIF
 	ENDIF
-CASE "�m�m"
-	IF CEVENT("�m�m����b") == 0
-		PRINTFORML �u�����킟�c���A�����j�̎q���c�v
-		PRINTFORML �u�c�A���H�@���A�����A�S�����ˁA�����Y���ۂ���������������ԈႦ��������v
-		PRINTFORML %CALLNAME:TARGET%�͓���~���Ȃ���%CALLNAME:ACTOR%�Ɏӂ��Ă���B
-		CALL SET_CEVENT, "�m�m����b"
+CASE "ノノ"
+	IF CEVENT("ノノ初会話") == 0
+		PRINTFORML 「うっわぁ…か、可愛い男の子ぉ…」
+		PRINTFORML 「…アレ？　あ、ああ、ゴメンね、何か雄っぽい匂いがしたから間違えちゃった」
+		PRINTFORML %CALLNAME:TARGET%は頭を掻きながら%CALLNAME:ACTOR%に謝っている。
+		CALL SET_CEVENT, "ノノ初会話"
 	ELSE
-		IF COND("�����")
+		IF COND("発情期")
 			IF RAND:2
-				CALL PRINT_STRL, "�u�c�c�c������c�c�c_H_�v_L"
-				PRINTFORML %CALLNAME:ACTOR%�����߂�%CALLNAME:TARGET%�͖��ӎ��ɍD�F�����ȏ΂݂𕂂��ׂȂ����Ȃ߂��肵�Ă���c�B
+				CALL PRINT_STRL, "「………じゅるり………_H_」_L"
+				PRINTFORML %CALLNAME:ACTOR%を見つめる%CALLNAME:TARGET%は無意識に好色そうな笑みを浮かべながら舌なめずりしている…。
 			ELSE
-				CALL PRINT_STRL, @"�u�ӂӁA%CNAME("�m�m")%���Ă΃z���g�����Ȃ��c�ӂӂӁc_H_�v_L"
-				PRINTFORML %CALLNAME:TARGET%�͗d�������΂݂Ȃ���A�G�̏�ɍ��点��%CALLNAME:ACTOR%��%TEXTR("���������C���Ă���/���ɐ�𔇂킹�Ă���")%�c�B
+				CALL PRINT_STRL, @"「ふふ、%CNAME("ノノ")%ってばホント可愛いなぁ…ふふふ…_H_」_L"
+				PRINTFORML %CALLNAME:TARGET%は妖しく微笑みながら、膝の上に座らせた%CALLNAME:ACTOR%の%TEXTR("下腹部を擦っている/耳に舌を這わせている")%…。
 			ENDIF
 		ELSE
 			IF RAND:2
-				PRINTFORML �u���k��̖������̂���ς���˂��v
-				PRINTFORML �u�ق�A�����������Â��Ă��v
-				PRINTFORML %CALLNAME:TARGET%�͈֎q�ɍ���%CALLNAME:ACTOR%�̌��𝆂݂ق����Ă���B
+				PRINTFORML 「生徒会の役員やるのも大変だよねぇ」
+				PRINTFORML 「ほら、すっごい肩凝ってるよ」
+				PRINTFORML %CALLNAME:TARGET%は椅子に座る%CALLNAME:ACTOR%の肩を揉みほぐしている。
 			ELSE
-				PRINTFORML �u�ق��`�c����ύ����H���Ɨւ������ăJ�b�R�C�C�Ȃ��v
-				PRINTFORML %CALLNAME:ACTOR%�̉H���Ɨւ�M��Ȃ���A%CALLNAME:TARGET%�͂����낵�Ă���B
+				PRINTFORML 「ほぇ～…やっぱ黒い羽根と輪っかってカッコイイなぁ」
+				PRINTFORML %CALLNAME:ACTOR%の羽根と輪を弄りながら、%CALLNAME:TARGET%はそう零している。
 			ENDIF
 		ENDIF
 	ENDIF
-CASE "���"
-	IF CEVENT("��䏉��b") == 0
-		PRINTFORML �u�����Ȃ��c�H�@�c�����[�Ȃ�قǁA�t�ē~���ď����Ă����ǂނ񂾁v
-		PRINTFORML %CALLNAME:ACTOR%�̎��ȏЉ�𕷂��A%CALLNAME:TARGET%�͂��̖��O�̓ǂ݂Ɋ��Q���Ă���B
-		CALL SET_CEVENT, "��䏉��b"
+CASE "千穂"
+	IF CEVENT("千穂初会話") == 0
+		PRINTFORML 「あきなし…？　…ああーなるほど、春夏冬って書いてそう読むんだ」
+		PRINTFORML %CALLNAME:ACTOR%の自己紹介を聞き、%CALLNAME:TARGET%はその名前の読みに感嘆している。
+		CALL SET_CEVENT, "千穂初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �i�c����ς�%CNAME("���")%���ăh�X��������������Ă��˂��c�j
-			PRINTFORML %CALLNAME:TARGET%�͂ǂ����S�z�����Ȗڂ�%TEXTR("�w�ւɘb��������/���̊O�����߂�")%%CALLNAME:ACTOR%�����Ă���c�B
+			PRINTFORML （…やっぱり%CNAME("千穂")%ってドス黒い何かを抱えてるよねぇ…）
+			PRINTFORML %CALLNAME:TARGET%はどこか心配そうな目で%TEXTR("指輪に話しかける/窓の外を見つめる")%%CALLNAME:ACTOR%を見ている…。
 		ELSE
-			PRINTFORML �u�厖�Ȗ��A�˂��v
-			PRINTFORML �u�ӂӁA%CNAME("��l��")%�̎o������%CNAME("���")%�̒܂̍C������Ĉ��܂��Ă�肽����v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƌ��ʂ̘b��Řb�����Ƃ��Ă���c�B
+			PRINTFORML 「大事な妹、ねぇ」
+			PRINTFORML 「ふふ、%CNAME("一人称")%の姉ちゃんに%CNAME("千穂")%の爪の垢を煎じて飲ませてやりたいよ」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と共通の話題で話そうとしている…。
 		ENDIF
 	ENDIF
-CASE "�}���["
-	IF CEVENT("�}���[����b") == 0
-		PRINTFORML �u�c���c�}���[�i�H�@�c�͂́[��A���E�����c�܁A��낵���v
-		IF TALENT:���� && CEVENT("�}���[����b") && CEVENT("�����[�i�Ɛ���") == 0
-			PRINTFORML �u���[���������A�����c�����������������H�@���������J�b�R�C�C����炵���ˁv
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃɂ��₩�Ɉ��肵�Ȃ��炻���܂Ō����ƁA�����Ɍ����񂹂ĉ����������c�B
-			PRINTFORML ���̕\��͏Ί�Ȃ�����ǂ����֖҂ŁA�B���؂�Ȃ��x���S���ɂ��ݏo�Ă���c�B
-			PRINTFORML �i������%CALLNAME:MASTER%��%CNAME("��l��")%�⑼�̕����Ɍ������肵����A�w�����������x�����Ĕ��f���Ė{�C�ő��肳���Ă��炤����j
+CASE "マリー"
+	IF CEVENT("マリー初会話") == 0
+		PRINTFORML 「…聖…マリーナ？　…ははーん、竜殺しか…ま、よろしく」
+		IF TALENT:恋慕 && CEVENT("マリー初会話") && CEVENT("リューナと聖槍") == 0
+			PRINTFORML 「あーそうそう、聖槍…■■■■■だっけ？　すっごいカッコイイ武器らしいね」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%とにこやかに握手しながらそこまで言うと、耳元に口を寄せて何か囁いた…。
+			PRINTFORML その表情は笑顔ながらもどこか獰猛で、隠し切れない警戒心がにじみ出ている…。
+			PRINTFORML （万が一%CALLNAME:MASTER%や%CNAME("一人称")%や他の部員に向けたりしたら、『そういう事』だって判断して本気で相手させてもらうから）
 		ELSE
-			PRINTFORML %CALLNAME:ACTOR%�Ɏ��ȏЉ��A�ɂ��₩�Ɉ��肷��%CALLNAME:TARGET%�B
-			PRINTFORML ���������̏Ί�͕��i�̗l�q����͂������ꂽ�A�ǂ����֖҂ȏ΂݂𕂂��ׂĂ���悤�Ɍ������c�B
-			PRINTFORML �i�c���E��������Ȃ�w������x�͗v��Ȃ����j
+			PRINTFORML %CALLNAME:ACTOR%に自己紹介され、にこやかに握手する%CALLNAME:TARGET%。
+			PRINTFORML しかしその笑顔は普段の様子からはかけ離れた、どこか獰猛な笑みを浮かべているように見えた…。
+			PRINTFORML （…竜殺しが相手なら『手加減』は要らないか）
 		ENDIF
-		CALL SET_CEVENT, "�}���[����b"
+		CALL SET_CEVENT, "マリー初会話"
 	ELSE
 		IF RAND:4 == 0
-			PRINTFORML �u�c�񂠁H�@�����A���傱���ƍl�������ˁv
-			PRINTFORML %CALLNAME:ACTOR%�Ƙb��%CALLNAME:TARGET%�����A�ǂ��������Ȃ�������Ă���c�B
-			PRINTFORML �i�c�������ė��E���ƒ��ǂ����Ă�Ȃ�ē����ɂ͌����Ȃ��Ȃ��c�j
+			PRINTFORML 「…んあ？　ああ、ちょこっと考え事をね」
+			PRINTFORML %CALLNAME:ACTOR%と話す%CALLNAME:TARGET%だが、どこか浮かない顔をしている…。
+			PRINTFORML （…こうして竜殺しと仲良くしてるなんて同族には言えないなぁ…）
 		ELSEIF RAND:3 == 0
-			PRINTFORML �u���}���[�i�̓��o���z�����ĕ����Ă�����ŏ��͌x�����Ă��񂾂��ǁv
-			CALL PRINT_STRL, "�u���ۉ���Ă݂��炽����_-_�]��_�c�����ƁA���ł��Ȃ���v_L"
+			PRINTFORML 「聖マリーナはヤバい奴だって聞いてたから最初は警戒してたんだけど」
+			CALL PRINT_STRL, "「実際会ってみたらただの_-_脳筋_…おっと、何でもないよ」_L"
 		ELSEIF RAND:2
-			PRINTFORML �u�c%TEXTR("����A���S�n�̓��C�o�[������Ԃ��낤�˂�/���m�̗��͊�{�I�ɑP�ʂ����犨�ق��Ă����Ă�c�H/�����c�I�H�@�l��t����悱�̔]�ؐ����I�I/�����͂˂��c�z���g�ǂ����Ă���Ȏ�����񂾂��c")%�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ƃh���S���ɂ��Ċy�������Ɍ�荇���Ă���c�B
+			PRINTFORML 「…%TEXTR("うん、乗り心地はワイバーンが一番だろうねぇ/東洋の龍は基本的に善玉だから勘弁してあげてよ…？/白龍…！？　様を付けろよこの脳筋聖女！！/悪竜はねぇ…ホントどうしてあんな事するんだか…")%」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%とドラゴンについて楽しそうに語り合っている…。
 		ELSE
-			PRINTFORM �u�ӂ�ʂʂʂʁc�c�c�I�@
+			PRINTFORM 「ふんぬぬぬぬ………！　
 			IF RAND:3 == 0
-				PRINTFORML ���b���႟�I���@�I�@%TEXTR("�������/�r�N�g���[")%�I�I�@�c�M���M�����������ǁc�v
-				PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃ̘r���o�ɏ��������̂́A���̏�ɕG�����Ă���c�B
+				PRINTFORML だッしゃぁオラァ！　%TEXTR("やったぁ/ビクトリー")%！！　…ギリギリだったけど…」
+				PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%との腕相撲に勝ったものの、その場に膝をついている…。
 			ELSEIF RAND:2
-				PRINTFORML ���A�����A���킠�����I�H�v
-				PRINTFORML �v���؂�͂���ꂽ%CALLNAME:ACTOR%�̈ꌂ�ɁA%CALLNAME:TARGET%�͉�]���Ȃ��珰�ɒ@�������Ă��܂����I
-				CALL PRINT_STRL, "�u���[�C�e�e�c�z���g���A�ǂ������g�̂��Ă�́H�@_-_�]�؂Ȃ�_���E���␳�ł��������Ă�́H�v"
-				PRINTFORML �N���オ����%CALLNAME:TARGET%�͈��R�Ƃ��Ȃ���r���C���Ă���c�B
+				PRINTFORML う、あっ、うわあぁっ！？」
+				PRINTFORML 思い切り力を入れた%CALLNAME:ACTOR%の一撃に、%CALLNAME:TARGET%は回転しながら床に叩きつけられてしまった！
+				CALL PRINT_STRL, "「あーイテテ…ホントさ、どういう身体してんの？　_-_脳筋なの_竜殺し補正でもかかってんの？」"
+				PRINTFORML 起き上がった%CALLNAME:TARGET%は唖然としながら腕を擦っている…。
 			ELSE
-				PRINTFORML �ʂ��������A�������c�c�I�@�c�ӂӁA��邶���c�@%TEXTR("�ł����͂ǂ����낤�˂��H/����͈����������Ă��ƂŁc")%�v
-				PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃ̘r���o�Ɉ��������A�r���v���v�������Ă���B
+				PRINTFORML ぬああぁっ、だぁぁ……！　…ふふ、やるじゃん…　%TEXTR("でも次はどうだろうねぇ？/今回は引き分けってことで…")%」
+				PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%との腕相撲に引き分け、腕をプラプラさせている。
 			ENDIF
 		ENDIF
 	ENDIF
-CASE "�ˎq"
-	IF CEVENT("�ˎq����b") == 0
-		PRINTFORML �u�Αl���Ă��́c��߂̉Αl����ˁH�v
-		PRINTFORML %CALLNAME:TARGET%�͋����ÁX�Ƃ������l�q��%CALLNAME:ACTOR%�̎���K���𕏂łĂ���B
-		CALL SET_CEVENT, "�ˎq����b"
+CASE "祥子"
+	IF CEVENT("祥子初会話") == 0
+		PRINTFORML 「火鼠ってあの…皮衣の火鼠だよね？」
+		PRINTFORML %CALLNAME:TARGET%は興味津々といった様子で%CALLNAME:ACTOR%の耳や尻尾を撫でている。
+		CALL SET_CEVENT, "祥子初会話"
 	ELSE
 		IF RAND:2
 			IF RAND:5 == 0
-				PRINTFORML �u���h�����̉��̉B�����̐�H�@���̐H�������ɂ����ǁH�v
-				PRINTFORML �i�Ă��������ŉB�����̑��݂��o���Ă�񂾂낤�c�j
+				PRINTFORML 「旧宿直室の奥の隠し扉の先？　只の食料貯蔵庫だけど？」
+				PRINTFORML （ていうか何で隠し扉の存在がバレてるんだろう…）
 			ELSEIF RAND:4 == 0
-				PRINTFORML �u��s�@��������x���āc���ďo����킯�Ȃ��ł��储���I�H�v
+				PRINTFORML 「飛行機を下から支えて…って出来るわけないでしょおっ！？」
 			ELSEIF RAND:3 == 0
-				PRINTFORML �u�ǃh�����āc����ăt������������̂��x���Ă�����������Ȃ񂾂��ǁc�v
+				PRINTFORML 「壁ドンって…発情してフラついちゃったのを支えてもらっただけなんだけど…」
 			ELSEIF RAND:2
-				PRINTFORML �u%CNAME("��l��")%�A10000�N���O�ɎY�܂�ĂȂ��񂾂��ǁc�v
+				PRINTFORML 「%CNAME("一人称")%、10000年も前に産まれてないんだけど…」
 			ELSE
-				PRINTFORML �u�Z���搶���{�Ŏg�������J�͂��Ȃ����āc�v
+				PRINTFORML 「校長先生が顎で使えたら苦労はしないって…」
 			ENDIF
-			PRINTFORML �u�Ȃ��[��ł���ȉ\���L�܂�������Ă邩�Ȃ����c�H�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̌��\�̓��e�ɓ�������Ă���c�B
+			PRINTFORML 「なぁーんでそんな噂が広まっちゃってるかなぁっ…？」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の語る噂の内容に頭を抱えている…。
 		ELSE
 			IF RAND:2
-				PRINTFORML �u�X���[�N�`�[�Y�˂��c�B���x����Ă݂悤���c�v
+				PRINTFORML 「スモークチーズねぇ…。今度作ってみようか…」
 			ELSE
-				PRINTFORML �u�J�b�`�J�`�̌������`�[�Y���D�����ăC���[�W�͌Â��̂��ȁc�v
+				PRINTFORML 「カッチカチの穴あきチーズが好きってイメージは古いのかな…」
 			ENDIF
-			PRINTFORML %CALLNAME:TARGET%�̓`�[�Y��H�ׂ�%CALLNAME:ACTOR%�����Ȃ���l���������Ă���B
+			PRINTFORML %CALLNAME:TARGET%はチーズを食べる%CALLNAME:ACTOR%を見ながら考え事をしている。
 		ENDIF
 	ENDIF
-CASE "�J���X�^"
-	IF CEVENT("�J���X�^����b") == 0
-		PRINTFORML �u�V�g�Łc�����H�@���\���A���ˁc�v
-		PRINTFORML %CALLNAME:TARGET%�͋����ÁX�Ƃ������l�q��%CALLNAME:ACTOR%�Ƙb���Ă���B
-		CALL SET_CEVENT, "�J���X�^����b"
+CASE "カリスタ"
+	IF CEVENT("カリスタ初会話") == 0
+		PRINTFORML 「天使で…執事？　結構レアだね…」
+		PRINTFORML %CALLNAME:TARGET%は興味津々といった様子で%CALLNAME:ACTOR%と話している。
+		CALL SET_CEVENT, "カリスタ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u���J���[�c�c�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃ̃Q�[���Ń{���������A���ɓ˂������ę�Ă���B
+			PRINTFORML 「う゛あー……」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%とのゲームでボロ負けし、机に突っ伏して呻いている。
 		ELSE
 			IF RAND:3 == 0
-				PRINTFORML �u��[�A%CNAME("��l��")%�B�͎ւƂ��g�J�Q�Ƃ͂�����ƈႤ�炵���āc�v
+				PRINTFORML 「んー、%CNAME("一人称")%達は蛇とかトカゲとはちょっと違うらしくて…」
 			ELSEIF RAND:2
-				PRINTFORML �u�V�g�I�ɂ͗����Ăǂ��v���́H�v
+				PRINTFORML 「天使的には竜ってどう思うの？」
 			ELSE
-				PRINTFORML �u�V�g�͒j�΂����肾���ĕ����Ă����ǁc�v
+				PRINTFORML 「天使は男ばっかりだって聞いてたけど…」
 			ENDIF
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ƌ݂��̎푰�ɂ��ĉ�b���Ă���B
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と互いの種族について会話している。
 		ENDIF
 	ENDIF
-CASE "�}�m��"
-	ACTOR2 = FIND_COND("�Θb�\", "�t�F���V�G��")
+CASE "マノン"
+	ACTOR2 = FIND_COND("対話可能", "フェリシエル")
 	IF RAND:3 == 0 && ACTOR2
 		CALL PRINT_TaiTaChara, ACTOR, ACTOR2
-		PRINTFORML �u�ف[��A���܂��Ȃ����܂��Ȃ��c�v
-		PRINTFORML %CALLNAME:TARGET%�͓˂������荇��%CALLNAME:ACTOR2%��%CALLNAME:ACTOR%���z�߂悤�ƉE���������Ă���B
+		PRINTFORML 「ほーら、喧嘩しない喧嘩しない…」
+		PRINTFORML %CALLNAME:TARGET%は突っかかり合う%CALLNAME:ACTOR2%と%CALLNAME:ACTOR%を窘めようと右往左往している。
 	ELSEIF RAND:2
-		PRINTFORML �u���[�A�m���Ɍ��\�Â��Ă�ˁ[�v
-		PRINTFORM %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̋���
-		IF TALENT:���� == 1
-			PRINTFORM ���݌��Ă��񂤂�������Ȃ���
+		PRINTFORML 「あー、確かに結構凝ってるねー」
+		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:ACTOR%の胸を
+		IF TALENT:巨乳 == 1
+			PRINTFORM 盗み見てうんうんと頷きながら
 		ELSE
-			PRINTFORM �A�܂������Ɍ��߂Ȃ���
+			PRINTFORM 羨ましそうに見つめながら
 		ENDIF
-		PRINTFORML ���𝆂�ł���B
+		PRINTFORML 肩を揉んでいる。
 	ELSE
-		PRINTFORML �u�c�Ӂ[��A�������F�X�Ɛ��m�h���݂������˂��c�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%��%TEXTR("�b/��s")%�𕷂��Ȃ���ǂ��������ڂ����Ă���B
+		PRINTFORML 「…ふーん、淫魔も色々と世知辛いみたいだねぇ…」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の%TEXTR("話/愚痴")%を聞きながらどこか遠い目をしている。
 	ENDIF
-CASE "�z����"
-	IF CEVENT("�z��������b") == 0
-		PRINTFORML �u�������I�I�@�n���̉��I�I�H�@���ł����ɁI�H�v
-		PRINTFORML �u���[���́A�������A�����A���������߂łƂ��������܂��I�@���Ⴀ%CNAME("��l��")%�͂���ŁI�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�������ۂ⑁���ł��������Ɠ����o�����Ƃ����c�B
-		CALL SET_CEVENT, "�z��������b"
+CASE "ホムラ"
+	IF CEVENT("ホムラ初会話") == 0
+		PRINTFORML 「げぇっ！！　地獄の焔！！？　何でここに！？」
+		PRINTFORML 「あーその、そうだ、ごっ、ご結婚おめでとうございます！　じゃあ%CNAME("一人称")%はこれで！」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%を見るや否や早口でそう言うと逃げ出そうとした…。
+		CALL SET_CEVENT, "ホムラ初会話"
 	ELSE
 		IF RAND:2
 			IF RAND:2
-				PRINTFORML �u�����[�c����ς�|���킟�A�n���̉��c�v
-				PRINTFORML �u��������A���ł������ł��n�C�I�v
+				PRINTFORML 「うあー…やっぱり怖いわぁ、地獄の焔…」
+				PRINTFORML 「あっいや、何でも無いですハイ！」
 			ELSE
-				PRINTFORML �u�ȁA���ł����搶�c%CNAME("��l��")%�܂��������ĂȂ��ł���[�v
+				PRINTFORML 「な、何ですか先生…%CNAME("一人称")%まだ何もしてないですよー」
 			ENDIF
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̎������瓦��悤�ƃE���E�����Ă���c�B
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の視線から逃れようとウロウロしている…。
 		ELSE
-			PRINTFORML �i����l���ۂ����͋C�����邩�炩�Ȃ��j
-			PRINTFORML �i�Ȃ�ł��t�炦�Ȃ��񂾂�˂��c�j
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̏��ސ������a�X�Ƃ������l�q�Ŏ�`���Ă���B
+			PRINTFORML （精霊様っぽい雰囲気がするからかなぁ）
+			PRINTFORML （なんでか逆らえないんだよねぇ…）
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の書類整理を渋々といった様子で手伝っている。
 		ENDIF
 	ENDIF
-CASE "���e"
+CASE "小菊"
 	IF RAND:2
-		PRINTFORML �u���肢�����炳�A���ւŐl�`���[�h�ɂȂ��߂āc�c�v
-		PRINTFORML �u%TEXTR("�A���ė���/��g�C���s��")%���A�Ј��������Ղ�ł��������r�r�邩�炳�c�c�v
-		PRINTFORML %CALLNAME:TARGET%�͂���Ƃ�Ƃ���%CALLNAME:ACTOR%�ɂ���Ȃ肵���l�q�ō��肵�Ă���c�B
+		PRINTFORML 「お願いだからさ、玄関で人形モードになるやめて……」
+		PRINTFORML 「%TEXTR("帰って来た/夜トイレ行く")%時、威圧感たっぷりですっごくビビるからさ……」
+		PRINTFORML %CALLNAME:TARGET%はきょとんとする%CALLNAME:ACTOR%にげんなりした様子で懇願している…。
 	ELSE
-		PRINTFORML �u�ʔ����H�@�c�����A�ǂ������v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ƈꏏ�ɁA���Q����%TEXTR("�����G��/�����{/����")%��ǂ�ł���B
+		PRINTFORML 「面白い？　…そう、良かった」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と一緒に、持参した%TEXTR("料理雑誌/料理本/漫画")%を読んでいる。
 	ENDIF
-CASE "����"
+CASE "あんず"
 	IF RAND:3 == 0
-		PRINTFORML �u�����R���A����܂�C�W��Ȃ��Łc�v
-		PRINTFORML %CALLNAME:TARGET%�͋����ÁX�Ƃ������l�q��%CALLNAME:ACTOR%��%TEXTR("��/�c�m/�K��")%���������Ă���B
+		PRINTFORML 「ああコラ、あんまりイジんないで…」
+		PRINTFORML %CALLNAME:TARGET%は興味津々といった様子の%CALLNAME:ACTOR%に%TEXTR("翼/ツノ/尻尾")%をいじられている。
 	ELSEIF RAND:2
-		PRINTFORML �u%TEXTR("�c�ӊO�Ƌ����ȁc/�����b�I�H�@���ꂿ����A�҂����I/�ӁA�]�T�ŏ��Ă�������/�c�c�c�c")%�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%��%TEXTR("�g�����v/�I�Z��/�͂��ݏ���/�E�m")%�����Ă���B
+		PRINTFORML 「%TEXTR("…意外と強いな…/ああッ！？　それちょっ、待った！/ふ、余裕で勝てそうだね/…………")%」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と%TEXTR("トランプ/オセロ/はさみ将棋/ウノ")%をしている。
 	ELSE
-		PRINTFORML �u%TEXTR("�ւ�/�R/����")%�A����������Ȏ��ɂȂ��Ă�́H�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̘b���\�b%TEXTR("�Ɏ����X����/�������Ɏ����")%����B
+		PRINTFORML 「%TEXTR("へぇ/嘘/あれ")%、あそこそんな事になってるの？」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の話す噂話%TEXTR("に耳を傾けて/をメモに取って")%いる。
 	ENDIF
-CASE "�לZ"
+CASE "槞彁"
 	IF RAND:2
-		PRINTFORML �u�����A���E�ꂩ�c���Ƃ��玫�������Ă����ǂ������Ȃ��c�c�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̘b�����t�𕷂��A�c�O�����ɂ��Ă���B
+		PRINTFORML 「ああ、魔界語か…実家から辞書持ってくりゃ良かったなぁ……」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の話す言葉を聞き、残念そうにしている。
 	ELSE
-		PRINTFORML �u����A�̋��Ƃ����F�X��ςȂ�ł���H�@�ق�A����H�ׂČ��C�o���āv
-		PRINTFORM %CALLNAME:TARGET%��
-		IF FIND_COND("�Θb�\", "����")
-			PRINTFORM ���񂸂ƈꏏ�ɂȂ���
+		PRINTFORML 「大方、故郷とかが色々大変なんでしょ？　ほら、これ食べて元気出して」
+		PRINTFORM %CALLNAME:TARGET%は
+		IF FIND_COND("対話可能", "あんず")
+			PRINTFORM あんずと一緒になって
 		ENDIF
-		PRINTFORML %CALLNAME:ACTOR%��%TEXTR("�ԐH�p�̏������ٓ�/���َq��/�J�b�g�t���[�c")%��H�ׂ����Ă���B
+		PRINTFORML %CALLNAME:ACTOR%に%TEXTR("間食用の小さい弁当/お菓子類/カットフルーツ")%を食べさせている。
 	ENDIF
-CASE "�V�L"
+CASE "シキ"
 	IF RAND:2
-	PRINTFORM �u�ӂ�ʂʂʂʁc�c�c�I�@
+	PRINTFORM 「ふんぬぬぬぬ………！　
 		IF RAND:3 == 0
-			PRINTFORML ���b���႟�I���@�I�@%TEXTR("�������/�r�N�g���[")%�I�I�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃ̘r���o�ɏ����ăK�b�c�|�[�Y�����Ă���B
+			PRINTFORML だッしゃぁオラァ！　%TEXTR("やったぁ/ビクトリー")%！！」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%との腕相撲に勝ってガッツポーズをしている。
 		ELSEIF RAND:2
-			PRINTFORML ���A���A���������c�c�I�@%TEXTR("��������/����")%�c�c�z���S���ĊO�p���[����˂��c�c�v
-			PRINTFORML �u���[�āA�񑩒ʂ�ܕi�𔃂��ɍs���Ă����邩�c�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃ̘r���o�ɕ����A���Ԃ���%TEXTR("�W���[�X/���َq/�G��")%�𔃂��ɍs�����c�B
+			PRINTFORML う、あ、ああぁっ……！　%TEXTR("負けたぁ/うぅ")%……吸血鬼も案外パワーあるねぇ……」
+			PRINTFORML 「さーて、約束通り賞品を買いに行ってあげるか…」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%との腕相撲に負け、しぶしぶ%TEXTR("ジュース/お菓子/雑誌")%を買いに行った…。
 		ELSE
-			PRINTFORML �ʂ��������A�������c�c�I�@�c�ӂӁA��邶���c�@%TEXTR("�ł����͂ǂ����ȁc�H/����͈����������Ă��Ƃ�")%�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃ̘r���o�Ɉ����������悤���B
+			PRINTFORML ぬああぁっ、だぁぁ……！　…ふふ、やるじゃん…　%TEXTR("でも次はどうかな…？/今回は引き分けってことで")%」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%との腕相撲に引き分けたようだ。
 		ENDIF
 	ELSE
-		PRINTFORML �i�w�h���L�������܂��h���S���̖��Ⴞ�x���ĒN���������Ă����ǖ{���Ȃ̂��ȁH�j
-		PRINTFORML %CALLNAME:TARGET%�͋����ÁX�Ƃ������l�q��%CALLNAME:ACTOR%�����Ă���c�B
+		PRINTFORML （『ドラキュラもまたドラゴンの末裔だ』って誰かが言ってたけど本当なのかな？）
+		PRINTFORML %CALLNAME:TARGET%は興味津々といった様子で%CALLNAME:ACTOR%を見ている…。
 	ENDIF
-CASE "�A�C��"
-	IF CEVENT("�A�C������b") == 0
-		PRINTFORML �u������Ɓ[�c�l�R���ƃc���f�����x�X�g�}�b�`�ȉ�����y����Ȃ��́c�I�v
-		PRINTFORML %CALLNAME:TARGET%�͏��߂ĉ����%CALLNAME:ACTOR%�𕏂ł悤�Ɠ������Ȃ�����΂��Ă���c�B
-		PRINTFORML �w�ȁA�Ȃ�ł����c�H���́A�Ȃ�ł������ɗ����ł����c�c�H�x
-		CALL SET_CEVENT, "�A�C������b"
+CASE "アイリ"
+	IF CEVENT("アイリ初会話") == 0
+		PRINTFORML 「ちょっとー…ネコ耳とツンデレがベストマッチな可愛い後輩じゃないの…！」
+		PRINTFORML %CALLNAME:TARGET%は初めて会った%CALLNAME:ACTOR%を撫でようと逃げられながらも笑っている…。
+		PRINTFORML 『な、なんですか…？あの、なんでこっちに来るんですか……？』
+		CALL SET_CEVENT, "アイリ初会話"
 	ELSE
 		IF RAND:2
 			IF RAND:2
-				PRINTFORM �u���������%TEXTR("�h����˂�/�}�������Ȃ��Ȃ���")%�c�c
+				PRINTFORM 「発情期って%TEXTR("辛いよねぇ/抑え効かなくなるよね")%……
 			ELSE
-				PRINTFORM �u%CNAME("��l��")%�̏ꍇ�̓c�m���ז��Ȃ񂾂��ǁA���^���܂�Ȃ���ˁc�c
+				PRINTFORM 「%CNAME("一人称")%の場合はツノが邪魔なんだけど、髪型決まらないよね……
 			ENDIF
-			PRINTFORML �������c�c�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƌ��ʂ̔Y�݂���荇���Ă���B
-			PRINTFORML �w�킩��܂��H�̎������炵�傤���Ȃ��ł����ǁA����܂���ˁc�x
+			PRINTFORML 分かるわ……」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と共通の悩みを語り合っている。
+			PRINTFORML 『わかります？体質だからしょうがないですけど、困りますよね…』
 		ELSE
-			PRINTFORML �u�������c�c����ς�l�R�̌�y�����c�c���ł����c�c�v
-			PRINTFORML �ɂւ�ɂւ�Ə΂��Ȃ��������L���L������%CALLNAME:TARGET%�́A%CALLNAME:ACTOR%���b�����Ȗڂ��������Ă���c�B
-			PRINTFORML �w������ׂ�������c�H���̊������Ɛ�Ζѕ��݂߂��Ⴍ����ɂ��ꂻ�������c�x
+			PRINTFORML 「あああ……やっぱりネコの後輩可愛い……撫でたい……」
+			PRINTFORML にへらにへらと笑いながら手をワキワキさせる%CALLNAME:TARGET%は、%CALLNAME:ACTOR%に訝しげな目を向けられている…。
+			PRINTFORML 『逃げるべきかしら…？あの感じだと絶対毛並みめちゃくちゃにされそうだし…』
 		ENDIF
 	ENDIF
-CASE "����"
-		PRINTFORML �i����ς��̎q�A������Ƃ����Y��%TEXTS("����")%������c�j
-		PRINTFORML %CALLNAME:TARGET%�͏����b������%CALLNAME:ACTOR%�����߂Ă���B
-CASE "���A��"
-	IF CEVENT("���A������b") == 0
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�c��A���c�H�@��[�A���o������悤�Ȗ����悤�ȁc�H�v
-		PRINTFORML %CALLNAME:TARGET%�͔��΂�%CALLNAME:ACTOR%������X���Ȃ��猩�Ă���c�B
-		CALL SET_CEVENT, "���A������b"
+CASE "成美"
+		PRINTFORML （やっぱあの子、ちょっとだけ雄の%TEXTS("匂い")%がする…）
+		PRINTFORML %CALLNAME:TARGET%は少し訝しげに%CALLNAME:ACTOR%を見つめている。
+CASE "リアラ"
+	IF CEVENT("リアラ初会話") == 0
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%…先、生…？　んー、見覚えあるような無いような…？」
+		PRINTFORML %CALLNAME:TARGET%は微笑む%CALLNAME:ACTOR%を首を傾げながら見ている…。
+		CALL SET_CEVENT, "リアラ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u���킟�c���̐l����Ȃ�΂����ǂ�ł�́c�H�@������c�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̓ǂ�ł����G���̓��e�ɓB�t���ɂȂ��Ă���c�B
+			PRINTFORML 「うわぁ…あの人こんなんばっか読んでるの…？　ごくり…」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の読んでいた雑誌の内容に釘付けになっている…。
 		ELSE
-			PRINTFORML �u�ȃb�c����%CNAME("��l��")%%TEXTR("�̔閧�̉ƒ�؉��̂���/����Ȗ�ȉʕ������ł��")%�m���Ă�́H�I�v
-			PRINTFORML %CALLNAME:TARGET%�͔閧�ɂ��Ă��邱�Ƃ�%CALLNAME:ACTOR%�Ɍ����Ă��ǂ���ǂ�ɂȂ��Ă���B
+			PRINTFORML 「なッ…何で%CNAME("一人称")%%TEXTR("の秘密の家庭菜園のこと/が夜な夜な果物もいでるの")%知ってんの？！」
+			PRINTFORML %CALLNAME:TARGET%は秘密にしていることを%CALLNAME:ACTOR%に言われてしどろもどろになっている。
 		ENDIF
 	ENDIF
-CASE "�����B�G�[�i"
-	IF CEVENT("�����B�G�[�i����b") == 0
-		PRINTFORML �u�����������I�H�@%CNAME(CALLNAME_ACTOR)%���Ĉ�����������ł������b�I�H�v
-		PRINTFORML %CALLNAME:TARGET%�͊���e���񂾋��t�ł���%CALLNAME:ACTOR%�̐^���ɑf���ڋ��Ȑ��ŋ���ł���B
-		CALL SET_CEVENT, "�����B�G�[�i����b"
+CASE "メリィエーナ"
+	IF CEVENT("メリィエーナ初会話") == 0
+		PRINTFORML 「えええぇっ！？　%CNAME(CALLNAME_ACTOR)%って悪魔だったんですかぁッ！？」
+		PRINTFORML %CALLNAME:TARGET%は慣れ親しんだ教師である%CALLNAME:ACTOR%の真実に素っ頓狂な声で叫んでいる。
+		CALL SET_CEVENT, "メリィエーナ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u����[�A������%CNAME(CALLNAME_ACTOR)%�������������Ȃ�ĐM�����Ȃ��ł���c�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ƒk�΂��Ă���B
+			PRINTFORML 「いやー、未だに%CNAME(CALLNAME_ACTOR)%が悪魔だったなんて信じられないですよ…」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と談笑している。
 		ELSE
-			PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�I�@�����Ə�肭���̉B�����@�����ĉ������I�v
-			PRINTFORML %CALLNAME:TARGET%�͂������тȂ���%CALLNAME:ACTOR%�ɓy�������Ă���c�B
+			PRINTFORML 「%CNAME(CALLNAME_ACTOR)%！　もっと上手く正体隠す方法教えて下さい！」
+			PRINTFORML %CALLNAME:TARGET%はそう叫びながら%CALLNAME:ACTOR%に土下座している…。
 		ENDIF
 	ENDIF
-CASE "�p���`�l"
-	ACTOR2 = FIND_COND("�Θb�\", "�}���[")
+CASE "パラチネ"
+	ACTOR2 = FIND_COND("対話可能", "マリー")
 	IF RAND:2 && ACTOR2
 		CALL PRINT_TaiTaChara, ACTOR, ACTOR2
-		PRINTFORML �u�c�˂��A%CNAME("�}���[")%���Č��X����Ȃ�Ȃ́H�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%��%CALLNAME:ACTOR2%�ɂ��ĐF�X�����o���Ă���c�B
+		PRINTFORML 「…ねぇ、%CNAME("マリー")%って元々あんなんなの？」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%に%CALLNAME:ACTOR2%について色々聞き出している…。
 	ELSE
-		PRINTFORML �i�����P��������h���S���͊Ǌ��O���낤���ǁc�j
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̎�������B��悤�Ƃ��Ă���B
+		PRINTFORML （悪魔祓いだからドラゴンは管轄外だろうけど…）
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の視線から隠れようとしている。
 	ENDIF
-CASE "����"
-	PRINTFORM �u�ӂ�ʂʂʂʁc�c�c�I�@
+CASE "ユリ"
+	PRINTFORM 「ふんぬぬぬぬ………！　
 		IF RAND:3 == 0
-			PRINTFORML ���b���႟�I���@�I�@%TEXTR("�������/�r�N�g���[")%�I�I�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃ̘r���o�ɏ����ăK�b�c�|�[�Y�����Ă���B
+			PRINTFORML だッしゃぁオラァ！　%TEXTR("やったぁ/ビクトリー")%！！」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%との腕相撲に勝ってガッツポーズをしている。
 		ELSEIF RAND:2
-			PRINTFORML ���A���A���������c�c�I�@%TEXTR("��������/����")%�c�c�S���ċ����Ȃ��c�c�v
-			PRINTFORML �u���傤���Ȃ��A�񑩒ʂ�ܕi�𔃂��ɍs���Ă����邩�c�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃ̘r���o�ɕ����A���Ԃ���%TEXTR("�W���[�X/���َq/�G��")%�𔃂��ɍs�����c�B
+			PRINTFORML う、あ、ああぁっ……！　%TEXTR("負けたぁ/うぅ")%……鬼って強いなぁ……」
+			PRINTFORML 「しょうがない、約束通り賞品を買いに行ってあげるか…」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%との腕相撲に負け、しぶしぶ%TEXTR("ジュース/お菓子/雑誌")%を買いに行った…。
 		ELSE
-			PRINTFORML �ʂ��������A�������c�c�I�@�c�ӂӁA��邶���c�@%TEXTR("�ł����͂ǂ����ȁc�H/����͈���������")%�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃ̘r���o�Ɉ����������悤���B
+			PRINTFORML ぬああぁっ、だぁぁ……！　…ふふ、やるじゃん…　%TEXTR("でも次はどうかな…？/今回は引き分けね")%」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%との腕相撲に引き分けたようだ。
 		ENDIF
-CASE "�n�i"
-	IF CEVENT("�n�i����b") == 0
-		PRINTFORML �u���A�����c�H�@�������I�I�J�~�̎��������Ăă{�N�����c������Ɖ������Ȃ��c�I�H�v
-		PRINTFORML %CALLNAME:TARGET%�͌��C�悭���ȏЉ��%CALLNAME:ACTOR%�����Č��p���オ����ςȂ��ɂȂ��Ă���c�B
-		CALL SET_CEVENT, "�n�i����b"
+CASE "ハナ"
+	IF CEVENT("ハナ初会話") == 0
+		PRINTFORML 「お、おお…？　犬だかオオカミの耳が生えててボクっ娘…ちょっと可愛すぎない…！？」
+		PRINTFORML %CALLNAME:TARGET%は元気よく自己紹介する%CALLNAME:ACTOR%を見て口角が上がりっぱなしになっている…。
+		CALL SET_CEVENT, "ハナ初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u���������c�c������������Ɂc�c�v
-			PRINTFORML �w�ȁA�Ȃ�قǁc�@��������Ƃ��̎����o�Ă����X���c�x
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ɋ�����ꂽ�̂��׋��������Ă���B
+			PRINTFORML 「そうそう……それをこっちに……」
+			PRINTFORML 『な、なるほど…　そうするとこの式が出てくるんスか…』
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%に強請られたのか勉強を教えている。
 		ELSEIF RAND:2
-			PRINTFORML �u���肤����A���̂����̂��c�������������Ȃ���v
+			PRINTFORML 「うりうりっ、このっこのっ…ああもう可愛いなぁ♪」
 			IF RAND:2 == 0
-				PRINTFORML �w�Ђ���A���A���������������X��x
+				PRINTFORML 『ひゃっ、く、くすぐったいっスよ』
 			ELSE
-				PRINTFORML �w���ւց[�x
+				PRINTFORML 『えへへー』
 			ENDIF
-			PRINTFORML %CALLNAME:TARGET%�͂�����%CALLNAME:ACTOR%�̘T����D�������łĂ���B
+			PRINTFORML %CALLNAME:TARGET%はじゃれつく%CALLNAME:ACTOR%の狼耳を優しく撫でている。
 		ELSE
 			IF RAND:3 == 0
-				PRINTFORML �u�C�F�[�C�A�n�C�^�b�`�n�C�^�[�b�`�I�I�v
-				PRINTFORML �w�ӂ��ӂ��ӁA�{�N�����̃R���r�l�[�V�����������X�ˁ[�x
+				PRINTFORML 「イェーイ、ハイタッチハイターッチ！！」
+				PRINTFORML 『ふっふっふ、ボクたちのコンビネーション勝ちっスねー』
 			ELSEIF RAND:2
-				PRINTFORML �u�ւ��ց[��%CNAME("��l��")%��̏����A���܁[�݂�I�v
-				PRINTFORML �w������A�����[�I�I�x
+				PRINTFORML 「へっへーん%CNAME("一人称")%らの勝ち、ざまーみろ！」
+				PRINTFORML 『やった、勝ちー！！』
 			ELSE
-				PRINTFORML �w������A�������āI�����[�i�Z���p�[�C�I�I�x
-				PRINTFORML �u�����R���A������������%CNAME("��l��")%�܂Łc�I�v
+				PRINTFORML 『たしゅ、たすけて！リューナセンパーイ！！』
+				PRINTFORML 「あっコラ、こっち来たら%CNAME("一人称")%まで…！」
 			ENDIF
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̓Q�[���̋��̓v���C�ő吷��オ�肵�Ă���B
+			PRINTFORML %CALLNAME:TARGET%と%CALLNAME:ACTOR%はゲームの協力プレイで大盛り上がりしている。
 		ENDIF
 	ENDIF
-CASE "������"
+CASE "さくら"
 	IF RAND:2
-		PRINTFORML �u�c�˂��A���������̂͋����Ȃ��H�v
-		PRINTFORM %CALLNAME:TARGET%��%CALLNAME:ACTOR%
+		PRINTFORML 「…ねえ、こういうのは興味ない？」
+		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:ACTOR%
 		IF RAND:3 == 0
-			PRINTFORM �w%TEXTR("R'lyeh�@�`���Ñ��Ղ̌��ƈŁ`/�_�C�i�~�b�N�V����I/�_�C�`�m�q�J��/�D�����̌��A�������z/�F�X�����ĕm���̐_���X�p���^����Ő�m����Ă�悤�ł�/MaxDash!!!/���Q�����J/�P���̐�m�ƂP�O�O�̖̂����R�c/���߂����/�s���z�T�C�o�l�e�B�b�N�t�@�C�^�[/1908�N�@���T�E���J�唚��/�Í��̈�`�q�A�R���^��/�wOK�A�f�b�J���Ȃ�������ҁx�w���΂���ȉ���x")%�x
+			PRINTFORM 『%TEXTR("R'lyeh　～超古代遺跡の光と闇～/ダイナミック新時代！/ダイチノヒカリ/優しさの月、強き太陽/色々あって瀕死の神がスパルタ教育で戦士を育てるようです/MaxDash!!!/ムゲンの絆/輝きの戦士と１００体の魔物軍団/煌めけ銀河/不愛想サイバネティックファイター/1908年　ルサ・ルカ大爆発/暗黒の遺伝子、抗う運命/『OK、デッカくなったぜ弟者』『流石だよな俺ら』")%』
 		ELSEIF RAND:2
-			PRINTFORM �w%TEXTR("�}�C�e�B�E�A�h�x���`�����[/�L���͂������̉ʂĂ�/Mirror13/�K���P�[��mGOGOGO!/�E����S�͋P�����ƂȂ��/�b���Ă܂����H/�_���J�u�g���V/�s�^�Ȗl���܏d�l�i�ɂȂ����疈�����N���C�}�b�N�X�Ȍ�/Vampire��Symphony/�ʐ^�̒��̕��s���E")%�x
+			PRINTFORM 『%TEXTR("マイティ・アドベンチャラー/記憶はあかつきの果てに/Mirror13/ガラケー戦士GOGOGO!/勇ある心は輝く剣となりて/鍛えてますか？/神速カブトムシ/不運な僕が五重人格になったら毎日がクライマックスな件/Vampire♯Symphony/写真の中の平行世界")%』
 		ELSE
-			PRINTFORM �w%TEXTR("�E�ɕ����A���ɐ؂�D��/Pants���n�n�n/���[�[���g���Z���̃R�Y�~�b�N��/���̖��@�g���Ɗ�]�̕P�N/���ɉʕ��̍����Y����/�i�߁I�t���X���b�g���Y��/�����܂�̂s����A�H��ɂȂ�/�G�N�X�g���E�G�C�h/�V�˃E�T�M�Ɣ]�؃h���S��/����������King")% �x
+			PRINTFORM 『%TEXTR("右に風を、左に切り札を/Pants→ＯＯＯ/リーゼント高校生のコズミック部/竜の魔法使いと希望の姫君/戦場に果物の香りを添えて/進め！フルスロットル刑事/寺生まれのＴさん、幽霊になる/エクストラ・エイド/天才ウサギと脳筋ドラゴン/逢魔ヶ時のKing")% 』
 		ENDIF
-		PRINTFORML �Ƃ����^�C�g���̖{�����߂Ă���B
-		;�^�C�g�����`�[�t�͖^���B�ԑg
+		PRINTFORML というタイトルの本を勧めている。
+		;タイトルモチーフは某特撮番組
 	ELSE
-		PRINTFORML �u�c�c�c�c�v
-		PRINTFORM %CALLNAME:TARGET%�͐^���ȕ\��ŕ\����
+		PRINTFORML 「…………」
+		PRINTFORM %CALLNAME:TARGET%は真剣な表情で表紙に
 		IF RAND:3 == 0
-			PRINTFORM �w%TEXTR("�}���^�̉�/�K���X�ʂ̂��P�l/�t�H���i����L/�g���N����/�����C��/��̓��̃G�C���A��/���Փ`")%�x
+			PRINTFORM 『%TEXTR("マンタの夏/ガラス玉のお姫様/フォルナム戦記/トルク歩き/幻視砲塔/南の島のエイリアン/竜虎伝")%』
 		ELSEIF RAND:2
-			PRINTFORM �w%TEXTR("���̊C�A��̘T/�����̖������܂�ɂ���������/�����ƃX�p�C�X�Ƒf�G�Ȕ��e/�E�҂��܂͎�����~�I/�K���̉��q�͏΂�Ȃ�/�G���t�̂���l�l/�ǉ��̋�")%�x
+			PRINTFORM 『%TEXTR("金の海、銀の狼/うちの妹があまりにも可愛すぎる/砂糖とスパイスと素敵な爆弾/勇者さまは時給千円！/幸福の王子は笑わない/エルフのご主人様/追憶の空")%』
 		ELSE
-			PRINTFORM �w%TEXTR("�������Ȑ��E�̎��ւ��q/�R�������̉�ꂽ���E/�l�̖�/�}���َi����SIG-P220/���C�K�X�E�t�B�[���h/���z�V����/�f�̓i�C�g���A")%�x
+			PRINTFORM 『%TEXTR("おかしな世界の取り替え子/嘘つきたちの壊れた世界/僕の妹/図書館司書とSIG-P220/メイガス・フィールド/白陽天動乱/断章ナイトメア")%』
 		ENDIF
-		PRINTFORML �Ə����ꂽ���ɖ{��ǂ�ł���B
-		PRINTFORML �ǂ����%CALLNAME:ACTOR%����؂�Ă���悤���B
+		PRINTFORML と書かれた文庫本を読んでいる。
+		PRINTFORML どうやら%CALLNAME:ACTOR%から借りているようだ。
 	ENDIF
-CASE "�Z��"
-	IF CEVENT("�Z�؏���b") == 0
-		PRINTFORML �u�������A���~�A���I�@�ւ��A�������ɂ�����񂾂��c�v
-		PRINTFORML �u�����������K�̎���Ă��Ƃ͎֐_�l�����c���肪���₠�肪����v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%���y���q��ł���B
-		CALL SET_CEVENT, "�Z�؏���b"
+CASE "六華"
+	IF CEVENT("六華初会話") == 0
+		PRINTFORML 「おおっ、ラミアだ！　へぇ、こっちにもいるんだぁ…」
+		PRINTFORML 「しかもあの祠の主ってことは蛇神様かぁ…ありがたやありがたや」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%を軽く拝んでいる。
+		CALL SET_CEVENT, "六華初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u���^�������c�ց[�A�֐_�l���Ă���ς萦���Ȃ��c�v
-			PRINTFORML �i�c�����k�������%CNAME("��l��")%�ɂ������v�������ȁc�H�j
-			PRINTFORML �������Ɏ����̂����v��b��%CALLNAME:ACTOR%���A%CALLNAME:TARGET%�͋͂��ɕs���ȖڂŌ��Ă���c�B
+			PRINTFORML 「金運招来か…へー、蛇神様ってやっぱり凄いなぁ…」
+			PRINTFORML （…抜け殻貰ったら%CNAME("一人称")%にもご利益無いかな…？）
+			PRINTFORML 自慢げに自分のご利益を話す%CALLNAME:ACTOR%を、%CALLNAME:TARGET%は僅かに不純な目で見ている…。
 		ELSEIF RAND:2
-			PRINTFORML �u���A�J�����ŎB��ꂽ������č�����Ȃ����āI�v
-			PRINTFORML �u����Ƀe���r�̒��ɐl�Ȃ�Ă��Ȃ����c�v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ɍ���̒m���������悤�Ǝl�ꔪ�ꂵ�Ă���B
+			PRINTFORML 「か、カメラで撮られたからって魂取られないって！」
+			PRINTFORML 「それにテレビの中に人なんていないし…」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%に現代の知識を教えようと四苦八苦している。
 		ELSE
-			PRINTFORML �u�A�I�_�C�V���E�������H�@�Y��ȗ؂��Ă��˂��v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ƌ݂��̐K��������ꂵ�Ă���B
+			PRINTFORML 「アオダイショウだっけ？　綺麗な鱗してるよねぇ」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と互いの尻尾を手入れしている。
 		ENDIF
 	ENDIF
-CASE "�A���[�k"
-		PRINTFORML �u�c�c���́c��������c�c�c�c�v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ɉ���瑊�k�������Ă���c�B
-CASE "�c�F�c�B�[���A"
+CASE "アリーヌ"
+		PRINTFORML 「……その…発情期が…………」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%に何やら相談事をしている…。
+CASE "ツェツィーリア"
 	IF RAND:2
-		PRINTFORML �u���������c�c�ʔ������Ȃ̂ɏ����Ă��镶�����S�b�R�ǂ߂Ȃ��c�c�v
+		PRINTFORML 「うおぁぁ……面白そうなのに書いてある文字が全ッ然読めない……」
 	ELSE
-		PRINTFORML �u�c����ύڂ��ĂȂ������A�l�ω����@�c�c�v
+		PRINTFORML 「…やっぱ載ってないかぁ、人変化魔法……」
 	ENDIF
-	PRINTFORML %CALLNAME:TARGET%�͓�������Ȃ���%CALLNAME:ACTOR%����؂肽���@����ǂ�ł���B
-CASE "�G�G�̌N"
+	PRINTFORML %CALLNAME:TARGET%は頭を抱えながら%CALLNAME:ACTOR%から借りた魔法書を読んでいる。
+CASE "濡烏の君"
 	IF RAND:2
-		PRINTFORML �u�������A�K����������񂾂�K�����c�v
-		IF TALENT:ACTOR:������
-			PRINTFORML �w�c�c%CNAMET(ACTOR, CALLNAME:TARGET)%�ɂ��L�邾�낤�ɁB�悭�킩���z���ȁx
+		PRINTFORML 「ええい、尻尾を見せるんだよ尻尾を…」
+		IF TALENT:ACTOR:しっぽ
+			PRINTFORML 『……%CNAMET(ACTOR, CALLNAME:TARGET)%にも有るだろうに。よくわからん奴だな』
 		ELSE
-			PRINTFORML �w�K���H�����������̂��Ƃ��c�c%CNAMET(ACTOR, "��l��")%�̂ǂ��ɂ���Ȃ��̂�����x
+			PRINTFORML 『尻尾？いったい何のことだ……%CNAMET(ACTOR, "一人称")%のどこにそんなものがある』
 		ENDIF
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̐K�����������Ă��܂�Ȃ��悤���c�B
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の尻尾が見たくてたまらないようだ…。
 	ELSE
-		PRINTFORML �u�ւ��c�c�c����Ȏ����؂ꂪ�˂��c�c�c�v
-		PRINTFORML �w���؂ꌾ���ȁB�c�c�܂��A���ۂ̂Ƃ��뎄����������͎̂��؂�݂����ȕ��Ȃ̂����ȁx
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�����������D����Ɏ��A�����[�����ɒ��߂Ă���B
+		PRINTFORML 「へぇ………こんな紙っ切れがねぇ………」
+		PRINTFORML 『紙切れ言うな。……まぁ、実際のところ私が作ったものは紙切れみたいな物なのだがな』
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%が書いたお札を手に取り、興味深そうに眺めている。
 	ENDIF
-CASE "�t�F���V�G��"
+CASE "フェリシエル"
 	IF RAND:2
-		PRINTFORML �u�����[���΃��C�h�A��ۂ̗ǂ���%CNAME("��l��")%�Ƃ͂܂�ňႤ�˂��v
-		PRINTFORML �w����A���肪�Ƃ��������܂��B�t�t��x
-		PRINTFORML %CALLNAME:TARGET%�̓e�L�p�L��%TEXTR("�|��/����/����")%��i�߂�%CALLNAME:ACTOR%�����Ċ��S���Ă���B
+		PRINTFORML 「おおー流石メイド、手際の良さが%CNAME("一人称")%とはまるで違うねぇ」
+		PRINTFORML 『あら、ありがとうございます。フフ♪』
+		PRINTFORML %CALLNAME:TARGET%はテキパキと%TEXTR("掃除/洗濯/料理")%を進める%CALLNAME:ACTOR%を見て感心している。
 	ELSE
-		PRINTFORML �u�ف[�c�c�ւ��c�c����Ȓ����@���c�c�v
-		PRINTFORML �w�����q���̍��́A�Ⴄ��������Ԃ��Č����Ă���ł����ǂˁB�ʔ������̂ł��x
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�͗����ɂ��ĉ�b���Ă���B
+		PRINTFORML 「ほー……へぇ……そんな調理法が……」
+		PRINTFORML 『私が子供の頃は、違うやり方が一番って言われてたんですけどね。面白いものです』
+		PRINTFORML %CALLNAME:TARGET%と%CALLNAME:ACTOR%は料理について会話している。
 	ENDIF
 CASEELSE
 	CALL PRINT_TaiTaChara
 ENDSELECT
 
 ;--------------------------------------------------
-;�m�m
-;���񂸂������ォ�炨�؂肵�܂���
+;ノノ
+;あんずちゃん口上からお借りしました
 ;--------------------------------------------------
 @TaiTaChara_K25
-;�C�x���g���N����L�����̖��O��/��؂�ł���ɓ˂����݁ATEXTR�Ŏ��o��
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
 #DIMS EVENT_TABLE
-;�C�x���g�������̃L����
+;イベント発生中のキャラ
 #DIM ACTOR
-;�C�x���g�������̃L�����̃f�t�H��CALLNAME
+;イベント発生中のキャラのデフォのCALLNAME
 #DIMS CALLNAME_ACTOR
 
-;�܂��͏�����
+;まずは初期化
 EVENT_TABLE = 
 
-;���݂��̏�ɂ���A�����ȊO�̑S�L�����̖��O���擾����ꍇ�͂���
-EVENT_TABLE = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
+;現在この場にいる、自分以外の全キャラの名前を取得する場合はこれ
+EVENT_TABLE = %NAMES("対話可能キャラ一覧", TARGET)%
 
-;�N�����Ȃ��Ȃ�I���
+;誰も居ないなら終わり
 IF EVENT_TABLE == ""
-	PRINTFORML �u������p�ł����H�v
+	PRINTFORML 「何か御用ですか？」
 	RETURN 0
 ENDIF
 
-;���̃L�����̃C�x���g���N����
+;このキャラのイベントが起きる
 CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
 ACTOR = FIND_COND(CALLNAME_ACTOR)
 CALL PRINT_TaiTaChara, ACTOR
 
-;���̕����EVENT_TABLE���Ⴆ�΃t�F���V�G��/���e/�n�i/�Ȃ瓙�m���łR�l�̂ǂꂩ�̕���ɍs��
+;この分岐はEVENT_TABLEが例えばフェリシエル/小菊/ハナ/なら等確率で３人のどれかの分岐に行く
 SELECTCASE CALLNAME_ACTOR
-CASE "�n�i"
+CASE "ハナ"
 	SELECTCASE RAND:2
 	CASE 0
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%���Đl�T�Ȃ�ł���ˁH�@�܂肻�̐K���Ƃ����{�����Ă��Ɓc�c�v
-		PRINTFORML �u�c�c���������ł����̂ŁA�K���G�点�Ă�����Ă������ł����v
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%って人狼なんですよね？　つまりその尻尾とかも本物ってこと……」
+		PRINTFORML 「……少しだけでいいので、尻尾触らせてもらってもいいですか」
 	CASEELSE
-		PRINTFORML �u���߂�Ȃ����A���̗ւ������ǂ��Ȃ��Ă�̂��͕�����Ȃ���ł���v
-		IF FIND_COND("�J���X�^", "���ݑ���")
-			IF CEVENT("�J���X�^����b") == 0
-				PRINTFORML �u�J���X�^����Ȃ�m���Ă��邩������܂��񂪁c�c�v
+		PRINTFORML 「ごめんなさい、この輪っかがどうなってるのかは分からないんですよ」
+		IF FIND_COND("カリスタ", "現在存在")
+			IF CEVENT("カリスタ初会話") == 0
+				PRINTFORML 「カリスタさんなら知っているかもしれませんが……」
 			ELSE
-				PRINTFORML �u�J���X�^������m��Ȃ��炵���ł����c�c�v
+				PRINTFORML 「カリスタさんも知らないらしいですし……」
 			ENDIF
 		ENDIF
 	ENDSELECT
-CASE "�V�L"
+CASE "シキ"
 	SELECTCASE RAND:2
 	CASE 0
-		PRINTFORML �u�m���ɂ����Ȃ菗�̎q�̊i�D�ɂȂ�ƌ����Ă�����܂���ˁc�c�Ƃ͂�������%CNAME(CALLNAME_ACTOR)%�̏�Ԃ��Ɗ|�������Ă݂Ă����ʂ͔������ł����c�c�v
-		PRINTFORML �u�c�c%CNAME("��l��")%�ł����H�@�p���������Ȃ���ł͂Ȃ���ł����ǁc�c���������i�D�Ɉ�a���������Ȃ��Ƃ������A�ނ��뎩�R�ȋC������Ƃ������c�c�v
+		PRINTFORML 「確かにいきなり女の子の格好になれと言われても困りますよね……とはいえ今の%CNAME(CALLNAME_ACTOR)%の状態だと掛け合ってみても効果は薄そうですし……」
+		PRINTFORML 「……%CNAME("一人称")%ですか？　恥ずかしくない訳ではないんですけど……こういう格好に違和感を感じないというか、むしろ自然な気がするというか……」
 	CASEELSE
-		PRINTFORML �u%CNAME("��l��")%�̃o�b�O�̉��ɂ��邨�َq�ł����H�@�F����̂��߂Ɏ����Ă������Ȃ̂ŐH�ׂđ��v�ł���v
-		PRINTFORML �u�c�c���Ă������I�I�@����͉���V�тŔ����Ă����킳�ѓ���́I�I�v
+		PRINTFORML 「%CNAME("一人称")%のバッグの横にあるお菓子ですか？　皆さんのために持ってきた物なので食べて大丈夫ですよ」
+		PRINTFORML 「……ってあああ！！　それは会長が遊びで買ってきたわさび入りの！！」
 	ENDSELECT
-CASE "����"
-	IF CEVENT("��������b") == 0
-		PRINTFORML �u�c�c�����ƁA%CNAME(CALLNAME_ACTOR)%�����̕����ɓ����Ă�����ł��ˁv
-		IF COND("����\")
-			PRINTFORML �u���́c�c���R�ɂ��Ă�%CNAMET(PLAYER, "��l��")%���畷���܂����v
-			PRINTFORML �u�ԐړI�Ƃ͂���%CNAME("��l��")%�B�������̂悤�Ȃ̂ŁA������ł�������悤�ɒ��ׂĂ݂܂��v
-			IF MARK:ACTOR:�������� == 3 || TALENT:ACTOR:����
-				PRINTFORML �u�c�c���H�@���̕K�v�͂Ȃ��H�v
-				IF MARK:�������� == 3
-					PRINTFORM �u%CNAME(CALLNAME_ACTOR)%��%ADANA("�y�j�X")%�̉��y�ɂ͏��Ăȁc�c����Ȃ������A
+CASE "成美"
+	IF CEVENT("成美初会話") == 0
+		PRINTFORML 「……ええと、%CNAME(CALLNAME_ACTOR)%もこの部活に入っていたんですね」
+		IF COND("助手可能")
+			PRINTFORML 「その……理由については%CNAMET(PLAYER, "二人称")%から聞きました」
+			PRINTFORML 「間接的とはいえ%CNAME("一人称")%達が原因のようなので、こちらでも直せるように調べてみます」
+			IF MARK:ACTOR:屈服刻印 == 3 || TALENT:ACTOR:恋慕
+				PRINTFORML 「……え？　その必要はない？」
+				IF MARK:屈服刻印 == 3
+					PRINTFORM 「%CNAME(CALLNAME_ACTOR)%も%ADANA("ペニス")%の快楽には勝てな……じゃなかった、
 				ELSE
-					PRINTFORM �u���c�c���A���v�Ȃ�ł����c�c�H�@�Ȃ炢���ł����ǁc�c
+					PRINTFORM 「え……だ、大丈夫なんですか……？　ならいいですけど……
 				ENDIF
 			ELSE
-				PRINTFORM �u���ƁA
+				PRINTFORM 「あと、
 			ENDIF
-			PRINTFORML �̂́c�c���́A�\���̂��Ƃō���������͂Ȃ��炨�͂ɂȂ��Ǝv���̂ŁA���߂Ă�낵�����肢���܂��v
+			PRINTFORML 体の……その、ソレのことで困ったら微力ながらお力になれると思うので、改めてよろしくお願いします」
 		ELSE
-			;�l�O�����畁�ʂɕ�������{�l���獐�����Ă��Ȃ��̂őΉ��ɍ���m�m����񂭂�̐}
-			;�ψ����Ɛ��k��Ȃ̂ł����܂Őe�����͂Ȃ�����Ǎs���Ȃǂňꏏ�ɂȂ��Ă��Ċ猩�m����x�ł͂���Ƃ����C���[�W�ŏ����Ă��܂�
-			PRINTFORML �u���A����ł́c�c���߂Ă�낵�����肢���܂��c�c�v
-			PRINTFORML �i���A���������Ă�����āc�c�Ƃ������m���ɖ��͂ɒ��Ă��ăA���Ȃ��ƂɂȂ��Ă����ˁc�c�j
-			PRINTFORML �i�ŋߗl�q�������������ĉ\�͕����Ă�������ǁc�c�܂��������������Ƃ������Ƃ́c�c�j
-			PRINTFORML �i�ł�%CNAME(CALLNAME_ACTOR)%�͉��������Ă��Ȃ����c�c�ǂ��ڂ��悤�c�c�j
+			;人外だから普通に分かるも本人から告げられていないので対応に困るノノちゃんくんの図
+			;委員長と生徒会なのでそこまで親しくはないけれど行事などで一緒になっていて顔見知り程度ではあるというイメージで書いています
+			PRINTFORML 「そ、それでは……改めてよろしくお願いします……」
+			PRINTFORML （も、もしかしてこれって……というか確実に魔力に中てられてアレなことになっているよね……）
+			PRINTFORML （最近様子がおかしいって噂は聞いていたけれど……まさかこういうことだったとは……）
+			PRINTFORML （でも%CNAME(CALLNAME_ACTOR)%は何も言ってこないし……どう接しよう……）
 		ENDIF
-		CALL SET_CEVENT, "��������b"
+		CALL SET_CEVENT, "成美初会話"
 	ELSE
-		IF COND("�H")
-			PRINTFORML �u�c�c���A����ł����H�v
-			PRINTFORML �u%TEXTR("�싅/�T�b�J�[/���j/�o���[�{�[��/����/���t�y/�ؓ�/�{�[�h�Q�[��/�o�R")%�����瑲�ƃA���o���p�ɎO�N���̏W���ʐ^���B���Ăق����ƌ����܂��āv
-			PRINTFORML �u�������B������ł����A�ǂ��I�񂾂��̂��Ɓc�c�v
+		IF COND("秋")
+			PRINTFORML 「……あ、これですか？」
+			PRINTFORML 「%TEXTR("野球/サッカー/水泳/バレーボール/将棋/吹奏楽/華道/ボードゲーム/登山")%部から卒業アルバム用に三年生の集合写真を撮ってほしいと言われまして」
+			PRINTFORML 「いくつか撮ったんですが、どれを選んだものかと……」
 		ELSE
 			SELECTCASE RAND:2
 			CASE 0
-				PRINTFORML �u�c�c���������Ă�������ł����H�@���肪�Ƃ��������܂��v
-				IF MARK:ACTOR:�������� == 3 && RAND:2
-					PRINTFORML �u�c�c%CNAME(CALLNAME_ACTOR)%�H�@�������k���������Ƃł������ł����H�v
-					IF MARK:�������� == 3
-						PRINTFORML �u�c�c�Ȃ�قǁA%CNAME(CALLNAME_ACTOR)%��\@ CONDS("���ݓI�܂ރy�j�X�T�C�Y", ACTOR) == "�Z��" ? ���炵�� # ���h��\@%ADANA("�y�j�X")%�ɂ��Ăł����v
-						CALL PRINT_STRL, "�u����͂���͂������낢��Ȏg�������c�c_H_�v"
-						PRINTFORML �u�c�c�n�b�I�@�c�c���A���́c�c�������͖̂Y��Ă��������c�c�v
+				PRINTFORML 「……お茶頂いてもいいんですか？　ありがとうございます」
+				IF MARK:ACTOR:屈服刻印 == 3 && RAND:2
+					PRINTFORML 「……%CNAME(CALLNAME_ACTOR)%？　何か相談したいことでもあるんですか？」
+					IF MARK:屈服刻印 == 3
+						PRINTFORML 「……なるほど、%CNAME(CALLNAME_ACTOR)%の\@ CONDS("潜在的含むペニスサイズ", ACTOR) == "短小" ? 可愛らしい # 立派な\@%ADANA("ペニス")%についてですか」
+						CALL PRINT_STRL, "「それはそれはもういろいろな使い方が……_H_」"
+						PRINTFORML 「……ハッ！　……あ、あの……さっきのは忘れてください……」
 					ELSE
-						PRINTFORML �u�I�I�I�@�c�c���A���́c�c�w�\���x�ɂ��āA�́A�ł��ˁc�c�v
+						PRINTFORML 「！！！　……そ、その……『ソレ』について、は、ですね……」
 					ENDIF
 				ELSE
-					PRINTFORML �u���������΂��̑O�A%TEXTR("�̈��/���k�/�E����/�^����/�v�[��/����")%�łł��ˁc�c�v
+					PRINTFORML 「そういえばこの前、%TEXTR("体育館/生徒会室/職員室/運動場/プール/教室")%でですね……」
 				ENDIF
 			CASE 1
-				PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�A���������̂悤�Ɍ����܂����A�x�e���Ă�A�ꏏ�ɂ����ł����݂܂��񂩁H�v
+				PRINTFORML 「%CNAME(CALLNAME_ACTOR)%、少しお疲れのように見えますし、休憩がてら、一緒にお茶でも飲みませんか？」
 			ENDSELECT
 		ENDIF
 	ENDIF
-CASE "�J���X�^"
-	IF CEVENT("�J���X�^����b") == 0
-		PRINTFORML �u���Ȃ��́c�c2�N����%CNAME(CALLNAME_ACTOR)%�ł��ˁv
-		PRINTFORML �u�V���ĂȂ��V�g�Ƃ܂Ƃ��ɉ�b����̂͏��߂ĂŁA����Ȃ��_������Ƃ͎v���܂����A����Ƃ���낵�����肢���܂��v
-		CALL SET_CEVENT, "�J���X�^����b"
+CASE "カリスタ"
+	IF CEVENT("カリスタ初会話") == 0
+		PRINTFORML 「あなたは……2年生の%CNAME(CALLNAME_ACTOR)%ですね」
+		PRINTFORML 「堕天してない天使とまともに会話するのは初めてで、至らない点もあるとは思いますが、今後ともよろしくお願いします」
+		CALL SET_CEVENT, "カリスタ初会話"
 	ELSE
 		SELECTCASE RAND:2
 		CASE 0
-			PRINTFORML �u�����ł��ˁc�c%CNAME("��l��")%�͎������V�g�ł��邱�Ƃ��h���������Ƃ͂����܂łȂ���ł���v
-			PRINTFORML �u�e�������Ă���F�l�����̂قƂ�ǂɐ旧����Ă��܂��̂��Ǝv���Ƌ��낵���Ȃ邱�Ƃ͂���܂����c�c�v
+			PRINTFORML 「そうですね……%CNAME("一人称")%は自分が堕天使であることが辛かったことはそこまでないんですよ」
+			PRINTFORML 「親しくしている友人たちのほとんどに先立たれてしまうのかと思うと恐ろしくなることはありますが……」
 		CASEELSE
-			;���̐l�̌���Ƃ�����Ɗw�Z�ǂ��납�X���̂��s�v�c�n�тł���˂Ԃ����Ⴏ
-			PRINTFORML �u���s�v�c�Ɍ��炸�A���̊X���̂����ٌ��ۂ�I�J���g�̗ނɂ͎������Ȃ��ꏊ�ł�����˂��v
-			PRINTFORML �u�݂�ȃo���Ȃ��悤�ɂ��Ă���Ƃ͂��������芴�����肵�Ă��܂��l�͂���݂����ŁA�悭���������G���̐l����ނɗ��Ă���̂��������܂���v
+			;他の人の口上とか見ると学校どころか街自体が不思議地帯ですよねぶっちゃけ
+			PRINTFORML 「七不思議に限らず、この街自体が怪異現象やオカルトの類には事欠かない場所ですからねぇ」
+			PRINTFORML 「みんなバレないようにしているとはいえ見たり感じたりしてしまう人はいるみたいで、よくそういう雑誌の人が取材に来ているのを見かけますよ」
 		ENDSELECT
 	ENDIF
-CASE "�����[�i"
-	IF CEVENT("�����[�i����b") == 0
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�A���߂܂��āv
-		PRINTFORML �u�c�c�H�@�Ȃ�ł����H�@%CNAME("��l��")%�̊�ɉ����t���Ă����ł����H�v
-		PRINTFORML �u���H�@����A%CNAME("��l��")%�͊m���ɒj�ł����c�c�v
-		CALL SET_CEVENT, "�����[�i����b"
+CASE "リューナ"
+	IF CEVENT("リューナ初会話") == 0
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%、初めまして」
+		PRINTFORML 「……？　なんですか？　%CNAME("一人称")%の顔に何か付いているんですか？」
+		PRINTFORML 「え？　いや、%CNAME("一人称")%は確かに男ですが……」
+		CALL SET_CEVENT, "リューナ初会話"
 	ELSE
 		SELECTCASE RAND:2
 		CASE 0
-			PRINTFORML �u�����܂ł��Ă��������Ȃ��Ă��c�c�ł����肪�Ƃ��������܂��v
-			PRINTFORML �u���[�c�c�����ł͋C�t���Ă��Ȃ�������ł����ǌ��\�Â��Ă�����ł��ˁB�ɋC���������ł��v
-			IF COND("�����", ACTOR)
-				PRINTFORML �u�c�c���́A������Ɲ��ݕ����c�c���́c�c�v
+			PRINTFORML 「そこまでしていただかなくても……でもありがとうございます」
+			PRINTFORML 「あー……自分では気付いていなかったんですけど結構凝っていたんですね。痛気持ちいいです」
+			IF COND("発情期", ACTOR)
+				PRINTFORML 「……あの、ちょっと揉み方が……その……」
 			ELSE
-				PRINTFORML �u�c�c�ӂ��c�c�C���������J�������������������J�I�I�v
+				PRINTFORML 「……ふぅ……気持ちいい゛だだだだだだだだっ゛！！」
 			ENDIF
 		CASEELSE
-			PRINTFORML �u���̗ւ����Ɨ��ł����H�@�����Ɍ����܂��ƁA���\�ʓ|�������㕨�Ȃ�ł���c�c�v
-			PRINTFORML �u���͐����ς��Ƃ����Ȃ��̂ŉĂ����̂܂܂ł����A���܂��ɗ����Ƃ��������炩�M�������z�������ł��v
-			PRINTFORML �u�K�����ȑ̂Ȃ̂łǂ��ɂ��Ȃ��Ă��܂����A��������Ȃ������牽��M���ǂœ|��Ă������Ƃ��c�c�v
+			PRINTFORML 「この輪っかと翼ですか？　正直に言いますと、結構面倒くさい代物なんですよ……」
+			PRINTFORML 「翼は生え変わりとかがないので夏もこのままですし、おまけに両方とも黒いからか熱をすぐ吸収するんです」
+			PRINTFORML 「幸い頑丈な体なのでどうにかなっていますが、そうじゃなかったら何回熱中症で倒れていたことか……」
 		ENDSELECT
 	ENDIF
-CASE "�}���["
-	IF CEVENT("�}���[����b") == 0
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�A���߂܂��āB%NAME:TARGET%�ƌ����܂��B���ꂩ���낵�����肢���܂��ˁv
-		PRINTFORML �u�c�c���H�@�m����%CNAME("��l��")%�͓V�g�ł����c�c���I�H�@�@�c���̕��Ȃ�ł����I�H�v
-		PRINTFORML �u�܁A�܂��ꉞ�@�c���ɂ��Ă͌y���͒m���Ă��܂����c�c�v
-		PRINTFORML �u�c�c�����A%CNAME("��l��")%�A�����ɂ͑V�g�Ȃ�ł���v
-		PRINTFORML �u������%CNAME(CALLNAME_ACTOR)%�����҂��Ă���悤�Ȃ��Ƃ͑����o���܂��񂪁c�c�v
-		CALL SET_CEVENT, "�}���[����b"
+CASE "マリー"
+	IF CEVENT("マリー初会話") == 0
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%、初めまして。%NAME:TARGET%と言います。これからよろしくお願いしますね」
+		PRINTFORML 「……え？　確かに%CNAME("一人称")%は天使ですが……え！？　法皇庁の方なんですか！？」
+		PRINTFORML 「ま、まあ一応法皇庁については軽くは知っていますが……」
+		PRINTFORML 「……ただ、%CNAME("一人称")%、厳密には堕天使なんですよ」
+		PRINTFORML 「だから%CNAME(CALLNAME_ACTOR)%が期待しているようなことは多分出来ませんが……」
+		CALL SET_CEVENT, "マリー初会話"
 	ELSE
-		IF COND("������", ACTOR) && TALENT:������� && RAND:5 == 0
-			;�}���[����̂ق��̃R�����g�A�E�g�l�^�����ɂ����Ă��������܂���
-			PRINTFORML �u�c�c���H�@���̃N�b�L�[�ł����H�v
-			PRINTFORML �u����͂ł��ˁA���̑O���k��̊F����̂��߂ɍ�������̂̎c��ł��v
-			PRINTFORML �u�F��������H�ׂĂ͂��ꂽ��ł����A���܂�ɂ���肷���Ă��܂��āc�c�v
-			PRINTFORML �u�c�c���H�@�H�ׂ�����ł����H�v
-			PRINTFORML �u�ł��A%CNAME(CALLNAME_ACTOR)%���̑O�ӂƁc�c�v
-			PRINTFORML �u�I�@�ȁA�Ȃ�ł�����܂���I�@�ǂ����ǂ����I�I�v
+		IF COND("相性○", ACTOR) && TALENT:料理上手 && RAND:5 == 0
+			;マリーさんのほうのコメントアウトネタを元にさせていただきました
+			PRINTFORML 「……え？　このクッキーですか？」
+			PRINTFORML 「これはですね、この前生徒会の皆さんのために作ったものの残りです」
+			PRINTFORML 「皆たくさん食べてはくれたんですが、あまりにも作りすぎてしまって……」
+			PRINTFORML 「……え？　食べたいんですか？」
+			PRINTFORML 「でも、%CNAME(CALLNAME_ACTOR)%この前ふと……」
+			PRINTFORML 「！　な、なんでもありません！　どうぞどうぞ！！」
 		ELSE
-			PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�A������p�ł����H�v
+			PRINTFORML 「%CNAME(CALLNAME_ACTOR)%、何か御用ですか？」
 		ENDIF
 	ENDIF
-CASE "�^"
-	IF CEVENT("�^����b") == 0
-		;���ނ̓������������m�m����̐}
-		PRINTFORML �u���Ȃ��́c�c���g��%CNAME(CALLNAME_ACTOR)%�ł��ˁv
-		PRINTFORML �u���ꂩ���낵���c�c�I�v
-		PRINTFORML �u�c�c���́A�������������ƂƂ���������A���k�ɏ��܂�����ˁv
-		PRINTFORML �u������A�悯���%CNAME("��l��")%����̑��k�ɏ���Ă�����Ă������ł����v
-		CALL SET_CEVENT, "�^����b"
+CASE "真"
+	IF CEVENT("真初会話") == 0
+		;同類の匂いを感じ取るノノくんの図
+		PRINTFORML 「あなたは……○組の%CNAME(CALLNAME_ACTOR)%ですね」
+		PRINTFORML 「これからよろしく……！」
+		PRINTFORML 「……あの、もし困ったこととかあったら、相談に乗りますからね」
+		PRINTFORML 「だから、よければ%CNAME("一人称")%からの相談に乗ってもらってもいいですか」
+		CALL SET_CEVENT, "真初会話"
 	ELSE
 		SELECTCASE RAND:2
 		CASE 0
-			PRINTFORML �u�����A������Ɨǂ����t�������Ă�����ł����ǁA�ꏏ�Ɉ��݂܂��傤���v
-			PRINTFORML �u�c�c�Ƃ���ŁA���k���������ƂƂ͉��ł����H�v
-			IF COND("������", ACTOR)
+			PRINTFORML 「今日、ちょっと良い茶葉を持ってきたんですけど、一緒に飲みましょうか」
+			PRINTFORML 「……ところで、相談したいこととは何ですか？」
+			IF COND("相性◎", ACTOR)
 				IF YOKUBO()
-					IF TALENT:ACTOR:����
-						CALL PRINT_STRL, @"�u�t�t_H_���������āA%CNAME("��l")%�Ƃ̖�̐����ɂ��Ă�������c�c_H_�v"
+					IF TALENT:ACTOR:恋慕
+						CALL PRINT_STRL, @"「フフ_H_もしかして、%CNAME("主人")%との夜の生活についてだったり……_H_」"
 					ELSE
-						CALL PRINT_STRL, @"�u��������Ȃ��ł���_H_%CNAME("��l��")%��%CNAME(CALLNAME_ACTOR)%�Ƃ̒��Ȃ�ł�����_H_�v"
+						CALL PRINT_STRL, @"「いいじゃないですか_H_%CNAME("一人称")%と%CNAME(CALLNAME_ACTOR)%との仲なんですから_H_」"
 					ENDIF
 				ENDIF
 			ENDIF
 		CASEELSE
-			PRINTFORML �u�����A������Ɨǂ����t�������Ă�����ł����ǁA�ꏏ�Ɉ��݂܂��傤���v
-			PRINTFORML �u�c�c����ŁA�����͕����ė~�������Ƃ������āc�c�v
-			IF COND("������", ACTOR)
+			PRINTFORML 「今日、ちょっと良い茶葉を持ってきたんですけど、一緒に飲みましょうか」
+			PRINTFORML 「……それで、今日は聞いて欲しいことがあって……」
+			IF COND("相性○", ACTOR)
 				IF YOKUBO() >= 2 && RAND:3 == 0
-					PRINTFORML �u���͍ŋ߁A�Q�Ă��o�߂Ă��~���s���ȏ�ԂŁA�ǂ��������̂��Ɓc�c�v
-				ELSEIF TALENT:�A������ && RAND:2
-					PRINTFORML �u�ŋ߁A������������x�ɋC�����悭�Ȃ��č����Ăāc�c�v
-				ELSEIF TALENT:����
-					PRINTFORML �u%CNAME("��l")%�ɂ��Ă̂��ƂȂ�ł����c�c�v
+					PRINTFORML 「実は最近、寝ても覚めても欲求不満な状態で、どうしたものかと……」
+				ELSEIF TALENT:尿道狂い && RAND:2
+					PRINTFORML 「最近、おしっこする度に気持ちよくなって困ってて……」
+				ELSEIF TALENT:恋慕
+					PRINTFORML 「%CNAME("主人")%についてのことなんですが……」
 				ENDIF
 			ENDIF
 		ENDSELECT
 	ENDIF
-CASE "��"
-	IF CEVENT("������b") == 0
-		PRINTFORML �u���Ȃ���%CNAME(CALLNAME_ACTOR)%�ł��ˁB%CNAME("��l��")%��%CALLNAME:TARGET%�ł��v
-		PRINTFORML �u�c�c���́A������Ă����ł����H�v
-		PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�������Ȑl�Ɓc�c���́c�c�G�b�`���Ă�ƕ��������Ƃ����ł����c�c�v
-		PRINTFORML �u�c�c�{���ł����c�c�v
-		PRINTFORML �u�c�c������܂����B%CNAME("��l��")%��%CNAME(CALLNAME_ACTOR)%���Ď����܂��v
+CASE "灯"
+	IF CEVENT("灯初会話") == 0
+		PRINTFORML 「あなたが%CNAME(CALLNAME_ACTOR)%ですね。%CNAME("一人称")%は%CALLNAME:TARGET%です」
+		PRINTFORML 「……あの、一つ聞いていいですか？」
+		PRINTFORML 「%CNAME(CALLNAME_ACTOR)%がいろんな人と……その……エッチしてると聞いたことあるんですが……」
+		PRINTFORML 「……本当ですか……」
+		PRINTFORML 「……分かりました。%CNAME("一人称")%が%CNAME(CALLNAME_ACTOR)%を監視します」
 		IF YOKUBO()
-			PRINTFORML �u���l�̂��ƌ����Ȃ��ƌ����Ă��ے�ł��Ȃ��̂��m���ł����c�c�v
-			PRINTFORM �u����͂Ƃ������A
+			PRINTFORML 「他人のこと言えないと言われても否定できないのも確かですが……」
+			PRINTFORM 「それはともかく、
 		ELSE
-			PRINTFORM �u
+			PRINTFORM 「
 		ENDIF
-		PRINTFORML �o�債�Ă���������H�v
-		CALL SET_CEVENT, "������b"
+		PRINTFORML 覚悟してくださいよ？」
+		CALL SET_CEVENT, "灯初会話"
 	ELSE
-		IF (COND("������", ACTOR) || COND("������", ACTOR)) && RAND:2
+		IF (COND("相性○", ACTOR) || COND("相性◎", ACTOR)) && RAND:2
 			SELECTCASE RAND:4
 			CASE 0
-				IF BASE:�w�� <= 30 && RAND:2
-					PRINTFORML �w����͂��ȁc�c�x
-					PRINTFORML �u�c�c�����I�@���̓����͂����Ȃ�ł��ˁI�@�܂�c�c�v
+				IF BASE:学力 <= 30 && RAND:2
+					PRINTFORML 『これはだな……』
+					PRINTFORML 「……ああ！　この答えはこうなんですね！　つまり……」
 				ELSE
-					;������C�x���g�Ƃ��Ԃ�̂ŕ���
-					;�����悤�ȃC�x���g������ď���
-					PRINTFORML �u�c�c���A���̃X�J�[�g���킢���ł��ˁA���ɂ��c�c�v
-					PRINTFORML �u�c�c�������I �X�ߎ��ɂ��������킢�����ǎ�����Ȃ��ȁA���Ďv���Ă����������Ă��Ă���ł���I�v
-					PRINTFORML �u�C�ɓ����Ă��ꂽ�玝���čs���Ă��܂�Ȃ��̂ŁA���Ă��炦�܂��񂩁H�v
-					PRINTFORML �w�����A�������x
-					PRINTFORML �u�͂��I ���Ⴀ��������������c�c�v
-					;PRINTFORML �w���A���A�����Ȃ�ǂ��֍s�����肾�c�c�x
-					;PRINTFORML �u���H ���܂��Ă邶��Ȃ��ł����A�X�ߎ��ł���B%CNAME(CALLNAME_ACTOR)%�Ɏ���������T�����߂́v
-					;PRINTFORML �w������c�c�I ���A�����ŕ�������A������ƁI ���A�N���������������c�c�x
+					;灯くんイベントとかぶるので封印
+					;似たようなイベントを作って書く
+					PRINTFORML 「……あ、このスカートかわいいですね、他にも……」
+					PRINTFORML 「……そうだ！ 更衣室にいくつかかわいいけど似合わないな、って思ってた服を持ってきてたんですよ！」
+					PRINTFORML 「気に入ってくれたら持って行ってかまわないので、着てもらえませんか？」
+					PRINTFORML 『おう、いいぞ』
+					PRINTFORML 「はい！ じゃあさっそくこれを……」
+					;PRINTFORML 『え、い、いきなりどこへ行くつもりだ……』
+					;PRINTFORML 「え？ 決まってるじゃないですか、更衣室ですよ。%CNAME(CALLNAME_ACTOR)%に似合う服を探すための」
+					;PRINTFORML 『ちょっ……！ じ、自分で歩くから、ちょっと！ だ、誰かあああぁぁぁ……』
 				ENDIF
 			CASE 1
-				IF CEVENT("�m�m���F����") == 0
-					PRINTFORML �w���[��c�c�x
-					PRINTFORML �u�H �ǂ�������ł����H�v
-					PRINTFORML �w����A���ς�����Ă��Ăȁx
-					PRINTFORML �w�����͉��σ|�[�`���Ƃ��玝���Ă���񂾂��A�����Ɍ����ĉƂɖY�ꂿ�܂��āx
-					PRINTFORML �u�Ȃ�قǁc�c���A����Ȃ�%CNAME("��l��")%�̎g���܂����H�v
-					PRINTFORML �u�����A�Ƃ�����ł͂Ȃ���ł����A���܂ɂ����ς����邱�Ƃ�����̂ŁA�����������̂��߂Ɏ����Ă��Ă��ł��v
-					PRINTFORML �w�ف[�c�c�Ȃ炨���t�ɊÂ��āA�Ɓc�c�x
-					PRINTFORML �w�c�c���I ���̃A�C�V���h�E�c�c�x
-					PRINTFORML �u���A����������%CNAME(CALLNAME_ACTOR)%���g���Ă��ł����I�H�v
-					PRINTFORML �u���ꂢ���ł���ˁI �����̂ɒ��������܂������ւ̃_���[�W�����ȖڂŁc�c�v
-					PRINTFORML �w���������I�������c�c�x
-					CALL SET_CEVENT, "�m�m���F����"
+				IF CEVENT("ノノ灯：化粧") == 0
+					PRINTFORML 『うーん……』
+					PRINTFORML 「？ どうしたんですか？」
+					PRINTFORML 『いや、化粧が崩れてきてな』
+					PRINTFORML 『いつもは化粧ポーチも家から持ってくるんだが、今日に限って家に忘れちまって』
+					PRINTFORML 「なるほど……あ、それなら%CNAME("一人称")%の使いますか？」
+					PRINTFORML 「いつも、という訳ではないんですが、たまにお化粧をすることがあるので、そういう時のために持ってきてるんです」
+					PRINTFORML 『ほー……ならお言葉に甘えて、と……』
+					PRINTFORML 『……お！ このアイシャドウ……』
+					PRINTFORML 「え、もしかして%CNAME(CALLNAME_ACTOR)%も使ってるんですか！？」
+					PRINTFORML 「これいいですよね！ 安いのに長持ちしますし肌へのダメージも少な目で……」
+					PRINTFORML 『そうそう！しかも……』
+					CALL SET_CEVENT, "ノノ灯：化粧"
 				ELSE
 					SELECTCASE RAND:3
 					CASE 0
-						PRINTFORML �u���A������%CNAME(CALLNAME_ACTOR)%�̉��σ|�[�`���������Ă�����Ă������ł����H�v
-						PRINTFORML �w�����A�������[�x
+						PRINTFORML 「あ、試しに%CNAME(CALLNAME_ACTOR)%の化粧ポーチを試させてもらってもいいですか？」
+						PRINTFORML 『おう、いいぞー』
 					CASE 1
-						PRINTFORML �u�c�c���A�͂��A���ϐ��ł��v
-						PRINTFORML �w�����A���肪�Ɓc�c�������悭���������ȁB���ϐ��؂炵�����āx
-						PRINTFORML �u�Ȃ񂾂���������ۂ����������ł�������c�c�v
+						PRINTFORML 「……あ、はい、化粧水です」
+						PRINTFORML 『おう、ありがと……しかしよく分かったな。化粧水切らしたって』
+						PRINTFORML 「なんだかいつもより手際が悪い感じでしたから……」
 					CASEELSE
-						PRINTFORML �u���������΁A%CNAME(CALLNAME_ACTOR)%���ăi�`�������ȃ��C�N�������ł���ˁB�����I�ɂ��������Z�����Ă������������ł����c�c�v
-						PRINTFORML �w��H ���񂮂炢�̕����j�E�P�������񂾂�x
+						PRINTFORML 「そういえば、%CNAME(CALLNAME_ACTOR)%ってナチュラルなメイクが多いですよね。服装的にもう少し濃くしても似合いそうですが……」
+						PRINTFORML 『ん？ こんぐらいの方が男ウケがいいんだよ』
 					ENDSELECT
 				ENDIF
 			CASEELSE
-				PRINTFORML �u���̎B������������Ȃ�A����������̊p�x�������āc�c�v
-				PRINTFORML �w�ق��ق��c�c�x
+				PRINTFORML 「この撮り方をしたいなら、もう少し顔の角度を下げて……」
+				PRINTFORML 『ほうほう……』
 			ENDSELECT
 		ELSE
-			PRINTFORML �u�c�c�����A�܂�����Ȃ��Ƃ��āc�c�v
-			PRINTFORML �w�ʂɂ��[�����A���郂���ł��Ȃ��񂾂��x
-			PRINTFORML �u���A����������肶�Ⴀ��܂���I ���A���́A�����牽�ł��s���ِ���V�́c�c�v
-			PRINTFORML �w����ȃ����T�[�ɓ����Ă�%CNAMET(ACTOR, "��l��")%�������邱�Ƃ���Ȃ�����[�x
-			PRINTFORML �u�����I ���A����́c�c�v
+			PRINTFORML 「……もう、またそんなことして……」
+			PRINTFORML 『別にいーじゃん、減るモンでもないんだし』
+			PRINTFORML 「そ、そういう問題じゃありません！ そ、その、いくら何でも不純異性交遊は……」
+			PRINTFORML 『こんなヤリサーに入ってる%CNAMET(ACTOR, "二人称")%が言えることじゃないだろー』
+			PRINTFORML 「うっ！ そ、それは……」
 		ENDIF
 	ENDIF
-CASE "�לZ"
-	IF CEVENT("�לZ����b") == 0
-		CALL EVENT_�לZCOMM_LIBRARY, "����g�[�N�F�m�m���߂�"
-		CALL SET_CEVENT, "�m�m�לZ����b"
+CASE "槞彁"
+	IF CEVENT("槞彁初会話") == 0
+		CALL EVENT_槞彁COMM_LIBRARY, "日常トーク：ノノ初めて"
+		CALL SET_CEVENT, "ノノ槞彁初会話"
 	ELSE
-		IF BASE:�w�� <= 30
+		IF BASE:学力 <= 30
 			SELECTCASE RAND:2
 			CASE 1
-				CALL EVENT_�לZCOMM_LIBRARY, "����g�[�N�F�m�m�P"
+				CALL EVENT_槞彁COMM_LIBRARY, "日常トーク：ノノ１"
 			CASEELSE
-				CALL EVENT_�לZCOMM_LIBRARY, "����g�[�N�F�m�m�Q"
+				CALL EVENT_槞彁COMM_LIBRARY, "日常トーク：ノノ２"
 			ENDSELECT
-			PRINTFORML %CALLNAME:TARGET%�ɐl�ԊE�̂��Ƃ���������肪�A���̂܂ɂ�����闧��ɋt�]���Ă��܂��Ă���悤���c�c
+			PRINTFORML %CALLNAME:TARGET%に人間界のことを教えるつもりが、いつのまにか教わる立場に逆転してしまっているようだ……
 		ELSE
 			SELECTCASE RAND:2
 			CASE 0
-				CALL EVENT_�לZCOMM_LIBRARY, "����g�[�N�F�m�m�R"
+				CALL EVENT_槞彁COMM_LIBRARY, "日常トーク：ノノ３"
 			CASEELSE
-				CALL EVENT_�לZCOMM_LIBRARY, "����g�[�N�F�m�m�S"
+				CALL EVENT_槞彁COMM_LIBRARY, "日常トーク：ノノ４"
 			ENDSELECT
 		ENDIF
 	ENDIF
-CASE "�m�C"
+CASE "ノイ"
 	SELECTCASE RAND:3
 	CASE 0
-		PRINTFORMW �w���A%CNAMET(ACTOR, "�m�m")%���B�ςȂ��Ƃ͂Ȃ����H�x
-		PRINTFORMW �u����A%CNAME("��l��")%�ƈꏏ�ɂ���Ɗy�������A%CNAME("�m�C")%�Ƃ���邩��ˁv
+		PRINTFORMW 『お、%CNAMET(ACTOR, "ノノ")%か。変なことはないか？』
+		PRINTFORMW 「うん、%CNAME("二人称")%と一緒にいると楽しいし、%CNAME("ノイ")%とも会えるからね」
 	CASE 1
-		PRINTFORMW �w%CNAMET(ACTOR, "�m�m")%�A�׋��̒��q�͂ǂ����H�x
-		PRINTFORMW �u���c�c�c�c�v
-		PRINTFORMW �w�c�c�n�@�A�����Ă�邩��A�����ɍ���x
+		PRINTFORMW 『%CNAMET(ACTOR, "ノノ")%、勉強の調子はどうだ？』
+		PRINTFORMW 「う…………」
+		PRINTFORMW 『……ハァ、教えてやるから、そこに座れ』
 	CASE 2
-		PRINTFORMW �u�͂��A%CNAME("�m�C")%�v
-		PRINTFORMW �w��H�@����́c�c%TEXTR("�V���[�N���[��/�v����/�`���R���[�g/�A�b�v���p�C")%���B���������ė��K���Ă��̂��H�x
-		PRINTFORMW �u����B������%CNAME("��l��")%���H�ׂ��񂾂��ǁA������ƍ�肷��������āc�c���肢���Ă��������ȁH�v
+		PRINTFORMW 「はい、%CNAME("ノイ")%」
+		PRINTFORMW 『ん？　これは……%TEXTR("シュークリーム/プリン/チョコレート/アップルパイ")%か。もしかして練習してたのか？』
+		PRINTFORMW 「うん。何個かは%CNAME("一人称")%が食べたんだけど、ちょっと作りすぎちゃって……お願いしてもいいかな？」
 	ENDSELECT
 CASEELSE
 	CALL PRINT_TaiTaChara
-	PRINTFORML �u%CNAME(CALLNAME_ACTOR)%�A������p�ł����H�v
+	PRINTFORML 「%CNAME(CALLNAME_ACTOR)%、何か御用ですか？」
 	RETURN 0
 ENDSELECT
 
-PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%��\@CALLNAME_ACTOR == "�לZ" ? �_�G���X���r����� # \@�y�������ɎG�k���Ă���c�c
+PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と\@CALLNAME_ACTOR == "槞彁" ? ダエモスラビヤ語で # \@楽しそうに雑談している……
 
 ;--------------------------------------------------
-;���Ԉې�
+;風花維吹
 ;--------------------------------------------------
 @TaiTaChara_K27
-;�C�x���g���N����L�����̖��O��/��؂�ł���ɓ˂����݁ATEXTR�Ŏ��o��
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
 #DIMS EVENT_TABLE
-;�C�x���g�������̃L����
+;イベント発生中のキャラ
 #DIM ACTOR
-;�C�x���g�������̃L�����̃f�t�H��CALLNAME
+;イベント発生中のキャラのデフォのCALLNAME
 #DIMS CALLNAME_ACTOR
 
-;�܂��͏�����
+;まずは初期化
 EVENT_TABLE = 
 
-;�����̐؂��|���ɂȂ����l���Ȃ̂ŐS���I�_������r�I�Ⴂ
-SIF FIND_COND("�t�F���V�G��", "�Θb�\")
-	EVENT_TABLE += "�t�F���V�G��/"
-;�l�ԂƂ��Ă̋��܂��������Ȃ��̂ň��̓���������Ă���
-SIF FIND_COND("����", "�Θb�\")
-	EVENT_TABLE += "����/"
-;������Ӗ��ňٕ����̑��݂Ȃ̂ŋ������킭�Ώ�
-SIF FIND_COND("�J���X�^", "�Θb�\")
-	EVENT_TABLE += "�J���X�^/"
-;���ӂɂ͂Ȃ�Ă邪�D�ӂɂ͂ǂ��������Ă������킩��Ȃ�
-SIF FIND_COND("�����[�i", "�Θb�\")
-	EVENT_TABLE += "�����[�i/"
-;�A�E�g�h�A�h����
-SIF FIND_COND("�n�i", "�Θb�\")
-	EVENT_TABLE += "�n�i/"
+;入部の切っ掛けになった人物なので心理的垣根が比較的低い
+SIF FIND_COND("フェリシエル", "対話可能")
+	EVENT_TABLE += "フェリシエル/"
+;人間としての屈折が感じられないので一種の憧れを感じている
+SIF FIND_COND("あんず", "対話可能")
+	EVENT_TABLE += "あんず/"
+;あらゆる意味で異文化の存在なので興味がわく対象
+SIF FIND_COND("カリスタ", "対話可能")
+	EVENT_TABLE += "カリスタ/"
+;悪意にはなれてるが好意にはどう反応していいかわからない
+SIF FIND_COND("リューナ", "対話可能")
+	EVENT_TABLE += "リューナ/"
+;アウトドア派仲間
+SIF FIND_COND("ハナ", "対話可能")
+	EVENT_TABLE += "ハナ/"
 
-;���݂��̏�ɂ���A�����ȊO�̑S�L�����̖��O���擾����ꍇ�͂���
-;EVENT_TABLE = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
+;現在この場にいる、自分以外の全キャラの名前を取得する場合はこれ
+;EVENT_TABLE = %NAMES("対話可能キャラ一覧", TARGET)%
 
-;�N�����Ȃ��Ȃ�I���
+;誰も居ないなら終わり
 SIF EVENT_TABLE == ""
 	RETURN 0
 
-;���̃L�����̃C�x���g���N����
+;このキャラのイベントが起きる
 CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
 ACTOR = FIND_COND(CALLNAME_ACTOR)
 CALL PRINT_TaiTaChara, ACTOR
 
-;���̕����EVENT_TABLE���Ⴆ�΃t�F���V�G��/���e/�n�i/�Ȃ瓙�m���łR�l�̂ǂꂩ�̕���ɍs��
+;この分岐はEVENT_TABLEが例えばフェリシエル/小菊/ハナ/なら等確率で３人のどれかの分岐に行く
 
 SELECTCASE CALLNAME_ACTOR
-CASE "�t�F���V�G��"
-	;�I�[�v�j���O�̓񊄎x�����B�T�̍Ōオ�x�����A�Ƃ������Ƃɂ��Ă���(�����܂Ńt���[�o�[)
-	;���v�����Ŏ�����I�����Ă���A�Ƃ���
-	IF TEXTS("�j��") == "�y" && TALENT:TARGET:���v���� == 0
-		PRINTFORML %CALLNAME:TARGET%�u%CALLNAME:ACTOR%����A���T�̎x���������ǁc�c�v
-		PRINTFORML %CALLNAME:ACTOR%�w�͂��͂��A�����قǂł��傤���H�x
-		PRINTFORML %CALLNAME:TARGET%�͍�����[���Ă���
-		;0�̂��Ƃ����邯�ǂȁI
+CASE "フェリシエル"
+	;オープニングの二割支払い。週の最後が支払日、ということにしておく(あくまでフレーバー)
+	;相思相愛で取引を終了している、とする
+	IF TEXTS("曜日") == "土" && TALENT:TARGET:相思相愛 == 0
+		PRINTFORML %CALLNAME:TARGET%「%CALLNAME:ACTOR%さん、今週の支払いだけど……」
+		PRINTFORML %CALLNAME:ACTOR%『はいはい、いかほどでしょうか？』
+		PRINTFORML %CALLNAME:TARGET%は魂を上納している
+		;0のこともあるけどな！
 	ELSE
-		PRINTFORML %CALLNAME:TARGET%�u%CNAME("��l��")%����������蕔�����L���Ȃ����C������񂾂��ǁc�c�v
-		PRINTFORML %CALLNAME:ACTOR%�w����͂������A�F����ɋ����Ȏv����������킯�ɂ͂����܂���̂Łx
-		PRINTFORML %CALLNAME:TARGET%�u���������ǂ�����āc�c�H�v
-		PRINTFORML %CALLNAME:ACTOR%�w��Ɣ閧�ł���x
+		PRINTFORML %CALLNAME:TARGET%「%CNAME("一人称")%が来た時より部室が広くなった気がするんだけど……」
+		PRINTFORML %CALLNAME:ACTOR%『それはもちろん、皆さんに窮屈な思いをさせるわけにはいきませんので』
+		PRINTFORML %CALLNAME:TARGET%「いったいどうやって……？」
+		PRINTFORML %CALLNAME:ACTOR%『企業秘密です♪』
 	ENDIF
-CASE "����"
-	IF COND("��")
+CASE "あんず"
+	IF COND("昼")
 		IF RAND:2
-			PRINTFORML %CALLNAME:ACTOR%�w�����珰�}�O�}�ˁI �C�X�Ƃ����̏ゾ���Z�[�t�I�x
-			PRINTFORML ���̐��ɁA�C�X�ɍ����Ă���%CALLNAME:TARGET%���g���났����
-			PRINTFORML �w������ɐg�̂��͂��ɓ|���A���𕂂����Ă���
+			PRINTFORML %CALLNAME:ACTOR%『今から床マグマね！ イスとか机の上だけセーフ！』
+			PRINTFORML その声に、イスに座っていた%CALLNAME:TARGET%が身じろぎした
+			PRINTFORML 背もたれに身体を僅かに倒し、足を浮かせている
 		ELSE
-			PRINTFORML %CALLNAME:ACTOR%�w�l�b�g�ŐU��t���o�������炿����ƒN�� �����Ɨx��邩���Ă����[�H�x
-			PRINTFORML %CALLNAME:TARGET%�͊���グ�A%TEXTR("�N���N��/�s�R�s�R/�ӂɂ�ӂɂ�")%�x��%CALLNAME:ACTOR%�������ƌ��Ă���
+			PRINTFORML %CALLNAME:ACTOR%『ネットで振り付け覚えたからちょっと誰か ちゃんと踊れるか見てくれるー？』
+			PRINTFORML %CALLNAME:TARGET%は顔を上げ、%TEXTR("クルクル/ピコピコ/ふにゃふにゃ")%踊る%CALLNAME:ACTOR%をじっと見ている
 			SELECTCASE RAND:3
 			CASE 0
-				PRINTFORML %CALLNAME:TARGET%�u�c�c�����񂶂�Ȃ��H�v
+				PRINTFORML %CALLNAME:TARGET%「……いいんじゃない？」
 			CASE 1
-				PRINTFORML %CALLNAME:TARGET%�u�c�c�A�����W���������B�����̂��ǂ����킩��Ȃ��v
+				PRINTFORML %CALLNAME:TARGET%「……アレンジ加えすぎ。いいのかどうかわからない」
 			CASEELSE
-				PRINTFORML %CALLNAME:TARGET%�u�c�c���̊p�x���Ⴄ��v
+				PRINTFORML %CALLNAME:TARGET%「……足の角度が違うよ」
 			ENDSELECT
 		ENDIF
 	ENDIF
-CASE "�J���X�^"
+CASE "カリスタ"
 	SELECTCASE RAND:3
 	CASE 0
-		;�E�Ƃɂ���
-		PRINTFORML %CALLNAME:TARGET%�u%CALLNAME:ACTOR%����͎����A�t�F���V�G������̓��C�h����ȁH�v
-		PRINTFORML %CALLNAME:ACTOR%�w�����ł��ˁx
-		PRINTFORML %CALLNAME:TARGET%�u�c�c�ǂ��Ⴄ�́H�v
-		PRINTFORML %CALLNAME:ACTOR%�w���j�I�Ȑ��藧�������������ƒ����Ȃ�܂����A������Ղ������Ɓc�c�x
-		PRINTFORML %CALLNAME:ACTOR%��%CALLNAME:TARGET%�Ɏ����ƃ��C�h�̈Ⴂ�ɂ��ĉ�����Ă���
+		;職業について
+		PRINTFORML %CALLNAME:TARGET%「%CALLNAME:ACTOR%さんは執事、フェリシエルさんはメイドだよな？」
+		PRINTFORML %CALLNAME:ACTOR%『そうですね』
+		PRINTFORML %CALLNAME:TARGET%「……どう違うの？」
+		PRINTFORML %CALLNAME:ACTOR%『歴史的な成り立ちから説明すると長くなりますが、分かり易く言うと……』
+		PRINTFORML %CALLNAME:ACTOR%は%CALLNAME:TARGET%に執事とメイドの違いについて解説している
 	CASE 1
-		;�V���ɂ��āc�c�ƌ��������ĉf��ɂ���
-		;�V�����ǂ�ȂƂ��납�͂悭�킩��Ȃ��̂ŐG��Ȃ�
-		PRINTFORML %CALLNAME:TARGET%�u%CALLNAME:ACTOR%����͓V�g���Ă��Ƃ͂��c�c�V�����痈���́H�v
-		PRINTFORML %CALLNAME:ACTOR%�w�͂��A�V�E���痈�܂����x
-		PRINTFORML %CALLNAME:TARGET%�u�V���ł݂͂�ȊC�̘b��������Ė{�����H�v
-		PRINTFORML %CALLNAME:ACTOR%�w�c�c����ł���ˁA���̉f��x
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�͉f��̘b�����Ă���
+		;天国について……と見せかけて映画について
+		;天国がどんなところかはよくわからないので触れない
+		PRINTFORML %CALLNAME:TARGET%「%CALLNAME:ACTOR%さんは天使ってことはさ……天国から来たの？」
+		PRINTFORML %CALLNAME:ACTOR%『はい、天界から来ました』
+		PRINTFORML %CALLNAME:TARGET%「天国ではみんな海の話をするって本当か？」
+		PRINTFORML %CALLNAME:ACTOR%『……名作ですよね、あの映画』
+		PRINTFORML %CALLNAME:TARGET%と%CALLNAME:ACTOR%は映画の話をしている
 	CASEELSE
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̟��ꂽ�g����ق��Ĉ���ł���
-		PRINTFORML �ق��Ă���Ƃǂ����̗ߏ�Ƃ��̎����A�Ƃ��������
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の淹れた紅茶を黙って飲んでいる
+		PRINTFORML 黙っているとどこかの令嬢とその執事、といった風情だ
 	ENDSELECT
-CASE "�����[�i"
+CASE "リューナ"
 	SELECTCASE RAND:3
 	CASE 0
-		IF CEVENT("�o��1")
-			PRINTFORML %CALLNAME:TARGET%�u�c�c�v
-			PRINTFORML �����Ȃ������̐F���c�O����%CALLNAME:ACTOR%����˂���ƁA%CALLNAME:TARGET%�̔��̐F�ɋ�F����������
-			PRINTFORML %CALLNAME:TARGET%�u�c�c�����̌P���̈�B���������͕̂��i������K���K�v������v
-			PRINTFORML ���%CALLNAME:ACTOR%�ɁA���Ȃ薳���̂��錾��������Ă���
+		IF CEVENT("覚醒1")
+			PRINTFORML %CALLNAME:TARGET%「……」
+			PRINTFORML 黒くなった髪の色を残念がる%CALLNAME:ACTOR%を一瞥すると、%CALLNAME:TARGET%の髪の色に銀色が混じった
+			PRINTFORML %CALLNAME:TARGET%「……ただの訓練の一環。こういうのは普段から練習が必要だから」
+			PRINTFORML 喜ぶ%CALLNAME:ACTOR%に、かなり無理のある言い訳をしている
 		ELSE
-			PRINTFORML %CALLNAME:ACTOR%�ɔ��̐F��J�߂���ƁA%CALLNAME:TARGET%�͂킸���Ɋ�������߂�
-			PRINTFORML %CALLNAME:TARGET%�u���̔��������Ǝv�������Ƃ͂Ȃ���B���߂Ă����Ȃ���߂������炢���v
-			PRINTFORML %CALLNAME:TARGET%�u�c�c�ڗ�����ˁB�Z���Z�ɂ�͕s�ǈ��������A�������n�̐�y���ɂ͖ڂ������邵�v
-			PRINTFORML %CALLNAME:TARGET%�u�T�{��ȊO�őf�s���������Ă����͂��܂�Ȃ��񂾁v
+			PRINTFORML %CALLNAME:ACTOR%に髪の色を褒められると、%CALLNAME:TARGET%はわずかに顔をしかめた
+			PRINTFORML %CALLNAME:TARGET%「この髪をいいと思ったことはないよ。染めていいなら染めたいぐらいだ」
+			PRINTFORML %CALLNAME:TARGET%「……目立つからね。センセにゃは不良扱いだし、そっち系の先輩方には目をつけられるし」
+			PRINTFORML %CALLNAME:TARGET%「サボる以外で素行を悪くしてるつもりはあまりないんだ」
 		ENDIF
 	CASE 1
-		;�m�荇�������Ȃ��ď�񂪒x���̂ň�Ԗ��[�̋ɒ[�ȕ����𕷂��Ă���
-		PRINTFORML %CALLNAME:TARGET%�u�c�c�l�̉\�̓A�e�ɂȂ�Ȃ����̂���ˁv
-		PRINTFORML %CALLNAME:TARGET%�u����A%CALLNAME:ACTOR%����͕����Ă���肢���l���Ǝv���Ă��v
-		PRINTFORML %CALLNAME:TARGET%�u�\�̓��e�͂��ƁA�c�c�������ˁB�{��Ȃ��Ȃ�b����v
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ɋւ��邩�Ȃ�֒����ꂽ����������Ă���
+		;知り合いが少なくて情報が遅いので一番末端の極端な風聞を聞いている
+		PRINTFORML %CALLNAME:TARGET%「……人の噂はアテにならないものだよね」
+		PRINTFORML %CALLNAME:TARGET%「いや、%CALLNAME:ACTOR%さんは聞いてたよりいい人だと思ってさ」
+		PRINTFORML %CALLNAME:TARGET%「噂の内容はっと、……そうだね。怒らないなら話すよ」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%に関するかなり誇張された風聞を語っている
 	CASEELSE
-		PRINTFORML %CALLNAME:ACTOR%��%CALLNAME:TARGET%�ɘb�������Ă���
-		PRINTFORML �K���ɑ��Ƃ�ł��Ă���%CALLNAME:TARGET%���������A�s�ӂɌ����J����
-		PRINTFORML %CALLNAME:TARGET%�u%CALLNAME:ACTOR%����͂����c�c�B����%CNAME("��l��")%�ɘb��������́H�@��������悤�Șb�͂ł��Ȃ��Ǝv�����ǁc�c�v
-		PRINTFORML %CALLNAME:TARGET%�u�����Ă킯����Ȃ����ǁc�c�A����b���΂����̂��킩��Ȃ��v
-		PRINTFORML %CALLNAME:TARGET%�͌˘f���Ă���
+		PRINTFORML %CALLNAME:ACTOR%は%CALLNAME:TARGET%に話しかけている
+		PRINTFORML 適当に相槌を打っていた%CALLNAME:TARGET%だったが、不意に口を開いた
+		PRINTFORML %CALLNAME:TARGET%「%CALLNAME:ACTOR%さんはさぁ……。何で%CNAME("一人称")%に話しかけるの？　興味あるような話はできないと思うけど……」
+		PRINTFORML %CALLNAME:TARGET%「嫌ってわけじゃないけど……、何を話せばいいのかわからない」
+		PRINTFORML %CALLNAME:TARGET%は戸惑っている
 	ENDSELECT
-CASE "�n�i"
+CASE "ハナ"
 	SELECTCASE RAND:2
 	CASE 0
-		;�ٔ\�͂��g����ӂ�ŕ��ʂɌ�����悤�ɂȂ�
-		IF CEVENT("�o��2")
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̎��ƐK���������ƌ��Ă���
-			PRINTFORML %CALLNAME:ACTOR%�w�ǂ�������X���H�x
-			PRINTFORML %CALLNAME:TARGET%�u�C�ɂ��Ȃ��ŁA�ŋߌ�����悤�ɂȂ��Ē���������������v
-			PRINTFORML %CALLNAME:ACTOR%�͒��ڂ���Ă��Â炻����
+		;異能力が使える辺りで普通に見えるようになる
+		IF CEVENT("覚醒2")
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の耳と尻尾をじっと見ている
+			PRINTFORML %CALLNAME:ACTOR%『どうしたんスか？』
+			PRINTFORML %CALLNAME:TARGET%「気にしないで、最近見えるようになって珍しいだけだから」
+			PRINTFORML %CALLNAME:ACTOR%は注目されてやりづらそうだ
 		ELSE
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�̓��Ƃ��K�̕ӂ���p�^�p�^�ƕ�����
-			PRINTFORML %CALLNAME:ACTOR%�w�ǂ�������X���H�x
-			PRINTFORML %CALLNAME:TARGET%�u���݂����Ȃ̂����Ă�v
-			PRINTFORML %CALLNAME:ACTOR%�w�H�@�c�c���肪�Ƃ��������܂��H�x
-			PRINTFORML �ǂ����%CALLNAME:TARGET%�ɂ�%CALLNAME:ACTOR%�̎��ƐK���͂ڂ���Ƃ��������Ȃ��炵��
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%の頭とお尻の辺りをパタパタと払った
+			PRINTFORML %CALLNAME:ACTOR%『どうしたんスか？』
+			PRINTFORML %CALLNAME:TARGET%「煤みたいなのがついてる」
+			PRINTFORML %CALLNAME:ACTOR%『？　……ありがとうございます？』
+			PRINTFORML どうやら%CALLNAME:TARGET%には%CALLNAME:ACTOR%の耳と尻尾はぼんやりとしか見えないらしい
 		ENDIF
 	CASEELSE
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ƎR�ɂ��Ęb���Ă���
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%と山について話している
 		IF RAND:2
-			PRINTFORML �u�R�ɍs���ƂȂ񂩗��������񂾂�ˁv
-			PRINTFORML �u���؂Ȃ̂�������Ȃ����A�X�ї��Ƃ��A���������̂̉e����������Ȃ��v
+			PRINTFORML 「山に行くとなんか落ち着くんだよね」
+			PRINTFORML 「血筋なのかもしれないし、森林浴とか、そういうのの影響かもしれない」
 		ELSE
-			PRINTFORML �u���͂���܂�H�ׂȂ��B���Ƃ��e�̎J�����͒m���Ă邯�ǁA�c�c����Ɋl���Ă����̂��H�v
-			PRINTFORML �u�R�؂͗ǂ��̂邯�ǁc�c��H�@�H�ׂ�b�ł悩�����񂾂�ȁH�v
+			PRINTFORML 「虫はあんまり食べない。鳥とか兎の捌き方は知ってるけど、……勝手に獲っていいのか？」
+			PRINTFORML 「山菜は良く採るけど……ん？　食べる話でよかったんだよな？」
 		ENDIF
 	ENDSELECT
 CASEELSE
-	;��������ׂ�Ȃ��ꍇ�͏o�͂Ȃ��Ŗ߂�
+	;何もしゃべらない場合は出力なしで戻す
 	CALL PRINT_TaiTaChara
 ENDSELECT
 
 ;--------------------------------------------------
-;�I�X�J�[
+;オスカー
 ;--------------------------------------------------
 @TaiTaChara_K30
-;�C�x���g���N����L�����̖��O��/��؂�ł���ɓ˂����݁ATEXTR�Ŏ��o��
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
 #DIMS EVENT_TABLE
-;�C�x���g�������̃L����
+;イベント発生中のキャラ
 #DIM ACTOR
 #DIM ACTOR2
 #DIM ACTOR3
-;�C�x���g�������̃L�����̃f�t�H��CALLNAME
+;イベント発生中のキャラのデフォのCALLNAME
 #DIMS CALLNAME_ACTOR
 
 
-;���݂��̏�ɂ���A�����ȊO�̑S�L�����̖��O���擾����
-EVENT_TABLE = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
-;�N�����Ȃ��Ȃ�I���
+;現在この場にいる、自分以外の全キャラの名前を取得する
+EVENT_TABLE = %NAMES("対話可能キャラ一覧", TARGET)%
+;誰も居ないなら終わり
 SIF EVENT_TABLE == ""
 	RETURN 0
 
-;���̃L�����̃C�x���g���N����
+;このキャラのイベントが起きる
 CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
 ACTOR = FIND_COND(CALLNAME_ACTOR)
 CALL PRINT_TaiTaChara, ACTOR
@@ -2250,355 +2250,355 @@ CALL PRINT_TaiTaChara, ACTOR
 VARSET ACTOR2
 VARSET ACTOR3
 
-;���̕����EVENT_TABLE���Ⴆ�΃t�F���V�G��/���e/�n�i/�Ȃ瓙�m���łR�l�̂ǂꂩ�̕���ɍs��
+;この分岐はEVENT_TABLEが例えばフェリシエル/小菊/ハナ/なら等確率で３人のどれかの分岐に行く
 SELECTCASE CALLNAME_ACTOR
-CASE "�}���["
-	IF CEVENT("�}���[����b") == 0
-		PRINTFORML �u�c���Ȃ��c���₻�Ȃ��́c�c�܁A�����c�c����ȁc�c�c�I�v
-		PRINTFORML %CALLNAME:ACTOR%�̎p������%CALLNAME:TARGET%�͈�u�ڂ����J���ċ��������A�����ɐ^���Ȋ�Ŏ��ȏЉ���n�߂��B
-		PRINTFORML �u���J���b�A���A����c%CNAME("��l��")%��%CALLNAME:TARGET%�A�����E�̋M�����v
-		PRINTFORML �u�c�M���Ă��炦�ʂ�������񂪁A�����ő������N��������N���Ɋ�Q��������C�͖ѓ������v
-		PRINTFORML �u������A���́A���ꂩ���낵�����ށv
-		PRINTFORML �����Ɛ����Ƃ����{�����e��Ȃ��֌W�̂��A�ǂ����������Ȃ��Ȃ����%CALLNAME:TARGET%��%CALLNAME:ACTOR%�ƈ��肵���c�B
-		PRINTFORML �i����͈�́c���̈��ʂŁc�c�c�j
-		CALL SET_CEVENT, "�}���[����b"
+CASE "マリー"
+	IF CEVENT("マリー初会話") == 0
+		PRINTFORML 「…あなた…いやそなたは……ま、さか……そんな………！」
+		PRINTFORML %CALLNAME:ACTOR%の姿を見た%CALLNAME:TARGET%は一瞬目を見開いて驚いたが、すぐに真剣な顔で自己紹介を始めた。
+		PRINTFORML 「ン゛ンッ、し、失礼…%CNAME("一人称")%は%CALLNAME:TARGET%、元魔界の貴族だ」
+		PRINTFORML 「…信じてもらえぬかもしれんが、ここで騒ぎを起こしたり誰かに危害を加える気は毛頭無い」
+		PRINTFORML 「だから、その、これからよろしく頼む」
+		PRINTFORML 悪魔と聖女という本来相容れない関係故か、どこかぎこちないながらも%CALLNAME:TARGET%は%CALLNAME:ACTOR%と握手した…。
+		PRINTFORML （これは一体…何の因果で………）
+		CALL SET_CEVENT, "マリー初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u���[�A���Ƃ������c���Ȃ��͐F�X�ƌy�����͂��Ȃ����H���ɂ��������낤�Ɂv
-			PRINTFORML %CALLNAME:TARGET%�͋C�y�Ɏ����ɘb�������Ă���%CALLNAME:ACTOR%�ɋ�Ό�����Ŏ󂯓������Ă���B
-			PRINTFORML �i%TEXTR(@"�c�c�c���ꂪ�{���̔ޏ��̐������p�c���ނׂ����������̂��낤�ȁc�c�c/�c�c�c����Ȃɂ��D�����l�������������Ɂc%CNAME("��l��")%�́c�b�c�I")%�j
+			PRINTFORML 「あー、何というか…そなたは色々と軽すぎはしないか？仮にも聖女だろうに」
+			PRINTFORML %CALLNAME:TARGET%は気軽に自分に話しかけてくる%CALLNAME:ACTOR%に苦笑交じりで受け答えしている。
+			PRINTFORML （%TEXTR(@"………これが本来の彼女の正しき姿…歩むべき道だったのだろうな………/………こんなにも優しく人懐っこい少女に…%CNAME("一人称")%は…ッ…！")%）
 		ELSEIF RAND:2
-			ACTOR2 = FIND_COND("�Θb�\", "�p���`�l")
-			ACTOR3 = FIND_COND("�Θb�\", "�����[�i")
+			ACTOR2 = FIND_COND("対話可能", "パラチネ")
+			ACTOR3 = FIND_COND("対話可能", "リューナ")
 			IF RAND:3 == 0 && ACTOR3
 				CALL PRINT_TaiTaChara, ACTOR, ACTOR3
-				PRINTFORM %CALLNAME:TARGET%��%CALLNAME:ACTOR3%%TEXTR("�Ƙr���o����/�ƃh���S���ɂ��Č�荇��/�̐g�̂𕏂ł܂킷")%
+				PRINTFORM %CALLNAME:TARGET%は%CALLNAME:ACTOR3%%TEXTR("と腕相撲する/とドラゴンについて語り合う/の身体を撫でまわす")%
 			ELSEIF RAND:2 && ACTOR2
 				CALL PRINT_TaiTaChara, ACTOR, ACTOR2
-				PRINTFORM %CALLNAME:TARGET%��%CALLNAME:ACTOR2%%TEXTR("��U���/�Ƀv�����X�Z��������/�Ɛ^���ɘb������")%
+				PRINTFORM %CALLNAME:TARGET%は%CALLNAME:ACTOR2%%TEXTR("を振り回す/にプロレス技をかける/と真剣に話し合う")%
 			ELSE
-				PRINTFORM %CALLNAME:TARGET%�͊y�������ɎG�k����
+				PRINTFORM %CALLNAME:TARGET%は楽しそうに雑談する
 			ENDIF
-			PRINTFORML %CALLNAME:ACTOR%���A�����悤�ȖڂŌ��Ă���B
-			PRINTFORML �i�c�������Ċy������炵�Ă��Ă����Ώ����͋~����c�̂����c�j
+			PRINTFORML %CALLNAME:ACTOR%を、見守るような目で見ている。
+			PRINTFORML （…こうして楽しく暮らしていてくれれば少しは救われる…のだが…）
 		ELSE
-			PRINTFORML �u�ȁc�Ȃ��c���́c�c�c�����c����A���ł��Ȃ��v
-			PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�ɉ�����b���������Ƃ������A�����ɏ΂��Ă��܂������c�B
-			PRINTFORML �i%TEXTR(@"�����Ȃ��c����Ȏ��A�b����킯�������b�c�I/���A�_�����c���̊֌W����������Łc�|���c")%�j
+			PRINTFORML 「な…なぁ…その………あぁ…いや、何でもない」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%に何かを話しだそうとしたが、すぐに笑ってごまかした…。
+			PRINTFORML （%TEXTR(@"言えない…あんな事、話せるわけが無いッ…！/だ、ダメだ…今の関係を崩しそうで…怖い…")%）
 		ENDIF
 	ENDIF
-CASE "�����[�i"
-	IF CEVENT("�����[�i����b") == 0 && CEVENT("�I�X�J�[����b", ACTOR) == 0
-		PRINTFORML �w�Ӂ[��A���E�̂��̂����񂩂��c�x
-		PRINTFORML �u���A�����ȁB�����������Ȃ��́H�v
-		PRINTFORML �w�c�w���ɋ��󂵂Ă邽���̃h���S������x
-		PRINTFORML �u�ӂށA�������c�܂���낵�����ނ��v
-		PRINTFORML �w�ӂӁA�����炱���x
-		PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�͂�������ƈ��肵���B
-		CALL SET_CEVENT, "�����[�i����b"
+CASE "リューナ"
+	IF CEVENT("リューナ初会話") == 0 && CEVENT("オスカー初会話", ACTOR) == 0
+		PRINTFORML 『ふーん、魔界のお偉いさんかぁ…』
+		PRINTFORML 「元、だがな。そう言うそなたは？」
+		PRINTFORML 『…学園に居候してるただのドラゴンだよ』
+		PRINTFORML 「ふむ、そうか…まぁよろしく頼むぞ」
+		PRINTFORML 『ふふ、こちらこそ』
+		PRINTFORML %CALLNAME:TARGET%と%CALLNAME:ACTOR%はしっかりと握手した。
+		CALL SET_CEVENT, "リューナ初会話"
 	ELSE
 		;IF RAND:4 == 0
 			;PRINTFORML 
 		IF RAND:3 == 0 
-			PRINTFORML �u���������Η���B�ǂ�%TEXTR("�p�H��/�̐Ώ��")%���������̂����c�v
-			PRINTFORML �w�������A���Ⴀ���x�����ŉ^�����ˁI�x
-			PRINTFORML �^���Ƃ͌����Ă��邪�A%CALLNAME:TARGET%��%CALLNAME:ACTOR%�͉����������Ȃ̂��낤���c�B
+			PRINTFORML 「そういえば竜よ。良い%TEXTR("廃工場/採石場跡")%を見つけたのだが…」
+			PRINTFORML 『おおっ、じゃあ今度そこで運動だね！』
+			PRINTFORML 運動とは言っているが、%CALLNAME:TARGET%と%CALLNAME:ACTOR%は何をするつもりなのだろうか…。
 		ELSEIF RAND:2
-			PRINTFORML �u����́c��������ē����āc�����\����̂��H�v
-			PRINTFORML �w���������A����Ȋ�������Ȋ����I���x�A����ł���{����������ˁx
-			PRINTFORM %CALLNAME:TARGET%��%CALLNAME:ACTOR%��
+			PRINTFORML 「これは…こうやって動いて…こう構えるのか？」
+			PRINTFORML 『そうそう、そんな感じそんな感じ！今度、動画でお手本見せたげるね』
+			PRINTFORM %CALLNAME:TARGET%は%CALLNAME:ACTOR%と
 			IF RAND:2
-				PRINTFORM �w%TEXTR("�}�C�e�B�E�A�h�x���`�����[/�L���͂������̉ʂĂ�/Mirror13/�K���P�[��mGOGOGO!/�E����S�͋P�����ƂȂ��/�b���Ă܂����H/�_���J�u�g���V/�s�^�Ȗl���܏d�l�i�ɂȂ����疈�����N���C�}�b�N�X�Ȍ�/Vampire��Symphony/�ʐ^�̒��̕��s���E")%�x
+				PRINTFORM 『%TEXTR("マイティ・アドベンチャラー/記憶はあかつきの果てに/Mirror13/ガラケー戦士GOGOGO!/勇ある心は輝く剣となりて/鍛えてますか？/神速カブトムシ/不運な僕が五重人格になったら毎日がクライマックスな件/Vampire♯Symphony/写真の中の平行世界")%』
 			ELSE
-				PRINTFORM �w%TEXTR("�E�ɕ����A���ɐ؂�D��/Pants���n�n�n/���[�[���g���Z���̃R�Y�~�b�N��/���̖��@�g���Ɗ�]�̕P�N/���ɉʕ��̍����Y����/�i�߁I�t���X���b�g���Y��/�����܂�̂s����A�H��ɂȂ�/�G�N�X�g���E�G�C�h/�V�˃E�T�M�Ɣ]�؃h���S��/����������King")% �x
+				PRINTFORM 『%TEXTR("右に風を、左に切り札を/Pants→ＯＯＯ/リーゼント高校生のコズミック部/竜の魔法使いと希望の姫君/戦場に果物の香りを添えて/進め！フルスロットル刑事/寺生まれのＴさん、幽霊になる/エクストラ・エイド/天才ウサギと脳筋ドラゴン/逢魔ヶ時のKing")% 』
 			ENDIF
-			PRINTFORML �Ƃ����{��ǂ݂Ȃ��牽���̃|�[�Y������Ă���c�B
+			PRINTFORML という本を読みながら何かのポーズを取っている…。
 		ELSE
-			PRINTFORML �u�c�c�c�c�c�c�v
-			PRINTFORML �w���A���͂́c�S�����A�����̃~�X����������ˁc�x
-			PRINTFORML %CALLNAME:TARGET%�͎��񂾖ڂ����Ȃ���A%CALLNAME:ACTOR%�ɟ���Ă������%TEXTR("�R�[�q�[/�g��")%�ɍ����ƃ~���N���R�قǓ���Ă���c�B
+			PRINTFORML 「………………」
+			PRINTFORML 『あ、あはは…ゴメン、淹れるのミスっちゃったね…』
+			PRINTFORML %CALLNAME:TARGET%は死んだ目をしながら、%CALLNAME:ACTOR%に淹れてもらった%TEXTR("コーヒー/紅茶")%に砂糖とミルクを山ほど入れている…。
 		ENDIF
 	ENDIF
-CASE "�J���X�^"
-	IF CEVENT("�J���X�^����b") == 0
-		PRINTFORML �u�ӂ�A�V���Ă��Ȃ��V�g���c����ɂ��Ă͂��܂�G�ӂ������Ȃ��ȁv
-		PRINTFORML �u�����������̊i�D�Ȃǂ�����āc�����ł���%CNAME("��l��")%�ɋ��d�ł����Ă��炨�����H�v
-		PRINTFORML %CALLNAME:TARGET%�̓j���j���΂��Ȃ���%CALLNAME:ACTOR%�����炩���Ă���c�B
-		CALL SET_CEVENT, "�J���X�^����b"
+CASE "カリスタ"
+	IF CEVENT("カリスタ初会話") == 0
+		PRINTFORML 「ふん、堕天していない天使か…それにしてはあまり敵意を感じないな」
+		PRINTFORML 「しかも執事の格好などしよって…悪魔である%CNAME("一人称")%に給仕でもしてもらおうか？」
+		PRINTFORML %CALLNAME:TARGET%はニヤニヤ笑いながら%CALLNAME:ACTOR%をからかっている…。
+		CALL SET_CEVENT, "カリスタ初会話"
 	ELSE
-		IF RAND:2 && CEVENT("����ݒu")
+		IF RAND:2 && CEVENT("箱庭設置")
 			IF RAND:2
-				PRINTFORML �u�܁A����Ƃ͎v�����c�M���Ȃ肷���ĉ󂷂Ȃ�H�v
-				PRINTFORML �u�󂵂��ꍇ�́c���Ȃ��̍��ŕ�U�����Ă��炤����ȁv
-				PRINTFORML %CALLNAME:TARGET%�͔���ɋ���������%CALLNAME:ACTOR%�ɓB���h���Ă���B
+				PRINTFORML 「ま、やらんとは思うが…熱くなりすぎて壊すなよ？」
+				PRINTFORML 「壊した場合は…そなたの魂で補填させてもらうからな」
+				PRINTFORML %CALLNAME:TARGET%は箱庭に興味を示す%CALLNAME:ACTOR%に釘を刺している。
 			ELSE
-				PRINTFORML �u�c�ނށA%CNAME("��l��")%�̒m��Ȃ�%("����/�l��/�W�J")%���Ɓc�H�I�v
-				PRINTFORML �u�M�l���̃Q�[����肱��ł���ȃb�v
-				PRINTFORML %CALLNAME:TARGET%�͎����ȏ�ɔ���𗝉����Ă���%CALLNAME:ACTOR%�ɏ������i���Ă���悤���c�B
+				PRINTFORML 「…むむ、%CNAME("一人称")%の知らない%("建物/人物/展開")%だと…？！」
+				PRINTFORML 「貴様このゲームやりこんでいるなッ」
+				PRINTFORML %CALLNAME:TARGET%は自分以上に箱庭を理解している%CALLNAME:ACTOR%に少し嫉妬しているようだ…。
 			ENDIF
 		ELSE
 			;IF RAND:2
 			;	PRINTFORML 
 			;ELSE
-				PRINTFORML �u%TEXTR("�ނ��c�c�c/�ق��A�������邩�c�����z��ς݂�/�ȃb�c�I���A���̈��҂����I/�N�N�b�c�ǂ������A����Ȃ��̂����H���`�H/�ʂ������A�����܂Œǂ��߂���Ƃ́c�I")%�v
-				PRINTFORML %CALLNAME:TARGET%��%CALLNAME:ACTOR%�Ƃ�%TEXTR("�`�F�b�J�[/�I�Z��/����/�`�F�X")%�ɔM�����Ă���B
+				PRINTFORML 「%TEXTR("むぅ………/ほう、そう来るか…だが想定済みだ/なッ…！そ、その一手待った！/ククッ…どうした、そんなものかぁ？ン～？/ぬぐぐっ、ここまで追いつめられるとは…！")%」
+				PRINTFORML %CALLNAME:TARGET%は%CALLNAME:ACTOR%との%TEXTR("チェッカー/オセロ/将棋/チェス")%に熱中している。
 			;ENDIF
 		ENDIF
 	ENDIF
-CASE "�^"
-	IF CEVENT("�^����b") == 0
-		PRINTFORML - �^ -
-		PRINTFORML �w�I�X�J�[����Ȃ�Ă��M���l�Ŕ��l�ő����ŃG�b�`�ŗD�����ā\�\�x
-		PRINTFORML �������c�c
-		PRINTFORML  �w���Ă�킯�Ȃ�����[�[�[�[�b�I�I�x
+CASE "真"
+	IF CEVENT("真初会話") == 0
+		PRINTFORML - 真 -
+		PRINTFORML 『オスカーさんなんてお貴族様で美人で聡明でエッチで優しくて――』
+		PRINTFORML ｯｽｰｰｰｰ……
+		PRINTFORML  『勝てるわけないだろーーーーッ！！』
 		PRINTFORML 
-		PRINTFORML -�I�X�J�[-
-		SELECTCASE CONDS("���ݓI�܂ރy�j�X�T�C�Y", ACTOR)
-		CASE "�Z��"
-			PRINTFORML �u�m���ɐ^�̑e���Ȃӂ��Ȃ�y�j�X��%CNAME("��l��")%�𖞑�������ɂ͒������c�c�v
-			PRINTFORML �u���s�ȑO�̖��ł͂Ȃ����A����%CNAME("��l��")%�͎v���̂����ȁv
-		CASE "����"
-			PRINTFORML �u�ǂ����������^�̂ӂ��Ȃ�y�j�X�͕��ʂ�ȁv
-			PRINTFORML �u%CNAME("��l��")%�ɂƂ��Ă͏��X���̃T�C�Y�ł͕�����Ȃ��͎̂����ł͂��邪�c�c�g�̂̑����̓��m�̑召�����ł͂���܂��v
-		CASE "����"
-			PRINTFORML �u�����ƌ�������̂��ȁv
-			PRINTFORML �u�{���ɐ^��%CNAME("��l��")%�ɏ��Ăʂ��ǂ����A%CNAME("��l")%�������̂ł���Έ������Ă݂悤�ł͂Ȃ����H�v
-		CASE "�n����"
-			PRINTFORML �u���Ȃ��͕����ł͂Ȃ��ӂ��Ȃ�y�j�X�����ƕ����Ă��邼�v
-			PRINTFORML �u%CNAME("��l��")%����������ȁB����قǂ̈함�Ɋт����Ζ��Ɉ�̔s�k���Ȃ��Ƃ͌����܂���v
-		;�r���A�K�i�O
+		PRINTFORML -オスカー-
+		SELECTCASE CONDS("潜在的含むペニスサイズ", ACTOR)
+		CASE "短小"
+			PRINTFORML 「確かに真の粗末なふたなりペニスは%CNAME("一人称")%を満足させるには程遠い……」
+			PRINTFORML 「勝敗以前の問題ではないか、そう%CNAME("一人称")%は思うのだがな」
+		CASE "普通"
+			PRINTFORML 「良くも悪くも真のふたなりペニスは普通よな」
+			PRINTFORML 「%CNAME("一人称")%にとっては少々そのサイズでは物足りないのは事実ではあるが……身体の相性はモノの大小だけではあるまい」
+		CASE "巨根"
+			PRINTFORML 「随分と謙遜するのだな」
+			PRINTFORML 「本当に真が%CNAME("一人称")%に勝てぬかどうか、%CNAME("主人")%が許すのであれば一戦交えてみようではないか？」
+		CASE "馬並み"
+			PRINTFORML 「そなたは並大抵ではないふたなりペニスを持つと聞いているぞ」
+			PRINTFORML 「%CNAME("一人称")%も女だからな。それほどの逸物に貫かれれば万に一つの敗北もないとは言えまいよ」
+		;腕並、規格外
 		CASEELSE
-			PRINTFORML �u�l�ԗ��ꂵ���傫���̂ӂ��Ȃ�y�j�X�����ƌ����͖̂{�����H�v
-			PRINTFORML �u���ł���Ȃ��%CNAME("��l��")%�łȂ���΂��Ȃ��̑���͖��܂�܂��B%CNAME("��l")%�������̂ł���Α����ɈԂ߂Ă�낤�ł͂Ȃ����v
+			PRINTFORML 「人間離れした大きさのふたなりペニスを持つと言うのは本当か？」
+			PRINTFORML 「誠であるならば%CNAME("一人称")%でなければそなたの相手は務まるまい。%CNAME("主人")%が許すのであれば存分に慰めてやろうではないか」
 		ENDSELECT
-		CALL SET_CEVENT, "�^����b"
+		CALL SET_CEVENT, "真初会話"
 	ELSE
-		IF RAND:2 && CEVENT("����ݒu")
+		IF RAND:2 && CEVENT("箱庭設置")
 			IF RAND:2
-				PRINTFORML �u���E�ł͂��Ȃ��̗l�ȗ�����L�����������̂ł͂Ȃ��v
-				PRINTFORML �u��B%CNAME("��l��")%�ƈ�ӂ��߂���������q���ăQ�[�������悤�ł͂Ȃ����v
-				PRINTFORML %CALLNAME:TARGET%�͔���ł̃Q�[����%CALLNAME:ACTOR%��U���Ă���B
+				PRINTFORML 「魔界ではそなたの様な両性具有も珍しいものではない」
+				PRINTFORML 「一つ。%CNAME("一人称")%と一晩を過ごす権利を賭けてゲームをしようではないか」
+				PRINTFORML %CALLNAME:TARGET%は箱庭でのゲームに%CALLNAME:ACTOR%を誘っている。
 			ELSE
-				PRINTFORML �u%CNAME("��l��")%�ɏ��Ă��Ȃ�ΖJ������点�悤�v
-				PRINTFORML �u%CNAME("��l")%�������Ȃ��%CNAME("��l��")%�̐g�̂���ӍD���ɂ����Ă���Ă��ǂ����v
-				PRINTFORML %CALLNAME:TARGET%�͒����I�ɏ΂���%CALLNAME:ACTOR%�𕰂����Ă���B
+				PRINTFORML 「%CNAME("一人称")%に勝てたならば褒美を取らせよう」
+				PRINTFORML 「%CNAME("主人")%が許すならば%CNAME("一人称")%の身体を一晩好きにさせてやっても良いぞ」
+				PRINTFORML %CALLNAME:TARGET%は挑発的に笑って%CALLNAME:ACTOR%を焚きつけている。
 			ENDIF
 		ELSE
 			IF RAND:2
-				PRINTFORML �u���܂��Ă���̂ł��낤�H�v
-				PRINTFORML �u���傤������܂��B%CNAME("��l��")%�ŗǂ���Ίy�ɂ��Ă�낤�ł͂Ȃ����v
+				PRINTFORML 「溜まっているのであろう？」
+				PRINTFORML 「しょうがあるまい。%CNAME("一人称")%で良ければ楽にしてやろうではないか」
 			ELSE
-				PRINTFORML �u�肪�ǂ����A����Ƃ����ŕ�d���Ă�낤���v
-				PRINTFORML �u�ǂ������B�����͂���ʂ��B%CNAME("��l��")%�̋C���ς��ʂ����ɉ��ł��\�����ǂ��v
+				PRINTFORML 「手が良いか、それとも口で奉仕してやろうか」
+				PRINTFORML 「どうした。遠慮はいらぬぞ。%CNAME("一人称")%の気が変わらぬうちに何でも申すが良い」
 			ENDIF
 		ENDIF
 	ENDIF
 CASEELSE
-	;��������ׂ�Ȃ��ꍇ�͏o�͂Ȃ��Ŗ߂�
+	;何もしゃべらない場合は出力なしで戻す
 	CALL PRINT_TaiTaChara
 ENDSELECT
 
 
 ;--------------------------------------------------
-;�J�q
-;�\���͐�l�̕��X�̂��̂����؂肵�Ă���܂��B���ӁB
+;寧子
+;構文は先人の方々のものをお借りしております。感謝。
 ;--------------------------------------------------
-;CEVENT���ɕt���Ă�l�R�C�x���g��grep�Ŏ����̂Ƃ��T���₷�����Ă郄�c�ł��B
+;CEVENT名に付けてるネコイベントはgrepで自分のとこ探しやすくしてるヤツです。
 
 @TaiTaChara_K31
-;�C�x���g���N����L�����̖��O��/��؂�ł���ɓ˂����݁ATEXTR�Ŏ��o��
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
 #DIMS EVENT_TABLE
-;�C�x���g�������̃L����
+;イベント発生中のキャラ
 #DIM ACTOR
-;�C�x���g�������̃L�����̃f�t�H��CALLNAME
+;イベント発生中のキャラのデフォのCALLNAME
 #DIMS CALLNAME_ACTOR
 
-;���݂��̏�ɂ���A�����ȊO�̑S�L�����̖��O���擾����
-EVENT_TABLE = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
-;�N�����Ȃ��Ȃ猇�L���ĐQ��
+;現在この場にいる、自分以外の全キャラの名前を取得する
+EVENT_TABLE = %NAMES("対話可能キャラ一覧", TARGET)%
+;誰も居ないなら欠伸して寝ろ
 IF EVENT_TABLE == ""
-	PRINTFORML �u�ӂ��������c�c�����v
+	PRINTFORML 「ふぁぁあぅ……ぐぅ」
 ENDIF
 
-;���̃L�����̃C�x���g���N����
+;このキャラのイベントが起きる
 CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
 ACTOR = FIND_COND(CALLNAME_ACTOR)
 CALL PRINT_TaiTaChara, ACTOR
 
-;���̕����EVENT_TABLE���Ⴆ�΃t�F���V�G��/���e/�n�i/�Ȃ瓙�m���łR�l�̂ǂꂩ�̕���ɍs��
+;この分岐はEVENT_TABLEが例えばフェリシエル/小菊/ハナ/なら等確率で３人のどれかの分岐に行く
 SELECTCASE CALLNAME_ACTOR
-CASE "�t�F���V�G��"
-	IF CEVENT("�l�R�C�x���g�F�t�F������b") == 0
-		PRINTFORML �u����ς肠����Ă��������ɍ��\����ˁv
-		PRINTFORML �w�����A�ӊO�ƍ��Ɏ�����Ă܂��ˁH�x
-		PRINTFORML �u���t�B�Ȃ񂿂����r�b�N���Ȏ���������Ǝv�����ǁv
-		PRINTFORML �w�͂��A�������������������ł��̂ŕʂɕς��Ȃ����Ɓx
-		PRINTFORML �u�c�c�����ł����v
-		CALL SET_CEVENT, "�l�R�C�x���g�F�t�F������b"
+CASE "フェリシエル"
+	IF CEVENT("ネコイベント：フェリ初会話") == 0
+		PRINTFORML 「やっぱりあれってそこそこに詐欺だよね」
+		PRINTFORML 『あらら、意外と根に持たれてますね？』
+		PRINTFORML 「メフィなんちゃらもビックリな手口だったと思うけど」
+		PRINTFORML 『はぁ、あちらもこちらも悪魔ですので別に変わりないかと』
+		PRINTFORML 「……さいですか」
+		CALL SET_CEVENT, "ネコイベント：フェリ初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML �u��c�c������v
-			PRINTFORML ����������%CALLNAME:TARGET%��%TEXTR("�܋l�߂̎ϊ�/�₦���X�|�h��")%��%CALLNAME:ACTOR%�ɉ����t����B
-			PRINTFORML ���f����%CALLNAME:ACTOR%���C�ɂ����߂�%CALLNAME:TARGET%�͂������Q�̑̐��ɓ����Ă��܂����B
-			PRINTFORML (�c�c����A%TEXTR("�����l���Č����̖Y��Ă�/���ꂶ�ች�œn����������Ȃ��Ȃ��H")%)
+			PRINTFORML 「ん……あげる」
+			PRINTFORML そう言って%CALLNAME:TARGET%は%TEXTR("袋詰めの煮干/冷えたスポドリ")%を%CALLNAME:ACTOR%に押し付ける。
+			PRINTFORML 当惑する%CALLNAME:ACTOR%を気にも留めず%CALLNAME:TARGET%はうたた寝の体勢に入ってしまった。
+			PRINTFORML (……あれ、%TEXTR("お疲れ様って言うの忘れてた/これじゃ何で渡したか解んなくない？")%)
 		ELSEIF RAND:2
-			PRINTFORML �u�������Ƃ͌������ǂ��c�c�v
-			PRINTFORML �u����ȏ�Ƀ��C�h�Ƃ��ē����߂�����Ȃ��H�v
+			PRINTFORML 「悪魔だとは言うけどさ……」
+			PRINTFORML 「それ以上にメイドとして働き過ぎじゃない？」
 		ELSE
-			PRINTFORML �u�c�c���c�c���c�c���c�c�v
-			PRINTFORML �w�c�c�ǂ����܂��傤���˂��x
-			PRINTFORML �|����ژ_��ł����ꏊ��w����Ă������Q����%CALLNAME:TARGET%�ɁA
-			PRINTFORML %CALLNAME:ACTOR%�͘r��g��ŚX���Ă���B
+			PRINTFORML 「……ｽｰ……ｽｰ……ｽｰ……」
+			PRINTFORML 『……どうしましょうかねえ』
+			PRINTFORML 掃除を目論んでいた場所を陣取ってうたた寝する%CALLNAME:TARGET%に、
+			PRINTFORML %CALLNAME:ACTOR%は腕を組んで唸っている。
 		ENDIF
 	ENDIF
-CASE "�Z��"
-	IF CEVENT("�l�R�C�x���g�F�Z�؏���b") == 0
-		PRINTFORML �u�ցA�́c�c�c�c�_�l�A���v
-		PRINTFORML �u�c�c�c�c����H ���₢�₢��v
-		PRINTFORML �u��Âɍl�����牽���ǂ�������_�l�������ɂ���킯���v
-		CALL SET_CEVENT, "�l�R�C�x���g�F�Z�؏���b"
+CASE "六華"
+	IF CEVENT("ネコイベント：六華初会話") == 0
+		PRINTFORML 「蛇、の…………神様、か」
+		PRINTFORML 「…………うん？ いやいやいや」
+		PRINTFORML 「冷静に考えたら何をどうしたら神様がここにいるわけさ」
+		CALL SET_CEVENT, "ネコイベント：六華初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u�_�l�ł�������͂������肠��񂾂˂��v
-			PRINTFORML %CALLNAME:TARGET%�͂���������%CALLNAME:ACTOR%�����߂Ă���B
+			PRINTFORML 「神様でも発情期はしっかりあるんだねえ」
+			PRINTFORML %CALLNAME:TARGET%はしげしげと%CALLNAME:ACTOR%を見つめている。
 		ELSE
-			PRINTFORML �u���[��c�c�v
-			PRINTFORML �Y�܂����ȗl�q�Ŕ��Ԃ�ᰂ��񂹂�%CALLNAME:TARGET%�́A%CALLNAME:ACTOR%�Ƌ��������悤�ɂ��Ă����B
-			PRINTFORML (�_�l�c�c�_�l����)
+			PRINTFORML 「うーん……」
+			PRINTFORML 悩ましげな様子で眉間に皺を寄せる%CALLNAME:TARGET%は、%CALLNAME:ACTOR%と距離を取るようにしていた。
+			PRINTFORML (神様……神様かぁ)
 		ENDIF
 	ENDIF
-CASE "�n�i"
-	IF CEVENT("�l�R�C�x���g�F�n�i����b") == 0
-		PRINTFORML �u�킨�A�������B���̐l������񂾂˂��v
-		PRINTFORML �w���A���́I�c�c������Ȃ�����X�A�Ⴄ����X�A���[���݂Ȃ���X�c�c�x
-		PRINTFORML �u�����Ƃ���́c�c�{���ɁA���́A����c�c���߂�ˁA���[���݂����v
-		PRINTFORML �w�c�c���X�x
-		CALL SET_CEVENT, "�l�R�C�x���g�F�n�i����b"
+CASE "ハナ"
+	IF CEVENT("ネコイベント：ハナ初会話") == 0
+		PRINTFORML 「わお、驚いた。犬の人も居るんだねえ」
+		PRINTFORML 『あ、あの！……犬じゃないんっス、違うんっス、おーかみなんっス……』
+		PRINTFORML 「おっとこれは……本当に、その、失礼……ごめんね、おーかみちゃん」
+		PRINTFORML 『……っス』
+		CALL SET_CEVENT, "ネコイベント：ハナ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u���[���݂����͂��������ĉ����Ȃ��v
-			PRINTFORML �u�c�c�c�c����A����A�{���Ɂv
-			PRINTFORML ���킻��Ƃ��Ă���%CALLNAME:TARGET%��%CALLNAME:ACTOR%��w�ォ��������߂�B
-			PRINTFORML �u�ււցc�c�����A����ς�g�����c�c�Q���킱��v
-			PRINTFORML �����Ă��̂܂ܑ̏d���|����ƐÂ��ɖڂ�����B
+			PRINTFORML 「おーかみちゃんはちっこくて可愛いなあ」
+			PRINTFORML 「…………失礼、いや、本当に」
+			PRINTFORML そわそわとしていた%CALLNAME:TARGET%は%CALLNAME:ACTOR%を背後から抱き締める。
+			PRINTFORML 「へへへ……あぁ、やっぱり暖かい……寝れるわこれ」
+			PRINTFORML そしてそのまま体重を掛けると静かに目を閉じた。
 		ELSE
-			PRINTFORML �u�Q�[���͂���܂��������ƂȂ��񂾂�ˁv
-			PRINTFORML �u�����A�ł��E�`�Ƀt�@�~�R���͂������ȁv
-			PRINTFORML �u�Ȃ񂾂����A���ȉ��W���[�N�́c�c���A�t�@�~�R���ƃX�[�p�[�t�@�~�R���͕ʁH�v
-			PRINTFORML �u�c�c�c�c���A�����Ȃ񂾁v
+			PRINTFORML 「ゲームはあんまりやったことないんだよね」
+			PRINTFORML 「ああ、でもウチにファミコンはあったな」
+			PRINTFORML 「なんだっけ、反省猿ジロー君の……え、ファミコンとスーパーファミコンは別？」
+			PRINTFORML 「…………そ、そうなんだ」
 		ENDIF
 	ENDIF
-CASE "�A�C��"
-	IF CEVENT("�l�R�C�x���g�F�A�C������b") == 0
-		PRINTFORML �w���́c����Ȃɂ��[���ƌ�����Ɨ��������Ȃ��񂾂��ǁx
-		PRINTFORML �u�����c�c����A���߂�B�V�R���m���Ė{���ɋ���񂾂Ȃ����Ďv���āv
-		PRINTFORML �w�e�A�e���l�����m�H�x
-		PRINTFORML �u���[���́c�c���[�炢�A�Ȃ�ł��Ȃ��B��낵���A�˂���y�v
-		PRINTFORML �w����A�m���������ł���c�H�x
-		PRINTFORML �u�����͂܂��A����[���Ȃ��Ƃ������Ƃłǂ����v
-		CALL SET_CEVENT, "�l�R�C�x���g�F�A�C������b"
+CASE "アイリ"
+	IF CEVENT("ネコイベント：アイリ初会話") == 0
+		PRINTFORML 『あの…そんなにじーっと見られると落ち着かないんだけど』
+		PRINTFORML 「ああ……うん、ごめん。天然モノって本当に居るんだなぁって思って」
+		PRINTFORML 『テ、テンネンモノ？』
+		PRINTFORML 「あーその……おーらい、なんでもない。よろしく、ねこ先輩」
+		PRINTFORML 『いや、確か同級生でしょ…？』
+		PRINTFORML 「そこはまぁ、しょーがないということでどうか」
+		CALL SET_CEVENT, "ネコイベント：アイリ初会話"
 	ELSE
 		IF RAND:5 == 0
-			PRINTFORML �u���́[�˂���y�A����[����%TEXTR("����/���w/�p��/�n��")%�����ė~�����񂾂��ǁv
-			PRINTFORML �u�m�����Ƃ̐i�݋�̓E�`�̃N���X�ƕς��Ȃ�������ˁH�v
-			PRINTFORML �u���e�X�g�̒ǎ����c�c�����A����A���Ƃ͕����Ă���v
-			PRINTFORML �u������ƁA���́c�c%TEXTR("���Ƃ�������ɂȂ��Ă܂���/�����w�K�A�I�ȁH")%�c�c�͂́A�͂͂͂͂́v
-		ELSEIF RAND:4 == 0 && CFLAG:ACTOR:�}�^�^�r != 0
-			PRINTFORML �u����H�}�^�^�r�Ő����ς炤�H�v
-			PRINTFORML �u����������%CNAME("��l��")%�͂��������o�������ȁc�c�v
-			PRINTFORML �u�V�R���m�Ƃ̈Ⴂ���Ȃ��v
+			PRINTFORML 「あのーねこ先輩、ちょーっと%TEXTR("現国/数学/英語/地歴")%教えて欲しいんだけど」
+			PRINTFORML 「確か授業の進み具合はウチのクラスと変わらなかったよね？」
+			PRINTFORML 「小テストの追試が……ああ、いや、授業は聞いてたよ」
+			PRINTFORML 「ちょっと、その……%TEXTR("夢とごっちゃになってまして/睡眠学習、的な？")%……はは、ははははは」
+		ELSEIF RAND:4 == 0 && CFLAG:ACTOR:マタタビ != 0
+			PRINTFORML 「うん？マタタビで酔っぱらう？」
+			PRINTFORML 「そう言えば%CNAME("一人称")%はそういう経験無いな……」
+			PRINTFORML 「天然モノとの違いかなぁ」
 		ELSEIF RAND:3 == 0
-			PRINTFORML �u�i���o���I�Ȉӎ����Ă悭����Ȃ��񂾂�˂��v
-			PRINTFORML �u���ۂǂ̕ӂ��N�̃i���o���Ƃ����Ă���̂��ȁA�˂���y�H�v
+			PRINTFORML 「ナワバリ的な意識ってよく解らないんだよねえ」
+			PRINTFORML 「実際どの辺が誰のナワバリとかってあるのかな、ねこ先輩？」
 		ELSEIF RAND:2
-			PRINTFORML �u���A�˂���y�v
-			PRINTFORML �u%TEXTR("������Ɩ����Z���ڂ�����/�ǂ��̂���������")%�A���ЂƂ������H�v
-			PRINTFORML �u����A�ϊ������ǁv
+			PRINTFORML 「あ、ねこ先輩」
+			PRINTFORML 「%TEXTR("ちょっと味が濃い目だけど/良いのが入ったんだ")%、おひとついかが？」
+			PRINTFORML 「うん、煮干だけど」
 		ELSE
-			PRINTFORML �r��g��œ˂�������%CALLNAME:TARGET%�́A���ڂ�%CALLNAME:ACTOR%�����Ă����B
-			PRINTFORML (%TEXTR("�A�܂������Ďv������A�����Ȃ��񂾂��ǂ�/�ŏ�����L�����肾������c�c��/�c�c��Ȃ��炱���A�ڂ����Ȃ�")%)
+			PRINTFORML 腕を組んで突っ伏した%CALLNAME:TARGET%は、薄目で%CALLNAME:ACTOR%を見ていた。
+			PRINTFORML (%TEXTR("羨ましいって思っちゃ、いけないんだけどね/最初から猫混じりだったら……か/……我ながらこう、卑しいなぁ")%)
 		ENDIF
 	ENDIF
-CASE "�ˎq"
-	;����̏�k�Ɏ��s����R�~����̊�
-	IF CEVENT("�l�R�C�x���g�F�ˎq����b") == 0
-		PRINTFORML (�c�c�c�c�����A�Ȃ�قǁA�l���B�������A��y)
-		PRINTFORML �u���́c�c�������I�I�Ȃ�Č����Ď���ĐH�ׂ���\�\�v
-		PRINTFORML �u���Ȃ�����A���S���ĉ������ł��c�c���Č������Ǝv�����񂾂��ǁv
-		PRINTFORML �u�c�c�c�c�ł܂���������Ȃ��v
-		CALL SET_CEVENT, "�l�R�C�x���g�F�ˎq����b"
+CASE "祥子"
+	;初手の冗談に失敗するコミュ障の鑑
+	IF CEVENT("ネコイベント：祥子初会話") == 0
+		PRINTFORML (…………ああ、なるほど、鼠か。しかも、先輩)
+		PRINTFORML 「あの……がおっ！！なんて言って取って食べたり――」
+		PRINTFORML 「しないから、安心して下さいです……って言おうと思ったんだけど」
+		PRINTFORML 「…………固まっちゃったなあ」
+		CALL SET_CEVENT, "ネコイベント：祥子初会話"
 	ELSE
-		;���{�ł͑����Ⴄ�Ǝv���܂�
+		;根本では多分違うと思います
 		IF RAND:2
-			PRINTFORML (���������݂��������A���ǂ��������񂾂��ǂ˂��c�c�˂��݃Z���p�C)
-			PRINTFORML �������Ɩ������Ȋ��%CALLNAME:ACTOR%�����߂�%CALLNAME:TARGET%�̎�����
-			PRINTFORML �T���猩��ΐÂ��Ɋl�������U���L�̂���Ɏ��Ă����B
+			PRINTFORML (似た境遇みたいだし、仲良くしたいんだけどねえ……ねずみセンパイ)
+			PRINTFORML じぃっと眠たげな眼で%CALLNAME:ACTOR%を見つめる%CALLNAME:TARGET%の視線は
+			PRINTFORML 傍から見れば静かに獲物を見繕う猫のそれに似ていた。
 		ELSE
-			PRINTFORML �u�c�c�˂��݃Z���p�C�~��E�`�ɗ��Ă��ꂽ�肵�Ȃ����ȁv
-			PRINTFORML �u���̒g�������ȐK�������ł��c�c�����A����A��k�����瓦���Ȃ��ł��������ł��v
+			PRINTFORML 「……ねずみセンパイ冬場ウチに来てくれたりしないかな」
+			PRINTFORML 「あの暖かそうな尻尾だけでも……ああ、いや、冗談だから逃げないでくださいです」
 		ENDIF
 	ENDIF
-CASE "�����[�i"
-	IF CEVENT("�l�R�C�x���g�F�����[�i����b") == 0
-		PRINTFORML �u�c�c�F�X�`�������鑲�Ɛ���������Ă͕����Ă����ǁc�c�}�W�ɗ��ł��H�v
-		PRINTFORML �w��H ���̒ʂ�}�W�ɗ�����H�x
-		PRINTFORML ����������%CALLNAME:ACTOR%�͉���Ղ����Ɗp���������B
-		PRINTFORML �u�킟���c�c�}�W�ɗ��Ȃ��ˁ[���񂾂��v
-		;PRINTFORML �u�����ă}���I�����c�c�v
-		PRINTFORML �w��낵���ˁA�}�W�ɔL�Ȍ�y��x
-		PRINTFORML �u���ƁA�͂��c�c�v
-		PRINTFORML �u�c�c���Ă���A�}�W�ɔL����Ȃ����c�c�ł��v
-		CALL SET_CEVENT, "�l�R�C�x���g�F�����[�i����b"
+CASE "リューナ"
+	IF CEVENT("ネコイベント：リューナ初会話") == 0
+		PRINTFORML 「……色々伝説がある卒業生が居るっては聞いてたけど……マジに竜です？」
+		PRINTFORML 『ん？ この通りマジに竜だよ？』
+		PRINTFORML そう言って%CALLNAME:ACTOR%は解り易く翼と角を見せた。
+		PRINTFORML 「わぁお……マジに竜なおねーさんだあ」
+		;PRINTFORML 「略してマリオかぁ……」
+		PRINTFORML 『よろしくね、マジに猫な後輩♪』
+		PRINTFORML 「えと、はい……」
+		PRINTFORML 「……っていや、マジに猫じゃないし……です」
+		CALL SET_CEVENT, "ネコイベント：リューナ初会話"
 	ELSE
 		IF RAND:2
-			PRINTFORML �u���[�A�}�W�ɗ��Ȃ��ˁ[����v
-			PRINTFORML �u100�l��5�b����ĉ\�A������}�W�ł��H�v
+			PRINTFORML 「あー、マジに竜なおねーさん」
+			PRINTFORML 「100Ｍ走5秒台って噂、あれもマジです？」
 		ELSE
-			PRINTFORML �u���܁[�ɂȂ񂾂��ǃ}�W�ɗ��Ȃ��ˁ[���񂩂�y���ۂ���������񂾂�ˁv
-			PRINTFORML �u�c�c���̕ӂɂ���Ȏ���ꂷ��قǂ̉Ԓd�Ƃ����Ƃ������������v
+			PRINTFORML 「たまーになんだけどマジに竜なおねーさんから土っぽい匂いするんだよね」
+			PRINTFORML 「……この辺にそんな手入れするほどの花壇とか畑とかあったっけ」
 		ENDIF
 	ENDIF
-CASE "���"
-	IF CEVENT("�l�R�C�x���g�F��я���b") == 0
-		PRINTFORML �w�͂��߂܂��ĔL����I%CALLNAME:ACTOR%�ł��I�x
-		PRINTFORML �u���A�����c�c�����H�v
-		PRINTFORML �w�c�c�ށ[�A%CALLNAME:ACTOR%�ł��I�����O�������Ă��������I�x
-		PRINTFORML �u���A�����ƁA�����J�ɂǂ����B%CALLNAME:TARGET%�c�c�ł��H�v
-		PRINTFORML �w�킟�`�L����͂˂�����Ȃ�ł��ˁI�x
-		PRINTFORML �u����A�˂����񂶂�Ȃ��Ă˂�������ł��v
-		CALL SET_CEVENT, "�l�R�C�x���g�F��я���b"
+CASE "千紗"
+	IF CEVENT("ネコイベント：千紗初会話") == 0
+		PRINTFORML 『はじめまして猫さん！%CALLNAME:ACTOR%です！』
+		PRINTFORML 「お、おう……おう？」
+		PRINTFORML 『……むー、%CALLNAME:ACTOR%です！お名前おしえてください！』
+		PRINTFORML 「あ、えぇと、ご丁寧にどうも。%CALLNAME:TARGET%……です？」
+		PRINTFORML 『わぁ～猫さんはねこさんなんですね！』
+		PRINTFORML 「いや、ねこさんじゃなくてねいこさんです」
+		CALL SET_CEVENT, "ネコイベント：千紗初会話"
 	ELSE
 		IF RAND:3 == 0
-			PRINTFORML %CALLNAME:ACTOR%��%CALLNAME:TARGET%�̗h��鍕�т̐K����ڂŒǂ��Ȃ��炻�킻��Ƃ��Ă���c
-			PRINTFORML �u�ł����q�����A�X�e�C�v
-			PRINTFORML �w�c�c�ށ[�x
-			PRINTFORML �ǂ���疳���̍U�h���������炵���c
+			PRINTFORML %CALLNAME:ACTOR%は%CALLNAME:TARGET%の揺れる黒毛の尻尾を目で追いながらそわそわとしている…
+			PRINTFORML 「ですっ子ちゃん、ステイ」
+			PRINTFORML 『……むー』
+			PRINTFORML どうやら無言の攻防があったらしい…
 		ELSEIF RAND:2
-			PRINTFORML �u�c�c�ӂ����v
-			PRINTFORML �w�ӂɂ႟����x
-			PRINTFORML %CALLNAME:ACTOR%��%CALLNAME:TARGET%�̌��L�ɍ��킹�ĕ��^�������ėV��ł���悤���B
-			PRINTFORML �u�c�c�y�����H�v
-			PRINTFORML �w���ւց� �͂��I�x
-			PRINTFORML �u�����c�c�܂��A�ǂ����ǁv
+			PRINTFORML 「……ふぁあ」
+			PRINTFORML 『ふにゃぁあ♪』
+			PRINTFORML %CALLNAME:ACTOR%は%CALLNAME:TARGET%の欠伸に合わせて物真似をして遊んでいるようだ。
+			PRINTFORML 「……楽しい？」
+			PRINTFORML 『えへへ♪ はい！』
+			PRINTFORML 「そか……まぁ、良いけど」
 		ELSE
-			PRINTFORML ���ӂŉ��������Ă���%CALLNAME:TARGET%��%CALLNAME:ACTOR%���Ђ������Ɗ���o���B
-			PRINTFORML �w�˂�����˂�����A�ǂ����܂����H�Ȃɂ��݂��܂��H�x
-			PRINTFORML �u�����I�H �c�c��������A�ځ[���Ƃ��Ă������x
+			PRINTFORML 窓辺で遠くを見ていた%CALLNAME:TARGET%に%CALLNAME:ACTOR%がひょっこりと顔を出す。
+			PRINTFORML 『ねこさんねこさん、どうしました？なにかみえます？』
+			PRINTFORML 「うぉ！？ ……あぁいや、ぼーっとしてただけ』
 		ENDIF
 	ENDIF
 CASEELSE
 	CALL PRINT_TaiTaChara
-	;������Ό��L
-	PRINTFORML �u�͂������`�c�c�ӂ��c�c�˂ށv
+	;隙あらば欠伸
+	PRINTFORML 「はぁぁあ～……ふぅ……ねむ」
 ENDSELECT
 
 ;--------------------------------------------------
-;����TARGET�ɂȂ��Ă���L�����ƑΘb�C�x���g���N������L��������l�I�Ԋ֐��B�N�����Ȃ��ꍇ�ɂ�0���Ԃ�
-;����̐l�����������l�I�т����ꍇ�ɂ�ARGS��TEXTR�`����CALLNAME������
-;��)�t�F���V�G��or�G�G�̌Nor�c�F�c�B�[���A�����l�I�ԏꍇ�ɂ�
-;FIND_TaiTa("�t�F���V�G��/�G�G�̌N/�c�F�c�B�[���A") �ł��̂R�l�̓��őΘb�\�ȑ���̃L�����ԍ����Ԃ�
+;現在TARGETになっているキャラと対話イベントを起こせるキャラを一人選ぶ関数。誰も居ない場合には0が返る
+;特定の人物たちから一人選びたい場合にはARGSにTEXTR形式でCALLNAMEを入れる
+;例)フェリシエルor濡烏の君orツェツィーリアから一人選ぶ場合には
+;FIND_TaiTa("フェリシエル/濡烏の君/ツェツィーリア") でこの３人の内で対話可能な相手のキャラ番号が返る
 ;
-;�܂��A�S������I�т����ꍇ�ɂ�FIND_TaiTa("�S��")�Ƃ���Ηǂ�
+;また、全員から選びたい場合にはFIND_TaiTa("全員")とすれば良い
 ;--------------------------------------------------
 @FIND_TaiTa(ARGS)
 #FUNCTION
@@ -2606,14 +2606,14 @@ ENDSELECT
 #DIM ACTOR
 
 SELECTCASE ARGS
-CASE "�S��"
-	ARGS = %NAMES("�Θb�\�L�����ꗗ", TARGET)%
+CASE "全員"
+	ARGS = %NAMES("対話可能キャラ一覧", TARGET)%
 CASEELSE
-	;�܂���ARGS��CALLNAME��Âɕ���
+	;まずはARGSをCALLNAME一個づつに分解
 	VARSET LOCALS
 	SPLIT ARGS, "/", LOCALS
 
-	;�Θb�\�ȃL�����݂̂�ARGS���č\��
+	;対話可能なキャラのみでARGSを再構成
 	ARGS = 
 	FOR LCOUNT, 0, 100
 		SELECTCASE LOCALS:LCOUNT
@@ -2623,7 +2623,7 @@ CASEELSE
 			ACTOR = FIND_NO(LOCALS:LCOUNT)
 			SIF ACTOR < 0
 				CONTINUE
-			SIF COND("�Θb�\", ACTOR)
+			SIF COND("対話可能", ACTOR)
 				ARGS += @"%LOCALS:LCOUNT%/"
 		ENDSELECT
 	NEXT

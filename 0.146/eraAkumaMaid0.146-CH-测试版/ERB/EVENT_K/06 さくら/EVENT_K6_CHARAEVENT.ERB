@@ -1,5 +1,5 @@
-;-------------------------------------------------
-;���N�x���ǂ��܂Ői��ł��邩�����邾���̊֐�
+﻿;-------------------------------------------------
+;健康度がどこまで進んでいるかを見るだけの関数
 ;-------------------------------------------------
 @SAKURA_HEALTH_M(ARG)
 #FUNCTION
@@ -7,7 +7,7 @@
 SIF ARG == 0
 	ARG = TARGET
 
-RETURNF (CFLAG:ARG:���N�x / 100)
+RETURNF (CFLAG:ARG:健康度 / 100)
 
 @SAKURA_HEALTH_S(ARG)
 #FUNCTION
@@ -15,197 +15,314 @@ RETURNF (CFLAG:ARG:���N�x / 100)
 SIF ARG == 0
 	ARG = TARGET
 
-RETURNF (CFLAG:ARG:���N�x % 100)
+RETURNF (CFLAG:ARG:健康度 % 100)
 
 
 ;-------------------------------------------------
-;�l�^�o������̂��߃C�x���g�����𕪗�
-;���̂Ƃ��뒲���J�n�O����̌Ăяo���̂�
+;ネタバレ回避のためイベント部分を分離
+;今のところ調教開始前からの呼び出しのみ
 ;-------------------------------------------------
 @CHARAEVENT_K6
 
-;�C�x���g�i���N�x�j 
-;���N�x�̎d�l
-;���N�x / 100 = �C�x���g�敪�iMain�j
-;���N�x % 100 = �C�x���g�敪�iSub�j�@���99��
+;イベント（健康度） 
+;健康度の仕様
+;健康度 / 100 = イベント区分（Main）
+;健康度 % 100 = イベント区分（Sub）　上限99個
 
 
-;�i�K0
+;段階0
 IF SAKURA_HEALTH_M(TARGET) == 0
-	;0-0�@����3��ڈȍ~����1�ȏ�@M0�@S0
-	IF SAKURA_HEALTH_S(TARGET) == 0 && EXP:�g�� >= 2 && BASE:�� >= 1
-		PRINTFORMW �u%CNAME("��l��")%�Ƃ��́c�c����悤�ɂȂ��Ă���ł��ˁv
-		PRINTFORMW �u�Ȃ�ƁA�w�Z�ɍs���Ă��ی����ɍs���Ȃ��Ă悭�Ȃ�����ł��v
-		PRINTFORMW �u�������ł���ˁA�т�����ł���v
-		PRINTFORMW ���������l�q��%CALLNAME:TARGET%�́A�y��������%CALLNAME:MASTER%�ɘb�������Ă���B
-		CFLAG:���N�x ++
+	;0-0　調教3回目以降かつ魂1以上　M0　S0
+	IF SAKURA_HEALTH_S(TARGET) == 0 && EXP:Ｈ回数 >= 2 && BASE:魂 >= 1
+		PRINTFORMW 「%CNAME("二人称")%那个……变成这样之后」
+		PRINTFORMW 「哎呀、即使去学校也不去保健室就好了」
+		PRINTFORMW 「好厉害啊、吓我一跳」
+		PRINTFORMW 一脸兴奋样子的%CALLNAME:TARGET%开心地和%CALLNAME:MASTER%说着话。
+		CFLAG:健康度 ++
 		
-	;0-1�@��5�ȏ�@M0�@S1
-	ELSEIF SAKURA_HEALTH_S(TARGET) == 1 && BASE:�� >= 5
-		PRINTFORMW �u�ŋ߂����̒����悭���āc�c�v
-		PRINTFORMW �u�閰��Ƃ����Q�t����������ł��B�|���Ȃ���ł���v
-		PRINTFORMW �u�����������Ɩڂ��o�߂邩�Ȃ��ĐS�z���Ȃ��Ă�����ł��v
-		PRINTFORMW %CALLNAME:TARGET%�͉��₩�ȏ΂݂𕂂��ׂȂ���A����������悤�Ȗڂ����Ă���B
-		CFLAG:���N�x ++
+	;0-1　魂5以上　M0　S1
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 1 && BASE:魂 >= 5
+		PRINTFORMW 「最近身体好多了……」
+		PRINTFORMW 「晚上睡觉的时候也容易入睡、不害怕哦」
+		PRINTFORMW 「不用担心明天是否也会醒来」
+		PRINTFORMW %CALLNAME:TARGET%的脸上带着平静的笑容、眼睛望向远方。
+		CFLAG:健康度 ++
 		
-	;0-2�@��10�ȏ�@M0�@S2
-	ELSEIF SAKURA_HEALTH_S(TARGET) == 2 && BASE:�� >= 10
-		PRINTFORMW �u���̑O�a�@�ɍs������ł����ǁA�搶�����Ă܂����v
-		PRINTFORMW �u���΂炭�l�q���݂āA����ł����̂܂܂Ȃ��������y�߂̂��̂ɕς��݂����Łv
-		PRINTFORMW �u�ӂӁA�݂��%CNAME("��l��")%�̂������ł��ˁc�c�v
-		PRINTFORMW %CALLNAME:TARGET%��%CALLNAME:MASTER%�ɁA���S���������΂݂������Ă���c�c�B
-		CFLAG:���N�x ++
+	;0-2　魂10以上　M0　S2
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 2 && BASE:魂 >= 10
+		PRINTFORMW 「上次去医院的时候医生也很惊讶」
+		PRINTFORMW 「虽然说是暂且观察病情、但如果只是继续这样的话、药量好象也能用稍微减轻一点」
+		PRINTFORMW 「呵呵、大家都说多亏了%CNAME("二人称")%的帮助呢」
+		PRINTFORMW %CALLNAME:TARGET%对%CALLNAME:MASTER%展露出了安心的笑容。
+		CFLAG:健康度 ++
 		
-	;0-3�@��15�ȏ�@M0�@S3
-	ELSEIF SAKURA_HEALTH_S(TARGET) == 3 && BASE:�� >= 15
-		PRINTFORMW �u���������A���̂܂ܒ��q���ǂ��Ȃ�����̈�̎��Ƃɏo�Ă������ł�����Č���ꂽ��ł��v
-		PRINTFORMW �u�ӂӁA�y���݂ł��v
-		PRINTFORMW �u�^���͂قƂ�ǂ������Ƃ��Ȃ��̂ŁA��肭�͂ł��Ȃ��Ǝv���܂����ǁc�c�v
-		PRINTFORMW ��΂��𕂂��ׂȂ�����A%CALLNAME:TARGET%�͂ǂ����y�������ȕ��͋C���B
-		CFLAG:���N�x ++
+	;0-3　魂15以上　M0　S3
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 3 && BASE:魂 >= 15
+		PRINTFORMW 「对了对了、我听说像这样继续好转的话、就可以去上体育课了」
+		PRINTFORMW 「嘿嘿、好期待啊」
+		PRINTFORMW 「因为几乎没有做过运动、所以我想我大概不太擅长……」
+		PRINTFORMW 虽然脸上露出苦笑、%CALLNAME:TARGET%总觉得气氛很愉快。
+		CFLAG:健康度 ++
 		
-	;0-4-1�@����Ȃ��@M0�@S4
-	;�i�s�Ȃ�
-	ELSEIF SAKURA_HEALTH_S(TARGET) == 4 && TALENT:���� == 0
+	;0-4-1　恋慕なし　M0　S4
+	;進行なし
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 4 && TALENT:恋慕 == 0
 		IF RAND:3 == 0
-			PRINTFORMW �u�����Ă�������%CNAME("��l��")%�A�����͂ł��ˁ\�\�v
+			PRINTFORMW 「请听我说%CNAME("二人称")%、今天呢――」
 		ELSEIF RAND:2 == 0
-			PRINTFORMW �u\@ TEXTS("�j��") != "��" ? ������ # \@���ƒ��A����Ȃ��Ƃ���������ł���v
+			PRINTFORMW 「\@ TEXTS("曜日") != "日" ? 今日も# \@上课时、发生了这样的事
 		ELSE
-			PRINTFORMW �u�ړ���������������ł����ǁA���₤���w�Z�Ŗ��q�ɂȂ肩���܂����c�c�v
+			PRINTFORMW 「虽然有移动教室、但好容易在学校里迷路了……」
 		ENDIF
-		PRINTFORMW %CALLNAME:TARGET%��\@ TEXTS("�j��") != "��" ? ������ # \@�w�Z�ŋN�����o�������y�������ɘb���Ă���c�c�B
+		PRINTFORMW %CALLNAME:TARGET%は\@ TEXTS("曜日") != "日" ? 今天也 # \@愉快地谈论着在学校发生的事情……
 
-	;0-4-2�@���炠��@M0�@S4
-	ELSEIF SAKURA_HEALTH_S(TARGET) == 4 && TALENT:����
-		PRINTFORMW �u�c�c�c�c�v
-		PRINTFORMW �����w�Z�ł̏o�������y�������ɘb���Ă���%CALLNAME:TARGET%�����A�����͐Â��ɖق��Ă���B
-		PRINTFORMW �g�̂̒��q�������̂��낤���c�c�B
-		PRINTFORMW �����͑��߂ɐ��t��^�������������̂�������Ȃ��B
-		CFLAG:���N�x ++
+	;0-4-2　恋慕あり　M0　S4
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 4 && TALENT:恋慕
+		PRINTFORMW 「…………」
+		PRINTFORMW 之前总是愉快地谈论着在学校发生的事情、但是、%CALLNAME:TARGET%今天安静地沉默着。
+		PRINTFORMW 是身体不舒服吗……？
+		PRINTFORMW 今天也许得多给点精液比较好。
+		CFLAG:健康度 ++
 		
-	;0-5�@�����Ȃ��@M0�@S5
-	ELSEIF SAKURA_HEALTH_S(TARGET) == 5 && TALENT:����
-		PRINTFORMW �u�͂��c�c�v
-		PRINTFORMW %CALLNAME:TARGET%�͍��������ς�炸�Â����B
-		PRINTFORMW �悭���Ă݂�Ɗ炪�Ԃ���C���Ă���悤�����A�����r���悤�Ɏv����B
-		PRINTFORMW �̒��������̂ł���΁A���߂ɍ��𕪂���ׂ����낤���c�c�B
-		CFLAG:���N�x ++
+	;0-5　条件なし　M0　S5
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 5 && TALENT:恋慕
+		PRINTFORMW 「哈哈……」
+		PRINTFORMW %CALLNAME:TARGET%今天也仍旧很安静。
+		PRINTFORMW 仔细一看、她脸色发红、看上去气喘吁吁的……
+		PRINTFORMW 如果身体不舒服的话、是不是应该再多分点灵魂呢……？
+		CFLAG:健康度 ++
 		
-	;0-6-1�@��50�����@M0�@S6
-	;�i�s�Ȃ�
-	ELSEIF SAKURA_HEALTH_S(TARGET) == 5 && BASE:�� < 50
-		PRINTFORMW �u�c�c����v
-		PRINTFORMW %CALLNAME:TARGET%�̗l�q�͑��ς�炸�̂܂܂��B
-		PRINTFORMW ��������C�����j��f���̐F�͂ނ���܂��܂����߂��Ă��Ă���悤�Ɏv����c�c�B
+	;0-6-1　魂50未満　M0　S6
+	;進行なし
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 5 && BASE:魂 < 50
+		PRINTFORMW 「……唔」
+		PRINTFORMW %CALLNAME:TARGET%的情况还是老样子。
+		PRINTFORMW 但是通红的脸颊和喘息的样子反而显得十分色气……
 	
-	;0-6-2�@��50�ȏ�@M0�@S6
-	;���C���C�x���g�@M�i�K1�ɐi�s
-	ELSEIF SAKURA_HEALTH_S(TARGET) == 6 && BASE:�� >= 50
-		PRINTFORMW ���Ȃ�����������x�b�h�ɗU�����Ƃ�����k�邱�Ɛ��\���O�B
+	;0-6-2　魂50以上　M0　S6
+	;メインイベント　M段階1に進行
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 6 && BASE:魂 >= 50
+		PRINTFORMW 主人公把樱引诱到床上之前几十分钟
 		PRINTFORML
-		PRINTFORMW �i�����c�c�܂����j
+		PRINTFORMW （啊……又、又）
 		PRINTFORML
-		PRINTFORMW �炪�R����悤�ɔM���B�S����������������ł��Ă���̂�������B
-		PRINTFORMW �ǂ��ǂ��Ɩ�ۓ��͂܂�ŗ��̂悤�ŁA�����ł������₩�Ȃ�ʋ���������Ɍ��������������B
-		PRINTFORMW ���̐g�̂͂��̂Ƃ��낢���������B�����O�܂ł͒��q�悭�����Ă����̂ɁA�ˑR�ւ����Ȃ��Ă��܂����Ƃ�����B
+		PRINTFORMW 脸烧得火热、心脏像鹿撞一般跳着。
+		PRINTFORMW 咚咚地跳动着仿佛暴风雨一般、让本来就不平静的胸口更加难受。
+		PRINTFORMW 我的身体最近总是这样。刚才还好好的、突然一下小腹里就有一股热流。
 		PRINTFORML
-		PRINTFORMW ���x�݂̒��O�����肪���ɂЂǂ��B
-		PRINTFORMW �̈�ł��Ȃ�ł��Ȃ����ʂ̎��ƂȂ̂ɁA�����r���Ȃ��āA�����ځ[���Ƃ��āA�炪䥂ŏオ�����悤�ɐ^���ԂɂȂ�B
+		PRINTFORMW 午休前后特别严重。
+		PRINTFORMW 虽然只是普通的体育课、但依旧让她气喘吁吁、头晕目眩、脸就像煮熟了一样通红……
 		PRINTFORML
-		PRINTFORMW �u�͂��c�c���v
+		PRINTFORMW 「哈……啊」
 		PRINTFORML
-		PRINTFORMW �����Ă����ЂƂB
-		PRINTFORMW �ځ[���Ƃ��邾���łȂ��A�������ςȋC���ɂȂ��Ă��܂��̂��B���̂悤�ɁB
+		PRINTFORMW 还有一件事。
+		PRINTFORMW 不仅是发呆、心情也会变得有些奇怪。像现在这样。
 		PRINTFORML
-		PRINTFORMW ���̉����ނ��ނ�����B�S�����ǂ���Ƒ傫�����t�𑗂�o�����тɁA��[�ɂ��킶��ƔM���W�܂��Ă���B
-		PRINTFORMW �����Ȃ��Ă��܂��Ƃ炢�B�ӎ����Ȃ��悤�ɂ��悤�Ǝv���Ύv���قǕq���ɂȂ�B
+		PRINTFORMW 内心深处痒痒的。每当心脏不断往外输送血液时、热量就会慢慢地集中到乳头。。
+		PRINTFORMW 事到如今就更难受了、越想越敏感。
 		PRINTFORML
-		PRINTFORMW �܂�Œ�������������Ă��܂����Ƃ��̂悤���A�Ǝv���B
-		PRINTFORMW �C�Â��܂ł̊Ԃ͂Ȃ�Ƃ������Ȃ������͂��Ȃ̂ɁA�ӎ������Ƃ�����y�݂��C�ɂȂ��Ď~�܂�Ȃ��Ȃ�B
-		PRINTFORMW �ӎ����Ă��܂����ƂŊ��o���������܂����A�q���ɂȂ������Ƃł���ɋC�ɂȂ��Ă��܂��B����ȓ��X����B
+		PRINTFORMW 简直就像是有虫子叮咬一样。
+		PRINTFORMW 在发觉之前应该没什么感觉、可一旦意识到就痒得不得了。
+		PRINTFORMW 意识会被感觉集中、变得更加敏感、越敏感就越在意。陷入了这样的恶性循环。
 		PRINTFORML
-		PRINTFORMW ���炳��Ƃ����u���̗��n������������銴�o�B���������܂��Ă������񂪂ނ��ނ��Ɠ����������āA�u���̕z�n�ɂ�������ƕ����яオ��B�q���ɂȂ������񂩂���������ӂ�o�āA���S�̂������ƉΏƂ����悤�ɒg�����Ȃ�B
-		PRINTFORMW �C�����悳�Ɏv�킸�w���L�тāA�҂���Ǝ~�܂�B�͂����Ȃ��Ǝv���S���u���[�L��������B����ǂ����͒N�ɂ������Ă��Ȃ��B���ƒ��Ƃ͈Ⴄ�B�Ƃ��߂��邱�Ƃ��A�p���������v�������邱�Ƃ��Ȃ��c�c�B
+		PRINTFORMW 藏在衣服内的胸罩摩擦着乳头、小小的尖端浮肿着立了起来、透过胸前柔软的衣服可以看到明显的凸起。从大脑深处传来的快感让整个欧派变得敏感而火热。
+		PRINTFORMW 忍不住手指慢慢地伸到胸口揉捏了起来……内心想着现在周围也没有人、也不是在上课、既不用担心被人发现也不用害羞……
 		PRINTFORML
-		PRINTFORMW �u�c�c�񂣂��v
-		PRINTFORMW �C�Â����Ƃ��ɂ͋��������ۂ�Ɨ���Ɏ��܂��Ă����B�ł��˂��o�Ă�������l�����w�Ɛe�w�ł��肭��Ƃ܂ށB�Ƃ��ɂ͂��ɂ��ɂƉ����ׂ��悤�ɝ��݁A�܂�����Ƃ��ɂ͋��̓����̂悤�ɂ������グ��B
+		PRINTFORMW 「……嗯」
+		PRINTFORMW 等意识到的时候双手已经在衣服里摸着那对小白兔了、拇指和食指紧紧地捏住勃起的乳头、就像想挤奶一般拉扯揉捏着。
 		PRINTFORML
-		PRINTFORMW �u�͂����A�񂭁A�͂����A�͂��c�c���v
-		PRINTFORMW ���̌ۓ��͂��͂◣��Ă��Ă��������Ă��܂��̂ł͂Ȃ����Ƃ����قǂɌ������B�r���Ȃ����ċz�̉������邳���قǂɓ��ɋ����B������������w���~�܂�Ȃ��B�C���������A�C���������A�C���������\�\���ǁB
+		PRINTFORMW 「哈、嗯、哈、哈……啊」
+		PRINTFORMW 胸口的悸动已经到了即使在门口也能听到的程度。脑袋里只有激烈的喘息声。乳头上的手指停不下来啊、好舒服、好舒服、好舒服啊。但是――
 		PRINTFORML
-		PRINTFORMW �u\@ TRUE_SEX(MASTER) == "�I�g�R" ? �ɂ� # �˂� \@�A����c�c���v
-		PRINTFORMW ��~�Ő��܂����]����%CONDS("�֌W", MASTER)%�̊炪�����ԁB
-		PRINTFORMW �u����Ȃ��ł����A����Ȃ̂��Ⴚ�񂺂�A����Ȃ��c�c���v
-		PRINTFORMW %CNAME("��l��")%�ɂ��Ă����Ȃ��ƃC���Ȃ��B��������ׂđł������āA%CNAME("��l��")%�ɃC�����Ă��炢�����c�c�B
+		PRINTFORMW 「\@ TRUE_SEX(MASTER) == "オトコ" ? にい # ねえ \@、さん……っ」
+		PRINTFORMW 在被情欲感染的脑海里、%CONDS("関係", MASTER)%的脸慢慢浮现了上来。
+		PRINTFORMW 「还不够、这样的完全不够啊……」
+		PRINTFORMW %CNAME("二人称")%不是他来好像就不行。明天一定要告诉他、%CNAME("二人称")%想让他来的心情……
 		PRINTFORML
-		PRINTFORMW �ǂ�ȂƂ��ł��ǂ�����%CNAME("��l��")%�����Ȃ����T���Ă��܂��B
-		PRINTFORMW %CNAME("��l��")%�Ɖ�Ȃ����Ԃ����������ŁA����Ȃɂ��g�̂��ΏƂ��Ă��܂��B
-		PRINTFORMW ������%CNAME("��l��")%�����Ă������B%CNAME("��l��")%�ƈꏏ�ɂ������B%CNAME("��l��")%�ƃL�X�������B%CNAME("��l��")%�Ƃ������Ȃ��Ƃ��������B����ȕ��Ɏv���Ă��܂��C������}�����Ȃ��B
+		PRINTFORMW 无论何时何地都在寻找着%CNAME("二人称")%在哪里。
+		PRINTFORMW %CNAME("二人称")%只是一段时间不在一起、身体就变得这么火热。
+		PRINTFORMW 想要一直看着%CNAME("二人称")%想要一直和%CNAME("二人称")%在一起。想要亲吻%CNAME("二人称")%想和%CNAME("二人称")%做羞羞的事情。
 		PRINTFORML
-		PRINTFORMW �i����Ȃ́A���߁c�c�j
-		PRINTFORMW �c�c����Ȃ���炵���q�͌����Ă��܂��B%CNAME("��l��")%�ɖ��f��������q�Ȃ�Č����Ă��d�����Ȃ��B
+		PRINTFORMW （那种事情,不行啊……）
+		PRINTFORMW ……这么下流的女孩是会被讨厌的、给%CNAME("二人称")%添麻烦被讨厌了的话怎么办。
 		PRINTFORML
-		PRINTFORMW �u�䖝�A���Ȃ��Ɓv
-		PRINTFORMW ���c�ɂ��������炦�Ďw�𗣂��B
-		PRINTFORMW ���ꂽ���߂𐮂���B���ꂽ�u�������ʂ�ɂ��ď㒅�̃{�^���𗯂߂�B
-		PRINTFORMW �ł��Ȃ������񂪕����o�Ă��܂��Ă���̂́c�c�ǂ��ɂ��ł��Ȃ��̂ŉ䖝����B
+		PRINTFORMW 「要忍耐、不然的话」
+		PRINTFORMW 忍住快感放开了手指。
+		PRINTFORMW 整理着蓬乱的衣服。把偏离的胸罩系好,扣上了外衣的扣子。
+		PRINTFORMW 硬着的乳头顶在内衣上……好难忍耐啊。
 		PRINTFORML
-		PRINTFORMW �i�����ʂ�́A%CNAME("��l��")%�̖��̎��ɖ߂�Ȃ��Ɓc�c�j
+		PRINTFORMW （和平常一样的、作为%CNAME("二人称")%的妹妹的我不回去的话……）
 		PRINTFORML
-		;�i�K�i�s
-		CFLAG:���N�x = (CFLAG:���N�x / 100 + 1) * 100
+		;段階進行
+		CFLAG:健康度 = (CFLAG:健康度 / 100 + 1) * 100
 	ENDIF
 	
-;�i�K1
+;段階1
 ELSEIF SAKURA_HEALTH_M(TARGET) == 1
-	;1-0�@��500�ȏ�@M1�@S0
-	IF SAKURA_HEALTH_S(TARGET) == 0 && BASE:�� >= 500
-		IF COND("��")
-			PRINTFORMW �������n�܂��菭���O�A���ʂ̊w���͂܂������Ȃ��󂫋����ɂ��ׂ肱�񂾁B
-			PRINTFORMW ���ꂪ���Ə����x��������A�L���̂ǐ^�񒆂Łu��炩���āv���܂��Ă�����������Ȃ��B
-			PRINTFORMW �u�������c�c�����A�񂭂����c�c����A�͂��c�c���v
-			PRINTFORMW ����}���Ȃ��ƌ������Ă��܂��\�\����Ȏv���Ƃ͗����ɁA�B������Ȃ�����̐F�͂��邷��ƌ�����R��Ă��܂��B
+	;1-0　肛交允许　M1　S0
+	IF SAKURA_HEALTH_S(TARGET) == 0 && TALENT:恋慕 && ABL:Ａ感覚 >= 3
+		PRINTFORMW 「那个、%CNAME("二人称")%……」
+		PRINTFORMW %CALLNAME:TARGET%通红着脸，双手拽着衣角扭捏，一副很难为情的样子。
+		PRINTFORMW 「最近感觉好多了，现在去學校也沒問題。因为每天吃很多%CNAME("二人称")%的精、精液……」
+		PRINTFORMW 「谢谢你%CNAME("二人称")% ，从小一直那么照顾我，最喜欢你了！」
+		PRINTFORMW %CALLNAME:TARGET%的泪水盈眶欲出，坦率地表达着对%CNAME("二人称")%感激和爱意。
+		PRINTFORMW %CALLNAME:MASTER%和%CALLNAME:TARGET%抱在一起，感受着彼此的心意。
+		PRINTFORMW ……
+		PRINTFORMW 良久，%CALLNAME:TARGET%在怀里抬起头。
+		PRINTFORMW 「因为我们是%NAMES("兄弟")%，亂倫是不允許的。但是，如果%CNAME("二人称")%喜歡的話……」
+		PRINTFORMW 「屁、屁股……%CNAME("二人称")%的话、可以喲。」
+		PRINTFORMW 「弗莉希艾兒小姐说如果射在里面的话，效果会更好的。」
+		PRINTFORMW 「請%CNAME("二人称")%將精液滿滿地射進去吧，這也是為了治療喔……」
+		PRINTFORMW （病好的話，就可以和%CNAME("二人称")%一直、一直在一起了）
+		PRINTL 
+		SETCOLOR DEF_COLOR("黄色")
+		PRINTFORML - 系统消息 -
+		PRINTFORML  获得了和%CALLNAME:TARGET%肛交的允許。
+		PRINTFORML  A插入系统指令可以使用
+		PRINTFORMW  (事件為第三方魔改，触发条件将来可能会变更)
+		RESETCOLOR
+		CFLAG:健康度 ++
+
+	;1-1　魂200以上　M1　S1
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 1 && BASE:魂 >= 200
+		IF COND("昼")
+			PRINTFORMW 在社团活动开始前、躲开其他学生钻进了没有人的空教室。
+			PRINTFORMW 如果再慢一点的话、说不定会忍不住在在走廊中央……
+			PRINTFORMW 「呜呜……哼、哼哼……嗯、哈……啊」
+			PRINTFORMW 从发情的身体里传出刻意压抑的色情喘息。
 		ELSE
-			PRINTFORMW �u�������c�c�����A�񂭂����c�c����A�͂��c�c���v
-			PRINTFORMW ��A���̂����������Â������̒��B�Ȃ������肪���Ă��Ȃ��̂��Ƃ����΁A����͂������A�p������������B
-			PRINTFORMW ����Ȏp�A�N�ɂ��������Ȃ��\�\���ł͂����v���Ă��Ă��A�g�̂͑f���ɔ�������B
-			PRINTFORMW �ǂ�Ȃɗ}���悤�Ƃ��Ă��Ă��A������͉��߂����������ӂ�Ă��܂��c�c�B
+			PRINTFORMW 「呜呜……哼、哼哼……嗯、哈……啊」
+			PRINTFORMW 躲在反锁着的昏暗房间里。要说为什么没有开灯、肯定是因为害羞呀。
+			PRINTFORMW 「这样色情的样子、不能给任何人发现」、虽然脑子里这么想着、但是身体却传来阵阵快感。
+			PRINTFORMW 嘴里色气的喘息渐渐压抑不住、变得大声起来……。
 		ENDIF
 		PRINTFORML
-		PRINTFORMW �u%CNAME("��l��")%���A�͂����c�c�������A�����c�c���������悧���A�����A�D���c�c���v
-		PRINTFORMW �u�D���c�c%CNAME("��l��")%�D���ł��c�c���A�������c�c%CNAME("��l��")%�c�c�v
-		PRINTFORMW �u�񂣂��I�@�����A�񂣂��������[�[�����I�I�v
-		PRINTFORMW �]�𓠂����Ⓒ�̗\���ɁA�����Ȃ��A�Ɣ��˓I�Ɏ肪�����B����������ł����ƌ����ӂ������̂́A�}������Ȃ��g���͂ǂ����Ă����ӂ�o�Ă��܂��B
-		PRINTFORMW �S�g�ɓd���̂悤��Ⴢꂪ����̂�������B�����傫�����˂�����A�����悭���𐁂��Ă��܂��Ă���̂����o�I�ɂ킩�����B
-		PRINTFORMW �܂�Œނ�グ��ꂽ���̂悤�ɑS�g���т��т��Ɛk���Ď~�܂�Ȃ��B
+		PRINTFORMW 「%CNAME("二人称")%啊、哈……啊、好……那里好、那里、喜欢……啊」
+		PRINTFORMW 「好棒……%CNAME("二人称")%喜欢……啊、啊……%CNAME("二人称")%……」
+		PRINTFORMW 「んぅっ！　んんっ、んぅぅぅぅぅーーっっ！！」
+		PRINTFORMW 脑子被绝顶般的快感冲晕了。就算用手紧紧地捂住艳丽的小嘴、可声音还是堵不住漏了出来。
+		PRINTFORMW 全身仿佛电流在游走一般、腰部突然死死地顶起、仿佛瀑布一般潮吹了。
+		PRINTFORMW 浑身仿佛在岸上的鱼一般抽搐着。
 		PRINTFORML
-		PRINTFORMW �u�͂��c�c�͂����A�͂��c�c�͂��c�c�v
-		PRINTFORMW �������܂ł��R�̂悤�ɑS�g���������肵�Ă���B�g�̂͂܂�Ŏ��̐؂ꂽ�l�`�̂悤�ŁA���������Ƃ��邽�тɍ����邢�ƕԎ����Ԃ��Ă���C�������B
-		PRINTFORMW �u�͂����c�c�܂������������c�c�v
+		PRINTFORMW 「哈……哈、哈……哈哈……」
+		PRINTFORMW 直到刚才为止全身都筋疲力尽。身体简直就像断了线的玩偶、每次想动都觉得浑身乏力。。
+		PRINTFORMW 「啊……又做了……」
 		PRINTFORML
-		PRINTFORMW �d�����g�̂ɕڑł��ċN���オ��B�傫���͂������������ڂɓ���A������͎��R�Ƃ��ߑ������ڂ�o���B
-		IF COND("��")
-			PRINTFORMW �u�͂��A�����c�c�w�Z�ł���Ȃ��Ƃ����炢���Ȃ��̂Ɂc�c�v
-			PRINTFORMW �����ꂫ�Ȃ���A���ꂽ���߂𐮂���B
-			PRINTFORMW �i���A�ł��悭�l�����炢�������Ŏ����悤�Ȃ��Ƃ��Ă�ƌ����Ȃ����c�c�j
-			PRINTFORMW �u�c�c���₢��A����ς�_���ł����v
+		PRINTFORMW 撑着沉重的身体站起来、拉起漏出整个胸部半脱着的衣服、发出了叹息。
+		IF COND("昼")
+			PRINTFORMW 「啊、我已经……学校里做这样的事的话不行啊……」
+			PRINTFORMW 一边嘟哝着、一边整理着凌乱的衣服。
+			PRINTFORMW （唉、但是仔细一想、也不能说我经常在教室做类似的事情……）
+			PRINTFORMW 「……不、果然不行」
 		ELSE
-			PRINTFORMW �u������オ������������ǁA���v���ȍ��́c�c�v
-			PRINTFORMW ���ꂽ���߂𐮂���ԁA���Ƃ茾���o�Ă��܂��B
-			PRINTFORMW �i�����c�c%CNAME("��l��")%�ɕ������ĂȂ��Ƃ�����ł����ǁc�c�j
-			PRINTFORMW �u�c�c����A%CNAME("��l��")%�ȊO���_���ł���%CNAME("��l��")%�v
+			PRINTFORMW 「不知不觉就忍不住想做、现在终于好了……」
+			PRINTFORMW 一边整理凌乱的衣服、一边自言自语着。
+			PRINTFORMW （啊……不被%CNAME("二人称")%知道就好了……）
+			PRINTFORMW 「……不对、除了%CNAME("二人称")%以外的人也不行的吧%CNAME("一人称")%」
 		ENDIF
 		PRINTFORML
-		PRINTFORMW \@ COND("��") ? �ׂ̊����� # �����̃^���X����\@�V�������������o���B���܂ŗ����Ă����p���c�͂��������ƔG��Ă��܂��Ă��āA�ƂĂ�������悤�ȏ�Ԃł͂Ȃ������B
-		PRINTFORMW �u�͂��c�c�ł�%CNAME("��l��")%�ɂ��Ă�����Ă���Ďv���ƁA�Ȃ񂾂��������������肷���ł���ˁc�c�v
-		PRINTFORMW �u�ŋ߂͂ނ���A%CNAME("��l��")%�ɂ���Ă�ݒ肶��Ȃ��ƑS�R���܂�Ȃ����Ă������c�c�v
-		PRINTFORMW �u�����A�������Ă�Ȃ��A%CNAME("��l��")%�c�c�v
+		PRINTFORMW \@ COND("昼") ? 从旁边的包里 # 社团的柜子里\@拿出新的内衣、胖次都已经湿透了。
+		PRINTFORMW 「哈……但是一想到被%CNAME("二人称")%做这样那样的事情就忍不住……」
+		PRINTFORMW 「最近只要%CNAME("二人称")%没有对我做H的事情、身体完全没有办法平息……」
+		PRINTFORMW 「呜、恶化了啊、%CNAME("一人称")%……」
 		PRINTFORML
-		PRINTFORMW �u�c�c���ă_���_���A%CNAME("��l��")%�̂��Ƃ΂�����l���Ă�Ƃ܂��������Ȃ����Ⴄ���v
-		PRINTFORMW �u���x�c�c���̐g�̂̂��ƁA�t�F���V�G������ɑ��k���Ă݂悤���ȁc�c�v
-		CFLAG:���N�x ++
-		
+		PRINTFORMW 「……不行不行、想着%CNAME("二人称")%的事情又想做了」
+		PRINTFORMW 「这次……要不要试着和弗理希艾尔聊一下关于这个身体的事呢……」
+		CFLAG:健康度 ++
+
+	;1-2　魂250以上　M1　S2
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 2 && BASE:魂 >= 250
+		PRINTFORMW 「%CNAME("二人称")%、抱我……嘻嘻……」
+		PRINTFORMW 「吸……呼……%CNAME("二人称")%的%TEXTS("气味")%」
+		PRINTFORMW 「嘻嘻、%CNAME("二人称")%成分补充完毕！」
+		PRINTFORMW 「好幸福啊，再维持这样一下下、%CNAME("二人称")%」
+		PRINTFORMW 「呜嗯……胖次湿了……」
+		CFLAG:健康度 ++
+
+	;1-3　魂300以上　M1　S3
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 3 && BASE:魂 >= 300 && ABL:Ａ感覚 >= 5 && ABL:自慰中毒 >= 3
+		PRINTFORMW 一段时间前
+		PRINTFORMW %CALLNAME:TARGET%抱着肚子冲入厕所隔间，反手将门关上。
+		PRINTFORMW 「呜呜~」%CALLNAME:TARGET%褪下胖次，转身坐在便器上。
+		PRINTFORMW 「呜嗯~哇啊……出、出来了~」
+		PRINTFORMW %CALLNAME:TARGET%低头看去，只见胯下一条大便急不可耐地排出来了。
+		PRINTFORMW 「不行……有感觉了」随着一条条大便从肠道中挤出，%CALLNAME:TARGET%感到一阵异常的快感。
+		PRINTFORMW 「呜呜~都是%CNAME("二人称")%的错，拉屎的那里，屁眼变奇怪了！」%CALLNAME:TARGET%含泪欲出的自语。
+		PRINTFORML
+		PRINTFORMW 「一想到%CNAME("一人称")%，身体就好热。」
+		PRINTFORMW 想象着%CNAME("一人称")%的鸡巴在屁眼里抽插，一手揉着奶子，一手搓着阴蒂。
+		PRINTFORMW 「哈……哈啊、%CNAME("一人称")%……哈哈……」
+		PRINTFORMW （压抑着呻吟，在厕所的隔间里，拉屎自慰什么的……）
+		PRINTFORMW 「咿咿……出、出来了」
+		PRINTFORMW 伴随着太过激烈的快感而无法压抑的呻吟，一道阴精从阴道里射出，潮吹了……
+		PRINTFORMW 「呜嗯~呜嗯~呜嗯~」全身颤抖着瘫在便器上，淡黄色的小便出尿道里漏出来了。
+		PRINTFORMW 随着咻咻地声音的减弱，尿完了的%CALLNAME:TARGET%呼了口气，开始收拾残局……
+		CFLAG:健康度 ++
+	
+	;1-4　魂400以上　M1　S4
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 4 && BASE:魂 >= 400 && ABL:受虐属性 >= 3
+		PRINTFORMW 「呜嗯~%CNAME("二人称")%好坏啊，我快忍不住了啦！！」
+		PRINTFORMW 今天早上出门前在玄关被满满地射在屁眼里，然后塞上肛塞才允许出门。
+		PRINTFORMW 还被人说今天很奇怪，只能回是肚子不舒服。
+		PRINTFORMW 一直幸苦地忍到现在，已经快到极限了。
+		PRINTFORMW ……
+		PRINTFORMW 「%CNAME("二人称")%不要盯着看啊！好害羞……」
+		PRINTFORMW 被要求脱掉胖次靠坐在便器上，然后双腿被压在肩膀上用手抱住。维持在这种可耻的M字开腿姿势，最隐秘的下体展漏无疑。
+		PRINTFORMW 水蜜桃一样的屁股颤抖着，小豆豆从闭合的小馒头缝里冒出一个尖，一直兴奋着吧。
+		PRINTFORMW 淫液从缝隙中一直流到屁眼周围，被肛塞堵住的雏菊虽然看不见，但一定很红……
+		PRINTFORMW 「咿呀……别、别抓着肛塞乱动啊！%CNAME("二人称")%欺负人，呜泣……」
+		PRINTFORMW 「%CNAME("二人称")%！求您了！我好难受，好……好想拉屎！！呜~」
+		PRINTFORMW 终于，肛塞如愿的被拨出了，然后……
+		PRINTFORMW 「啊啊！」噗噗~ 噗噗~
+		PRINTFORMW 混着白色精液的稀屎，随着让人羞耻到想死的声音，被解放出来了。
+		PRINTFORMW 「呜呜~」
+		PRINTFORMW 「%CNAME("二人称")%、别做深呼吸啊！不臭吗？」
+		PRINTFORMW 最后、%CALLNAME:MASTER%帮几乎瘫痪的%CALLNAME:TARGET%擦屁股……
+		CFLAG:健康度 ++
+	
+	;1-5　魂500以上　M1　S5
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 5 && BASE:魂 >= 500
+		PRINTFORMW 「%CNAME("二人称")%、最喜欢你了！」
+		PRINTFORMW 「你知道吗？从小我身体不好，医院是我最常去的地方。」
+		PRINTFORMW 「每天，%CNAME("二人称")%都会到医院看我，跟我分享生活中的事情，陪我玩。」
+		PRINTFORMW 「从那时起，%CNAME("二人称")%、就是我的全部！」
+		PRINTFORMW 「我很开心喔，但是，好羡慕正常的生活。好想跟%CNAME("二人称")%一起做各种各样的事情。」
+		PRINTFORMW 「感谢弗莉希艾兒小姐，还有%CNAME("二人称")%一起治好了我的身体，最重要的是我可以跟%CNAME("二人称")%在一起。」
+		PRINTFORMW 「虽然身体变奇怪了，没有%CNAME("二人称")%的精液就感觉活不下去了。但是是%CNAME("二人称")%，所以没关系的。」
+		PRINTFORMW 「现在，我从身到心都充斥着%CNAME("二人称")%。」
+		PRINTFORMW 「%CNAME("一人称")%好幸福哟……」
+		PRINTFORML
+		CALL PRINT_STR, "イエロー_（※现在向樱告白的话……）_W"
+		CFLAG:健康度 = 200
+	ENDIF
+
+;段階2
+ELSEIF SAKURA_HEALTH_M(TARGET) == 2
+	IF SAKURA_HEALTH_S(TARGET) == 0 && TALENT:相思相愛 && TALENT:処女
+		PRINTFORMW 「%CNAME("二人称")%、请对%CALLNAME:TARGET%温柔点喔。」
+		PRINTFORMW 「因为还是第一次嘛……」
+		PRINTFORMW 「%CNAME("二人称")%，啾~」
+		PRINTFORMW ……
+		PRINTL 
+		SETCOLOR DEF_COLOR("ショッキングピンク")
+		PRINTFORML - 系统消息 -
+		PRINTFORML  获得了能和%CALLNAME:TARGET%做爱的协议。
+		PRINTFORML  V插入系统指令可以使用
+		PRINTFORMW  (事件还没有完成，触发条件将来可能会变更)
+		RESETCOLOR
+		CFLAG:健康度 ++
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 0 && TALENT:相思相愛 && !TALENT:処女
+		PRINTFORMW 「对不起、不能将第一次给%CNAME("二人称")%……」
+		PRINTFORMW 「%CNAME("一人称")%最喜欢%CNAME("二人称")%了，就算粗暴点也没关系，吻我~」
+		PRINTFORMW ……
+		PRINTL 
+		SETCOLOR DEF_COLOR("ショッキングピンク")
+		PRINTFORML - 系统消息 -
+		PRINTFORML  获得了能和%CALLNAME:TARGET%做爱的协议。
+		PRINTFORML  V插入系统指令可以使用
+		PRINTFORMW  (事件还没有完成，触发条件将来可能会变更)
+		RESETCOLOR
+		CFLAG:健康度 ++
 	ENDIF
 ENDIF
 

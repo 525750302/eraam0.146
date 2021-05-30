@@ -1,655 +1,655 @@
-@COM14
-;�`���ς�������@�u�C���T�[�g�̎��ɂ͑̐��I�ɉ\�Ȃ�Δ������ɍs��
+﻿@COM14
+;Ａくぱぁさせる　Ｖインサートの時には体勢的に可能ならば抜かずに行う
 CALL PRINT_TRAIN_NAME(SELECTCOM)
 
 ;-------------------------------------------------
-;���s�ł��邩�̔���
+;実行できるかの判定
 ;-------------------------------------------------
 CALL SHOW_COM_ORDER_COM, 14
 
-;���s�ł��Ȃ�
-SIF TCVAR:���C == 0
+;実行できない
+SIF TCVAR:やる気 == 0
 	RETURN 0
 ;-------------------------------------------------
-;���s����
+;実行決定
 ;-------------------------------------------------
 CALL TRAIN_MESSAGE_B
 
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:�O��R�}���h = %STR:����R�}���h%
+STR:前回コマンド = %STR:今回コマンド%
 
 RETURN 1
 
 @FLAG_COM14, ARG
-;�������[�g�̓L�����̎w�̂`�̉��ꂪ�ړ�
-SIF CHECK_COM("�����`��", 14)
-	CALL EQ_STAIN, TARGET, "��", TARGET, "�`"
-SIF PREVCOM == 13 && CHECK_COM("�������ς�")
+;腸内ルートはキャラの指⇔Ａの汚れが移動
+SIF CHECK_COM("腸内描写", 14)
+	CALL EQ_STAIN, TARGET, "手", TARGET, "Ａ"
+SIF PREVCOM == 13 && CHECK_COM("両穴くぱぁ")
 	CALL FLAG_COM13, 50
 
 @SOURCE_COM14, ARG
-SIF PREVCOM == 13 && CHECK_COM("�������ς�")
+SIF PREVCOM == 13 && CHECK_COM("両穴くぱぁ")
 	CALL SOURCE_COM13, 50
 
 CALL VARSET_COMF
 
 CALL SOURCE_DOWNBASE_HP, 14
 
-SOURCE:0:�s�� = 500
-SOURCE:0:�I�o = 4000
-SOURCE:0:���] = 1000
-SOURCE:0:��E = 1000
+SOURCE:0:不潔 = 500
+SOURCE:0:露出 = 4000
+SOURCE:0:屈従 = 1000
+SOURCE:0:逸脱 = 1000
 
-;ABL:�I�o�Ȃ��݂�
-SELECTCASE ABL:�I�o��
+;ABL:露出癖をみる
+SELECTCASE ABL:露出癖
 CASE 0 TO 5
-	SOURCE:0:�[�� = ABL:�I�o��*500
+	SOURCE:0:充足 = ABL:露出癖*500
 CASE 6 TO 10
-	SOURCE:0:�[�� = 2500 + (ABL:�I�o�� - 5)*200
+	SOURCE:0:充足 = 2500 + (ABL:露出癖 - 5)*200
 CASEELSE
-	SOURCE:0:�[�� = 3500 + (ABL:�I�o�� - 10)*100
+	SOURCE:0:充足 = 3500 + (ABL:露出癖 - 10)*100
 ENDSELECT
 
-;�p���炢�E�p����
-SIF TALENT:�p���炢
-	TIMES SOURCE:0:��E, 2.00
-SIF TALENT:�p����
-	TIMES SOURCE:0:��E, 0.50
+;恥じらい・恥薄い
+SIF TALENT:恥じらい
+	TIMES SOURCE:0:逸脱, 2.00
+SIF TALENT:恥薄い
+	TIMES SOURCE:0:逸脱, 0.50
 
-IF TALENT:�`����
-	TIMES SOURCE:0:�s��, 0.50
-	TIMES SOURCE:0:�[��, 2.00
-	TIMES SOURCE:0:��E, 0.50
-ENDIF
-
-;�r�f�I�B�e�A�����I�o�A��O�v���C�͌o�����Ƀv���X
-IF TEQUIP:�r�f�I�J����
-	TIMES SOURCE:0:�I�o, 1.50
-	TIMES SOURCE:0:���], 1.50
-	TIMES SOURCE:0:��E, 1.50
-ENDIF
-IF TEQUIP:�����I�o�v���C || TEQUIP:��O�v���C
-	TIMES SOURCE:0:�I�o, 1.50
-	TIMES SOURCE:0:���], 1.50
-	TIMES SOURCE:0:��E, 1.50
-ENDIF
-;�p���������A�b�v�ȃv���C
-IF PREVEX("�Ⓒ�����v") || PREVEX("�`���o��")
-	TIMES SOURCE:0:�I�o, 1.50
-	TIMES SOURCE:0:��E, 1.50
+IF TALENT:Ａ性向
+	TIMES SOURCE:0:不潔, 0.50
+	TIMES SOURCE:0:充足, 2.00
+	TIMES SOURCE:0:逸脱, 0.50
 ENDIF
 
-CALL CALC, "�����\�[�X", ARG
+;ビデオ撮影、室内露出、野外プレイは経験等にプラス
+IF TEQUIP:ビデオカメラ
+	TIMES SOURCE:0:露出, 1.50
+	TIMES SOURCE:0:屈従, 1.50
+	TIMES SOURCE:0:逸脱, 1.50
+ENDIF
+IF TEQUIP:室内露出プレイ || TEQUIP:野外プレイ
+	TIMES SOURCE:0:露出, 1.50
+	TIMES SOURCE:0:屈従, 1.50
+	TIMES SOURCE:0:逸脱, 1.50
+ENDIF
+;恥ずかしさアップなプレイ
+IF PREVEX("絶頂数合計") || PREVEX("Ａ中出し")
+	TIMES SOURCE:0:露出, 1.50
+	TIMES SOURCE:0:逸脱, 1.50
+ENDIF
+
+CALL CALC, "調教ソース", ARG
 
 
 @TRAIN_MESSAGE_COM14
 #DIM FLAG_MESSAGE, 2
 
-;���[�g�Ƃ��ẮA���̒��܂Ō�����or�A�k�X��ᰂ�L�΂�or�K�����L���ăA�i����������
+;ルートとしては、腸の中まで見せるorアヌスの皺を伸ばすor尻肉を広げてアナルを見せる
 IF PREVCOM == SELECTCOM
-	IF COND("�������ς�") 
-		PRINTFORMW %CALLNAME:TARGET%��%CALLNAME:PLAYER%�Ɍ����ČҊԂ̗����̌��������J�����̐��̂܂܂����Ƃ��Ă���c
+	IF COND("両穴くぱぁ") 
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%に向けて股間の両方の穴を押し開いた体勢のままじっとしている…
 	ELSE
-		PRINTFORMW %CALLNAME:TARGET%��%CALLNAME:PLAYER%�Ɍ����ăA�i���������L�����̐��̂܂܂����Ƃ��Ă���c
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%に向けてアナルを押し広げた体勢のままじっとしている…
 	ENDIF
 	RETURN 0
 ENDIF
 
-;�������ς�
-IF PREVCOM == 13 && CHECK_COM("�������ς�")
-	IF COND("�������ς�")
-		PRINTFORM %CALLNAME:TARGET%�͊��ɗ����̌���ɂ������Ȃ��J�����Ă������A�v�]�ɉ����ĉ��߂�
+;両穴くぱぁ
+IF PREVCOM == 13 && CHECK_COM("両穴くぱぁ")
+	IF COND("両穴くぱぁ")
+		PRINTFORM %CALLNAME:TARGET%は既に両方の穴を惜しげもなく開帳していたが、要望に応えて改めて
 	ELSE
-		PRINTFORM %CALLNAME:TARGET%�̓A�\�R���������Ă���̐�����X�ɍ���˂��o���ƁA
+		PRINTFORM %CALLNAME:TARGET%はアソコを見せつけている体勢から更に腰を突き出すと、
 	ENDIF
-;�O��u���ς�
+;前回Ｖくぱぁ
 ELSEIF PREVCOM == 13
-	PRINTFORM %CALLNAME:TARGET%�̓A�\�R���������Ă���̐��̂܂܁A���x��
+	PRINTFORM %CALLNAME:TARGET%はアソコを見せつけている体勢のまま、今度は
 ELSE
-	;�r�S��
-	IF GETBIT(TEQUIP:�S��, 21)
-		PRINTFORM �r���J���ꂽ�i�D�ōS������Ă���%CALLNAME:TARGET%�́A
+	;脚拘束
+	IF GETBIT(TEQUIP:拘束, 21)
+		PRINTFORM 脚を開かれた格好で拘束されている%CALLNAME:TARGET%は、
 	ELSE
-		PRINTFORM %CALLNAME:TARGET%��
+		PRINTFORM %CALLNAME:TARGET%は
 	ENDIF
 
-	;���J���łȂ��p���c���͂��Ă��āA���炳��Ă��Ȃ��Ȃ�A�K�����炷
-	SIF !CHECK_CLO("�`�I�o")
-		CALL SETFLAG, "�{�g����I�o�F�e�L�X�g����", TARGET
+	;穴開きでないパンツをはいていて、ずらされていないなら、必ずずらす
+	SIF !CHECK_CLO("Ａ露出")
+		CALL SETFLAG, "ボトムを露出：テキスト無し", TARGET
 
 	VARSET FLAG_MESSAGE
-	;�\��A���͋C�`��
-	IF TCVAR:���C <= 20
-		;�p���炢
-		IF TALENT:�p���炢
+	;表情、雰囲気描写
+	IF TCVAR:やる気 <= 20
+		;恥じらい
+		IF TALENT:恥じらい
 			IF RAND:5 == 0
-				PRINTFORM �ł��������
+				PRINTFORM 固く瞳を閉じて
 			ELSEIF RAND:4 == 0
-				PRINTFORM �ڂ𕚂���
+				PRINTFORM 目を伏せて
 			ELSEIF RAND:3 == 0
-				PRINTFORM �p�����������ɖڂ����
+				PRINTFORM 恥ずかしそうに目を閉じて
 			ELSEIF RAND:2 == 0
-				PRINTFORM 㵒p�Ŋ��^���Ԃɂ���
+				PRINTFORM 羞恥で顔を真っ赤にして
 			ELSE
-				PRINTFORM �p�����������ɖj����߂�
+				PRINTFORM 恥ずかしそうに頬を染めて
 			ENDIF
 			FLAG_MESSAGE = 1
-		;���R�I
-		ELSEIF TALENT:���R�I
-			PRINTFORM �������Ȋ�����Ȃ���
+		;反抗的
+		ELSEIF TALENT:反抗的
+			PRINTFORM 嫌そうな顔をしながら
 			FLAG_MESSAGE = 1
 		ENDIF
-	ELSEIF TALENT:���� == 0
-		;�p���炢
-		IF TALENT:�p���炢
+	ELSEIF TALENT:恋慕 == 0
+		;恥じらい
+		IF TALENT:恥じらい
 			IF RAND:4 == 0
-				PRINTFORM 㵒p�ɖj����߂�
+				PRINTFORM 羞恥に頬を染めて
 			ELSEIF RAND:3 == 0
-				PRINTFORM ����ΏƂ点��
+				PRINTFORM 顔を火照らせて
 			ELSEIF RAND:2 == 0
-				PRINTFORM �����j����߂�
+				PRINTFORM 少し頬を染めて
 			ELSE
-				PRINTFORM ��������Ɩj����߂�
+				PRINTFORM うっすらと頬を染めて
 			ENDIF
 			FLAG_MESSAGE = 1
 		ENDIF
-	ELSEIF TALENT:����
-		;�p���炢
-		IF TALENT:�p���炢 && RAND:2 == 0
-			PRINTFORM 㵒p�ɖj����߂Ȃ���
-		ELSEIF TEQUIP:�V�b�N�X�i�C�� == 0 && RAND:3 == 0
-			PRINTFORM ��ڌ����ŗl�q���f���Ȃ���
+	ELSEIF TALENT:恋慕
+		;恥じらい
+		IF TALENT:恥じらい && RAND:2 == 0
+			PRINTFORM 羞恥に頬を染めながら
+		ELSEIF TEQUIP:シックスナイン == 0 && RAND:3 == 0
+			PRINTFORM 上目遣いで様子を伺いながら
 		ELSEIF RAND:2 == 0
-			PRINTFORM ��������Ɩj����߂Ȃ���
+			PRINTFORM うっすらと頬を染めながら
 		ELSE
-			PRINTFORM ����ΏƂ点�Ȃ���
+			PRINTFORM 顔を火照らせながら
 		ENDIF
 		FLAG_MESSAGE = 1
 	ENDIF
-	IF TEQUIP:�V�b�N�X�i�C��
-		PRINTFORM %CALLNAME:PLAYER%�̊炩�獘�𕂂�
-		IF TCVAR:���C > 20 && RAND:2
-			PRINT ���Č҂�����ɊJ���ƁA
+	IF TEQUIP:シックスナイン
+		PRINTFORM %CALLNAME:PLAYER%の顔から腰を浮か
+		IF TCVAR:やる気 > 20 && RAND:2
+			PRINT して股をさらに開くと、
 		ELSE
-			PRINT ���ƁA
+			PRINT すと、
 		ENDIF
-	;�r���S������Ă��Ȃ��Ȃ�J���`��
-	ELSEIF COND("�r�̎g�p") && INSERT("�u�C���T�[�g") == 0
-		;�܂񂮂�Ԃ�
-		IF TCVAR:���C > 50 && RAND:2
+	;脚を拘束されていないなら開く描写
+	ELSEIF COND("脚の使用") && INSERT("Ｖインサート") == 0
+		;まんぐり返し
+		IF TCVAR:やる気 > 50 && RAND:2
 			IF RAND:2
-				PRINTFORM �܂񂮂�Ԃ��̑̐���
+				PRINTFORM まんぐり返しの体勢で
 			ELSE
-				PRINTFORM �����Ƌ����ɂȂ���
+				PRINTFORM ころんと仰向けになって
 			ENDIF
 			IF RAND:2 == 0
-				PRINTFORM ���r�ő��ڂ��Ђ�����悤�ɂ��đ傫���҂��J��
-			ELSEIF TEQUIP:�r�f�I�J����
-				PRINTFORM �悭������悤�ɍ���˂��o��
+				PRINTFORM 両腕で太腿をひきつけるようにして大きく股を開く
+			ELSEIF TEQUIP:ビデオカメラ
+				PRINTFORM よく見えるように腰を突き出す
 			ELSE
-				PRINTFORM %CALLNAME:PLAYER%�ɂ悭������悤�ɍ���˂��o��
+				PRINTFORM %CALLNAME:PLAYER%によく見えるように腰を突き出す
 			ENDIF
-			IF ABL:�I�o�� >= 3 && CHOSECOM(SELECTCOM) == 0 && RAND:2
+			IF ABL:露出癖 >= 3 && CHOSECOM(SELECTCOM) == 0 && RAND:2
 				IF RAND:2
-					PRINTFORM ���Ŏ������ҊԂɗU������ƁA
+					PRINTFORM 事で視線を股間に誘導すると、
 				ELSE
-					PRINTFORM ���Ŏ������ҊԂɓ˂��h����̂�����݂Ȃ���A
+					PRINTFORM 事で視線が股間に突き刺さるのを愉しみながら、
 				ENDIF
 			ELSE
-				PRINTFORM �ƁA
+				PRINTFORM と、
 			ENDIF
-		;���K��������
+		;お尻を向ける
 		ELSE
-			IF TALENT:�p���� && TCVAR:���C > 20 && RAND:2
-				PRINTFORM ���߂炢�Ȃ�
-			ELSEIF (TALENT:���C || TALENT:�f�� || TALENT:�p���炢) && RAND:2
-				PRINTFORM ����������
+			IF TALENT:恥薄い && TCVAR:やる気 > 20 && RAND:2
+				PRINTFORM ためらいなく
+			ELSEIF (TALENT:内気 || TALENT:素直 || TALENT:恥じらい) && RAND:2
+				PRINTFORM おずおずと
 			ENDIF
-			SIF TCVAR:���C > 20 && RAND:2 == 0
-				PRINTFORM �l�񔇂��ɂȂ���
-			PRINTFORM ���K��˂��o���ƁA
+			SIF TCVAR:やる気 > 20 && RAND:2 == 0
+				PRINTFORM 四つん這いになって
+			PRINTFORM お尻を突き出すと、
 		ENDIF
 	ELSEIF FLAG_MESSAGE
-		PRINTFORM �A
+		PRINTFORM 、
 	ENDIF
 ENDIF
 
-IF TCVAR:���C > 20 && RAND:2
-	LOCALS = �O�b��
+IF TCVAR:やる気 > 20 && RAND:2
+	LOCALS = グッと
 ELSEIF RAND:2
-	LOCALS = ��������
+	LOCALS = ゆっくりと
 ELSE
-	LOCALS = ������
+	LOCALS = そっと
 ENDIF
 
-;����
-IF TCVAR:���C > 20 && ABL:�`�g�� >= 2 && COND("�w�̎g�p") && COND("�t�̟���") + COND("�r���F�댯��") == 0 && (PREVCOM == 142 || PREVCOM == 143 || RAND:3 == 0)
+;腸内
+IF TCVAR:やる気 > 20 && ABL:Ａ拡張 >= 2 && COND("指の使用") && COND("液体浣腸") + COND("排泄：危険域") == 0 && (PREVCOM == 142 || PREVCOM == 143 || RAND:3 == 0)
 	IF PREVCOM == 142 || PREVCOM == 143
-		IF PREVPLAY("�����ӂ�")
-			PRINTFORM %TEXTR("�r�Ō����܂ŔƂ��ꂽ����/��������r�����������ꂽ�΂���/�咰�̉��[���܂Ŏ󂯓���Ă����������������ꂽ�΂���")%��
+		IF PREVPLAY("結腸責め")
+			PRINTFORM %TEXTR("腕で結腸まで犯された直後/結腸から腕を引き抜かれたばかり/大腸の奥深くまで受け入れていた拳を引き抜かれたばかり")%の
 		ELSE
-			PRINTFORM �t�B�X�g���ꂽ�΂����
+			PRINTFORM フィストされたばかりの
 		ENDIF
 	ELSEIF PREVCOM == 33
-		PRINTFORM �o�C�u�𔲂��ꂽ�΂����
+		PRINTFORM バイブを抜かれたばかりの
 	ELSEIF PREVCOM >= 70 && PREVCOM <= 79
-		PRINTFORM ����܂ŔƂ���Ă���
-	ELSEIF PREVEX("�`�Ⓒ")
+		PRINTFORM 先程まで犯されていた
+	ELSEIF PREVEX("Ａ絶頂")
 		IF PREVCOM == 3
-			PRINTFORM �C�����΂����
+			PRINTFORM イったばかりの
 		ELSE
-			PRINTFORM �C�����ꂽ�΂����
+			PRINTFORM イかされたばかりの
 		ENDIF
-	ELSEIF EX:�`�Ⓒ
-		PRINTFORM �����Ƀq�N��
+	ELSEIF EX:Ａ絶頂
+		PRINTFORM 快感にヒクつく
 	ENDIF
 
-	IF EXP_GAIN("�`�g���o��") >= 3 || ABL:�`�g�� >= 3 + RAND:3 || PREVCOM == 142 || PREVCOM == 143
-		PRINTFORM �ɂ�
+	IF EXP_GAIN("Ａ拡張経験") >= 3 || ABL:Ａ拡張 >= 3 + RAND:3 || PREVCOM == 142 || PREVCOM == 143
+		PRINTFORM 緩んだ
 	ELSEIF RAND:2 == 0
-		PRINTFORM �R�R�A�F��
+		PRINTFORM ココア色の
 	ENDIF
 
-	;�������ς����p�����ł͂Ȃ�
-	IF PREVCOM == 13 && CHECK_COM("�������ς�") && COND("�������ς�") == 0
-		PRINTFORM �A�k�X�ɂ��w����荞�܂���
+	;両穴くぱぁ且つ継続中ではない
+	IF PREVCOM == 13 && CHECK_COM("両穴くぱぁ") && COND("両穴くぱぁ") == 0
+		PRINTFORM アヌスにも指を潜り込ませて
 	ELSE
-		PRINTFORM �A�k�X�Ɏw����荞�܂���
+		PRINTFORM アヌスに指を潜り込ませて
 	ENDIF
 	IF RAND:3 == 0
-		PRINTFORMW �A%CALLNAME:PLAYER%�Ɍ�����%LOCALS%�J�����c
+		PRINTFORMW 、%CALLNAME:PLAYER%に向けて%LOCALS%開いた…
 	ELSEIF RAND:2 == 0
-		PRINTFORMW %LOCALS%�����L�����c
+		PRINTFORMW %LOCALS%押し広げた…
 	ELSE
-		PRINTFORMW %LOCALS%�J���Č����Ă����c
+		PRINTFORMW %LOCALS%開いて見せてきた…
 	ENDIF
 	FLAG_MESSAGE:1 = 1
-;�A�k�X
+;アヌス
 ELSE
-	;�������ς��p��
-	IF COND("�������ς�")
-		PRINTFORM ���K�̓�������ł����Ɖ����L���A
+	;両穴くぱぁ継続
+	IF COND("両穴くぱぁ")
+		PRINTFORM お尻の肉をこれでもかと押し広げ、
 	ELSE
-		PRINTFORM %TEXTS("���K�F���o")%�̓���%LOCALS%�����L���āA
+		PRINTFORM %TEXTS("お尻：視覚")%の肉を%LOCALS%押し広げて、
 	ENDIF
 
 	LOCALS = 
-	SIF TALENT:�D�F + TALENT:���� + TALENT:�K������ && PALAM:�~�� >= 3000 && RAND:2
-		LOCALS = ������
+	SIF TALENT:好色 + TALENT:淫乱 + TALENT:尻穴狂い && PALAM:欲情 >= 3000 && RAND:2
+		LOCALS = 淫乱な
 
-	IF RAND:2 && TALENT:���̐F
-		SELECTCASE CONDS("���̐F")
-		CASE "���F��"
-			PRINTFORM ���F�̔��̒��ł���ېF�Z���R�R�A�F��%LOCALS%
-		CASE "�F��"
-			PRINTFORM ���̐F���l�ɐF�f�����߂�%LOCALS%
-		CASE "��"
-			PRINTFORM �F�Z���F�f�̒�������%LOCALS%
+	IF RAND:2 && TALENT:肌の色
+		SELECTCASE CONDS("肌の色")
+		CASE "褐色肌"
+			PRINTFORM 褐色の肌の中でも一際色濃いココア色の%LOCALS%
+		CASE "色白"
+			PRINTFORM 肌の色同様に色素が薄めな%LOCALS%
+		CASE "青肌"
+			PRINTFORM 色濃く色素の沈着した%LOCALS%
 		ENDSELECT
-	;�A�ѕ`��
-	ELSEIF COND("�A��") >= 6 && AGE(TARGET) >= 3 && RAND:2
-		PRINTFORM �A�тɂ��炵�Ȃ������ꂽ%LOCALS%
-	ELSEIF COND("�t�̟���") + COND("�r���F�댯��")
-		PRINTFORM �r���̎h����\@ COND("�r���F���E") ? ���ɂ����󂵂����� # �ς��Ă��� \@%LOCALS%
+	;陰毛描写
+	ELSEIF COND("陰毛") >= 6 && AGE(TARGET) >= 3 && RAND:2
+		PRINTFORM 陰毛にだらしなく縁取られた%LOCALS%
+	ELSEIF COND("液体浣腸") + COND("排泄：危険域")
+		PRINTFORM 排泄の刺激に\@ COND("排泄：限界") ? 今にも決壊しそうな # 耐えている \@%LOCALS%
 	ELSEIF PREVCOM >= 70 && PREVCOM <= 79
-		PRINTFORM ����܂ŔƂ���Ă���%LOCALS%
-	ELSEIF ABL:�`���o >= 3 && RAND:2
-		PRINTFORM �[�����ăq�N��%LOCALS%
+		PRINTFORM 先程まで犯されていた%LOCALS%
+	ELSEIF ABL:Ａ感覚 >= 3 && RAND:2
+		PRINTFORM 充血してヒクつく%LOCALS%
 	ELSE
-		IF ABL:�`�g�� >= 4 && EXP:�`�o�� >= 150
-			PRINTFORM �g�����܂ꂽ%LOCALS%
-		ELSEIF ABL:�`�g�� >= 2 && EXP:�`�o�� >= 50
-			PRINTFORM �_�炩��%LOCALS%
+		IF ABL:Ａ拡張 >= 4 && EXP:Ａ経験 >= 150
+			PRINTFORM 使い込まれた%LOCALS%
+		ELSEIF ABL:Ａ拡張 >= 2 && EXP:Ａ経験 >= 50
+			PRINTFORM 柔らかい%LOCALS%
 		ELSEIF AGE(TARGET) == 1 && RAND:2
-			PRINTFORM ������
+			PRINTFORM 小さな
 		ELSEIF RAND:2
-			PRINTFORM ���炵��
+			PRINTFORM 可愛らしい
 		ELSE
-			PRINTFORM �L�����ƍ�񂾂܂܂�
+			PRINTFORM キュっと窄んだままの
 		ENDIF
 	ENDIF
 
 	IF RAND:3 == 0
-		PRINTFORM �A�k�X
+		PRINTFORM アヌス
 	ELSEIF RAND:2 == 0
-		PRINTFORM ���K�̌�
+		PRINTFORM お尻の穴
 	ELSE
-		PRINTFORM �A�i��
+		PRINTFORM アナル
 	ENDIF
-	;�������ς����p�����ł͂Ȃ�
-	IF PREVCOM == 13 && CHECK_COM("�������ς�") && COND("�������ς�") == 0
-		PRINTFORM ��
+	;両穴くぱぁ且つ継続中ではない
+	IF PREVCOM == 13 && CHECK_COM("両穴くぱぁ") && COND("両穴くぱぁ") == 0
+		PRINTFORM も
 	ELSE
-		PRINTFORM ��
+		PRINTFORM を
 	ENDIF
-	IF TCVAR:���C > 50 && RAND:2
-		PRINTFORMW �����t���Ă����c
+	IF TCVAR:やる気 > 50 && RAND:2
+		PRINTFORMW 見せ付けてきた…
 	ELSEIF RAND:2
-		PRINTFORMW �I�o�������c
+		PRINTFORMW 露出させた…
 	ELSE
-		PRINTFORMW �����o���ɂ����c
+		PRINTFORMW 剥き出しにした…
 	ENDIF
 ENDIF
 
 
-;�O��`�Z�b�N�X
-IF PREVCOM >= 70 && PREVCOM <= 79 && COND("�t�̟���") + COND("�r���F�댯��") == 0
-	IF ABL:�`�g�� >= 3 && RAND:3 == 0
-		IF EX:�`���o�� >= 3 && RAND:3 == 0
-			PRINTFORMW �ۂ��ۂ�����ƊJ����������͎U�X�ɒ������񂾂��̂����ݏグ�A�p���������L���Ɖ��𔺂��ĉ��炵�����ꗬ����Ă���c
+;前回Ａセックス
+IF PREVCOM >= 70 && PREVCOM <= 79 && COND("液体浣腸") + COND("排泄：危険域") == 0
+	IF ABL:Ａ拡張 >= 3 && RAND:3 == 0
+		IF EX:Ａ中出し >= 3 && RAND:3 == 0
+			PRINTFORMW 丸くぽっかりと開いた穴からは散々に注ぎ込んだものが込み上げ、恥ずかしい臭いと音を伴って汚らしく垂れ流されている…
 		ELSE
-			PRINTFORM �傫���L�������A�k�X����́A�U�X�h�a����ĖA���������������t��
-			SIF PREVEX("�`���o��")
-				PRINT �o���ꂽ�΂���̐��t�Ƌ���
-			PRINTFORMW �h���h���Ƃ��ڂꂾ���Ă���c
+			PRINTFORM 大きく広がったアヌスからは、散々撹拌されて泡だった濁った汚液が
+			SIF PREVEX("Ａ中出し")
+				PRINT 出されたばかりの精液と共に
+			PRINTFORMW ドロドロとこぼれだしている…
 		ENDIF
-	;�O�񒆏o��
-	ELSEIF PREVEX("�`���o��")
-		IF TCVAR:���C > 50 && RAND:2
-			PRINTFORMW %CALLNAME:TARGET%�͂����ɗ͂����߂�ƁA����̍s�ׂ��m�F�����邩�̂悤�ɁA���t���h�����Ƌt�������Č����Ă����c
+	;前回中出し
+	ELSEIF PREVEX("Ａ中出し")
+		IF TCVAR:やる気 > 50 && RAND:2
+			PRINTFORMW %CALLNAME:TARGET%はお腹に力を込めると、先程の行為を確認させるかのように、精液をドロっと逆流させて見せてきた…
 		ELSEIF RAND:2 == 0
-			PRINTFORMW �����Ղ�ƒ��ɏo���ꂽ�\�R�́A�����Ɍ����J�����܂ܐ��t�ŔS�����S����`�����Ă���c
+			PRINTFORMW たっぷりと中に出されたソコは、快感に口を開いたまま精液で粘ついた粘膜を覗かせている…
 		ELSE
-			PRINTFORMW ���Â��悤�Ƀq�N���Ă���A�i������A�����ꂽ�΂���̐��t���h�����Ƃ��ڂꂾ���Ă����c
+			PRINTFORMW 息づくようにヒクついているアナルから、注がれたばかりの精液がドロリとこぼれだしてきた…
 		ENDIF
-	ELSEIF ABL:�`�g�� >= 2 && RAND:2 == 0
-		PRINTFORMW ���؂�Ȃ����̓��A�̉��ł́A���Ȃ���������߂ĔS����忂��Ă���c
+	ELSEIF ABL:Ａ拡張 >= 2 && RAND:2 == 0
+		PRINTFORMW 閉じ切らない肉の洞窟の奥では、次なる快感を求めて粘膜が蠢いている…
 	ELSE
-		PRINTFORMW �y�j�X�̔������A�k�X�́A�����Ɍ����J�����܂�\@ RAND:2 ? �_�炩�� # �N�₩�ȐF�� \@�����̔S����`�����Ă���c
+		PRINTFORMW ペニスの抜けたアヌスは、快感に口を開いたまま\@ RAND:2 ? 柔らかな # 鮮やかな色の \@内部の粘膜を覗かせている…
 	ENDIF
-	TFLAG:�n�̕����� = 1
-;�������[�g
+	TFLAG:地の文分岐 = 1
+;腸内ルート
 ELSEIF FLAG_MESSAGE:1 == 1
-	TFLAG:�n�̕����� = 2
-	;�g���x��
-	IF EXP_GAIN("�`�g���o��") >= 5 || ABL:�`�g�� >= 3 + RAND:3
+	TFLAG:地の文分岐 = 2
+	;拡張度大
+	IF EXP_GAIN("Ａ拡張経験") >= 5 || ABL:Ａ拡張 >= 3 + RAND:3
 		IF RAND:3 == 0
-			IF CHOSECOM(SELECTCOM) == 0 && BASE:�r���� == 0 && EX:�r��
-				PRINTFORM ����������e�����o���؂����Y��ɂ��ꂽ
+			IF CHOSECOM(SELECTCOM) == 0 && BASE:排泄物 == 0 && EX:排泄
+				PRINTFORM すっかり内容物を出し切って綺麗にされた
 			ELSE
-				SIF TALENT:���� == 1 && CHOSECOM(SELECTCOM) == 0
-					PRINTFORM ���܂����g�p���Y��ȃA�\�R�Ƃ͑ΏƓI��
-				IF CHOSECOM(SELECTCOM) == 0 && ABL:�`�g�� < ABL:�`�g��
-					PRINTFORM \@ AGE(TARGET) < 3 ? ���� # ���퐶�� \@���S�z�ɂȂ�ق�\@ RAND:2 ? �Ɋɂ� # �傫�� \@
+				SIF TALENT:処女 == 1 && CHOSECOM(SELECTCOM) == 0
+					PRINTFORM いまだ未使用の綺麗なアソコとは対照的に
+				IF CHOSECOM(SELECTCOM) == 0 && ABL:Ａ使い < ABL:Ａ拡張
+					PRINTFORM \@ AGE(TARGET) < 3 ? 将来 # 日常生活 \@が心配になるほど\@ RAND:2 ? に緩んだ # 大きな \@
 				ELSEIF RAND:2 == 0
-					PRINT �ۂ�����ƊJ�����܂܂�
+					PRINT ぽっかりと開いたままの
 				ELSE
-					PRINT ��������ᰂ̐L�т����Ă���
+					PRINT すっかり皺の伸びきっている
 				ENDIF
 			ENDIF
-			PRINTFORM ���K�̌��́A
-			IF EXP:�`�����o�� && EXP:�`�t�B�X�g�o�� && RAND:2
-				PRINTFORM �F�X�Ȃ��̂��󂯓���Ă���
+			PRINTFORM お尻の穴は、
+			IF EXP:Ａ性交経験 && EXP:Ａフィスト経験 && RAND:2
+				PRINTFORM 色々なものを受け入れてきた
 			ELSE
-				PRINTFORM �p��������%TEXTS("����")%��ӂ�ɓf���o���Ȃ���
+				PRINTFORM 恥ずかしい%TEXTS("匂い")%を辺りに吐き出しながら
 			ENDIF
-			PRINTFORMW �������̌i�F���B�����ƂȂ�%CALLNAME:PLAYER%�ɎN���Ă���c
-			TFLAG:�n�̕����� = 3
+			PRINTFORMW 直腸内の景色を隠すことなく%CALLNAME:PLAYER%に晒している…
+			TFLAG:地の文分岐 = 3
 		ELSEIF RAND:2 == 0
-			IF ABL:�`���o >= 3 && EXP:�`�o�� >= 150 && EXP:�`�����o�� >= 50 && RAND:2
-				PRINTFORM �������萫��Ƃ��ĊJ������Ă��܂����r���ׂ̈̌���
+			IF ABL:Ａ感覚 >= 3 && EXP:Ａ経験 >= 150 && EXP:Ａ性交経験 >= 50 && RAND:2
+				PRINTFORM すっかり性器として開発されてしまった排泄の為の穴は
 			ELSE
-				PRINTFORM �ۂ�����ƊJ��������
+				PRINTFORM ぽっかりと開いた肛門は
 			ENDIF
-			IF INSERT("�u�C���T�[�g")
-				PRINTFORMW �O�̌��ɐN�����Ă���\@ PENIS(PLAYER) ? �y�j�X # ���^ \@�ɍ��킹��忂��A������%TEXTS("����")%���T���U�炵�Ă���c
+			IF INSERT("Ｖインサート")
+				PRINTFORMW 前の穴に侵入してくる\@ PENIS(PLAYER) ? ペニス # 張型 \@に合わせて蠢き、腸内の%TEXTS("匂い")%を撒き散らしている…
 			ELSEIF RAND:2
-				PRINTFORMW �ċz�ɍ��킹��忂��A�X�Ȃ�ӂ߂����߂Ă���悤�ɂ�������c
+				PRINTFORMW 呼吸に合わせて蠢き、更なる責めを求めているようにも見える…
 			ELSE
-				PRINTFORMW �ċz�ɍ��킹��忂��A%CALLNAME:PLAYER%��U���Ă���悤�ɂ�������c
+				PRINTFORMW 呼吸に合わせて蠢き、%CALLNAME:PLAYER%を誘っているようにも見える…
 			ENDIF
 		ELSE
-			PRINTFORM �U�X�Ղ߂�ꂽ�\�R�́A
-			SIF EXP_GAIN("�`�g���o��") >= 3 || EXP_GAIN("�`�����o��") >= 5 || PREVCOM == 142 || PREVCOM == 143
-				PRINTFORM ���߂Ă������̂��Ȃ��Ȃ��Ă�
-			PRINTFORM �傫���J�����܂�
-			SIF PREVEX("�`���o��") && CHECK_STAIN(STAIN:�`, "���t")
-				PRINT ���t�������
-			PRINTFORMW ���t�����ڂ��Ă���c
+			PRINTFORM 散々苛められたソコは、
+			SIF EXP_GAIN("Ａ拡張経験") >= 3 || EXP_GAIN("Ａ性交経験") >= 5 || PREVCOM == 142 || PREVCOM == 143
+				PRINTFORM 埋めていたものがなくなっても
+			PRINTFORM 大きく開いたまま
+			SIF PREVEX("Ａ中出し") && CHECK_STAIN(STAIN:Ａ, "精液")
+				PRINT 精液混じりの
+			PRINTFORMW 腸液をこぼしている…
 		ENDIF
-	ELSEIF EX:�`�Ⓒ >= 5
-		PRINTFORM %CALLNAME:TARGET%�̃\�R��
-		SIF INSERT("�u�C���T�[�g")
-			PRINTFORM �A�S�ɉ��܂ŔP�����ޓx��
-		PRINTFORM ���~��������
-		IF EXP_GAIN("������t�o��")
-			PRINTFORMW ���������t�����ڂ��Ă���c
+	ELSEIF EX:Ａ絶頂 >= 5
+		PRINTFORM %CALLNAME:TARGET%のソコは
+		SIF INSERT("Ｖインサート")
+			PRINTFORM 、膣に奥まで捻じ込む度に
+		PRINTFORM 物欲しそうに
+		IF EXP_GAIN("肛内精液経験")
+			PRINTFORMW 濁った汚液をこぼしている…
 		ELSE
-			PRINTFORMW �q�N�q�N�Ǝ��k���J��Ԃ��Ă���c
+			PRINTFORMW ヒクヒクと収縮を繰り返している…
 		ENDIF
-	ELSEIF PALAM:�~�� >= 3000
-		PRINTFORM ���̓��A���`��钼���̔S���́A
-		IF INSERT("�u�C���T�[�g")
-			PRINTFORM �S���ւ̎h���ɔ������Ă�
+	ELSEIF PALAM:欲情 >= 3000
+		PRINTFORM 肉の洞窟を形作る直腸の粘膜は、
+		IF INSERT("Ｖインサート")
+			PRINTFORM 膣道への刺激に反応してか
 		ELSE
-			PRINTFORM �G��Ă����Ȃ��̂�
+			PRINTFORM 触れてもいないのに
 		ENDIF
-		PRINTFORMW �q�N�q�N���z�����Ă���c
+		PRINTFORMW ヒクヒクと痙攣している…
 	ENDIF
-;�A�k�X���[�g
+;アヌスルート
 ELSE
-	;�O�񒆏o��
-	IF PREVEX("�`���o��")
-		IF COND("�t�̟���") + COND("�r���F�댯��")
-			PRINTFORMW %CALLNAME:TARGET%�͔Ƃ��ꂽ�΂���ŗ͂̓���h���A�k�X��������ƒ��߂āA���t������̔r������\@ ABL:�}�]���C < 3 ? �K���� # \@�����Ƃǂ߂Ă���c
-		ELSEIF TCVAR:���C > 50 && RAND:2
-			PRINTFORMW %CALLNAME:TARGET%�͂����ɗ͂����߂�ƁA����̍s�ׂ��m�F�����邩�̂悤�ɁA���t���h�����Ƌt�������Č����Ă����c
+	;前回中出し
+	IF PREVEX("Ａ中出し")
+		IF COND("液体浣腸") + COND("排泄：危険域")
+			PRINTFORMW %CALLNAME:TARGET%は犯されたばかりで力の入り辛いアヌスをきゅっと締めて、精液混じりの排泄物を\@ ABL:マゾっ気 < 3 ? 必死で # \@押しとどめている…
+		ELSEIF TCVAR:やる気 > 50 && RAND:2
+			PRINTFORMW %CALLNAME:TARGET%はお腹に力を込めると、先程の行為を確認させるかのように、精液をドロっと逆流させて見せてきた…
 		ELSE
-			PRINTFORMW ���Â��悤�Ƀq�N���Ă����܂肩��A�����ꂽ�΂���̐��t���g�����Ƃ��ڂꂾ���Ă����c
+			PRINTFORMW 息づくようにヒクついている窄まりから、注がれたばかりの精液がトロリとこぼれだしてきた…
 		ENDIF
-	ELSEIF TALENT:�D�F+TALENT:���� && ABL:�`���o >= 3 && ABL:�I�o�� >= 3 && ABL:�`�g�� >= 5 && ABL:�`�g�� >= 2 && PREVEX("�`�Ⓒ") == 0 && !RAND:3
-		IF COND("�t�̟���") + COND("�r���F�댯��") || (PALAM:�~�� >= 3000 && RAND:2)
-			PRINTFORM %CALLNAME:TARGET%��\@ COND("�w�̎g�p") ? �w�� # \@�����L�΂����A�k�X���q�N�q�N��忂����āA
-			IF TALENT:���C && RAND:2
-				PRINT �s�G
+	ELSEIF TALENT:好色+TALENT:淫乱 && ABL:Ａ感覚 >= 3 && ABL:露出癖 >= 3 && ABL:Ａ使い >= 5 && ABL:Ａ拡張 >= 2 && PREVEX("Ａ絶頂") == 0 && !RAND:3
+		IF COND("液体浣腸") + COND("排泄：危険域") || (PALAM:欲情 >= 3000 && RAND:2)
+			PRINTFORM %CALLNAME:TARGET%は\@ COND("指の使用") ? 指で # \@引き伸ばしたアヌスをヒクヒクと蠢かせて、
+			IF TALENT:強気 && RAND:2
+				PRINT 不敵
 			ELSE
-				PRINT �d��
+				PRINT 妖艶
 			ENDIF
-			PRINTFORMW �ȏ΂݂𕂂��ׂĂ���c
+			PRINTFORMW な笑みを浮かべている…
 		ELSE
-			PRINTFORMW %CALLNAME:TARGET%�̓A�k�X��������ƍ�߂���A�ۂ����ƊJ�����肷��l�������t����%CALLNAME:PLAYER%��U���Ă���c
+			PRINTFORMW %CALLNAME:TARGET%はアヌスをきゅっと窄めたり、ぽかぁと開いたりする様を見せ付けて%CALLNAME:PLAYER%を誘っている…
 		ENDIF
-	ELSEIF PALAM:�~�� >= 10000
-		IF TALENT:�p���炢 && RAND:2
-			SIF INSERT("�u�C���T�[�g")
-				PRINTFORM �Ƃ���Ȃ���̐J�߂�
-			PRINTFORM ���Ԃ�����%CALLNAME:TARGET%
-			IF TALENT:���^ && RAND:3
-				PRINTFORM �̐��^�ȕ��͋C
-			ELSEIF TALENT:���C && RAND:3
-				PRINTFORM �̋C�セ���ȗl�q
+	ELSEIF PALAM:欲情 >= 10000
+		IF TALENT:恥じらい && RAND:2
+			SIF INSERT("Ｖインサート")
+				PRINTFORM 犯されながらの辱めに
+			PRINTFORM 顔を赤くする%CALLNAME:TARGET%
+			IF TALENT:清楚 && RAND:3
+				PRINTFORM の清楚な雰囲気
+			ELSEIF TALENT:内気 && RAND:3
+				PRINTFORM の気弱そうな様子
 			ELSE
-				PRINTFORM �̒p�����������ȗl�q
+				PRINTFORM の恥ずかしそうな様子
 			ENDIF
-			PRINTFORM �Ƃ͗����ɁA
-			IF ABL:�`�g�� >= 4 && EXP_GAIN("�`�g���o��")
-				PRINTFORMW �×~�Ȃ��K�̌��͑�����J���ăq�N���Ă���c
+			PRINTFORM とは裏腹に、
+			IF ABL:Ａ拡張 >= 4 && EXP_GAIN("Ａ拡張経験")
+				PRINTFORMW 貪欲なお尻の穴は大口を開けてヒクついている…
 			ELSE
-				PRINTFORMW �[���������K�̌��͕��~�������Ƀq�N���Ă���c
+				PRINTFORMW 充血したお尻の穴は物欲しそうにヒクついている…
 			ENDIF
-		ELSEIF ABL:�`�g�� >= 3 && RAND:2
-			SIF INSERT("�u�C���T�[�g")
-				PRINTFORM �Z�b�N�X�ɂ�鋻���̂�����
-			PRINTFORM %CALLNAME:TARGET%�̃\�R��\@ EX:�Ⓒ�����v ? �������� # ���� \@�[�����A�͂���
-			IF COND("���t����")
-				PRINTFORMW ���t����܂��Ă���c
-			ELSEIF TEQUIP:����
-				PRINTFORMW �����t����܂��Ă���c
+		ELSEIF ABL:Ａ拡張 >= 3 && RAND:2
+			SIF INSERT("Ｖインサート")
+				PRINTFORM セックスによる興奮のせいか
+			PRINTFORM %CALLNAME:TARGET%のソコは\@ EX:絶頂数合計 ? すっかり # 既に \@充血し、僅かに
+			IF COND("精液浣腸")
+				PRINTFORMW 精液を滲ませている…
+			ELSEIF TEQUIP:浣腸
+				PRINTFORMW 浣腸液を滲ませている…
 			ELSE
-				PRINTFORMW �����J�����܂ܗU���悤�ɑ��Â��Ă���c
+				PRINTFORMW 口を開いたまま誘うように息づいている…
 			ENDIF
 		ELSE
-			SIF INSERT("�u�C���T�[�g")
-				PRINTFORM %CALLNAME:PLAYER%������˂��グ�Ďq�{�t�߂��C�肠����ƁA
-			PRINTFORMW �ڂ̑O�ŁAᰂ�L�΂���Ă�����傪\@ COND("�t�̟���") + COND("�r���F�댯��") ? �h���ŘR�炷�܂��� # �p������������ \@���k���ĉA�e��Z������c
+			SIF INSERT("Ｖインサート")
+				PRINTFORM %CALLNAME:PLAYER%が腰を突き上げて子宮付近を擦りあげると、
+			PRINTFORMW 目の前で、皺を伸ばされていた肛門が\@ COND("液体浣腸") + COND("排泄：危険域") ? 刺激で漏らすまいと # 恥ずかしそうに \@収縮して陰影を濃くする…
 		ENDIF
-	ELSEIF  PALAM:�~�� >= 3000 || TALENT:���� || INSERT("�u�C���T�[�g")
-		IF ABL:�`�g�� >= 3 && COND("�t�̟���") + COND("�r���F�댯��") == 0 && RAND:3 == 0
-			PRINTFORM %CALLNAME:TARGET%�̊g���ς݂����́A
-			IF INSERT("�u�C���T�[�g")
-				PRINTFORMW �S�����ӂ̓�������������̂ɍ��킹�Čċz���Ă�����̂悤�ȓ����������Ă���c
-			ELSEIF COND("�w�̎g�p") == 0 || RAND:2
-				PRINTFORMW ������҂���т邩�̂悤�ɋ͂��Ɍ����J���Ă���c
+	ELSEIF  PALAM:欲情 >= 3000 || TALENT:恋慕 || INSERT("Ｖインサート")
+		IF ABL:Ａ拡張 >= 3 && COND("液体浣腸") + COND("排泄：危険域") == 0 && RAND:3 == 0
+			PRINTFORM %CALLNAME:TARGET%の拡張済みの肛門は、
+			IF INSERT("Ｖインサート")
+				PRINTFORMW 膣口周辺の肉が引きずられるのに合わせて呼吸している口のような動きを見せている…
+			ELSEIF COND("指の使用") == 0 || RAND:2
+				PRINTFORMW 何かを待ちわびるかのように僅かに口を開いている…
 			ELSE
-				PRINTFORMW �w�Ŋg����܂ł��Ȃ��͂��Ɍ����J���Ă���c
+				PRINTFORMW 指で拡げるまでもなく僅かに口を開いている…
 			ENDIF
-		ELSEIF TALENT:���� && RAND:3 == 0
-			PRINTFORMW %CALLNAME:TARGET%�̃A�k�X��㵒p���炩�͂��Ɋ��΂݁A�▭�ȉ���������%CALLNAME:PLAYER%�̖ڂ�����܂��Ă���c
-		ELSEIF PALAM:�~�� >= 6000
-			IF INSERT("�u�C���T�[�g")
-				PRINTFORM �S���o���肷��\@ PENIS(PLAYER) ? �y�j�X # ���^ \@�Řc��
+		ELSEIF TALENT:恋慕 && RAND:3 == 0
+			PRINTFORMW %CALLNAME:TARGET%のアヌスは羞恥からか僅かに汗ばみ、絶妙な艶かしさで%CALLNAME:PLAYER%の目を愉しませている…
+		ELSEIF PALAM:欲情 >= 6000
+			IF INSERT("Ｖインサート")
+				PRINTFORM 膣を出入りする\@ PENIS(PLAYER) ? ペニス # 張型 \@で歪む
 			ELSE
-				PRINTFORM ������ᰂ������L�΂��Ĕ����o���ɂ��ꂽ
+				PRINTFORM ぐっと皺を引き伸ばして剥き出しにされた
 			ENDIF
-			PRINTFORM %CALLNAME:TARGET%�̃\�R�́A�������炩
-			IF EXP:�`�o�� >= 50 && RAND:2
-				PRINTFORMW �ۂ��Ă�Ɛ���オ��C���ɂȂ�A���G�肽���Ȃ�悤�ȕω��������Ă���c
+			PRINTFORM %CALLNAME:TARGET%のソコは、興奮からか
+			IF EXP:Ａ経験 >= 50 && RAND:2
+				PRINTFORMW ぽってりと盛り上がり気味になり、つい触りたくなるような変化を見せている…
 			ELSE
-				PRINTFORMW ���΂�ŁA�Ɠ���%TEXTS("����")%������͂��߂Ă���c
+				PRINTFORMW 汗ばんで、独特の%TEXTS("匂い")%を放ちはじめている…
 			ENDIF
 		ELSE
-			SIF INSERT("�u�C���T�[�g")
-				PRINTFORM �������Ƃ���Ă����S�̒����T��
-			PRINTFORMW �����Ƒ��Â��悤�Ƀq�N���Ă�����傪�A%CALLNAME:PLAYER%�̎������z���񂹂ė����Ȃ��c
+			SIF INSERT("Ｖインサート")
+				PRINTFORM 激しく犯されている膣の直ぐ傍で
+			PRINTFORMW そっと息づくようにヒクついている肛門が、%CALLNAME:PLAYER%の視線を吸い寄せて離さない…
 		ENDIF
 	ENDIF
-	TFLAG:�n�̕����� = 4
+	TFLAG:地の文分岐 = 4
 ENDIF
 
-;�������ς��t���O�n�m
-SIF PREVCOM == 13 && CHECK_COM("�������ς�")
-	CALL SETFLAG, "�������ς�", TARGET
+;両穴くぱぁフラグＯＮ
+SIF PREVCOM == 13 && CHECK_COM("両穴くぱぁ")
+	CALL SETFLAG, "両穴くぱぁ", TARGET
 
 CALL TRAIN_PHOTO_COM14
 
 
 @TRAIN_PHOTO_COM14
-;���ς�����̎ʐ^�B�e�Ŏg��
-STR:�ʐ^ = 
+;くぱぁ直後の写真撮影で使う
+STR:青写真 = 
 
-STR:�ʐ^ += @"%TEXTS("���K�F���G")%�������J����"
+STR:青写真 += @"%TEXTS("お尻：感触")%を押し開いて"
 
-SIF COND("�������ς�")
-	STR:�ʐ^ += @"%TEXTR("�S��/�S��")%�Ƌ���"
+SIF COND("両穴くぱぁ")
+	STR:青写真 += @"%TEXTR("膣穴/膣口")%と共に"
 
-IF CHECK_COM("�����`��")
-	IF PREVPLAY("�r��")
-		STR:�ʐ^ += @"�r������%TEXTR("���Y��Ȓ����S��/�ł��������Y��ɂȂ�������")%"
-	ELSEIF PREVPLAY("���򟯒�")
-		STR:�ʐ^ += @"�I�V�b�R�𗬂����܂ꂽ����̒���"
-	ELSEIF PREVEX("�`���o��")
-		STR:�ʐ^ += @"���t��r�����ꂽ�΂���̒�����"
+IF CHECK_COM("腸内描写")
+	IF PREVPLAY("排泄")
+		STR:青写真 += @"排泄直後%TEXTR("の綺麗な直腸粘膜/ですっかり綺麗になった直腸")%"
+	ELSEIF PREVPLAY("温泉浣腸")
+		STR:青写真 += @"オシッコを流し込まれた直後の腸内"
+	ELSEIF PREVEX("Ａ中出し")
+		STR:青写真 += @"精液を排泄されたばかりの直腸内"
 	ELSE
-		STR:�ʐ^ += @"%TEXTR("�傫���L�������������̌i�F��/�N�₩�ȐF�̒����S��")%"
+		STR:青写真 += @"%TEXTR("大きく広がった直腸内の景色を/鮮やかな色の直腸粘膜")%"
 	ENDIF
 ELSE
-	IF PREVEX("�`���o��")
-		STR:�ʐ^ += @"%TEXTR("���o���Z�b�N�X�����/�S�t������̐��t�𐂂炷/���o������Ő��t���삷")%�A�k�X"
+	IF PREVEX("Ａ中出し")
+		STR:青写真 += @"%TEXTR("中出しセックス直後の/粘液混じりの精液を垂らす/中出し直後で精液を溢す")%アヌス"
 	ELSEIF PREVCOM >= 70 && PREVCOM <= 79
-		STR:�ʐ^ += @"%TEXTR("�g�p����̃A�i��/��d���I�����΂���̔r���̂��߂̌�")%"
+		STR:青写真 += @"%TEXTR("使用直後のアナル/一仕事終えたばかりの排泄のための穴")%"
 	ELSEIF PREVCOM == 142 || PREVCOM == 143
-		STR:�ʐ^ += @"�t�B�X�g�����%TEXTR("������J���Ă���A�i��/�傫���L�������A�i��/���炵�Ȃ������J����A�k�X")%"
+		STR:青写真 += @"フィスト直後で%TEXTR("大口を開けているアナル/大きく広がったアナル/だらしなく口を開けるアヌス")%"
 	ELSE
-		STR:�ʐ^ += @"%TEXTS("�A�i���F���o")%"
+		STR:青写真 += @"%TEXTS("アナル：視覚")%"
 	ENDIF
 ENDIF
-IF TCVAR:���C > 20 && PENIS(TARGET) && COND("�C������") && CHECK_CLO("�o�I�o")
-	SELECTCASE SIZE("�y�j�X", TARGET)
+IF TCVAR:やる気 > 20 && PENIS(TARGET) && COND("イきそう") && CHECK_CLO("Ｐ露出")
+	SELECTCASE SIZE("ペニス", TARGET)
 	CASE 0
-		STR:�ʐ^ += @"�Ƌ��ɍd���u�N����%TEXTR("�e�`��/�q�����񂿂�/�Z���y�j�X")%"
+		STR:青写真 += @"と共に硬く勃起した%TEXTR("粗チン/子供ちんちん/短小ペニス")%"
 	CASE 1
-		IF COND("�^����s")
-			STR:�ʐ^ += @"�Ƌ��ɍd���u�N������s�y�j�X"
-		ELSEIF COND("������s")
-			STR:�ʐ^ += @"�Ƌ��ɍd���u�N�����y�j�X"
+		IF COND("真性包茎")
+			STR:青写真 += @"と共に硬く勃起した包茎ペニス"
+		ELSEIF COND("仮性包茎")
+			STR:青写真 += @"と共に硬く勃起したペニス"
 		ELSE
-			STR:�ʐ^ += @"�Ƌ��ɍd���u�N�����Y�������y�j�X"
+			STR:青写真 += @"と共に硬く勃起したズル剥けペニス"
 		ENDIF
 	CASE 2 TO 4
-		STR:�ʐ^ += @"�Ƌ��ɍd���u�N��������"
+		STR:青写真 += @"と共に硬く勃起した巨根"
 	CASE IS >= 5
-		STR:�ʐ^ += @"�Ƌ��ɍd���u�N�����K�i�O�̋���"
+		STR:青写真 += @"と共に硬く勃起した規格外の巨根"
 	ENDSELECT
 ENDIF
 
-STR:�ʐ^ += @"��%PHOTO_SHOWING("������")%"
+STR:青写真 += @"を%PHOTO_SHOWING("見せつけ")%"
 
 
 @COM_ORDER_COM14, ARG
 VARSET LOCAL
 LOCALS = 
 
-;���ׂĂ̖��߂ɋ��ʂ̗v�f���l��
-;(�M���������Ɩ��߂ɏ]���₷���Ȃ�)
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
 CALL COM_ORDER, ARG
 
 LOCAL = RESULT
 
-;ABL:�I�o��
-IF ABL:�I�o��
-	LOCAL += MIN(ABL:�I�o��, 10) * 2
-	LOCALS = %LOCALS% + �I�o��LV{ABL:�I�o��}({MIN(ABL:�I�o��, 10) * 2})
+;ABL:露出癖
+IF ABL:露出癖
+	LOCAL += MIN(ABL:露出癖, 10) * 2
+	LOCALS = %LOCALS% + 露出癖LV{ABL:露出癖}({MIN(ABL:露出癖, 10) * 2})
 ENDIF
-;ABL:�}�]���C
-IF ABL:�}�]���C
-	LOCAL += MIN(ABL:�}�]���C, 5) * 3
-	LOCALS = %LOCALS% + �}�]���CLV{ABL:�}�]���C}({MIN(ABL:�}�]���C, 5) * 3})
+;ABL:マゾっ気
+IF ABL:マゾっ気
+	LOCAL += MIN(ABL:マゾっ気, 5) * 3
+	LOCALS = %LOCALS% + マゾっ気LV{ABL:マゾっ気}({MIN(ABL:マゾっ気, 5) * 3})
 ENDIF
-;���
-IF TALENT:���
+;冷静
+IF TALENT:冷静
 	LOCAL -= 5
-	LOCALS = %LOCALS% - ���(5)
+	LOCALS = %LOCALS% - 冷静(5)
 ENDIF
-;�p���炢
-IF TALENT:�p���炢
+;恥じらい
+IF TALENT:恥じらい
 	LOCAL -= 25
-	LOCALS = %LOCALS% - �p���炢(25)
+	LOCALS = %LOCALS% - 恥じらい(25)
 ENDIF
-;�p����
-IF TALENT:�p����
+;恥薄い
+IF TALENT:恥薄い
 	LOCAL += 5
-	LOCALS = %LOCALS% + �p����(5)
+	LOCALS = %LOCALS% + 恥薄い(5)
 ENDIF
-;���^
-IF TALENT:���^
+;清楚
+IF TALENT:清楚
 	LOCAL -= 20
-	LOCALS = %LOCALS% - ���^(20)
+	LOCALS = %LOCALS% - 清楚(20)
 ENDIF
-;�����̔ے�
-IF TALENT:�����̔ے�
+;快感の否定
+IF TALENT:快感の否定
 	LOCAL -= 5
-	LOCALS = %LOCALS% - �����̔ے�(5)
+	LOCALS = %LOCALS% - 快感の否定(5)
 ENDIF
-;�O�񒆏o��
-IF PREVEX("�`���o��")
+;前回中出し
+IF PREVEX("Ａ中出し")
 	LOCAL -= 10
-	LOCALS = %LOCALS% - ���o������(10)
+	LOCALS = %LOCALS% - 中出し直後(10)
 ENDIF
-IF COND("����")
+IF COND("陶酔")
 	LOCAL += 10
-	LOCALS = %LOCALS% + ����(10)
+	LOCALS = %LOCALS% + 陶酔(10)
 ENDIF
-IF TEQUIP:�Z��
+IF TEQUIP:媚薬
 	LOCAL += 2
-	LOCALS = %LOCALS% + �Z��(2)
+	LOCALS = %LOCALS% + 媚薬(2)
 ENDIF
-;�r�f�I�B�e
-IF TEQUIP:�r�f�I�J����
+;ビデオ撮影
+IF TEQUIP:ビデオカメラ
 	LOCAL -= 30
-	LOCALS = %LOCALS% - �B�e��(30)
+	LOCALS = %LOCALS% - 撮影中(30)
 ENDIF
-;��Oor�����I�o
-IF TEQUIP:��O�v���C
+;野外or室内露出
+IF TEQUIP:野外プレイ
 	LOCAL -= 10
-	LOCALS = %LOCALS% - ��O�v���C(10)
-ELSEIF TEQUIP:�����I�o�v���C
+	LOCALS = %LOCALS% - 野外プレイ(10)
+ELSEIF TEQUIP:室内露出プレイ
 	LOCAL -= 10
-	LOCALS = %LOCALS% - �����I�o(10)
+	LOCALS = %LOCALS% - 室内露出(10)
 ENDIF
 
-;���v��\��(40�ȏ�Ŏ��s)
+;合計を表示(40以上で実行)
 CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 40
 
 RETURN RESULT

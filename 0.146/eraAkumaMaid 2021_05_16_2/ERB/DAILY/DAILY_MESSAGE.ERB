@@ -1,1111 +1,1111 @@
-;-------------------------------------------------
-;����C�x���g�ł̗p�r�ʂ̔ėp�n�̕��u����
+﻿;-------------------------------------------------
+;日常イベントでの用途別の汎用地の文置き場
 ;-------------------------------------------------
 @DAILY_MESSAGE, ARGS
 #DIM MEMO_LINECOUNT
 
 SELECTCASE ARGS
-CASE "�A�蓹"
-	;SAVESTR:���݈ʒu �� SAVESTR:�A�蓹�̍s�� �����肷��
-	CALL SETFLAG, "�����n�_"
+CASE "帰り道"
+	;SAVESTR:現在位置 と SAVESTR:帰り道の行動 を決定する
+	CALL SETFLAG, "遭遇地点"
 
-	;�J�ɍ~��ꂽ
-	IF STRCOUNT(SAVESTR:���݈ʒu, "�ɂ킩�J")
-		PRINTFORML %TEXTR("�V�C�\�񂪊O���/�}��/�������܂Ő���Ă����Ƃ����̂�/�����A�낤�Ƃ����Ƃ����")%�J���~���Ă����c�c
+	;雨に降られた
+	IF STRCOUNT(SAVESTR:現在位置, "にわか雨")
+		PRINTFORML %TEXTR("天気予報が外れて/急に/さっきまで晴れていたというのに/さぁ帰ろうというところで")%雨が降ってきた……
 
-		PRINTFORM %TEXTR("���ɔE�΂��Ă���/�܂���/�����ɖY����Ă���")%�P��������%CALLNAME:MASTER%�́A
-		PRINTFORMW %CALLNAME:TARGET%��U���đ����P�ŉƘH�ɂ����B
+		PRINTFORM %TEXTR("鞄に忍ばせていた/折り畳み/部室に忘れられていた")%傘を差した%CALLNAME:MASTER%は、
+		PRINTFORMW %CALLNAME:TARGET%を誘って相合傘で家路についた。
 
 		RETURN 1
 	ENDIF
 
-	PRINTFORM �ߌ�̍u�`���󂯏I����%CALLNAME:MASTER%
-	;��蓹�����ꏊ���p�[�g�i�[�̍s������
-	SELECTCASE SAVESTR:���݈ʒu
-	CASE "������", "������", "�����W�F���[�V���b�v"
-		PRINTFORM �́A%CALLNAME:TARGET%�ɗU����
-	CASE "���u�z�e��"
-		PRINTFORM ���ɉ؊X���u�����Ă����
+	PRINTFORM 午後の講義を受け終えた%CALLNAME:MASTER%
+	;寄り道した場所がパートナーの行動圏内
+	SELECTCASE SAVESTR:現在位置
+	CASE "水着屋", "下着屋", "ランジェリーショップ"
+		PRINTFORM は、%CALLNAME:TARGET%に誘われて
+	CASE "ラブホテル"
+		PRINTFORM が繁華街をブラついていると
 	CASEELSE
-		IF COND("���ی�f�[�g��")
-			PRINTFORM ��%CALLNAME:TARGET%��U���āA
-		ELSEIF STRCOUNT(CSTR:�o���ꏊ, SAVESTR:���݈ʒu)
-			PRINTFORM �́A%CALLNAME:TARGET%�ɗU����
+		IF COND("放課後デート中")
+			PRINTFORM は%CALLNAME:TARGET%を誘って、
+		ELSEIF STRCOUNT(CSTR:出現場所, SAVESTR:現在位置)
+			PRINTFORM は、%CALLNAME:TARGET%に誘われて
 		ELSE
-			PRINTFORM �́A%CALLNAME:TARGET%�ƈꏏ��
+			PRINTFORM は、%CALLNAME:TARGET%と一緒に
 		ENDIF
 	ENDSELECT
 
-	SELECTCASE SAVESTR:�A�蓹�̍s��
-	CASE "���������N���X�}�X"
-		PRINTFORMW ���т₩�ɏ���t����ꂽ�X���݂�����q���Ō����񂹂Ȃ���U�􂵂��B
-	CASE "���u�z�O�ő���"
-		PRINTFORMW �c�c���u�z����%SAVESTR:�A�蓹�̃Q�X�g%�Ƌ��ɏo�Ă���%CALLNAME:TARGET%�ɋ��R�o������B
-	CASE "���Q��"
-		PRINTFORMW %SAVESTR:���݈ʒu%��%SAVESTR:�A�蓹�̍s��%�����ɍs�����B
-		IF COND("�p���c�`��m�F") == 0 && CHECK_SKIRT("�~�j") && CHECK_SKIRT("�X�J�[�g")
-			PRINTFORM �����Βi�������łɐ�s��%CALLNAME:TARGET%�̃X�J�[�g�̒����q�񂾂Ƃ���A
-			IF EQUIP:�p���c == 0 || RAND:2
+	SELECTCASE SAVESTR:帰り道の行動
+	CASE "もうすぐクリスマス"
+		PRINTFORMW 煌びやかに飾り付けられた街並みを手を繋いで肩を寄せながら散策した。
+	CASE "ラブホ前で遭遇"
+		PRINTFORMW ……ラブホから%SAVESTR:帰り道のゲスト%と共に出てきた%CALLNAME:TARGET%に偶然出会った。
+	CASE "お参り"
+		PRINTFORMW %SAVESTR:現在位置%に%SAVESTR:帰り道の行動%をしに行った。
+		IF COND("パンツ形状確認") == 0 && CHECK_SKIRT("ミニ") && CHECK_SKIRT("スカート")
+			PRINTFORM 長い石段を上るついでに先行く%CALLNAME:TARGET%のスカートの中も拝んだところ、
+			IF EQUIP:パンツ == 0 || RAND:2
 				CALL TEXT_PANTU_CHECK, SKIRT(TARGET)
 			ELSE
 				CALL TEXT_PANTU_CHECK_SHORT
 			ENDIF
-			CALL SETFLAG_DAILY, "�p���c�`��m�F"
+			CALL SETFLAG_DAILY, "パンツ形状確認"
 		ENDIF
-	CASE "���A"
-		PRINTFORMW %TEXTR("���炾��U��/�w���ł̏o������b/�K���ɎG�k")%���Ȃ���A�����B
-	CASE "�����o��"
-		PRINTFORM %SAVESTR:���݈ʒu%
-		SELECTCASE SAVESTR:���݈ʒu
-		CASE "�X�[�p�["
-			PRINTFORMW �Ŕӌ�т̂��������𕨐F�����B
-		CASE "���t�̗ʂ蔄��X"
-			SELECTCASE TEXTS("�G��")
-			CASE "�t"
-				PRINTFORMW ��%TEXTR("�t���𕨐F����/�؂�Ă��钃�t�̕�[������")%�B
-			CASE "��"
-				PRINTFORMW ��%TEXTR("�ēE�݂̂����𕨐F����/�؂�Ă��钃�t�̕�[������")%�B
+	CASE "直帰"
+		PRINTFORMW %TEXTR("だらだら散策/学園での出来事を話/適当に雑談")%しながら帰った。
+	CASE "買い出し"
+		PRINTFORM %SAVESTR:現在位置%
+		SELECTCASE SAVESTR:現在位置
+		CASE "スーパー"
+			PRINTFORMW で晩御飯のおかず等を物色した。
+		CASE "茶葉の量り売り店"
+			SELECTCASE TEXTS("季節")
+			CASE "春"
+				PRINTFORMW で%TEXTR("春茶を物色した/切れている茶葉の補充をした")%。
+			CASE "夏"
+				PRINTFORMW で%TEXTR("夏摘みのお茶を物色した/切れている茶葉の補充をした")%。
 			CASEELSE
-				PRINTFORMW ��%TEXTR("�ʔ������t�����߂Č��ĉ����/�n�[�u�e�B�[�𕨐F����/�؂�Ă��钃�t�̕�[������")%�B
+				PRINTFORMW で%TEXTR("面白い茶葉を求めて見て回った/ハーブティーを物色した/切れている茶葉の補充をした")%。
 			ENDSELECT
 		ENDSELECT
-	CASE "�����I��"
-		PRINTFORMW %SAVESTR:���݈ʒu%��%TEXTR("�����𕨐F����/�����I�тɕt��������")%�B
-	CASE "�����I��"
-		PRINTFORMW %SAVESTR:���݈ʒu%��%TEXTR("�����𕨐F����/���N�̐����I�тɕt��������")%�B
-	CASE "���V��𕨐F"
-		PRINTFORMW %SAVESTR:���݈ʒu%�̏��V��R�[�i�[�ōD���ȍ�i�ɂ��Č�荇�����B
-	CASE "�C�`���C�`��", "�����ǂ�", "�����H��", "�Q�[���𕨐F"
-		PRINTFORMW %SAVESTR:���݈ʒu%��%SAVESTR:�A�蓹�̍s��%�����B
-	CASE "�V���̃`�F�b�N", "���Q�[", "���_���Q�[��", "�V��̕��F"
-		PRINTFORMW %SAVESTR:���݈ʒu%��%SAVESTR:�A�蓹�̍s��%�������B
-	CASE "�N���[���Q�[��"
-		PRINTFORMW %SAVESTR:���݈ʒu%��%SAVESTR:�A�蓹�̍s��%%TEXTR("�ɂ����������z�����ꂽ�c/�Ń��C���C�y���񂾁B/�ŗ~�����v���C�Y�����邩���F�����B")%
-	CASE "�v���N��"
-		PRINTFORMW %SAVESTR:���݈ʒu%�ňꏏ��%SAVESTR:�A�蓹�̍s��%���B�����B
-	CASE "�ΐ�Q�[��"
-		PRINTFORMW %SAVESTR:���݈ʒu%��%SAVESTR:�A�蓹�̍s��%������%TEXTR("�M�������/�y����")%�B
-	CASE "��蓹"
-		IF SAVESTR:���݈ʒu == "��蓹"
-			PRINTFORMW %TEXTR("�w���ł̏o������b/�K���ɎG�k")%���Ȃ����蓹�������B
+	CASE "下着選び"
+		PRINTFORMW %SAVESTR:現在位置%で%TEXTR("下着を物色した/下着選びに付き合った")%。
+	CASE "水着選び"
+		PRINTFORMW %SAVESTR:現在位置%で%TEXTR("水着を物色した/今年の水着選びに付き合った")%。
+	CASE "準新作を物色"
+		PRINTFORMW %SAVESTR:現在位置%の準新作コーナーで好きな作品について語り合った。
+	CASE "イチャイチャ", "立ち読み", "買い食い", "ゲームを物色"
+		PRINTFORMW %SAVESTR:現在位置%で%SAVESTR:帰り道の行動%した。
+	CASE "新刊のチェック", "音ゲー", "メダルゲーム", "新作の物色"
+		PRINTFORMW %SAVESTR:現在位置%で%SAVESTR:帰り道の行動%をした。
+	CASE "クレーンゲーム"
+		PRINTFORMW %SAVESTR:現在位置%で%SAVESTR:帰り道の行動%%TEXTR("にお小遣いを吸い取られた…/でワイワイ楽しんだ。/で欲しいプライズがあるか物色した。")%
+	CASE "プリクラ"
+		PRINTFORMW %SAVESTR:現在位置%で一緒に%SAVESTR:帰り道の行動%を撮った。
+	CASE "対戦ゲーム"
+		PRINTFORMW %SAVESTR:現在位置%で%SAVESTR:帰り道の行動%をして%TEXTR("鎬を削った/楽しんだ")%。
+	CASE "寄り道"
+		IF SAVESTR:現在位置 == "寄り道"
+			PRINTFORMW %TEXTR("学園での出来事を話/適当に雑談")%しながら寄り道をした。
 		ELSE
-			PRINTFORMW %SAVESTR:���݈ʒu%��%TEXTR("��蓹������/������")%�B
+			PRINTFORMW %SAVESTR:現在位置%に%TEXTR("寄り道をした/赴いた")%。
 		ENDIF
 	ENDSELECT
 
-CASE "�Q��"
-	IF INSERT("�C���T�[�g")
-		IF COND("�N������")
-			CALL PRINT_STR, @"%CALLNAME:MASTER%�ɔƂ����%CALLNAME:TARGET%�͏����Q�ꂵ�������c�c_���F_�����ɂł��ڂ��o�܂���������Ȃ�_L"
-		ELSEIF RAND:3 == 0 && INSERT("�����")
-			PRINTFORML %CALLNAME:TARGET%�͖��ӎ���%CALLNAME:MASTER%�̍��𑫂ŕ����������Ă����c�c
+CASE "寝言"
+	IF INSERT("インサート")
+		IF COND("起きそう")
+			CALL PRINT_STR, @"%CALLNAME:MASTER%に犯される%CALLNAME:TARGET%は少し寝苦しそうだ……_黄色_すぐにでも目を覚ますかもしれない_L"
+		ELSEIF RAND:3 == 0 && INSERT("正常位")
+			PRINTFORML %CALLNAME:TARGET%は無意識に%CALLNAME:MASTER%の腰を足で抱きかかえてきた……
 		ELSEIF RAND:2
-			PRINTFORM %CALLNAME:TARGET%��%CALLNAME:MASTER%��%TEXTR("���̓����ŗh�炳��/�y�j�X���S��~���񂳂�/�������Ɏg���")%�Ȃ���
-			IF COND("�n��")
-				PRINTFORML ���A�K���������Q���𗧂ĂĂ���c�c
+			PRINTFORM %CALLNAME:TARGET%は%CALLNAME:MASTER%の%TEXTR("腰の動きで揺らされ/ペニスで膣を掻き回され/性処理に使われ")%ながら
+			IF COND("熟睡")
+				PRINTFORML も、規則正しい寝息を立てている……
 			ELSE
-				PRINTFORML �Q���𗧂ĂĂ���c�c
+				PRINTFORML 寝息を立てている……
 			ENDIF
 		ELSE
-			PRINTFORML %CALLNAME:TARGET%�͐Q�Ԃ��łƂ��Ƃ������A%CALLNAME:MASTER%�ɑł����܂�Ă���y�j�X�̂����ŏo���Ȃ������c�c
+			PRINTFORML %CALLNAME:TARGET%は寝返りを打とうとしたが、%CALLNAME:MASTER%に打ち込まれているペニスのせいで出来なかった……
 		ENDIF
 	ELSE
-		PRINTFORM %CALLNAME:TARGET%��
-		IF CFLAG:�X�J�[�g�߂���
-			IF CHECK_CLO("�m�[�p��")
-				PRINTFORM %TEXTR("��҂��J���ꂽ�̐��ŁA/�X�J�[�g������A�A�\�R���ی����̏�Ԃ�/�p���������ꏊ�S�Ă𔒓��̉��ɎN���ꂽ�܂܁A")%
-			ELSEIF EQUIP:�p���c
-				PRINTFORM %TEXTR("��҂��J���ꂽ�̐��ŁA/�p���c�ی����̏�Ԃ�/�����𔒓��̉��ɎN���ꂽ�܂܁A")%
+		PRINTFORM %CALLNAME:TARGET%は
+		IF CFLAG:スカートめくり
+			IF CHECK_CLO("ノーパン")
+				PRINTFORM %TEXTR("大股を開かれた体勢で、/スカートが捲れ、アソコが丸見えの状態で/恥ずかしい場所全てを白日の下に晒されたまま、")%
+			ELSEIF EQUIP:パンツ
+				PRINTFORM %TEXTR("大股を開かれた体勢で、/パンツ丸見えの状態で/下着を白日の下に晒されたまま、")%
 			ELSE
-				PRINTFORM ��҂��J���ꂽ�̐��ŁA
+				PRINTFORM 大股を開かれた体勢で、
 			ENDIF
 		ELSE
-			IF COND("��")
-				PRINTFORM %TEXTR("�x�b�h��/�^�I���P�b�g�ɂ���܂�A/�Q�Ԃ��ł��A")%
+			IF COND("夏")
+				PRINTFORM %TEXTR("ベッドで/タオルケットにくるまり、/寝返りを打ちつつ、")%
 			ELSE
-				PRINTFORM %TEXTR("�z�c�ɂ����荞��ŁA/�x�b�h��/�ѕz�ɂ���܂�A/�Q�Ԃ��ł��A")%
+				PRINTFORM %TEXTR("布団にもぐり込んで、/ベッドで/毛布にくるまり、/寝返りを打ちつつ、")%
 			ENDIF
 		ENDIF
-		IF COND("�N������")
-			PRINTFORML �Q���𗧂ĂĂ���c�c���A���邩��ɖ��肪��
-			CALL PRINT_STR, "���F_���낻��ڂ��o�܂��������c�c_L"
+		IF COND("起きそう")
+			PRINTFORML 寝息を立てている……が、見るからに眠りが浅い
+			CALL PRINT_STR, "黄色_そろそろ目を覚ましそうだ……_L"
 		ELSE
-			PRINTFORML %TEXTR("��������Ɩ���/���₩�ɐQ���𗧂�/�C�����悳�����ɖ��肱��/�K�������ɖ���ɗ���")%�Ă���c�c
+			PRINTFORML %TEXTR("ぐっすりと眠っ/穏やかに寝息を立て/気持ちよさそうに眠りこけ/幸せそうに眠りに落ち")%ている……
 		ENDIF
 	ENDIF
-CASE "�p���c��E���Ŏ�n��"
-	SIF TFLAG:������� == 0
+CASE "パンツを脱いで手渡し"
+	SIF TFLAG:取引承諾 == 0
 		RETURN 0
-	PRINTFORM %CALLNAME:TARGET%��
-	IF CHARA_NUM("�����̎ז���") >= 1
-		PRINTFORM ���ɐl������ɂ��S�炸\@ CHECK_OUTER("�u���}") ? �u���}�����낵 # \@�A���̏��%PANTIES(TARGET, "��")%��
-		SELECTCASE PANTIES(TARGET, "��")
-		CASE "�O�\��"
-			PRINTFORMW ��������%CALLNAME:MASTER%�Ɏ�n�����Ă����B
-		CASE "�b�X�g�����O"
-			PRINTFORMW �O����%CALLNAME:MASTER%�Ɏ�n�����Ă����B
+	PRINTFORM %CALLNAME:TARGET%は
+	IF CHARA_NUM("室内の邪魔者") >= 1
+		PRINTFORM 他に人が居るにも拘らず\@ CHECK_OUTER("ブルマ") ? ブルマを下ろし # \@、その場で%PANTIES(TARGET, "略")%を
+		SELECTCASE PANTIES(TARGET, "略")
+		CASE "前貼り"
+			PRINTFORMW 剥がして%CALLNAME:MASTER%に手渡ししてきた。
+		CASE "Ｃストリング"
+			PRINTFORMW 外して%CALLNAME:MASTER%に手渡ししてきた。
 		CASEELSE
-			PRINTFORMW �E����%CALLNAME:MASTER%�Ɏ�n�����Ă����B
+			PRINTFORMW 脱いで%CALLNAME:MASTER%に手渡ししてきた。
 		ENDSELECT
-	ELSEIF CHARA_NUM("�W���\��") <= 2 || PLACE("��")
-		PRINTFORM ��l����ƌ������ŁA%CALLNAME:MASTER%��
-		SELECTCASE PANTIES(TARGET, "��")
-		CASE "�O�\��"
-			PRINTFORMW �������Ƃ�����������Ȃ���%PANTIES(TARGET, "��")%����n���Ă����B
-		CASE "�b�X�g�����O"
-			PRINTFORMW �O���Ƃ�����������Ȃ���%PANTIES(TARGET, "��")%����n���Ă����B
+	ELSEIF CHARA_NUM("集合予定") <= 2 || PLACE("個室")
+		PRINTFORM 二人きりと言う事で、%CALLNAME:MASTER%に
+		SELECTCASE PANTIES(TARGET, "略")
+		CASE "前貼り"
+			PRINTFORMW 剥がすところを見せつけながら%PANTIES(TARGET, "略")%を手渡してきた。
+		CASE "Ｃストリング"
+			PRINTFORMW 外すところを見せつけながら%PANTIES(TARGET, "略")%を手渡してきた。
 		CASEELSE
-			PRINTFORMW �E���Ƃ�����������Ȃ���%PANTIES(TARGET, "��")%����n���Ă����B
+			PRINTFORMW 脱ぐところを見せつけながら%PANTIES(TARGET, "略")%を手渡してきた。
 		ENDSELECT
 	ELSE
-		PRINTFORM ���̐l�B�����Ȃ������`�����X�Ƒf����
-		SELECTCASE PANTIES(TARGET, "��")
-		CASE "�O�\��"
-			PRINTFORMW �O�\��𔍂����A%CALLNAME:MASTER%�Ɏ�n�����Ă����B
-		CASE "�b�X�g�����O"
-			PRINTFORMW �b�X�g�����O���O���A%CALLNAME:MASTER%�Ɏ�n�����Ă����B
+		PRINTFORM 他の人達が居ない今がチャンスと素早く
+		SELECTCASE PANTIES(TARGET, "略")
+		CASE "前貼り"
+			PRINTFORMW 前貼りを剥がし、%CALLNAME:MASTER%に手渡ししてきた。
+		CASE "Ｃストリング"
+			PRINTFORMW Ｃストリングを外し、%CALLNAME:MASTER%に手渡ししてきた。
 		CASEELSE
-			PRINTFORMW ���������낵�A%CALLNAME:MASTER%�Ɏ�n�����Ă����B
+			PRINTFORMW 下着を下ろし、%CALLNAME:MASTER%に手渡ししてきた。
 		ENDSELECT
 	ENDIF
-CASE "�ėp�ꌾ�C�x���g"
+CASE "汎用一言イベント"
 
-CASE "���~����"
-	;���Ȃ����U�߂��C���o�����[�g
-	IF STR:�v���C���e != STR:�v���C�v�] || RAND:2
-		PRINTFORM %CALLNAME:PLAYER%��%TEXTS("�}�������E��")%%NAMES("�\�t�@")%�ɍ��蒼����%CALLNAME:TARGET%��
-		SELECTCASE NAMES("������")
-		CASE "�N���j"
-			PRINTFORM �ҊԂɊ�𖄂߁A%TEXTS("�����")%��%TEXTR("�w�Ŋ�����/�w��ŉ����L����")%
-			PRINTFORMW %TEXTR(@"%TEXTS("����")%�̋����S��/�����̔S��/�N�₩�ȐF�̔S��")%%TEXTR("�ɐ�𔇂킹/�����r��/����ł�������")%�n�߂��B
-		CASE "�t�F������"
-			PRINTFORM �ҊԂɊ�𖄂߁A
-			IF SIZE("�y�j�X", TARGET) >= 3 && RAND:3
-				PRINTFORM %TEXTS("�y�j�X�F�傫���\���t")%
+CASE "性欲解消"
+	;あなたが攻めっ気を出すルート
+	IF STR:プレイ内容 != STR:プレイ要望 || RAND:2
+		PRINTFORM %CALLNAME:PLAYER%は%TEXTS("挿入準備脱衣")%%NAMES("ソファ")%に座り直した%CALLNAME:TARGET%の
+		SELECTCASE NAMES("性処理")
+		CASE "クンニ"
+			PRINTFORM 股間に顔を埋め、%TEXTS("割れ目")%を%TEXTR("指で寛げて/指先で押し広げて")%
+			PRINTFORMW %TEXTR(@"%TEXTS("匂い")%の強い粘膜/内部の粘膜/鮮やかな色の粘膜")%%TEXTR("に舌を這わせ/を舌で舐め/を舌先でくすぐり")%始めた。
+		CASE "フェラする"
+			PRINTFORM 股間に顔を埋め、
+			IF SIZE("ペニス", TARGET) >= 3 && RAND:3
+				PRINTFORM %TEXTS("ペニス：大きさ表現付")%
 			ELSE
-				PRINTFORM %TEXTS("�y�j�X�F���o", TARGET)%
-				IF COND("�^����s")
-					PRINTFORM ��s�y�j�X
-				ELSEIF COND("�Y������")
-					PRINTFORM �Y�������y�j�X
+				PRINTFORM %TEXTS("ペニス：視覚", TARGET)%
+				IF COND("真性包茎")
+					PRINTFORM 包茎ペニス
+				ELSEIF COND("ズル剥け")
+					PRINTFORM ズル剥けペニス
 				ELSE
-					PRINTFORM �y�j�X
+					PRINTFORM ペニス
 				ENDIF
 			ENDIF
-			PRINTFORMW %TEXTR("�Ɉ�x��𔇂킹����ə������r�߂���Ԃ�/������Č����������Ȃ��疡�킢/�����Ɍ}������Đ��Ŗ����グ�Ȃ���h����")%�n�߂��B
-		CASE "�u�Z�b�N�X", "�`�Z�b�N�X", "�A���Z�b�N�X"
-			PRINTFORM %TEXTR("�G/����")%��͂�Ō҂������J���A����˂��o����
-			SELECTCASE NAMES("������")
-			CASE "�u�Z�b�N�X"
-				PRINTFORM �������ڂ��S
-			CASE "�`�Z�b�N�X"
-				PRINTFORM �Ƃ��ꊵ�ꂽ�A�i��
-			CASE "�A���Z�b�N�X"
-				PRINTFORM �������萫��Ɖ������A��
+			PRINTFORMW %TEXTR("に一度舌を這わせた後に咥えて舐めしゃぶり/を咥えて激しく扱きながら味わい/を口に迎え入れて舌先で磨き上げながら刺激し")%始めた。
+		CASE "Ｖセックス", "Ａセックス", "尿道セックス"
+			PRINTFORM %TEXTR("膝/足首")%を掴んで股を押し開き、腰を突き出して
+			SELECTCASE NAMES("性処理")
+			CASE "Ｖセックス"
+				PRINTFORM 涎をこぼす膣
+			CASE "Ａセックス"
+				PRINTFORM 犯され慣れたアナル
+			CASE "尿道セックス"
+				PRINTFORM すっかり性器と化した尿道
 			ENDSELECT
-			IF RAND:2 && CHECK_COM("���S�}���\", SELECTCOM)
-				PRINTFORMW ��%TEXTS("�y�j�X�F�傫���\���t", PLAYER)%��%TEXTR("�����܂Ŗ��ߍ���/�]�����ƂȂ��������܂���/�}�����Ēp�����C��t����")%�B
-			ELSEIF SIZE("�y�j�X", PLAYER) >= 2
-				PRINTFORMW ��%TEXTS("�y�j�X�F�傫���\���t", PLAYER)%��%TEXTR("�[�X�Ɗт���/���[���܂ŔƂ��n�߂�/�����悭�Ƃ��n�߂�")%�B
+			IF RAND:2 && CHECK_COM("完全挿入可能", SELECTCOM)
+				PRINTFORMW に%TEXTS("ペニス：大きさ表現付", PLAYER)%を%TEXTR("根元まで埋め込んだ/余すことなく咥え込ませた/挿入して恥骨を擦り付けた")%。
+			ELSEIF SIZE("ペニス", PLAYER) >= 2
+				PRINTFORMW を%TEXTS("ペニス：大きさ表現付", PLAYER)%で%TEXTR("深々と貫いた/奥深くまで犯し始めた/勢いよく犯し始めた")%。
 			ELSE
-				PRINTFORMW ��%TEXTS("�y�j�X�F�傫���\���t", PLAYER)%��%TEXTR("�т���/�����悭�Ƃ��n�߂�")%�B
+				PRINTFORMW を%TEXTS("ペニス：大きさ表現付", PLAYER)%で%TEXTR("貫いた/勢いよく犯し始めた")%。
 			ENDIF
 		ENDSELECT
 	ELSE
-		PRINTFORM %TEXTS("�}�������E��")%%NAMES("�\�t�@")%�ɍ��蒼����%CALLNAME:TARGET%��
-		IF TALENT:�p���炢 == 0 && (COND("�����") || COND("�~���s��") >= 3) && RAND:3 == 0
-			PRINTFORM %CALLNAME:PLAYER%�Ɍ�����%TEXTR("�҂�����Ȃ��Ƃ������l�q��/�]�T�̖�������܂��Ȃ���")%�҂��J���A
-		ELSEIF TALENT:�C�i + TALENT:������
-			PRINTFORM %CALLNAME:PLAYER%�Ɍ�����%TEXTR("��������/�����I�Ȏd����/�i�̂���d����")%�҂��J���A
-		ELSEIF TALENT:�p���� && TALENT:�e�� + TALENT:����
-			PRINTFORM %TEXTR(@"���s�V������҂��J��\/%CALLNAME:PLAYER%�ɑ�҂��J���ČҊԂ��������Ȃ���")%�A
+		PRINTFORM %TEXTS("挿入準備脱衣")%%NAMES("ソファ")%に座り直した%CALLNAME:TARGET%は
+		IF TALENT:恥じらい == 0 && (COND("発情期") || COND("欲求不満") >= 3) && RAND:3 == 0
+			PRINTFORM %CALLNAME:PLAYER%に向けて%TEXTR("待ちきれないといった様子で/余裕の無さを滲ませながら")%股を開き、
+		ELSEIF TALENT:気品 + TALENT:小悪魔
+			PRINTFORM %CALLNAME:PLAYER%に向けて%TEXTR("ゆっくりと/挑発的な仕草で/品のある仕草で")%股を開き、
+		ELSEIF TALENT:恥薄い && TALENT:粗野 + TALENT:愚か
+			PRINTFORM %TEXTR(@"お行儀悪く大股を開き\/%CALLNAME:PLAYER%に大股を開いて股間を見せつけながら")%、
 		ELSE
-			PRINTFORM %CALLNAME:PLAYER%�Ɍ�����%TEXTR("�y��/���ꂽ�l�q��/�͂��Ȓp���炢�Ƌ���")%�҂��J���A
+			PRINTFORM %CALLNAME:PLAYER%に向けて%TEXTR("軽く/慣れた様子で/僅かな恥じらいと共に")%股を開き、
 		ENDIF
-		SELECTCASE NAMES("������")
-		CASE "�N���j"
-			IF TALENT:���r�A�s�A�X && RAND:3
-				PRINTFORM %TEXTS("����ځF�\���Z��")%����%TEXTR("�H�ݏo��/����o��")%�s�A�X��S��ŔS����%TEXTR("����/�����L��/���E�Ɉ����L�΂�")%��
+		SELECTCASE NAMES("性処理")
+		CASE "クンニ"
+			IF TALENT:ラビアピアス && RAND:3
+				PRINTFORM %TEXTS("割れ目：表現短め")%から%TEXTR("食み出る/顔を出す")%ピアスを抓んで粘膜を%TEXTR("寛げ/押し広げ/左右に引き伸ばし")%つつ
 			ELSE
-				PRINTFORM %TEXTS("�����")%��%TEXTR("�w�Ŋ�����/�w��ŉ����L����/�O�b�ƍL����")%
+				PRINTFORM %TEXTS("割れ目")%を%TEXTR("指で寛げて/指先で押し広げて/グッと広げて")%
 			ENDIF
-			PRINTFORMW ��ł̕�d�𑣂��Ă����B
-		CASE "�t�F������"
-			IF SIZE("�y�j�X", TARGET) >= 3 && RAND:3
-				PRINTFORM %TEXTS("�y�j�X�F�傫���\���t")%
+			PRINTFORMW 舌での奉仕を促してきた。
+		CASE "フェラする"
+			IF SIZE("ペニス", TARGET) >= 3 && RAND:3
+				PRINTFORM %TEXTS("ペニス：大きさ表現付")%
 			ELSE
-				PRINTFORM %TEXTS("�y�j�X�F���o", TARGET)%
-				IF COND("�^����s")
-					PRINTFORM ��s�y�j�X
-				ELSEIF COND("�Y������")
-					PRINTFORM �Y�������y�j�X
+				PRINTFORM %TEXTS("ペニス：視覚", TARGET)%
+				IF COND("真性包茎")
+					PRINTFORM 包茎ペニス
+				ELSEIF COND("ズル剥け")
+					PRINTFORM ズル剥けペニス
 				ELSE
-					PRINTFORM �y�j�X
+					PRINTFORM ペニス
 				ENDIF
 			ENDIF
-			PRINTFORMW ���������Đ�ł̕�d�𑣂��Ă����B
-		CASE "�u�Z�b�N�X", "�`�Z�b�N�X", "�A���Z�b�N�X"
-			PRINTFORM �˂��o���ꂽ%TEXTS("�y�j�X�F�傫���\���t", PLAYER)%��
-			SELECTCASE NAMES("������")
-			CASE "�u�Z�b�N�X"
-				PRINTFORM �S
-			CASE "�`�Z�b�N�X"
-				PRINTFORM �A�i��
-			CASE "�A���Z�b�N�X"
-				PRINTFORM �A��
+			PRINTFORMW を見せつけて舌での奉仕を促してきた。
+		CASE "Ｖセックス", "Ａセックス", "尿道セックス"
+			PRINTFORM 突き出された%TEXTS("ペニス：大きさ表現付", PLAYER)%を
+			SELECTCASE NAMES("性処理")
+			CASE "Ｖセックス"
+				PRINTFORM 膣
+			CASE "Ａセックス"
+				PRINTFORM アナル
+			CASE "尿道セックス"
+				PRINTFORM 尿道
 			ENDSELECT
-			IF RAND:2 && CHECK_COM("���S�}���\", SELECTCOM)
-				PRINTFORMW ��%TEXTR("�����܂�/�]�����ƂȂ�")%�󂯓��ꂽ�B
-			ELSEIF SIZE("�y�j�X", PLAYER) >= 2
-				PRINTFORMW �Ő[�X�Ǝ󂯓��ꂽ�B
+			IF RAND:2 && CHECK_COM("完全挿入可能", SELECTCOM)
+				PRINTFORMW で%TEXTR("根元まで/余すことなく")%受け入れた。
+			ELSEIF SIZE("ペニス", PLAYER) >= 2
+				PRINTFORMW で深々と受け入れた。
 			ELSE
-				PRINTFORMW �Ŏ󂯓��ꂽ�B
+				PRINTFORMW で受け入れた。
 			ENDIF
 		ENDSELECT
 	ENDIF
 
-	SELECTCASE NAMES("������")
-	CASE "�N���j"
-		SIF TEXTS("�u�R���f�B�V����", TARGET) != ""
-			CALL PRINT_STRW, @"(%CALLNAME:TARGET%�̂u�R���f�B�V������_���F_%TEXTS("�u�R���f�B�V����", TARGET)%_�ł�)"
-		PRINTFORM %CALLNAME:TARGET%��%CALLNAME:PLAYER%��%TEXTR("�撣��ɉ����ėD�������𕏂ł��肵/��̓����ɉ����ĕ@�ɂ��������悤�Ȑ������ܘR�炵/�N���j�̌������ɕ@���������r�������肵")%�Ȃ���A
-		PRINTFORMW �q���ȏꏊ�ւ̕�d�ɖ����ɂȂ��Ă���c�c
-	CASE "�t�F������"
-		PRINTFORM %CALLNAME:TARGET%��%CALLNAME:PLAYER%��%TEXTR("�撣��ɉ����ėD�������𕏂ł��肵/��̓����ɉ����ċC�����悳�����ȕ\������܌���/�����̌������ɕ@���������r�������肵")%�Ȃ���A
-		PRINTFORMW �q���ȏꏊ�ւ̕�d�ɖ����ɂȂ��Ă���c�c
-	CASE "�u�Z�b�N�X", "�`�Z�b�N�X", "�A���Z�b�N�X"
+	SELECTCASE NAMES("性処理")
+	CASE "クンニ"
+		SIF TEXTS("Ｖコンディション", TARGET) != ""
+			CALL PRINT_STRW, @"(%CALLNAME:TARGET%のＶコンディションは_黄色_%TEXTS("Ｖコンディション", TARGET)%_です)"
+		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の%TEXTR("頑張りに応じて優しく頭を撫でたりし/舌の動きに応じて鼻にかかったような声を時折漏らし/クンニの激しさに鼻息を少し荒くしたりし")%ながら、
+		PRINTFORMW 敏感な場所への奉仕に夢中になっている……
+	CASE "フェラする"
+		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の%TEXTR("頑張りに応じて優しく頭を撫でたりし/舌の動きに応じて気持ちよさそうな表情を時折見せ/口淫の激しさに鼻息を少し荒くしたりし")%ながら、
+		PRINTFORMW 敏感な場所への奉仕に夢中になっている……
+	CASE "Ｖセックス", "Ａセックス", "尿道セックス"
 		MEMO_LINECOUNT = LINECOUNT
 		IF RAND:2
-			SELECTCASE NAMES("������")
-			CASE "�u�Z�b�N�X"
-				CALL TEXT, "�ǉ��n�̕��F�u�}����"
-			CASE "�`�Z�b�N�X"
-				CALL TEXT, "�ǉ��n�̕��F�`�}����"
-			CASE "�A���Z�b�N�X"
-				CALL TEXT, "�ǉ��n�̕��F�A���}����"
+			SELECTCASE NAMES("性処理")
+			CASE "Ｖセックス"
+				CALL TEXT, "追加地の文：Ｖ挿入後"
+			CASE "Ａセックス"
+				CALL TEXT, "追加地の文：Ａ挿入後"
+			CASE "尿道セックス"
+				CALL TEXT, "追加地の文：尿道挿入後"
 			ENDSELECT
 		ENDIF
 		SIF MEMO_LINECOUNT != LINECOUNT
 			RETURN 1
 
-		CALL TEXT, "�ǉ��n�̕��F�R��ʈȊO�̃C���T�[�g"
+		CALL TEXT, "追加地の文：騎乗位以外のインサート"
 	ENDSELECT
 
-CASE "���~�����F�t�}��"
-	;���肪�U�߂��C���o�����[�g
-	IF TALENT:�Ӓn�� + TALENT:�e�� + TALENT:���� + TALENT:������ + TALENT:��M�I && COND("�K�`�I�g�R", PLAYER) == 0 && RAND:2
-		PRINTFORM %CALLNAME:TARGET%��%TEXTR(@"%NAMES("�\�t�@")%�ɍ���/%NAMES("�\�t�@")%�ɍ�����")%�Ă���%CALLNAME:PLAYER%��
+CASE "性欲解消：逆挿入"
+	;相手が攻めっ気を出すルート
+	IF TALENT:意地悪 + TALENT:粗野 + TALENT:愚か + TALENT:小悪魔 + TALENT:情熱的 && COND("ガチオトコ", PLAYER) == 0 && RAND:2
+		PRINTFORM %CALLNAME:TARGET%は%TEXTR(@"%NAMES("ソファ")%に座っ/%NAMES("ソファ")%に腰かけ")%ている%CALLNAME:PLAYER%の
 		IF RAND:2
-			PRINTFORM �p���c���������艺�낵�����
+			PRINTFORM パンツを引きずり下ろした後に
 		ELSE
-			PRINTFORM %TEXTR("�G/����")%��͂��
+			PRINTFORM %TEXTR("膝/足首")%を掴んで
 		ENDIF
-		PRINTFORM %TEXTR("�O�b��/�����悭/�e�͂Ȃ�")%�҂������J���A����˂��o����
-		SELECTCASE NAMES("������")
-		CASE "�u�Z�b�N�X����"
-			PRINTFORM ���҂ŔG�ꂽ�S
-		CASE "�`�Z�b�N�X����"
-			PRINTFORM �o���L�x�ȃA�k�X
+		PRINTFORM %TEXTR("グッと/勢いよく/容赦なく")%股を押し開き、腰を突き出して
+		SELECTCASE NAMES("性処理")
+		CASE "Ｖセックスする"
+			PRINTFORM 期待で濡れた膣
+		CASE "Ａセックスする"
+			PRINTFORM 経験豊富なアヌス
 		ENDSELECT
-		IF RAND:2 && CHECK_COM("���S�}���\", SELECTCOM)
-			PRINTFORMW ��%TEXTS("�y�j�X�F�傫���\���t", TARGET)%��%TEXTR("�����܂Ŗ��ߍ���/�]�����ƂȂ��������܂���/�}�����Ēp�����C��t����")%�B
-		ELSEIF SIZE("�y�j�X", TARGET) >= 2
-			PRINTFORMW ��%TEXTS("�y�j�X�F�傫���\���t", TARGET)%��%TEXTR("�[�X�Ɗт���/���[���܂ŔƂ��n�߂�/�����悭�Ƃ��n�߂�")%�B
+		IF RAND:2 && CHECK_COM("完全挿入可能", SELECTCOM)
+			PRINTFORMW に%TEXTS("ペニス：大きさ表現付", TARGET)%を%TEXTR("根元まで埋め込んだ/余すことなく咥え込ませた/挿入して恥骨を擦り付けた")%。
+		ELSEIF SIZE("ペニス", TARGET) >= 2
+			PRINTFORMW を%TEXTS("ペニス：大きさ表現付", TARGET)%で%TEXTR("深々と貫いた/奥深くまで犯し始めた/勢いよく犯し始めた")%。
 		ELSE
-			PRINTFORMW ��%TEXTS("�y�j�X�F�傫���\���t", TARGET)%��%TEXTR("�т���/�����悭�Ƃ��n�߂�")%�B
+			PRINTFORMW を%TEXTS("ペニス：大きさ表現付", TARGET)%で%TEXTR("貫いた/勢いよく犯し始めた")%。
 		ENDIF
 	ELSE
-		IF COND("�K�`�I�g�R", PLAYER) == 0
-			PRINTFORM %TEXTR(@"%NAMES("�\�t�@")%/%NAMES("�\�t�@")%�̒[")%�ɍ��蒼����%CALLNAME:PLAYER%��%CALLNAME:TARGET%�Ɍ����Č҂��J���A�˂��o���ꂽ
+		IF COND("ガチオトコ", PLAYER) == 0
+			PRINTFORM %TEXTR(@"%NAMES("ソファ")%/%NAMES("ソファ")%の端")%に座り直した%CALLNAME:PLAYER%は%CALLNAME:TARGET%に向けて股を開き、突き出された
 		ELSE
-			PRINTFORM %CALLNAME:PLAYER%��%CALLNAME:TARGET%�Ɍ����ĐK��˂������A������ꂽ
+			PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%に向けて尻を突きだし、宛がわれた
 		ENDIF
-		PRINTFORM %TEXTS("�y�j�X�F�傫���\���t", TARGET)%��
-		SELECTCASE NAMES("������")
-		CASE "�u�Z�b�N�X����"
-			PRINTFORM �S
-		CASE "�`�Z�b�N�X����"
-			PRINTFORM �A�k�X
+		PRINTFORM %TEXTS("ペニス：大きさ表現付", TARGET)%を
+		SELECTCASE NAMES("性処理")
+		CASE "Ｖセックスする"
+			PRINTFORM 膣
+		CASE "Ａセックスする"
+			PRINTFORM アヌス
 		ENDSELECT
-		IF RAND:2 && CHECK_COM("���S�}���\", SELECTCOM)
-			PRINTFORMW ��%TEXTR("�����܂�/�]�����ƂȂ�")%�󂯓��ꂽ�B
-		ELSEIF SIZE("�y�j�X", TARGET) >= 2
-			PRINTFORMW �Ő[�X�Ǝ󂯓��ꂽ�B
+		IF RAND:2 && CHECK_COM("完全挿入可能", SELECTCOM)
+			PRINTFORMW で%TEXTR("根元まで/余すことなく")%受け入れた。
+		ELSEIF SIZE("ペニス", TARGET) >= 2
+			PRINTFORMW で深々と受け入れた。
 		ELSE
-			PRINTFORMW �Ŏ󂯓��ꂽ�B
+			PRINTFORMW で受け入れた。
 		ENDIF
 	ENDIF
 
-	CALL TEXT, "�}����̕`��"
+	CALL TEXT, "挿入具合の描写"
 
-	SELECTCASE NAMES("������")
-	CASE "�u�Z�b�N�X����"
-		PRINTFORM %CALLNAME:TARGET%��
-		SIF TALENT:���� && RAND:3
-			PRINTFORM ��؂₤�Ȃ��ɐ�𔇂킹�Ȃ���
-		;�uTARGET���^���̃T�h���v�u�T�h���C�������v�ŕ���
-		IF ABL:�Z�I >= 4 && EXP:���g���o�� + ABL:���g��*10 >= 50 && RAND:4 == 0
-			PRINTFORM �q�{�����������ނ悤��
-		ELSEIF ABL:�Z�I >= 3 && EXP:���g���o�� + ABL:���g��*10 >= 30 && RAND:3 == 0
-			PRINTFORM �f�X�|�b�g���C�肠����悤��
+	SELECTCASE NAMES("性処理")
+	CASE "Ｖセックスする"
+		PRINTFORM %CALLNAME:TARGET%は
+		SIF TALENT:恋慕 && RAND:3
+			PRINTFORM 首筋やうなじに舌を這わせながら
+		;「TARGETが真性のサドか」「サドっ気持ちか」で分岐
+		IF ABL:技巧 >= 4 && EXP:腰使い経験 + ABL:腰使い*10 >= 50 && RAND:4 == 0
+			PRINTFORM 子宮口を押し込むように
+		ELSEIF ABL:技巧 >= 3 && EXP:腰使い経験 + ABL:腰使い*10 >= 30 && RAND:3 == 0
+			PRINTFORM Ｇスポットを擦りあげるように
 		ELSEIF RAND:2 == 0
-			PRINTFORM �ł炷�悤�ɂ�������
+			PRINTFORM 焦らすようにゆっくりと
 		ELSE
-			PRINTFORM �ł�����悤�Ɍ�����
+			PRINTFORM 打ちつけるように激しく
 		ENDIF
-		PRINTFORMW ���𓮂����āA%CALLNAME:PLAYER%�̔������y����ł���c
-	CASE "�`�Z�b�N�X����"
-		PRINTFORM %CALLNAME:TARGET%��%CALLNAME:PLAYER%�̍���͂�ŁA
-		;����Œǉ�
-		SIF TALENT:���� && RAND:3
-			PRINTFORM ��؂₤�Ȃ��ɐ�𔇂킹�Ȃ���
-		IF ABL:���g�� >= 5 && RAND:3 == 0
-			PRINTFORMW ���̓I�ɍ����O���C���h�����Ȃ��璼���S���𐷂�ɎC�肠���Ă���c
-		ELSEIF ABL:�T�h���C >= 3 && RAND:2 == 0
-			PRINTFORMW �b�̂悤�Ɍ���������U�肽�ĂĂ���c
+		PRINTFORMW 腰を動かして、%CALLNAME:PLAYER%の反応を楽しんでいる…
+	CASE "Ａセックスする"
+		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の腰を掴んで、
+		;恋慕で追加
+		SIF TALENT:恋慕 && RAND:3
+			PRINTFORM 首筋やうなじに舌を這わせながら
+		IF ABL:腰使い >= 5 && RAND:3 == 0
+			PRINTFORMW 立体的に腰をグラインドさせながら直腸粘膜を盛んに擦りあげている…
+		ELSEIF ABL:サドっ気 >= 3 && RAND:2 == 0
+			PRINTFORMW 獣のように激しく腰を振りたてている…
 		ELSE
-			PRINTFORMW ����傫���O��ɓ������Ă���c
+			PRINTFORMW 腰を大きく前後に動かしている…
 		ENDIF
 	ENDSELECT
-CASE "���~�����F�ː�"
-	SIF RAND:3 && COND("���~��������`���\")
-		LOCALS = �~�]�ɔC����
-	SELECTCASE NOWEX:�ː�
+CASE "性欲解消：射精"
+	SIF RAND:3 && COND("性欲解消を手伝う可能")
+		LOCALS = 欲望に任せて
+	SELECTCASE NOWEX:射精
 	CASE IS >= 3
-		LOCALS:1 = �������ʂ�
+		LOCALS:1 = 物凄い量の
 	CASE 2
-		LOCALS:1 = ��ʂ�
+		LOCALS:1 = 大量の
 	CASE 1
-		LOCALS:1 = �M��
+		LOCALS:1 = 熱い
 	ENDSELECT
 
-	PRINTFORM %CALLNAME:TARGET%�͍���%TEXTR("����������/�˂��o����")%
-	SELECTCASE NAMES("������")
-	CASE "�u�Z�b�N�X����"
-		IF RAND:2 && SIZE("�y�j�X", TARGET) >= 2
-			PRINTFORM �S%TEXTR("��[���܂ŔƂ�/�̉��̕ǂ�@��/���������グ/�̐[���ꏊ���C�肠��")%�Ȃ���A
+	PRINTFORM %CALLNAME:TARGET%は腰を%TEXTR("密着させて/突き出して")%
+	SELECTCASE NAMES("性処理")
+	CASE "Ｖセックスする"
+		IF RAND:2 && SIZE("ペニス", TARGET) >= 2
+			PRINTFORM 膣%TEXTR("を深くまで犯し/の奥の壁を叩き/奥を押し上げ/の深い場所を擦りあげ")%ながら、
 		ELSE
-			PRINTFORM �S%TEXTR("���������Ƃ�/�ǂ��C��グ/����������������")%�Ȃ���A
+			PRINTFORM 膣%TEXTR("を激しく犯し/壁を擦り上げ/を激しくかき混ぜ")%ながら、
 		ENDIF
-		IF TEQUIP:�R���h�[��
-			PRINTFORMW %LOCALS:1%���t���R���h�[���̒��ɓf���o�����B
+		IF TEQUIP:コンドーム
+			PRINTFORMW %LOCALS:1%精液をコンドームの中に吐き出した。
 		ELSEIF RAND:3 == 0
-			PRINTFORMW %LOCALS:1%���t��%CALLNAME:PLAYER%�̍ŉ��߂����ė������񂾁B
-		ELSEIF EXP_GAIN("�S�����t�o��", PLAYER) == 0 && COND("�댯��", PLAYER)
-			PRINTFORMW %LOCALS:1%���t���댯���̎q�{��%LOCALS%�������񂾁B
+			PRINTFORMW %LOCALS:1%精液を%CALLNAME:PLAYER%の最奥めがけて流し込んだ。
+		ELSEIF EXP_GAIN("膣内精液経験", PLAYER) == 0 && COND("危険日", PLAYER)
+			PRINTFORMW %LOCALS:1%精液を危険日の子宮に%LOCALS%注ぎ込んだ。
 		ELSE
-			PRINTFORMW %LOCALS%%LOCALS:1%��%TEXTR(@"�t��%CALLNAME:PLAYER%�̒�����ߏグ��/�������/�t�𒍂�����")%�B
+			PRINTFORMW %LOCALS%%LOCALS:1%精%TEXTR(@"液で%CALLNAME:PLAYER%の中を染め上げた/を放った/液を注ぎ込んだ")%。
 		ENDIF
-	CASE "�`�Z�b�N�X����"
-		PRINTFORM %TEXTR("����/�A�i��")%
-		IF RAND:2 && SIZE("�y�j�X", PLAYER) >= 2
-			PRINTFORM %TEXTR("�̐[���ꏊ���C�肠��/��[���܂ŔƂ�")%�Ȃ���A
+	CASE "Ａセックスする"
+		PRINTFORM %TEXTR("直腸/アナル")%
+		IF RAND:2 && SIZE("ペニス", PLAYER) >= 2
+			PRINTFORM %TEXTR("の深い場所を擦りあげ/を深くまで犯し")%ながら、
 		ELSE
-			PRINTFORM %TEXTR("�ɍ����܂ř������܂�/����������������/���������Ƃ�")%�Ȃ���A
+			PRINTFORM %TEXTR("に根元まで咥え込ませ/を激しくかき混ぜ/を激しく犯し")%ながら、
 		ENDIF
-		IF TEQUIP:�R���h�[��
-			PRINTFORMW %LOCALS:1%���t���R���h�[���̒��ɓf���o�����B
+		IF TEQUIP:コンドーム
+			PRINTFORMW %LOCALS:1%精液をコンドームの中に吐き出した。
 		ELSEIF RAND:3 == 0
-			PRINTFORMW %LOCALS:1%���t��%CALLNAME:PLAYER%�̒����̉��[���߂����ė������񂾁B
+			PRINTFORMW %LOCALS:1%精液を%CALLNAME:PLAYER%の腸内の奥深くめがけて流し込んだ。
 		ELSE
-			PRINTFORMW %LOCALS%%LOCALS:1%��%TEXTR(@"�t��%CALLNAME:PLAYER%�̒�����ߏグ��/�������/�t�𒍂�����")%�B
+			PRINTFORMW %LOCALS%%LOCALS:1%精%TEXTR(@"液で%CALLNAME:PLAYER%の中を染め上げた/を放った/液を注ぎ込んだ")%。
 		ENDIF
 	ENDSELECT
 
-	PRINTFORM %CALLNAME:TARGET%��
-	IF TALENT:���� && RAND:3
-		PRINTFORM %CALLNAME:PLAYER%%TEXTR("�̊������/�ɕ�����/�̗��ꂽ��������Ő���")%�Ȃ���A
+	PRINTFORM %CALLNAME:TARGET%は
+	IF TALENT:恋慕 && RAND:3
+		PRINTFORM %CALLNAME:PLAYER%%TEXTR("の顔を見つめ/に抱きつき/の乱れた髪を手櫛で整え")%ながら、
 	ELSE
-		PRINTFORM %TEXTR("���ꂽ�ċz�𐮂�/�����ɁX�Ɠ������čŌ�̈�H�܂œf���o��/�t�[�b�Ɛ[������f��")%�Ȃ���A
+		PRINTFORM %TEXTR("乱れた呼吸を整え/腰を緩々と動かして最後の一滴まで吐き出し/フーッと深く息を吐き")%ながら、
 	ENDIF
-	SELECTCASE NAMES("������")
-	CASE "�u�Z�b�N�X����"
-		IF TEQUIP:�R���h�[�� == 0
-			PRINTFORMW %TEXTR("�C�����悳�����ȕ\���/�������ȗl�q��")%���o���Z�b�N�X�̗]�C�ɐZ���Ă���c
+	SELECTCASE NAMES("性処理")
+	CASE "Ｖセックスする"
+		IF TEQUIP:コンドーム == 0
+			PRINTFORMW %TEXTR("気持ちよさそうな表情で/満足げな様子で")%中出しセックスの余韻に浸っている…
 		ELSE
-			PRINTFORMW %TEXTR("�C�����悳�����ȕ\���/�������ȗl�q��")%���s�ׂ̗]�C�ɐZ���Ă���c
+			PRINTFORMW %TEXTR("気持ちよさそうな表情で/満足げな様子で")%性行為の余韻に浸っている…
 		ENDIF
-	CASE "�`�Z�b�N�X����"
-		PRINTFORMW %TEXTR("�C�����悳�����ȕ\���/�������ȗl�q��")%�A�i���Z�b�N�X�̗]�C�ɐZ���Ă���c
+	CASE "Ａセックスする"
+		PRINTFORMW %TEXTR("気持ちよさそうな表情で/満足げな様子で")%アナルセックスの余韻に浸っている…
 	ENDSELECT
 
-CASE "������"
-	;�܂��̓v���C���Ƃ̈ߑ��ω��̏���(���肪�哱����v���C�̂�)
-	SELECTCASE NAMES("������")
-	CASE "���", "�t�F���`�I"
-		;PRINTFORM �Ȃ�������S���E���ŌC���ƌC�݂̂̊i�D�ɂȂ���
-	CASE "�p�C�Y��"
+CASE "性処理"
+	;まずはプレイごとの衣装変化の処理(相手が主導するプレイのみ)
+	SELECTCASE NAMES("性処理")
+	CASE "手淫", "フェラチオ"
+		;PRINTFORM なぜか服を全部脱いで靴下と靴のみの格好になった
+	CASE "パイズリ"
 
-	CASE "�j�v���t�@�b�N"
+	CASE "ニプルファック"
 
 	ENDSELECT
 
-	;�v���C�`��
-	SELECTCASE NAMES("������")
-	CASE "��d�N���j"
-		;���肪�U�߂��C���o�����[�g
-		IF TALENT:�Ӓn�� + TALENT:�e�� + TALENT:���� + TALENT:������ + TALENT:��M�I && RAND:2
-			PRINTFORM %CALLNAME:TARGET%�͍������Ă���%CALLNAME:PLAYER%��
+	;プレイ描写
+	SELECTCASE NAMES("性処理")
+	CASE "奉仕クンニ"
+		;相手が攻めっ気を出すルート
+		IF TALENT:意地悪 + TALENT:粗野 + TALENT:愚か + TALENT:小悪魔 + TALENT:情熱的 && RAND:2
+			PRINTFORM %CALLNAME:TARGET%は腰かけている%CALLNAME:PLAYER%の
 			IF RAND:2
-				PRINTFORM �p���c���������艺�낵�����
+				PRINTFORM パンツを引きずり下ろした後に
 			ELSE
-				PRINTFORM %TEXTR("�G/����")%��͂��
+				PRINTFORM %TEXTR("膝/足首")%を掴んで
 			ENDIF
-			PRINTFORM %TEXTR("�O�b��/�����悭/�e�͂Ȃ�")%�҂������J����%TEXTR("���˂�����/��𖄂�")%�A
-			PRINTFORMW �I��ɂȂ���%TEXTS("��A�O�F���o", PLAYER)%��%TEXTR("����/�����/����")%�ւƐ��%TEXTR("���킹�Ă���/�L�΂��ĕ�d���n�߂�/�L�΂��ĔS�����h�����Ă���")%�c
-			SIF TEXTS("�u�R���f�B�V����", PLAYER) != ""
-				CALL PRINT_STRW, @"(%CALLNAME:PLAYER%�̂u�R���f�B�V������_���F_%TEXTS("�u�R���f�B�V����", PLAYER)%_�ł�)"
+			PRINTFORM %TEXTR("グッと/勢いよく/容赦なく")%股を押し開いて%TEXTR("顔を突っ込み/顔を埋め")%、
+			PRINTFORMW 露わになった%TEXTS("大陰唇：視覚", PLAYER)%の%TEXTR("内側/割れ目/隙間")%へと舌を%TEXTR("這わせてきた/伸ばして奉仕し始めた/伸ばして粘膜を刺激してきた")%…
+			SIF TEXTS("Ｖコンディション", PLAYER) != ""
+				CALL PRINT_STRW, @"(%CALLNAME:PLAYER%のＶコンディションは_黄色_%TEXTS("Ｖコンディション", PLAYER)%_です)"
 		ELSE
-			PRINTFORM �p���c�������đ����甲���Ȃ���荠�ȏꏊ�ɍ�������%CALLNAME:PLAYER%��%CALLNAME:TARGET%�Ɍ����Č҂��J���A
-			PRINTFORMW %TEXTS("�����", PLAYER)%���w��%TEXTR("����/�����L��/�J����")%�Ȃ����ł̕�d�𑣂����B
-			SIF TEXTS("�u�R���f�B�V����", PLAYER) != ""
-				CALL PRINT_STRW, @"(%CALLNAME:PLAYER%�̂u�R���f�B�V������_���F_%TEXTS("�u�R���f�B�V����", PLAYER)%_�ł�)"
-			PRINTFORM %CLO("���݂̊i�D����")%%CALLNAME:TARGET%��%TEXTR("�ڂ̑O�̌��i�𒭂�/�͂��ɕ@���q�N����/�J���ꂽ�G����ōX�ɍ��E�ɍL��")%�Ȃ���%CALLNAME:PLAYER%�̌ҊԂɊ�𖄂߁A
-			PRINTFORMW %TEXTR("�����������������]�����|������悤�Ɏ��X�Ȑ�g���ł�/�N���g���X�����łȂ��S�ɂ���𔇂킹�Ă̔M�S��/��ڌ����ŗl�q���f���Ȃ��猣�g�I��")%�N���j���n�߂��c
+			PRINTFORM パンツを下して足から抜きながら手頃な場所に腰かけた%CALLNAME:PLAYER%は%CALLNAME:TARGET%に向けて股を開き、
+			PRINTFORMW %TEXTS("割れ目", PLAYER)%を指で%TEXTR("寛げ/押し広げ/開帳し")%ながら舌での奉仕を促した。
+			SIF TEXTS("Ｖコンディション", PLAYER) != ""
+				CALL PRINT_STRW, @"(%CALLNAME:PLAYER%のＶコンディションは_黄色_%TEXTS("Ｖコンディション", PLAYER)%_です)"
+			PRINTFORM %CLO("現在の格好＆の")%%CALLNAME:TARGET%は%TEXTR("目の前の光景を眺め/僅かに鼻をヒクつかせ/開かれた膝を手で更に左右に広げ")%ながら%CALLNAME:PLAYER%の股間に顔を埋め、
+			PRINTFORMW %TEXTR("うっすらついた汚れも余さず掃除するように執拗な舌使いでの/クリトリスだけでなく膣にも舌を這わせての熱心な/上目遣いで様子を伺いながら献身的な")%クンニを始めた…
 		ENDIF
-	CASE "���"
-		PRINTFORM %CLO("���݂̊i�D����")%%CALLNAME:TARGET%��
-		;���̐l�Ƃ̐���������
-		IF COND("���̐l�̐���������")
-			IF COND("�o����̑���", MASTER)
-				PRINTFORMW %CONDS("�o����̑���", MASTER)%�Ŋy���񂾂΂����%CALLNAME:MASTER%�̃y�j�X����Ɏ��A�w��Ōy���M�񂾌�ɖ{�������Ĉ����n�߂��c
+	CASE "手淫"
+		PRINTFORM %CLO("現在の格好＆の")%%CALLNAME:TARGET%は
+		;他の人との性処理直後
+		IF COND("他の人の性処理直後")
+			IF COND("Ｐ汚れの相手", MASTER)
+				PRINTFORMW %CONDS("Ｐ汚れの相手", MASTER)%で楽しんだばかりの%CALLNAME:MASTER%のペニスを手に取り、指先で軽く弄んだ後に本腰を入れて扱き始めた…
 			ELSE
-				PRINTFORMW �ː������%CALLNAME:MASTER%�̃y�j�X����Ɏ��A�w��Ōy���M�񂾌�ɖ{�������Ĉ����n�߂��c
+				PRINTFORMW 射精直後の%CALLNAME:MASTER%のペニスを手に取り、指先で軽く弄んだ後に本腰を入れて扱き始めた…
 			ENDIF
 		ELSE
-			PRINTFORMW %CALLNAME:MASTER%�̃Y�{������y�j�X�����o���A�w��Ōy���M�񂾌�ɖ{�������Ď�ň����n�߂��c
+			PRINTFORMW %CALLNAME:MASTER%のズボンからペニスを取り出し、指先で軽く弄んだ後に本腰を入れて手で扱き始めた…
 		ENDIF
-		;PRINTFORMW %CALLNAME:TARGET%��%CALLNAME:MASTER%�̃Y�{������y�j�X�����o���A��[���Ńy���y���r�߂Ȃ��痘����ň����n�߂��B
-		;PRINTFORMW �]�������̎�͎���̌ҊԂɉ��сA�O�`���O�`���ƔS�����������𗧂ĂC�����̂���������M�葱���Ă���c
-	CASE "�t�F���`�I"
-		PRINTFORM %CLO("���݂̊i�D����")%%CALLNAME:TARGET%��
-		;���̐l�Ƃ̐���������
-		IF COND("���̐l�̐���������")
-			IF COND("�o����̑���", MASTER)
-				SELECTCASE CONDS("�o����", MASTER)
-				CASE "�u"
-					PRINTFORM %CONDS("�o����̑���", MASTER)%%TEXTR("�Ƃ̒��o���Z�b�N�X�ŉ��ꂽ�܂܂�/�Ƃ̃Z�b�N�X����ň��t�L���Y��")%
-				CASE "�`"
-					PRINTFORM %CONDS("�o����̑���", MASTER)%%TEXTR("�Ƃ̃A�i���Z�b�N�X�ŉ��ꂽ�܂܂�/�Ƃ̃A�i���Z�b�N�X����ō����L���������Ă���")%
-				CASE "�A"
-					PRINTFORM %CONDS("�o����̑���", MASTER)%%TEXTR("�Ƃ̔A���Z�b�N�X�ŉ��ꂽ�܂܂�/�̔A�����g�������߂ɐ��ݕt�������������̏L���������Ă���")%
+		;PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%のズボンからペニスを取り出し、先端を舌でペロペロ舐めながら利き手で扱き始めた。
+		;PRINTFORMW 余った方の手は自らの股間に延び、グチュグチュと粘っこい水音を立てつつ気持ちのいい部分を弄り続けている…
+	CASE "フェラチオ"
+		PRINTFORM %CLO("現在の格好＆の")%%CALLNAME:TARGET%は
+		;他の人との性処理直後
+		IF COND("他の人の性処理直後")
+			IF COND("Ｐ汚れの相手", MASTER)
+				SELECTCASE CONDS("Ｐ汚れ", MASTER)
+				CASE "Ｖ"
+					PRINTFORM %CONDS("Ｐ汚れの相手", MASTER)%%TEXTR("との中出しセックスで汚れたままの/とのセックス直後で愛液臭が漂う")%
+				CASE "Ａ"
+					PRINTFORM %CONDS("Ｐ汚れの相手", MASTER)%%TEXTR("とのアナルセックスで汚れたままの/とのアナルセックス直後で酷い臭いをさせている")%
+				CASE "尿"
+					PRINTFORM %CONDS("Ｐ汚れの相手", MASTER)%%TEXTR("との尿道セックスで汚れたままの/の尿道を使ったために染み付いたおしっこの臭いをさせている")%
 				ENDSELECT
-				PRINTFORMW %CALLNAME:MASTER%�̃y�j�X�����Ɍ}������A��𗍂߂Ȃ��瓪�𓮂����ė��܂������t�������n�߂��c
+				PRINTFORMW %CALLNAME:MASTER%のペニスを口に迎え入れ、舌を絡めながら頭を動かして溜まった精液を搾り取り始めた…
 			ELSE
-				PRINTFORMW �ː������%CALLNAME:MASTER%�̃y�j�X�����Ɍ}������A��𗍂߂Ȃ��瓪�𓮂����ė��܂������t�������n�߂��c
+				PRINTFORMW 射精直後の%CALLNAME:MASTER%のペニスを口に迎え入れ、舌を絡めながら頭を動かして溜まった精液を搾り取り始めた…
 			ENDIF
 		ELSE
-			PRINTFORMW %CALLNAME:MASTER%�̃y�j�X�����Ɍ}������A��𗍂߂Ȃ��瓪�𓮂����ė��܂������t�������n�߂��c
+			PRINTFORMW %CALLNAME:MASTER%のペニスを口に迎え入れ、舌を絡めながら頭を動かして溜まった精液を搾り取り始めた…
 		ENDIF
-	CASE "�p�C�Y��"
-		PRINTFORMW %CLO("���݂̊i�D����")%%CALLNAME:TARGET%��%CALLNAME:MASTER%�̃y�j�X��\@ TALENT:���� ? ������ # \@���ŋ��ݍ��݁A����o�����T���ɐ�𔇂킹�Ȃ���p�C�Y�����J�n�����c
-	CASE "�j�v���t�@�b�N"
-		PRINTFORMW %CLO("���݂̊i�D����")%%CALLNAME:TARGET%��%CALLNAME:MASTER%�̃y�j�X�����Ŏ󂯓���A�������˂����݂ɍ��킹�邩�̂悤�Ɋɋ}���������ߕt���Ŗ����܂��Ă����c
-	CASE "�u�Z�b�N�X", "�`�Z�b�N�X", "�A���Z�b�N�X"
-		SELECTCASE CONDS("�̈�")
-		CASE "�R���"
-			PRINTFORM %TEXTS("�}�������E��")%%CALLNAME:TARGET%�́A
-			IF COND("�펞�g���F������������") && RAND:3 == 0
-				PRINTFORM %TEXTR("�g��������ςȂ��Œ]��ł���/�ٕ������������ꂽ�΂���Ō����J�����܂܂�/���ł��o����悤�ɂƏ�������Ă���")%
-				SELECTCASE NAMES("������")
-				CASE "�u�Z�b�N�X"
-					PRINTFORM �A�\�R��
-				CASE "�`�Z�b�N�X"
-					PRINTFORM �A�i����
-				CASE "�A���Z�b�N�X"
-					PRINTFORM �A����
+	CASE "パイズリ"
+		PRINTFORMW %CLO("現在の格好＆の")%%CALLNAME:TARGET%は%CALLNAME:MASTER%のペニスを\@ TALENT:巨乳 ? 自慢の # \@胸で挟み込み、顔を出した亀頭に舌を這わせながらパイズリを開始した…
+	CASE "ニプルファック"
+		PRINTFORMW %CLO("現在の格好＆の")%%CALLNAME:TARGET%は%CALLNAME:MASTER%のペニスを胸で受け入れ、激しい突き込みに合わせるかのように緩急をつけた締め付けで愉しませてきた…
+	CASE "Ｖセックス", "Ａセックス", "尿道セックス"
+		SELECTCASE CONDS("体位")
+		CASE "騎乗位"
+			PRINTFORM %TEXTS("挿入準備脱衣")%%CALLNAME:TARGET%は、
+			IF COND("常時拡張：引き抜き発生") && RAND:3 == 0
+				PRINTFORM %TEXTR("拡張されっぱなしで綻んでいる/異物を引き抜かれたばかりで口を開けたままの/いつでも出来るようにと準備されている")%
+				SELECTCASE NAMES("性処理")
+				CASE "Ｖセックス"
+					PRINTFORM アソコで
+				CASE "Ａセックス"
+					PRINTFORM アナルで
+				CASE "尿道セックス"
+					PRINTFORM 尿道で
 				ENDSELECT
-				PRINTFORM %CALLNAME:MASTER%��
+				PRINTFORM %CALLNAME:MASTER%の
 			ELSE
-				SIF CFLAG:�J�n�p���� && (NAMES("������") == "�u�Z�b�N�X" || NAMES("������") == "�A���Z�b�N�X")
-					PRINTFORM �J�n�p���߂���Ȃ���
-				SELECTCASE SAVESTR:���݈ʒu
-				CASE "������", "������", "�i����"
-					PRINTFORM �����p�̃x�b�h�ɐQ���ׂ�%CALLNAME:MASTER%�Ɍׂ���
-				CASE "�̈�q��"
-					PRINTFORM �}�b�g���X�ɐQ���ׂ�%CALLNAME:MASTER%�Ɍׂ���
-				CASE "����"
-					PRINTFORM �����t���̃x�b�h�ɐQ���ׂ�%CALLNAME:MASTER%�Ɍׂ���
-				CASE "���h����"
-					PRINTFORM �~����Ă����z�c�ɐQ���ׂ�%CALLNAME:MASTER%�Ɍׂ���
+				SIF CFLAG:絆創膏装着 && (NAMES("性処理") == "Ｖセックス" || NAMES("性処理") == "尿道セックス")
+					PRINTFORM 絆創膏をめくりながら
+				SELECTCASE SAVESTR:現在位置
+				CASE "教官室", "研究室", "司書室"
+					PRINTFORM 仮眠用のベッドに寝そべる%CALLNAME:MASTER%に跨って
+				CASE "体育倉庫"
+					PRINTFORM マットレスに寝そべる%CALLNAME:MASTER%に跨って
+				CASE "部室"
+					PRINTFORM 備え付けのベッドに寝そべる%CALLNAME:MASTER%に跨って
+				CASE "旧宿直室"
+					PRINTFORM 敷かれていた布団に寝そべる%CALLNAME:MASTER%に跨って
 				CASEELSE
-					IF PLACE("��")
-						PRINTFORM �Q���ׂ�%CALLNAME:MASTER%�Ɍׂ���
+					IF PLACE("個室")
+						PRINTFORM 寝そべる%CALLNAME:MASTER%に跨って
 					ELSE
-						PRINTFORM %NAMES("�\�t�@")%�ɐQ���ׂ�%CALLNAME:MASTER%�Ɍׂ���
+						PRINTFORM %NAMES("ソファ")%に寝そべる%CALLNAME:MASTER%に跨って
 					ENDIF
 				ENDSELECT
 			ENDIF
-			IF COND("���̐l�̐���������")
-				IF COND("�o����̑���", MASTER)
-					SELECTCASE CONDS("�o����", MASTER)
-					CASE "�u"
-						PRINTFORM %CONDS("�o����̑���", MASTER)%%TEXTR("�Ƃ̒��o���Z�b�N�X�ŉ��ꂽ�܂܂�/�Ƃ̃Z�b�N�X����ň��t�L���Y��")%
-					CASE "�`"
-						PRINTFORM %CONDS("�o����̑���", MASTER)%%TEXTR("�Ƃ̃A�i���Z�b�N�X�ŉ��ꂽ�܂܂�/�Ƃ̃A�i���Z�b�N�X����ō����L���������Ă���")%
-					CASE "�A"
-						PRINTFORM %CONDS("�o����̑���", MASTER)%%TEXTR("�Ƃ̔A���Z�b�N�X�ŉ��ꂽ�܂܂�/�̔A�����g�������߂ɐ��ݕt�������������̏L���������Ă���")%
+			IF COND("他の人の性処理直後")
+				IF COND("Ｐ汚れの相手", MASTER)
+					SELECTCASE CONDS("Ｐ汚れ", MASTER)
+					CASE "Ｖ"
+						PRINTFORM %CONDS("Ｐ汚れの相手", MASTER)%%TEXTR("との中出しセックスで汚れたままの/とのセックス直後で愛液臭が漂う")%
+					CASE "Ａ"
+						PRINTFORM %CONDS("Ｐ汚れの相手", MASTER)%%TEXTR("とのアナルセックスで汚れたままの/とのアナルセックス直後で酷い臭いをさせている")%
+					CASE "尿"
+						PRINTFORM %CONDS("Ｐ汚れの相手", MASTER)%%TEXTR("との尿道セックスで汚れたままの/の尿道を使ったために染み付いたおしっこの臭いをさせている")%
 					ENDSELECT
-					PRINTFORM �y�j�X��
+					PRINTFORM ペニスを
 				ELSE
-					PRINTFORM �ː������\@ SIZE("�y�j�X", MASTER) >= 2 ? ���� # �y�j�X \@��
+					PRINTFORM 射精直後の\@ SIZE("ペニス", MASTER) >= 2 ? 巨根 # ペニス \@を
 				ENDIF
-			ELSEIF NAMES("������") == "�u�Z�b�N�X" && COND("�}���]�T�x") && SIZE("�y�j�X", MASTER) >= 2 && RAND:3
-				IF SIZE("�y�j�X", MASTER) + TALENT:���� - TALENT:���g >= 3
-					PRINTFORM ������`��܂œ͂��悤��%TEXTR("������/�����")%�y�j�X��
+			ELSEIF NAMES("性処理") == "Ｖセックス" && COND("挿入余裕度") && SIZE("ペニス", MASTER) >= 2 && RAND:3
+				IF SIZE("ペニス", MASTER) + TALENT:小柄 - TALENT:長身 >= 3
+					PRINTFORM 自らの臍上まで届くような%TEXTR("凶悪な/長大な")%ペニスを
 				ELSE
-					PRINTFORM �`���܂œ��B����%TEXTR("������/�����")%�y�j�X��
+					PRINTFORM 臍下まで到達する%TEXTR("凶悪な/長大な")%ペニスを
 				ENDIF
 			ELSEIF RAND:2
-				PRINTFORM %TEXTR("�V�����悤�ɗ��N���Ă���/�V������Ă����藧��/�����p�x�Ŗu�N���Ă���")%�y�j�X��
+				PRINTFORM %TEXTR("天を仰ぐように隆起している/天井向けてそそり立つ/凄い角度で勃起している")%ペニスを
 			ELSE
-				PRINTFORM %TEXTS("�y�j�X�F���o", PLAYER)%�y�j�X��
+				PRINTFORM %TEXTS("ペニス：視覚", PLAYER)%ペニスを
 			ENDIF
-			IF TALENT:�D�F + TALENT:���� + TALENT:���� && COND("����") && RAND:3 == 0
-				PRINTFORM %TEXTR("������߂Ȃ���/�����������ɔ��΂݂Ȃ���")%
-			ELSEIF COND("�}���]�T�x") >= 2 && RAND:2
-				PRINTFORM %TEXTR("�D�z������܂��Ȃ���/�]�T�̕\���/�C�����ǂ������Ȋ�������Ȃ���")%
-			ELSEIF COND("�}���]�T�x") && ABL:�T�h���C >= 2 && RAND:2
-				IF TALENT:���� + TALENT:���C && RANDIF(2, TALENT:���ӋC + TALENT:������)
-					PRINT �s�G�ȏ΂݂𕂂��ׂȂ���
-				ELSEIF TALENT:���ӋC + TALENT:������ && RAND:2
-					PRINT �j���j�����Ȃ���
+			IF TALENT:好色 + TALENT:淫乱 + TALENT:恋慕 && COND("視力") && RAND:3 == 0
+				PRINTFORM %TEXTR("顔を見つめながら/愛おしそうに微笑みながら")%
+			ELSEIF COND("挿入余裕度") >= 2 && RAND:2
+				PRINTFORM %TEXTR("優越感を滲ませながら/余裕の表情で/気持ち良さそうな顔を見せながら")%
+			ELSEIF COND("挿入余裕度") && ABL:サドっ気 >= 2 && RAND:2
+				IF TALENT:高慢 + TALENT:強気 && RANDIF(2, TALENT:生意気 + TALENT:小悪魔)
+					PRINT 不敵な笑みを浮かべながら
+				ELSEIF TALENT:生意気 + TALENT:小悪魔 && RAND:2
+					PRINT ニヤニヤしながら
 				ELSE
-					PRINTFORM %TEXTR("�D�z��/�n�s�I�ȉx��")%����܂��Ȃ���
+					PRINTFORM %TEXTR("優越感/嗜虐的な悦び")%を滲ませながら
 				ENDIF
 			ELSE
-				PRINTFORM %TEXTR("�Â��f����R�炵�Ȃ���/�M���ۂ�����f���Ȃ���")%
+				PRINTFORM %TEXTR("甘い吐息を漏らしながら/熱っぽい息を吐きながら")%
 			ENDIF
 
-			SELECTCASE COND("�}���]�T�x")
-			;���[
+			SELECTCASE COND("挿入余裕度")
+			;よゆー
 			CASE IS >= 2
-				PRINTFORMW %TEXTR("�����܂�/�c����")%%TEXTR("���߂�/��������/�ۂݍ���")%�B
-			;�҂�����
+				PRINTFORMW %TEXTR("根元まで/残さず")%%TEXTR("収めた/咥え込んだ/呑み込んだ")%。
+			;ぴったり
 			CASE 1
-				PRINTFORMW %TEXTR("���߂�/��������/�ۂݍ���")%�B
-			;�S���͖���
+				PRINTFORMW %TEXTR("収めた/咥え込んだ/呑み込んだ")%。
+			;全部は無理
 			CASEELSE
-				PRINTFORMW ���E�܂�%TEXTR("���߂�/��������/�ۂݍ���")%�B
+				PRINTFORMW 限界まで%TEXTR("収めた/咥え込んだ/呑み込んだ")%。
 			ENDSELECT
 		CASEELSE
-			IF RAND:3 && (ABL:�~�] >= 5 || TALENT:�����ɑf��)
-				PRINTFORM %CALLNAME:TARGET%��
-				IF COND("�펞�g���F������������") && RAND:3
-					;�ꏊ
-					SELECTCASE NAMES("������")
-					CASE "�u�Z�b�N�X"
-						PRINTFORM %TEXTR("�O�̌�/�S")%
-					CASE "�`�Z�b�N�X"
-						PRINTFORM %TEXTR("���K�̌�/����")%
-					CASE "�A���Z�b�N�X"
-						PRINTFORM %TEXTR("���������̌�/�r���̂��߂̌�")%
+			IF RAND:3 && (ABL:欲望 >= 5 || TALENT:快感に素直)
+				PRINTFORM %CALLNAME:TARGET%は
+				IF COND("常時拡張：引き抜き発生") && RAND:3
+					;場所
+					SELECTCASE NAMES("性処理")
+					CASE "Ｖセックス"
+						PRINTFORM %TEXTR("前の穴/膣")%
+					CASE "Ａセックス"
+						PRINTFORM %TEXTR("お尻の穴/直腸")%
+					CASE "尿道セックス"
+						PRINTFORM %TEXTR("おしっこの穴/排泄のための穴")%
 					ENDSELECT
-					;�T�C�Y�ŕ���
-					SELECTCASE COND("�펞�g���F������������")
+					;サイズで分岐
+					SELECTCASE COND("常時拡張：引き抜き発生")
 					CASE IS >= 4
-						PRINTFORM %TEXTR("�����������o����/���݂�����ƍL���Ă���/�𖄂߂Ă���")%%TEXTR("�K�i�O��/�L�蓾�Ȃ��傫����/�o�J�ł���")%
+						PRINTFORM %TEXTR("から引きずり出した/をみっちりと広げていた/を埋めていた")%%TEXTR("規格外の/有り得ない大きさの/バカでかい")%
 					CASE 3
-						PRINTFORM %TEXTR("�����������o����/���݂�����ƍL���Ă���/���ǂ��ł���")%%TEXTR("�ɑ���/�쑾��/�傫��")%
+						PRINTFORM %TEXTR("から引きずり出した/をみっちりと広げていた/を塞いでいた")%%TEXTR("極太の/野太い/大きな")%
 					CASEELSE
-						PRINTFORM %TEXTR("�������������/�ř�������ł���/�������L���Ă���")%
+						PRINTFORM %TEXTR("から引き抜いた/で咥え込んでいた/を押し広げていた")%
 					ENDSELECT
-					SELECTCASE NAMES("������")
-					CASE "�u�Z�b�N�X"
-						PRINTFORM �o�C�u
-					CASE "�`�Z�b�N�X"
-						PRINTFORM �v���O
-					CASE "�A���Z�b�N�X"
-						PRINTFORM �v���O
+					SELECTCASE NAMES("性処理")
+					CASE "Ｖセックス"
+						PRINTFORM バイブ
+					CASE "Ａセックス"
+						PRINTFORM プラグ
+					CASE "尿道セックス"
+						PRINTFORM プラグ
 					ENDSELECT
-					;���������̂̈���
-					IF COND("�������|���t�F���\") && RAND:3
-						IF COND("�`���|���t�F���\") && RAND:3
-							PRINTFORM ��%TEXTR("����/�S�t/�p������������")%��%TEXTR("��点������/������������/�����Ƃ��")%�r�ߎ��A
+					;抜いたものの扱い
+					IF COND("自発お掃除フェラ可能") && RAND:3
+						IF COND("Ａお掃除フェラ可能") && RAND:3
+							PRINTFORM の%TEXTR("汚れ/粘液/恥ずかしい汚れ")%を%TEXTR("尖らせた舌先で/美味しそうに/うっとりと")%舐め取りつつ、
 						ELSE
-							PRINTFORM ��%TEXTR("��[/���{�����[�܂�/����")%�����������ʎ�����%TEXTR("�y���y����/�˂��Ƃ��/�y��������")%�r�߂A
+							PRINTFORM の%TEXTR("先端/根本から先端まで/凹凸")%を興奮した面持ちで%TEXTR("ペロペロと/ねっとりと/楽しそうに")%舐めつつ、
 						ENDIF
-					ELSEIF TALENT:�p���炢
-						PRINTFORM ��%TEXTR("�p������������/��΂����̒p���炢�Ƌ���/���肰�Ȃ����p���ӎ�����")%�e�ɒu���ƁA
+					ELSEIF TALENT:恥じらい
+						PRINTFORM を%TEXTR("恥ずかしそうに/幾ばくかの恥じらいと共に/さりげなく死角を意識しつつ")%脇に置くと、
 					ELSE
-						PRINTFORM ��%TEXTR("����ɋC��t���e��/�悭������ꏊ��/��������痭�����o������")%�u���ƁA
+						PRINTFORM を%TEXTR("汚れに気を付けつつ脇に/よく見える場所に/解放感から溜息を出しつつ側に")%置くと、
 					ENDIF
 				ELSE
-					PRINTFORM %TEXTS("�}�������E��")%
-					SELECTCASE SAVESTR:���݈ʒu
-					CASE "�̈�q��"
-						PRINTFORM %TEXTR("���є��ɍ������낷��/�}�b�g�ɍ������낷��")%�A
-					CASE "�X�ߎ�"
-						PRINTFORM %TEXTR("�\�t�@�x�b�h�ɍ������낷��/�ǂɂ����ꂩ�����")%�A
-					CASE "�j�q�g�C��", "���q�g�C��"
-						PRINTFORM %TEXTR("�֍�/�m���֍�")%�ɍ�������ƁA
-					CASE "����"
-						PRINTFORM %TEXTR("�t�F���X��͂�ő̏d��a�����/�ǂɂ����ꂩ�����")%�A
-					;�x�b�h������
-					CASE "����"
-						PRINTFORM �����t���̃x�b�h%TEXTR("�ɍ������낷��/�ɐg�����������")%�A
-					;��������
-					CASE "������", "������", "�i����"
-						PRINTFORM %TEXTR("���ɍ������낷��/�f�X�N�`�F�A�ɐ[�����|�����")%�A
+					PRINTFORM %TEXTS("挿入準備脱衣")%
+					SELECTCASE SAVESTR:現在位置
+					CASE "体育倉庫"
+						PRINTFORM %TEXTR("跳び箱に腰を下ろすと/マットに腰を下ろすと")%、
+					CASE "更衣室"
+						PRINTFORM %TEXTR("ソファベッドに腰を下ろすと/壁にもたれかかると")%、
+					CASE "男子トイレ", "女子トイレ"
+						PRINTFORM %TEXTR("便座/洋式便座")%に腰かけると、
+					CASE "屋上"
+						PRINTFORM %TEXTR("フェンスを掴んで体重を預けると/壁にもたれかかると")%、
+					;ベッドがある
+					CASE "部室"
+						PRINTFORM 備え付けのベッド%TEXTR("に腰を下ろすと/に身を横たえると")%、
+					;机がある
+					CASE "研究室", "教官室", "司書室"
+						PRINTFORM %TEXTR("机に腰を下ろすと/デスクチェアに深く腰掛けると")%、
 					CASEELSE
-						PRINTFORM %TEXTR("�ǂɂ����ꂩ�����")%�A
+						PRINTFORM %TEXTR("壁にもたれかかると")%、
 					ENDSELECT
 				ENDIF
-				SIF CFLAG:�J�n�p���� && (NAMES("������") == "�u�Z�b�N�X" || NAMES("������") == "�A���Z�b�N�X")
-					PRINTFORM �J�n�p���߂���Ȃ���
-				PRINTFORM %CALLNAME:MASTER%��
-				SELECTCASE NAMES("������")
-				CASE "�u�Z�b�N�X"
-					PRINTFORM ������%TEXTR("�����̏o���Ă���/���𐂂炷/�����")%�A�\�R��
-				CASE "�`�Z�b�N�X"
-					PRINTFORM ������%TEXTR("�������[��/�q�N��/�����")%�A�i����
-				CASE "�A���Z�b�N�X"
-					PRINTFORM ������%TEXTR("��������ɂ��Ȃ���/�����ɋQ����/�҂�����Ȃ��l�q��")%�A����
+				SIF CFLAG:絆創膏装着 && (NAMES("性処理") == "Ｖセックス" || NAMES("性処理") == "尿道セックス")
+					PRINTFORM 絆創膏をめくりながら
+				PRINTFORM %CALLNAME:MASTER%に
+				SELECTCASE NAMES("性処理")
+				CASE "Ｖセックス"
+					PRINTFORM 向けて%TEXTR("準備の出来ている/涎を垂らす/発情した")%アソコを
+				CASE "Ａセックス"
+					PRINTFORM 向けて%TEXTR("準備万端な/ヒクつく/発情した")%アナルを
+				CASE "尿道セックス"
+					PRINTFORM 向けて%TEXTR("すっかり緩くなった/快感に飢えた/待ちきれない様子の")%尿道を
 				ENDSELECT
-				PRINTFORMW %TEXTR("�����L��/������/�I�o����")%��%TEXTR("�Ñ�/����/�U�f")%���Ă����c
-				SIF NAMES("������") == "�u�Z�b�N�X" && TEXTS("�u�R���f�B�V����", TARGET) != ""
-					CALL PRINT_STRW, @"(%CALLNAME:TARGET%�̂u�R���f�B�V������_���F_%TEXTS("�u�R���f�B�V����", TARGET)%_�ł�)"
+				PRINTFORMW %TEXTR("押し広げ/見せつけ/露出させ")%て%TEXTR("催促/挑発/誘惑")%してきた…
+				SIF NAMES("性処理") == "Ｖセックス" && TEXTS("Ｖコンディション", TARGET) != ""
+					CALL PRINT_STRW, @"(%CALLNAME:TARGET%のＶコンディションは_黄色_%TEXTS("Ｖコンディション", TARGET)%_です)"
 			ELSE
-				SELECTCASE SAVESTR:���݈ʒu
-				CASE "�̈�q��"
-					PRINTFORM %TEXTR("���є��ɍ������낵��/�}�b�g�ɍ������낵��")%
-				CASE "�X�ߎ�"
-					PRINTFORM %TEXTR("�\�t�@�x�b�h�ɍ������낵��/�ǂɂ����ꂩ������/�ǂɎ��t���Ă��K�������Ă���")%
-				CASE "�j�q�g�C��", "���q�g�C��"
-					PRINTFORM %TEXTR("�֍�/�m���֍�")%�ɍ�������
-				CASE "����"
-					PRINTFORM %TEXTR("�t�F���X��͂�ő̏d��a����/�ǂɂ����ꂩ������/�ǂɎ��t���Ă��K�������Ă���")%
-				CASE "���h����"
-					PRINTFORM �~����Ă����z�c%TEXTR("�ɍ������낵��/�ɐg����������")%
-				;�x�b�h������
-				CASE "����"
-					PRINTFORM �����t���̃x�b�h%TEXTR("�ɍ������낵��/�ɐg����������")%
-				;��������
-				CASE "������", "������", "�i����"
-					PRINTFORM %TEXTR("���ɍ������낵��/�f�X�N�`�F�A�ɐ[�����|����")%
+				SELECTCASE SAVESTR:現在位置
+				CASE "体育倉庫"
+					PRINTFORM %TEXTR("跳び箱に腰を下ろした/マットに腰を下ろした")%
+				CASE "更衣室"
+					PRINTFORM %TEXTR("ソファベッドに腰を下ろした/壁にもたれかかった/壁に手を付いてお尻を向けてきた")%
+				CASE "男子トイレ", "女子トイレ"
+					PRINTFORM %TEXTR("便座/洋式便座")%に腰かけた
+				CASE "屋上"
+					PRINTFORM %TEXTR("フェンスを掴んで体重を預けた/壁にもたれかかった/壁に手を付いてお尻を向けてきた")%
+				CASE "旧宿直室"
+					PRINTFORM 敷かれていた布団%TEXTR("に腰を下ろした/に身を横たえた")%
+				;ベッドがある
+				CASE "部室"
+					PRINTFORM 備え付けのベッド%TEXTR("に腰を下ろした/に身を横たえた")%
+				;机がある
+				CASE "研究室", "教官室", "司書室"
+					PRINTFORM %TEXTR("机に腰を下ろした/デスクチェアに深く腰掛けた")%
 				CASEELSE
-					PRINTFORM %TEXTR("�ǂɂ����ꂩ������/�ǂɎ��t���Ă��K�������Ă���")%
+					PRINTFORM %TEXTR("壁にもたれかかった/壁に手を付いてお尻を向けてきた")%
 				ENDSELECT
-				PRINTFORM %CALLNAME:TARGET%�́A
-				SIF CFLAG:�J�n�p���� && (NAMES("������") == "�u�Z�b�N�X" || NAMES("������") == "�A���Z�b�N�X")
-					PRINTFORM �J�n�p���߂���Ȃ���
-				IF ABL:�~�] >= 5 || TALENT:�����ɑf�� || TALENT:���g
-					PRINTFORM %TEXTR("���悵��/�傫��/����˂��o���悤��", \@ EXP:�������o�� >= 5 ? ���ꂽ�l�q�� # \@)%�҂��J����
+				PRINTFORM %CALLNAME:TARGET%は、
+				SIF CFLAG:絆創膏装着 && (NAMES("性処理") == "Ｖセックス" || NAMES("性処理") == "尿道セックス")
+					PRINTFORM 絆創膏をめくりながら
+				IF ABL:欲望 >= 5 || TALENT:快感に素直 || TALENT:献身
+					PRINTFORM %TEXTR("率先して/大きく/腰を突き出すように", \@ EXP:性処理経験 >= 5 ? 慣れた様子で # \@)%股を開いて
 				ELSE
-					PRINTFORM %TEXTR("����������/�T���߂�/���͂��C�ɂ����l�q��")%�҂��J����
+					PRINTFORM %TEXTR("おずおずと/控えめに/周囲を気にした様子で")%股を開いて
 				ENDIF
-				PRINTFORM %CALLNAME:MASTER%��\@ SIZE("�y�j�X", MASTER) >= 2 ? ���� # �y�j�X \@��
-				SELECTCASE NAMES("������")
-				CASE "�u�Z�b�N�X"
-					PRINTFORM �S
-				CASE "�`�Z�b�N�X"
-					PRINTFORM �A�i��
-				CASE "�A���Z�b�N�X"
-					PRINTFORM �A��
+				PRINTFORM %CALLNAME:MASTER%の\@ SIZE("ペニス", MASTER) >= 2 ? 巨根 # ペニス \@を
+				SELECTCASE NAMES("性処理")
+				CASE "Ｖセックス"
+					PRINTFORM 膣
+				CASE "Ａセックス"
+					PRINTFORM アナル
+				CASE "尿道セックス"
+					PRINTFORM 尿道
 				ENDSELECT
 
-				IF SIZE("�y�j�X", MASTER) >= 2 && RANDIF(1, (ABL:�~�] >= 5 || TALENT:�����ɑf��) )
-					SELECTCASE NAMES("������")
-					CASE "�u�Z�b�N�X"
-						IF ABL:�u�g�� >= SIZE("�y�j�X", MASTER)
-							PRINTFORMW ��%TEXTR("�[�X��/�����܂�/�]�����ƂȂ�")%�󂯓��ꂽ�c
+				IF SIZE("ペニス", MASTER) >= 2 && RANDIF(1, (ABL:欲望 >= 5 || TALENT:快感に素直) )
+					SELECTCASE NAMES("性処理")
+					CASE "Ｖセックス"
+						IF ABL:Ｖ拡張 >= SIZE("ペニス", MASTER)
+							PRINTFORMW で%TEXTR("深々と/根元まで/余すことなく")%受け入れた…
 						ELSE
-							PRINTFORMW ���������΂���Ȃ�����A�Ȃ�Ƃ��󂯓��ꂽ�c
+							PRINTFORMW を引き延ばされながらも、なんとか受け入れた…
 						ENDIF
-					CASE "�`�Z�b�N�X"
-						IF ABL:�`�g�� >= SIZE("�y�j�X", MASTER)
-							PRINTFORMW ��%TEXTR("�[�X��/�����܂�/�]�����ƂȂ�")%�󂯓��ꂽ�c
+					CASE "Ａセックス"
+						IF ABL:Ａ拡張 >= SIZE("ペニス", MASTER)
+							PRINTFORMW で%TEXTR("深々と/根元まで/余すことなく")%受け入れた…
 						ELSE
-							PRINTFORMW ���������΂���Ȃ�����A�Ȃ�Ƃ��󂯓��ꂽ�c
+							PRINTFORMW を引き延ばされながらも、なんとか受け入れた…
 						ENDIF
-					CASE "�A���Z�b�N�X"
-						IF ABL:�A���g�� >= SIZE("�y�j�X", MASTER)
-							PRINTFORMW ��%TEXTR("�[�X��/�����܂�/�]�����ƂȂ�")%�󂯓��ꂽ�c
+					CASE "尿道セックス"
+						IF ABL:尿道拡張 >= SIZE("ペニス", MASTER)
+							PRINTFORMW で%TEXTR("深々と/根元まで/余すことなく")%受け入れた…
 						ELSE
-							PRINTFORMW ���������΂���Ȃ�����A�Ȃ�Ƃ��󂯓��ꂽ�c
+							PRINTFORMW を引き延ばされながらも、なんとか受け入れた…
 						ENDIF
 					ENDSELECT
-				ELSEIF ABL:�~�] >= 5 || TALENT:�����ɑf��
-					PRINTFORMW �Ŋ��X�Ƃ��Ď󂯓��ꂽ�c
-				ELSEIF TALENT:���R�I
-					PRINTFORMW �ŏa�X�󂯓��ꂽ�c
+				ELSEIF ABL:欲望 >= 5 || TALENT:快感に素直
+					PRINTFORMW で嬉々として受け入れた…
+				ELSEIF TALENT:反抗的
+					PRINTFORMW で渋々受け入れた…
 				ELSE
-					PRINTFORMW �ł�������Ǝ󂯓��ꂽ�c
+					PRINTFORMW でしっかりと受け入れた…
 				ENDIF
 			ENDIF
 		ENDSELECT
 	ENDSELECT
-	CALL TEXT, "�}����̕`��"
-	;�S�����g�����Ȃ炻�̉��
-	SIF TEQUIP:MASTER:�R���h�[��
-		CALL PRINT_STRW, @"���F_�i%CALLNAME:TARGET%�̊�]�ɏ]��\@ COND("���o������") ? # �A������ \@�R���h�[�����g���܂��j"
-	SIF CONDS("�̈�") == "�R���"
-		CALL TEXT, "�ǉ��n�̕��F�R���"
+	CALL TEXT, "挿入具合の描写"
+	;ゴムを使ったならその解説
+	SIF TEQUIP:MASTER:コンドーム
+		CALL PRINT_STRW, @"黄色_（%CALLNAME:TARGET%の希望に従い\@ COND("中出し嫌い") ? # 、今日は \@コンドームを使います）"
+	SIF CONDS("体位") == "騎乗位"
+		CALL TEXT, "追加地の文：騎乗位"
 
-CASE "�Ȃ��琫����"
-	SELECTCASE NAMES("������")
-	CASE "���"
-		PRINTFORM %CALLNAME:TARGET%��%STR:�Ȃ��琫����%�A
-		PRINTFORMW �󂢂����̎��%CALLNAME:PLAYER%�̃y�j�X��%TEXTR("���Ђ̂��C����������/�G��/���񂴂���")%�����n�߂��c�c
+CASE "ながら性処理"
+	SELECTCASE NAMES("性処理")
+	CASE "手淫"
+		PRINTFORM %CALLNAME:TARGET%は%STR:ながら性処理%、
+		PRINTFORMW 空いた方の手で%CALLNAME:PLAYER%のペニスを%TEXTR("欠片のやる気も見せずに/雑に/ぞんざいに")%扱き始めた……
 	CASEELSE
-		PRINTFORM %TEXTS("�}�������E��")%%NAMES("�\�t�@")%�ɍ��蒼����%CALLNAME:TARGET%��
-		IF TALENT:�C�i + TALENT:������
-			PRINTFORM %CALLNAME:PLAYER%�Ɍ�����%TEXTR("��������/�����I�Ȏd����/�i�̂���d����")%�҂��J���A
-		ELSEIF TALENT:�p���� && TALENT:�e�� + TALENT:����
-			PRINTFORM %TEXTR(@"���s�V������҂��J��\/%CALLNAME:PLAYER%�ɑ�҂��J���ČҊԂ��������Ȃ���")%�A
+		PRINTFORM %TEXTS("挿入準備脱衣")%%NAMES("ソファ")%に座り直した%CALLNAME:TARGET%は
+		IF TALENT:気品 + TALENT:小悪魔
+			PRINTFORM %CALLNAME:PLAYER%に向けて%TEXTR("ゆっくりと/挑発的な仕草で/品のある仕草で")%股を開き、
+		ELSEIF TALENT:恥薄い && TALENT:粗野 + TALENT:愚か
+			PRINTFORM %TEXTR(@"お行儀悪く大股を開き\/%CALLNAME:PLAYER%に大股を開いて股間を見せつけながら")%、
 		ELSE
-			PRINTFORM %CALLNAME:PLAYER%�Ɍ�����%TEXTR("�y��/���ꂽ�l�q��/�͂��Ȓp���炢�Ƌ���")%�҂��J���A
+			PRINTFORM %CALLNAME:PLAYER%に向けて%TEXTR("軽く/慣れた様子で/僅かな恥じらいと共に")%股を開き、
 		ENDIF
-		SIF CFLAG:�J�n�p���� && (NAMES("������") == "�u�Z�b�N�X" || NAMES("������") == "�A���Z�b�N�X")
-			PRINTFORM �J�n�p�𔍂�����
-		PRINTFORM �˂��o���ꂽ%TEXTS("�y�j�X�F�傫���\���t", PLAYER)%��
-		SELECTCASE NAMES("������")
-		CASE "�u�Z�b�N�X"
-			PRINTFORM �S
-		CASE "�`�Z�b�N�X"
-			PRINTFORM �A�i��
-		CASE "�A���Z�b�N�X"
-			PRINTFORM �A��
+		SIF CFLAG:絆創膏装着 && (NAMES("性処理") == "Ｖセックス" || NAMES("性処理") == "尿道セックス")
+			PRINTFORM 絆創膏を剥がして
+		PRINTFORM 突き出された%TEXTS("ペニス：大きさ表現付", PLAYER)%を
+		SELECTCASE NAMES("性処理")
+		CASE "Ｖセックス"
+			PRINTFORM 膣
+		CASE "Ａセックス"
+			PRINTFORM アナル
+		CASE "尿道セックス"
+			PRINTFORM 尿道
 		ENDSELECT
-		PRINTFORMW ��%TEXTR("�[�X��/�����܂�/�]�����ƂȂ�")%�󂯓��ꂽ�B
+		PRINTFORMW で%TEXTR("深々と/根元まで/余すことなく")%受け入れた。
 
-		CALL TEXT, "�}����̕`��"
-		;�S�����g�����Ȃ炻�̉��
-		SIF TEQUIP:PLAYER:�R���h�[��
-			CALL PRINT_STRW, @"���F_�i%CALLNAME:TARGET%�̊�]�ɏ]��\@ COND("���o������") ? # �A����� \@�R���h�[�����g���܂��j"
+		CALL TEXT, "挿入具合の描写"
+		;ゴムを使ったならその解説
+		SIF TEQUIP:PLAYER:コンドーム
+			CALL PRINT_STRW, @"黄色_（%CALLNAME:TARGET%の希望に従い\@ COND("中出し嫌い") ? # 、今回は \@コンドームを使います）"
 
-		PRINTFORM %CALLNAME:TARGET%��%CALLNAME:PLAYER%�̍��̓���%TEXTR("�ɉ����ĕ@�ɂ��������悤�Ȑ������ܘR�炵/�̖��������ɕ�����������肵/�̌������ɕ@���������r�������肵")%�Ȃ���A
-		PRINTFORMW %TEXTS("����")%�ɖ����ɂȂ��Ă���c�c
+		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の腰の動き%TEXTR("に応じて鼻にかかったような声を時折漏らし/の無遠慮さに文句を言ったりし/の激しさに鼻息を少し荒くしたりし")%ながら、
+		PRINTFORMW %TEXTS("夢中")%に夢中になっている……
 	ENDSELECT
 
-;�f�[�g�C�x���g
-CASE "�f�[�g�̂��U��"
-	PRINTFORMW �c�c%CALLNAME:TARGET%�Ƙb�����Ă��邤���ɁA���̋x�݂Ƀf�[�g���Ȃ����Ƃ�������ɂȂ��Ă��܂����B
-CASE "�҂����킹"
-	PRINTFORM \@ COND("������") ? ���ւ̑O # �҂����킹�ꏊ \@�ő҂��Ă���ƁA
-	IF COND("�f�[�g�ߑ��ɒ��ւ���")
-		PRINTFORM %TEXTR("���i��肨����������/�����Ƃ͈قȂ�/�����̃f�[�g�ɔ����Ă��߂������Ă���")%%CLO_ABOUT(TARGET, "�p")%��%CALLNAME:TARGET%��
-	ELSEIF CHECK_CLO("�w�����p")
-		PRINTFORM �����p��%CALLNAME:TARGET%��
+;デートイベント
+CASE "デートのお誘い"
+	PRINTFORMW ……%CALLNAME:TARGET%と話をしているうちに、次の休みにデートしないかという流れになってきました。
+CASE "待ち合わせ"
+	PRINTFORM \@ COND("同棲中") ? 玄関の前 # 待ち合わせ場所 \@で待っていると、
+	IF COND("デート衣装に着替えた")
+		PRINTFORM %TEXTR("普段よりお洒落をした/いつもとは異なる/今日のデートに備えておめかししてきた")%%CLO_ABOUT(TARGET, "姿")%の%CALLNAME:TARGET%が
+	ELSEIF CHECK_CLO("学生服姿")
+		PRINTFORM 制服姿の%CALLNAME:TARGET%が
 	ELSE
-		PRINTFORM �����ꂽ�p��%CALLNAME:TARGET%��
+		PRINTFORM 見慣れた姿の%CALLNAME:TARGET%が
 	ENDIF
-	;�����y���݁I
-	IF TALENT:�f�� + TALENT:�z�C && TALENT:�͎��� + TALENT:�e�� + TALENT:���� && RAND:3
-		PRINTFORMW %TEXTR("�Ԃ�Ԃ�Ǝ��U���đ҂�����Ȃ��l�q��/�����L���L���P�����Ȃ���/�^�b�^�b�^�b�ƒe�ނ悤�ɋ삯�Ȃ���/����؂点�Ȃ��珬�����")%���ꂽ�B
-	;������ƒp����
-	ELSEIF TALENT:�p���� == 0 && (TALENT:���� || EXP:�f�[�g�o�� == 0) && (TALENT:���v���� == 0 || EXP:�f�[�g�o�� < 5) && RAND:4
-		PRINTFORMW %TEXTR("�Ƃ�L�����炩�������O����/�����p������������/���������Ԃ����/�͂��ɖj����߂�")%���A���Ȃ��猻�ꂽ�B
-	;�܂����H
-	ELSEIF TALENT:�f�� + TALENT:�z�C
-		PRINTFORMW %CALLNAME:MASTER%%TEXTR("�Ɩڂ�������ۂ�Ί�Ŏ��U����/���C�t�����������傫�Ȑ��Ŗ��O���ĂтȂ���")%�߂Â��Ă����B
+	;今日楽しみ！
+	IF TALENT:素直 + TALENT:陽気 && TALENT:力持ち + TALENT:粗野 + TALENT:愚か && RAND:3
+		PRINTFORMW %TEXTR("ぶんぶんと手を振って待ちきれない様子で/瞳をキラキラ輝かせながら/タッタッタッと弾むように駆けながら/息を切らせながら小走りで")%現れた。
+	;ちょっと恥ずい
+	ELSEIF TALENT:恥薄い == 0 && (TALENT:恋慕 || EXP:デート経験 == 0) && (TALENT:相思相愛 == 0 || EXP:デート経験 < 5) && RAND:4
+		PRINTFORMW %TEXTR("照れ臭さからか視線を外して/少し恥ずかしそうに/少しだけ赤い顔で/僅かに頬を染めつつ")%挨拶しながら現れた。
+	;まった？
+	ELSEIF TALENT:素直 + TALENT:陽気
+		PRINTFORMW %CALLNAME:MASTER%%TEXTR("と目が合うや否や笑顔で手を振って/が気付くよりも早く大きな声で名前を呼びながら")%近づいてきた。
 	ELSE
-		PRINTFORMW %TEXTR("�Ί��/���i�ʂ�̗l�q��/�Ў���y���グ��")%���A���Ȃ��猻�ꂽ�B
+		PRINTFORMW %TEXTR("笑顔で/普段通りの様子で/片手を軽く上げて")%挨拶しながら現れた。
 	ENDIF
 
-	TFLAG:�ߑ�����ς� = 1
+	TFLAG:衣装解説済み = 1
 
-CASE "�f�[�g�{��"
-	;�܂��̓f�[�g���e
-	PRINTFORM %CALLNAME:MASTER%��%CALLNAME:TARGET%
-	SELECTCASE SAVESTR:�f�[�g
-	CASE "������"
-		PRINTFORMW �N�Ɉ�x�̕����ՂɎQ�����邽�߁A��������p���p�����߂��i�ʂ��Ă���w���ւƌ��������B
-	CASE "�U��"
-		PRINTFORM ��%TEXTR("���݂����ŋ߃n�}���Ă鎖���Љ����/�w���ł̏o������b��/�K���ɎG�k��")%�Ȃ���A
-		PRINTFORM %TEXTR("���i�͈�l�ŕ����ߏ���/�����Ēʂ������̂Ȃ�����I���/�o���ǔL�����炩����/�P�̃C���z����Е��Â��������ē������y�𒮂��Ȃ���")%
-		PRINTFORMW �U�������B
-	CASE "�H�ו���"
-		PRINTFORM ��%TEXTR("�O���̗[���т̘b�Ȃ񂩂���/�w���ł̂������тɂ��Ęb��/�H�ו��ɂ��Ă��]�~���I������/�Ȃ�ƂȂ��n�߂�����Ƃ���y����/�K���ɎG�k��")%�Ȃ���A
-		PRINTFORM %TEXTR("�ߍ��b��ɂȂ��Ă��邨�X/�ڂɂ����ǂ������ȓX/�\�ߖڐ������Ă��������X")%��
-		PRINTFORMW ��������q���ĐH�ו������B
-	CASE "�X�ł�������"
-		PRINTFORM ��%TEXTR("�~�������ǎ����ł͔��������Ȃ����s�n�o�R����������/�ŋߎd���ꂽ�G�w���I������/��������o������m�荇������̒ǋy�����킵/���������T���^����Ⴄ�Ȃ牽���ǂ����Ȃǂ�ʕق�/�K���ɎG�k��")%�Ȃ���A
-		PRINTFORM %TEXTR("�e�X���s���\�肾�������X�ɏ��Ԃɑ����^���/�X�̏��X�X��/�ߏ�͖ܘ_�̂��ƕ��i��l�ł͍s���Ȃ��������߂̏ꏊ�ɂ��������΂���")%
-		PRINTFORMW �������������B
-	CASE "�����قɍs��"
-		PRINTFORM ��%TEXTR("�C��Ⴄ�l�̃J�b�v�������J�E���g��/�e�ɘA����ė��Ă͂��Ⴂ�ł�q���̗l�q�����ڂŒ���/�����ď��H�ɋt����ĉ��/����ȏ��Ɉꏏ�ɗ���Ȃ�Ă������S�ɃJ�b�v�����Ȃƌy����@��/�K���ɎG�k��")%�Ȃ���A
-		PRINTFORM %TEXTR("���i����Ō��鎖�͂܂���������ȊC�m�����̗Y�傳��/�ŋߐH�ׂ����������ĉj���ł���E�p�𒭂߂�/�������K���X�z���ɂ������ɋ����������Ċ���Ă������ƈӎv�a�ʂ��͂������肵��")%
-		PRINTFORMW �y���񂾁B
-	CASE "�V���n�ɍs��"
-		PRINTFORM ��%TEXTR("�l���݂ł͂���Ȃ��l�ɒ��ӂ�/������ł�������P���̃p���t���b�g������񂹂��ɂ�/�V���n�̍Ō�ɂ͉������邩��b������/����̔M�C�Ɉ��������ĕ��i����������o������")%�Ȃ���A
-		PRINTFORM %TEXTR("�A�g���N�V���������X�ɉ����/���̊Ԃ̔����̐��E��/��������ۂɂ��Ē����C����")%
-		PRINTFORMW �y���񂾁B
-	CASE "�}���قɍs��"
-		PRINTFORM ��%TEXTR("�ꏊ���ꏊ�����ɂЂ��Ђ��Ə����ŎG�k��/�v����������ʂɂ���w�������������ڂŒ���/�ڂ��������݂��̒m�荇���ƈ��A������")%�Ȃ���A
-		PRINTFORMW %TEXTR("�w���炵���׋������ĉ߂���/�������������Ȃŉۑ�����Ȃ�/���ړ��Ă̖{��T������׋��������������肷��")%���ɂ����B
-	;2019/9 hokaguru �ǋL
-	CASE "�f��قɍs��"
-		PRINTFORM ��%TEXTR("�H�n�̎�ꂽ/�w�O�̑傫��/�A���V�Q��")%�f��قւƑ����^�Ԃ�
-		PRINTFORM %TEXTR("�T�C�R�X�����[/�T�X�y���X/�z���[/���u���}���X/�A�N�V����/SF/�|���m/�T�C�R�T�X�y���X�z���[���}���XSF�A�N�V�����|���m")%�f��̃|�X�^�[������o����Ă���A
-		PRINTFORMW ���x�ǂ��Ƃ΂���ɂ�����Ϗ܂��邱�Ƃɂ����B
-	CASE "�����𔃂��ɍs��"
-		PRINTFORMW ��%TEXTR("�w���߂��̃X�|�[�c�V���b�v��/�f�p�[�g�̐���������/�����������i�����̗ǂ���������")%�������΂��āA���N�̐����𕨐F���鎖�ɂ����B
-	CASE "�j���ɍs��"
-		IF COND("���N�̐����I����")
-			PRINTFORM �͈ꏏ�ɐ�����I��ŗp�ӂ����������ƁA%TEXTR("��������̃o�J�ł����E�H�[�^�[�p�[�N/��l�ł͂܂��s���@��̂Ȃ��X�p���]�[�g/�O�����ă`�F�b�N���Ă������A�~���[�Y�����g�v�[��")%��
+CASE "デート本番"
+	;まずはデート内容
+	PRINTFORM %CALLNAME:MASTER%と%CALLNAME:TARGET%
+	SELECTCASE SAVESTR:デート
+	CASE "文化祭"
+		PRINTFORMW 年に一度の文化祭に参加するため、しおりをパラパラ眺めつつ普段通っている学園へと向かった。
+	CASE "散歩"
+		PRINTFORM は%TEXTR("お互いが最近ハマってる事を紹介しあい/学園での出来事を話し/適当に雑談し")%ながら、
+		PRINTFORM %TEXTR("普段は一人で歩く近所を/あえて通った事のない道を選んで/出会う野良猫をからかいつつ/１つのイヤホンを片方づつ分け合って同じ音楽を聴きながら")%
+		PRINTFORMW 散歩した。
+	CASE "食べ歩き"
+		PRINTFORM は%TEXTR("前日の夕ご飯の話なんかをし/学園でのお昼ご飯について話し/食べ物についての蘊蓄を披露しあい/なんとなく始めたしりとりを楽しみ/適当に雑談し")%ながら、
+		PRINTFORM %TEXTR("近頃話題になっているお店/目についた良さそうな店/予め目星をつけておいたお店")%を
+		PRINTFORMW 何件か梯子して食べ歩いた。
+	CASE "街でお買い物"
+		PRINTFORM は%TEXTR("欲しいけど自分では買いたくない物ＴＯＰ３を言い合い/最近仕入れた雑学を披露しあい/道すがら出会った知り合いからの追及をかわし/もしも今サンタから貰うなら何が良いかなどを駄弁り/適当に雑談し")%ながら、
+		PRINTFORM %TEXTR("各々が行く予定だったお店に順番に足を運んで/街の商店街で/近場は勿論のこと普段一人では行かない少し遠めの場所にも足を延ばして")%
+		PRINTFORMW お買い物した。
+	CASE "水族館に行く"
+		PRINTFORM は%TEXTR("擦れ違う人のカップル率をカウントし/親に連れられて来てはしゃいでる子供の様子を横目で眺め/あえて順路に逆らって回り/こんな所に一緒に来るなんてもう完全にカップルだなと軽口を叩き/適当に雑談し")%ながら、
+		PRINTFORM %TEXTR("普段肉眼で見る事はまず無い巨大な海洋生物の雄大さを/最近食べた魚が生きて泳いでいる勇姿を眺めて/分厚いガラス越しにこっちに興味を持って寄ってきた魚と意思疎通をはかったりして")%
+		PRINTFORMW 楽しんだ。
+	CASE "遊園地に行く"
+		PRINTFORM は%TEXTR("人込みではぐれない様に注意し/入り口でもらった１枚のパンフレットを顔を寄せて睨み/遊園地の最後には何をするかを話し合い/周りの熱気に引きずられて普段よりも感情を出し合い")%ながら、
+		PRINTFORM %TEXTR("アトラクションを次々に回って/束の間の非日常の世界を/頭を空っぽにして直感任せで")%
+		PRINTFORMW 楽しんだ。
+	CASE "図書館に行く"
+		PRINTFORM は%TEXTR("場所が場所だけにひそひそと小声で雑談し/思ったよりも大量にいる学園生たちを横目で眺め/目が合った互いの知り合いと挨拶しあい")%ながら、
+		PRINTFORMW %TEXTR("学生らしく勉強をして過ごす/向かい合った席で課題をこなす/お目当ての本を探したり勉強を教え合ったりする")%事にした。
+	;2019/9 hokaguru 追記
+	CASE "映画館に行く"
+		PRINTFORM が%TEXTR("路地の寂れた/駅前の大きな/アヤシゲな")%映画館へと足を運ぶと
+		PRINTFORM %TEXTR("サイコスリラー/サスペンス/ホラー/ラブロマンス/アクション/SF/ポルノ/サイコサスペンスホラーロマンスSFアクションポルノ")%映画のポスターが張り出されており、
+		PRINTFORMW 丁度良いとばかりにそれを観賞することにした。
+	CASE "水着を買いに行く"
+		PRINTFORMW は%TEXTR("学園近くのスポーツショップに/デパートの水着売り場に/少し遠いが品揃えの良い水着屋に")%足を延ばして、今年の水着を物色する事にした。
+	CASE "泳ぎに行く"
+		IF COND("今年の水着選択済")
+			PRINTFORM は一緒に水着を選んで用意した事だしと、%TEXTR("少し遠場のバカでかいウォーターパーク/一人ではまず行く機会のないスパリゾート/前もってチェックしておいたアミューズメントプール")%に
 		ELSE
-			PRINTFORM �͂��܂�̏����ɑς����˂āA%TEXTR("�ߏ�̑��ړI�v�[��/�w���̋߂��ɂ���傫�߂̃v�[���{��")%��
+			PRINTFORM はあまりの暑さに耐えかねて、%TEXTR("近場の多目的プール/学園の近くにある大きめのプール施設")%に
 		ENDIF
-		PRINTFORMW �j���ɍs�����Ƃɂ����B
-	;CASE "���Ԍ�"
-	;CASE "�R�ɍs��"
-	;CASE "�g�t���ɍs��"
-	;CASE "�X�P�[�g"
+		PRINTFORMW 泳ぎに行くことにした。
+	;CASE "お花見"
+	;CASE "山に行く"
+	;CASE "紅葉狩りに行く"
+	;CASE "スケート"
 
 	CASEELSE
-		IF STRCOUNT(SAVESTR:�f�[�g, "�s��")
-			PRINTFORMW ��%SAVESTR:�f�[�g%���Ƃɂ����B
+		IF STRCOUNT(SAVESTR:デート, "行く")
+			PRINTFORMW は%SAVESTR:デート%ことにした。
 		ELSE
-			PRINTFORMW ��%SAVESTR:�f�[�g%�ɍs�����Ƃɂ����B
+			PRINTFORMW は%SAVESTR:デート%に行くことにした。
 		ENDIF
 	ENDSELECT
 
-	;���ő���̔���
-	IF TALENT:�z�C + TALENT:�f�� && (TALENT:�p���炢 == 0 || TALENT:���v����) && STRCOUNTS(SAVESTR:�f�[�g, "�V���n") && RAND:3
-		PRINTFORM %CALLNAME:TARGET%�͒�����݂̃L�����N�^�[���������邽�т�%CALLNAME:MASTER%��%TEXTR("��������ς�/�r������񂹂ċ삯�o��")%�A
-		PRINTFORMW %TEXTR("���ʂ̏Ί�Œ�����݂ɂ̂�����������/���������ɕ���������/�ʐ^�B�e���˂�������")%���Ă͂��Ⴂ�ł���c�c
-		TFLAG:��q�� = TARGET
-	ELSEIF TALENT:�z�C + TALENT:�f�� && (TALENT:�p���炢 == 0 || TALENT:���v����) && STRCOUNTS(SAVESTR:�f�[�g, "������") && RAND:3
-		PRINTFORM %CALLNAME:TARGET%��%TEXTR("���[�g�����̊C�m�����𔭌�����/�O���e�X�N�Ȋ��Ɉ��g�̂���[�C������������/�N���Q�〈�ĂĘa�ނ��̂������")%�x��
-		PRINTFORM %CALLNAME:MASTER%��%TEXTR("��������ς�/�r������񂹂ċ삯�o��")%�A
-		PRINTFORMW %TEXTR("���ʂ̏Ί�Ő����̃K���X�ɒ���t����/�������������ǂ��n�߂��肵��/�ʐ^�B�e���˂������肵��")%�͂��Ⴂ�ł���c�c
-		TFLAG:��q�� = TARGET
-	ELSEIF STRCOUNTS(SAVESTR:�f�[�g, "������")
-		PRINTFORMW �w���͕����Ղ̉e���ŕ����ʂ肨�Ղ葛���̗l���ŁA�Z�o�ƗV�тɂ����Ǝv�킵���������̎q�ǂ���A�ǂ��ɍs�����^���ɘb�������Ă���J�b�v���ȂǁA���܂��܂Ȑl�ł������Ԃ��Ă���c�c
-	;2019/9 hokaguru �ǋL
-	ELSEIF STRCOUNTS(SAVESTR:�f�[�g, "�f���")
+	;ついで相手の反応
+	IF TALENT:陽気 + TALENT:素直 && (TALENT:恥じらい == 0 || TALENT:相思相愛) && STRCOUNTS(SAVESTR:デート, "遊園地") && RAND:3
+		PRINTFORM %CALLNAME:TARGET%は着ぐるみのキャラクターを見かけるたびに%CALLNAME:MASTER%の%TEXTR("手を引っぱり/腕を抱き寄せて駆け出し")%、
+		PRINTFORMW %TEXTR("満面の笑顔で着ぐるみにのしかかったり/嬉しそうに抱きついたり/写真撮影をねだったり")%してはしゃいでいる……
+		TFLAG:手繋ぎ = TARGET
+	ELSEIF TALENT:陽気 + TALENT:素直 && (TALENT:恥じらい == 0 || TALENT:相思相愛) && STRCOUNTS(SAVESTR:デート, "水族館") && RAND:3
+		PRINTFORM %CALLNAME:TARGET%は%TEXTR("メートル級の海洋生物を発見する/グロテスクな割に愛嬌のある深海生物を見つける/クラゲや見てて和むものが現れる")%度に
+		PRINTFORM %CALLNAME:MASTER%の%TEXTR("手を引っぱり/腕を抱き寄せて駆け出し")%、
+		PRINTFORMW %TEXTR("満面の笑顔で水槽のガラスに張り付いて/説明書きを音読し始めたりして/写真撮影をねだったりして")%はしゃいでいる……
+		TFLAG:手繋ぎ = TARGET
+	ELSEIF STRCOUNTS(SAVESTR:デート, "文化祭")
+		PRINTFORMW 学園は文化祭の影響で文字通りお祭り騒ぎの様相で、兄姉と遊びにきたと思わしき初等部の子どもや、どこに行くか真剣に話し合っているカップルなど、さまざまな人でごった返している……
+	;2019/9 hokaguru 追記
+	ELSEIF STRCOUNTS(SAVESTR:デート, "映画館")
 		IF MONEY >= 150
 			PRINTL 
-			PRINTFORMW �c�c�Ȃɒ����O�ɉ��������Ď������݂܂����H
-			PRINTFORML ���l�i�͂ǂ�ł�150���I�@(�������F%MONEY_C(MONEY)%)
+			PRINTFORMW ……席に着く前に何か買って持ち込みますか？
+			PRINTFORML お値段はどれでも150＄！　(所持金：%MONEY_C(MONEY)%)
 
-			STR:�I���� = �|�b�v�R�[��/�`�����X/�z�b�g�h�b�O/��߂Ă���
-			SPLIT STR:�I����, "/", LOCALS
-			CALL PRINT_SELECT, STR:�I����
-			STR:�I���������� = %LOCALS:RESULT%
+			STR:選択肢 = ポップコーン/チュロス/ホットドッグ/やめておく
+			SPLIT STR:選択肢, "/", LOCALS
+			CALL PRINT_SELECT, STR:選択肢
+			STR:選択したもの = %LOCALS:RESULT%
 
-			SELECTCASE STR:�I����������
-			CASE "�|�b�v�R�[��"
-				PRINTFORM %CALLNAME:MASTER%�B��%TEXTR("�o�P�c�݂����ȗe��ɓ�����/�o�J�ł����J�b�v�ɓ�����/�����ȒP�ɂ͐H�ׂ���Ȃ������ȃf�J����")%
-			CASE "�`�����X"
-				PRINTFORM %CALLNAME:MASTER%�B��%TEXTR("���e��ɉ��{��������ă`���R�\�[�X���Z�b�g�ŕt����ꂽ/���ܓ���̂₽�璷��/�t���C�h�|�e�g�̂悤�ȗe��ɉ��{�������ꍻ�����܂Ԃ��ꂽ")%
-			CASE "�z�b�g�h�b�O"
-				PRINTFORM %CALLNAME:MASTER%�B��%TEXTR("����ɂ���ɂ͏��X�f�J�����e������/�F�X�ƃg�b�s���O���ꂽ�傫�߂�")%
+			SELECTCASE STR:選択したもの
+			CASE "ポップコーン"
+				PRINTFORM %CALLNAME:MASTER%達は%TEXTR("バケツみたいな容器に入った/バカでかいカップに入った/そう簡単には食べきれなさそうなデカさの")%
+			CASE "チュロス"
+				PRINTFORM %CALLNAME:MASTER%達は%TEXTR("紙容器に何本か入れられてチョコソースがセットで付けられた/紙袋入りのやたら長い/フライドポテトのような容器に何本か入れられ砂糖をまぶされた")%
+			CASE "ホットドッグ"
+				PRINTFORM %CALLNAME:MASTER%達は%TEXTR("おやつにするには少々デカい紙容器入りの/色々とトッピングされた大きめの")%
 			CASEELSE
 				GOTO SCREENING_START
 			ENDSELECT
-			PRINTFORMW %STR:�I����������%�ƃW���[�X���l�������ĐȂɒ������B
-			CALL KOJO_DATE, "�f�[�g���̔����H��"
+			PRINTFORMW %STR:選択したもの%とジュースを二人分買って席に着いた。
+			CALL KOJO_DATE, "デート中の買い食い"
 			MONEY -= 150
-			PRINTFORML ������-%MONEY_C(150)%
-			FLAG:���[�h += 15
-			CALL TEXT, "���[�h�ω����n�[�g���\��", 15
+			PRINTFORML 所持金-%MONEY_C(150)%
+			FLAG:ムード += 15
+			CALL TEXT, "ムード変化＆ハート個数表示", 15
 			WAIT
 			DRAWLINE
 		ENDIF
 
 		$SCREENING_START
 
-		PRINTFORM ��f���n�܂�V���ƐÂ܂�Ԃ���%TEXTR("�K���K����/���������̓����/������������")%�ٓ��ɉf��قȂ�ł͂̔�����������
-		PRINTFORMW %CALLNAME:TARGET%��%TEXTR("�ڂ��P������/�y�����Ɍ������ɂ܂���/�ᖡ����悤�ɖj���˂���")%�ӏ܂̎p�����Ƃ����c�c
-		PRINTFORMW ���Ȃ݂ɉf��̏o���́c�c%TEXTR("��������̖~�x�肾����/�w�����B���������}�V���낤/����Ȃ��킯�ł͖������̂�����/���/�ǂ����������܂ꂻ��������/�v�킸�M�����Ă��܂�����/�G����")%�c�c
-	;���Ƃ͉�b
+		PRINTFORM 上映が始まりシンと静まり返った%TEXTR("ガラガラの/そこそこの入りの/立ち見も居る")%館内に映画館ならではの爆音が響くと
+		PRINTFORMW %CALLNAME:TARGET%は%TEXTR("目を輝かせて/楽しげに口元を緩ませて/吟味するように頬杖を突いて")%鑑賞の姿勢をとった……
+		PRINTFORMW ちなみに映画の出来は……%TEXTR("実質死霊の盆踊りだった/学生が撮った方がマシだろう/見れないわけでは無いものだった/無難だ/どこか引き込まれそうだった/思わず熱中してしまう程だ/エロい")%……
+	;あとは会話
 	ELSE
 		IF RAND:10 == 0
-			PRINTFORM %CALLNAME:TARGET%�͉��̂��C��Ⴂ���܂Ɏ��U���ė����q����%TEXTR("�����p������������/�u���u����/�Ί��")%���U��Ԃ��A
-		ELSEIF TALENT:�D��S && STRCOUNTS(SAVESTR:�f�[�g, "�V���n", "������") && RAND:3
-			IF TALENT:�z�C + TALENT:���C + TALENT:�D���� && RAND:2
-				PRINTFORM �e���V�������オ���Ă���l�q��%CALLNAME:TARGET%��%TEXTR(@"�s�������Ƃ�����w������%CALLNAME:MASTER%�̎��������/%CALLNAME:MASTER%�̎���M���b�ƈ��肵��")%�A
-				TFLAG:��q�� = TARGET
+			PRINTFORM %CALLNAME:TARGET%は何故か擦れ違いざまに手を振って来た子供に%TEXTR("少し恥ずかしそうに/ブンブンと/笑顔で")%手を振り返しつつ、
+		ELSEIF TALENT:好奇心 && STRCOUNTS(SAVESTR:デート, "遊園地", "水族館") && RAND:3
+			IF TALENT:陽気 + TALENT:強気 + TALENT:優しい && RAND:2
+				PRINTFORM テンションが上がっている様子の%CALLNAME:TARGET%は%TEXTR(@"行きたいところを指差して%CALLNAME:MASTER%の手を引きつつ/%CALLNAME:MASTER%の手をギュッと握りしめ")%、
+				TFLAG:手繋ぎ = TARGET
 			ELSE
-				PRINTFORM %CALLNAME:TARGET%�͏o�X��A�g���N�V�����ɖڈڂ肵�Ď኱��̋�̗l�q�����A
+				PRINTFORM %CALLNAME:TARGET%は出店やアトラクションに目移りして若干上の空の様子だが、
 			ENDIF
-		ELSEIF TALENT:���C && TALENT:����z���Ȃ� == 0 && RAND:2
-			PRINTFORM %CALLNAME:TARGET%��%TEXTR("��������̂����R�Ƃ������l�q/���肰�Ȃ��f�U��")%��%CALLNAME:MASTER%�̎������ă��[�h���A
-			TFLAG:��q�� = TARGET
+		ELSEIF TALENT:強気 && TALENT:一線越えない == 0 && RAND:2
+			PRINTFORM %CALLNAME:TARGET%は%TEXTR("こうするのが当然といった様子/さりげない素振り")%で%CALLNAME:MASTER%の手を取ってリードしつつ、
+			TFLAG:手繋ぎ = TARGET
 		ELSE
-			PRINTFORM %CALLNAME:TARGET%��%CALLNAME:MASTER%��%TEXTR("���̐������傱��ƒ͂�Œ����čs��/�g�̂����˂����肵�Ă����/�����܂�ŕ��������킹")%�A
+			PRINTFORM %CALLNAME:TARGET%は%CALLNAME:MASTER%の%TEXTR("服の裾をちょこんと掴んで着いて行き/身体をつんつん突いたりしてじゃれ/袖をつまんで歩調を合わせ")%つつ、
 		ENDIF
-		;��b���e��
-		PRINTFORM %TEXTR("���݂��̂�����Ȃ���b/�Ȃ�ƂȂ��ɑ����Ƃ�Ƃ߂̂Ȃ��b/�Ȃ�Ď��̖����b��̉��V")%
-		IF TALENT:�f�� + TALENT:�D��S && RAND:3
-			PRINTFORMW �ɖڂ��P�����Ȃ���b�����킹�Ă���c�c
-		ELSEIF TALENT:���C + TALENT:���� && RAND:3
-			PRINTFORMW �ɖ��X�ł��Ȃ������ɒ��q�����킹�Ă���c�c
+		;会話が弾む
+		PRINTFORM %TEXTR("お互いのくだらない会話/なんとなしに続くとりとめのない話/なんて事の無い話題の応酬")%
+		IF TALENT:素直 + TALENT:好奇心 && RAND:3
+			PRINTFORMW に目を輝かせながら話を合わせている……
+		ELSEIF TALENT:強気 + TALENT:高慢 && RAND:3
+			PRINTFORMW に満更でもなさそうに調子を合わせている……
 		ELSE
-			PRINTFORMW �ɏΊ�������Ȃ��瑊�Ƃ�ł��Ă���c�c
+			PRINTFORMW に笑顔を見せながら相槌を打っている……
 		ENDIF
 	ENDIF
-CASE "�����I�ъJ�n"
-CASE "��������"
-	SELECTCASE SWIM(STR:�I�񂾐���, "���")
-	CASE "�}�C�N���r�L�j"
-	CASE "�r�L�j"
-	CASE "���j����"
-	CASE "�n�C���O�����s"
-	CASE "�����s�[�X����"
-	CASE "�e�B�A�h���b�v"
-	CASE "�X�����O�V���b�g"
+CASE "水着選び開始"
+CASE "水着決定"
+	SELECTCASE SWIM(STR:選んだ水着, "種類")
+	CASE "マイクロビキニ"
+	CASE "ビキニ"
+	CASE "競泳水着"
+	CASE "ハイレグワンピ"
+	CASE "ワンピース水着"
+	CASE "ティアドロップ"
+	CASE "スリングショット"
 	CASEELSE
 	ENDSELECT
 
-CASE "���ٓ�"
-	PRINTFORM %TEXTR(@"�ꑧ����\/�y�������ٓ��^�C�����I����\/%CALLNAME:TARGET%�̎藿�������\����\/���̒��𖞑�������")%
-	PRINTFORM %CALLNAME:MASTER%�B�́A
-	SELECTCASE SAVESTR:�f�[�g
-	CASE "������"
-		PRINTFORM %TEXTR("���ɉ������ɍs��������k������Řb������/�o�����̓��e�ɂ��Ċ��z����������/�ς��΂񂱂ɕG���������肵/�ꏏ�Ɍ�Еt������/�͂��ȋC�ӂ��Ƌ��Ƀ_���`�b�Ƃ�/������ł��Ȃ��݂��̑̂Ɋ�肩�������肵")%�Ȃ���
-	CASE "�f��قɍs��"
-		PRINTFORM %TEXTR("�f��̓��e�ɂ��Ċ��z����������/���ٓ��̓��e�ɂ��Ċ��z����������/�ς��΂񂱂ɕG���������肵/�ꏏ�Ɍ�Еt������/�͂��ȋC�ӂ��Ƌ��Ƀ_���`�b�Ƃ�/������ł��Ȃ��݂��̑̂Ɋ�肩�������肵")%�Ȃ���
+CASE "お弁当"
+	PRINTFORM %TEXTR(@"一息ついた\/楽しいお弁当タイムを終えた\/%CALLNAME:TARGET%の手料理を堪能した\/腹の虫を満足させた")%
+	PRINTFORM %CALLNAME:MASTER%達は、
+	SELECTCASE SAVESTR:デート
+	CASE "文化祭"
+		PRINTFORM %TEXTR("次に何を見に行くかを冗談交じりで話し合い/出し物の内容について感想を言い合い/変わりばんこに膝枕をしたりし/一緒に後片付けをし/僅かな気怠さと共にダラ～ッとし/何するでもなく互いの体に寄りかかったりし")%ながら
+	CASE "映画館に行く"
+		PRINTFORM %TEXTR("映画の内容について感想を言い合い/お弁当の内容について感想を言い合い/変わりばんこに膝枕をしたりし/一緒に後片付けをし/僅かな気怠さと共にダラ～ッとし/何するでもなく互いの体に寄りかかったりし")%ながら
 	CASEELSE
-		PRINTFORM %TEXTR("�ߌ㉽��邩����k������Řb������/���e�ɂ��Ċ��z����������/�ς��΂񂱂ɕG���������肵/�ꏏ�Ɍ�Еt������/�͂��ȋC�ӂ��Ƌ��Ƀ_���`�b�Ƃ�/������ł��Ȃ��݂��̑̂Ɋ�肩�������肵")%�Ȃ���
+		PRINTFORM %TEXTR("午後何やるかを冗談交じりで話し合い/内容について感想を言い合い/変わりばんこに膝枕をしたりし/一緒に後片付けをし/僅かな気怠さと共にダラ～ッとし/何するでもなく互いの体に寄りかかったりし")%ながら
 	ENDSELECT
-	IF TEXTS("�G�ߏڍ�") == "����"
-		PRINTFORM ���Ă̋�C��؉A��
-	ELSEIF TEXTS("�G��") == "�t" && RAND:2
-		PRINTFORM ���i�͈ӎ����Ȃ������t�̌i�F��
-	ELSEIF TEXTS("�G��") == "�H"
-		PRINTFORM %TEXTR("�H�߂��Ă������i/�S�n�ǂ��H�̋�C/���₩�Ȓ��̏H��")%��
+	IF TEXTS("季節詳細") == "初夏"
+		PRINTFORM 初夏の空気を木陰で
+	ELSEIF TEXTS("季節") == "春" && RAND:2
+		PRINTFORM 普段は意識しなかった春の景色を
+	ELSEIF TEXTS("季節") == "秋"
+		PRINTFORM %TEXTR("秋めいてきた風景/心地良い秋の空気/穏やかな昼の秋風")%を
 	ELSE
-		PRINTFORM �H��̂܂�����Ƃ�����C��
+		PRINTFORM 食後のまったりとした空気を
 	ENDIF
-	PRINTFORMW �y���񂾁c�c
+	PRINTFORMW 楽しんだ……
 
-CASE "����Ȃ�"
-	;�p��������
-	IF TALENT:���C + TALENT:�ێ�I && TALENT:����R���� + TALENT:�D�F + TALENT:������ == 0
+CASE "手をつなぐ"
+	;恥ずかしい
+	IF TALENT:内気 + TALENT:保守的 && TALENT:感情乏しい + TALENT:好色 + TALENT:小悪魔 == 0
 		IF RAND:2
-		;	PRINTFORML �u�I�v
-			PRINTFORMW %CALLNAME:TARGET%�ْ͋����Ă����̂��A%CALLNAME:MASTER%�Ɏ������ꂽ�u�Ԃɐg�̑S�̂��r�N�b�Ƃ������B
-			PRINTFORMW �c�c���A�����ɍd���������ėD����\@ TALENT:���C + TALENT:�͎��� ? �A�����ė͋��� # \@����Ԃ��Ă����B
-			PRINTFORMW %CALLNAME:TARGET%����𕚂��Ă��܂������ߕ\����f�����Ƃ͏o���Ȃ����A�������Ă͂��Ȃ��l���c�c
+		;	PRINTFORML 「！」
+			PRINTFORMW %CALLNAME:TARGET%は緊張していたのか、%CALLNAME:MASTER%に手を握られた瞬間に身体全体をビクッとさせた。
+			PRINTFORMW ……が、すぐに硬直を解いて優しく\@ TALENT:強気 + TALENT:力持ち ? 、そして力強く # \@握り返してきた。
+			PRINTFORMW %CALLNAME:TARGET%が顔を伏せてしまったため表情を伺うことは出来ないが、嫌がられてはいない様だ……
 		ELSE
-		;	PRINTFORMW �u�c�c�v
-			PRINTFORMW %CALLNAME:MASTER%�Ɏ������ꂽ%CALLNAME:TARGET%�͌y�����ނ��A�ق��Ă��܂����B
-			PRINTFORMW �Ǝv������A�������Ȃ�������%CALLNAME:MASTER%�̎�ɂ����Ƃ�Ɗ��΂񂾎w���A�����Ɨ��܂��Ă����c�c
+		;	PRINTFORMW 「……」
+			PRINTFORMW %CALLNAME:MASTER%に手を握られた%CALLNAME:TARGET%は軽くうつむき、黙ってしまった。
+			PRINTFORMW と思いきや、ぎこちない動きで%CALLNAME:MASTER%の手にしっとりと汗ばんだ指を、そっと絡ませてきた……
 		ENDIF
-	;������
-	ELSEIF TALENT:�f�� + TALENT:�z�C
-		IF TALENT:�p���炢 && TALENT:�I�g�R == 0 && RAND:2
-		;	CALL PRINT_STRW, "�u�c�c_H_�v"
-			PRINTFORMW %CALLNAME:TARGET%�͎������ꂽ�̂ɏ悶�Đg���񂹁A%CALLNAME:MASTER%�̘r�ɕ������Ă����I
-			PRINTFORMW ���z���ɓ`���%CALLNAME:TARGET%�̏_�炩���ƐS���̌ۓ����A�Ȃ�Ƃ��S�n�����c�c
+	;嬉しい
+	ELSEIF TALENT:素直 + TALENT:陽気
+		IF TALENT:恥じらい && TALENT:オトコ == 0 && RAND:2
+		;	CALL PRINT_STRW, "「……_H_」"
+			PRINTFORMW %CALLNAME:TARGET%は手を握られたのに乗じて身を寄せ、%CALLNAME:MASTER%の腕に抱きついてきた！
+			PRINTFORMW 袖越しに伝わる%CALLNAME:TARGET%の柔らかさと心臓の鼓動が、なんとも心地いい……
 		ELSE
-		;	CALL PRINT_STRW, "�u�c�c_�^�^�^_�v"
-			PRINTFORMW %CALLNAME:TARGET%��%CALLNAME:MASTER%�̎���A������ƏΊ�ň���Ԃ��Ă����B
-			PRINTFORMW �p����������U�蕥���悤�ɑ�҂ŕ���������%CALLNAME:TARGET%�́A�Ԃ���łɂ₯�Ȃ���q���ꂽ������߂Ă���c�c
+		;	CALL PRINT_STRW, "「……_／／／_」"
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の手を、ぎゅっと笑顔で握り返してきた。
+			PRINTFORMW 恥ずかしさを振り払うように大股で歩きだした%CALLNAME:TARGET%は、赤い顔でにやけながら繋がれた手を見つめている……
 		ENDIF
-	;�]�T
+	;余裕
 	ELSE
 		IF RAND:2
-		;	PRINTFORMW �u�c�c�c�c��v
-			PRINTFORMW %CALLNAME:TARGET%�͎�������Ă����ɓ��h���鎖�Ȃ��A%CALLNAME:MASTER%�Ɏ��R�ɔ��΂݂����ė����B
-			PRINTFORMW �����ĕ��i�ʂ�̑ԓx�Řb���A�����Ȃ��炳�肰�Ȃ��w�𗍂߂ė��l�Ȃ��ɂ��Ă����c�c
+		;	PRINTFORMW 「…………♪」
+			PRINTFORMW %CALLNAME:TARGET%は手を握られても特に動揺する事なく、%CALLNAME:MASTER%に自然に微笑みかけて来た。
+			PRINTFORMW そして普段通りの態度で話しつつ、歩きながらさりげなく指を絡めて恋人つなぎにしてきた……
 		ELSE
-		;	PRINTFORMW �u�c�c�c�c�v
-			PRINTFORMW %CALLNAME:MASTER%�̎w���G��邩�ǂ����Ƃ������ŁA%CALLNAME:TARGET%����Ɏ�������Ă����B
-			PRINTFORMW %CALLNAME:TARGET%�͕s�ӂ�ł��ꂽ%CALLNAME:MASTER%�̗l�q���A�ڂ��ׂ߂Ċ��������ɒ��߂Ă���c�c
+		;	PRINTFORMW 「…………」
+			PRINTFORMW %CALLNAME:MASTER%の指が触れるかどうかという所で、%CALLNAME:TARGET%が先に手を握ってきた。
+			PRINTFORMW %CALLNAME:TARGET%は不意を打たれた%CALLNAME:MASTER%の様子を、目を細めて嬉しそうに眺めている……
 		ENDIF
 	ENDIF
-CASE "������ƕ��A�ցc�c", "����������Ŕ����Ă��炤"
-	SELECTCASE SAVESTR:�f�[�g
-	CASE "�����𔃂��ɍs��"
-		PRINTFORM �����p��%CALLNAME:TARGET%��%TEXTR("�ꏊ���ꏊ/�J�[�e���ꖇ�u�Ă�Α��̂��q������󋵂�")%������
-	;2020/02/24�@�}���[�����̒��̐l�@�ǋL�@�X�ɎG�ɕ���𑝂₷
-	CASE "�}���قɍs��"
-		PRINTFORM %TEXTR("���˂̕��A�ɘA�ꍞ�܂ꂽ/���̐l�����Ȃ������ȉ��܂�����p�ɂ���ė���/�}���ق̊��̉��ɐ��荞��")%%CALLNAME:TARGET%��
-	CASE "������"
-		PRINTFORM %TEXTR("���i�g���Ă��Ȃ�����/����ւƑ����A�N�����Ȃ��K�i�̗x���/�l�ڂɕt���Ȃ��ꏊ")%�֘A�ꍞ�܂ꂽ%CALLNAME:TARGET%��
+CASE "ちょっと物陰へ……", "こっそり口で抜いてもらう"
+	SELECTCASE SAVESTR:デート
+	CASE "水着を買いに行く"
+		PRINTFORM 水着姿の%CALLNAME:TARGET%は%TEXTR("場所が場所/カーテン一枚隔てれば他のお客がいる状況な")%だけに
+	;2020/02/24　マリーちゃんの中の人　追記　更に雑に分岐を増やす
+	CASE "図書館に行く"
+		PRINTFORM %TEXTR("書架の物陰に連れ込まれた/他の人が来なさそうな奥まった一角にやって来た/図書館の机の下に潜り込んだ")%%CALLNAME:TARGET%は
+	CASE "文化祭"
+		PRINTFORM %TEXTR("普段使われていない教室/屋上へと続く、誰も来ない階段の踊り場/人目に付かない場所")%へ連れ込まれた%CALLNAME:TARGET%は
 	CASEELSE
-		PRINTFORM %TEXTR("���܂���/�l�ڂɕt���Ȃ�/���邩��ɐl����������Ȃ�������")%�ꏊ�֘A�ꍞ�܂ꂽ%CALLNAME:TARGET%��
+		PRINTFORM %TEXTR("奥まった/人目に付かない/見るからに人が立ち入らなさそうな")%場所へ連れ込まれた%CALLNAME:TARGET%は
 	ENDSELECT
-	SELECTCASE SAVESTR:�f�[�g
-	CASE "������"
-		PRINTFORM �w��������%TEXTR("�o����/��")%��%TEXTR("���C�ɂ��Ȃ���/�Ɏ��𐟂܂��Ȃ���/�ɐ_�o���ɂȂ��")%���A
+	SELECTCASE SAVESTR:デート
+	CASE "文化祭"
+		PRINTFORM 学生たちの%TEXTR("出す物/足")%音%TEXTR("を気にしながら/に耳を澄ませながら/に神経質になりつつ")%も、
 	CASEELSE
-		PRINTFORM %TEXTR("����̕�/��")%��%TEXTR("���C�ɂ��Ȃ���/�Ɏ��𐟂܂��Ȃ���/�ɐ_�o���ɂȂ��")%���A
+		PRINTFORM %TEXTR("周りの物/足")%音%TEXTR("を気にしながら/に耳を澄ませながら/に神経質になりつつ")%も、
 	ENDSELECT
-	;���Ȃ���C
-	IF COND("�~���s��") || TALENT:���� || TALENT:�D�F
-		PRINTFORM %TEXTR("���ė~�������͂����ʂ��ƌ������ԓx��/���ꂩ�炷�鎖���̂ɂ͏��C�ȗl�q��/������ǂ��납�ނ��뗦�悵��")%
+	;かなり乗り気
+	IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色
+		PRINTFORM %TEXTR("して欲しい事はお見通しと言った態度で/これからする事自体には乗り気な様子で/嫌がるどころかむしろ率先して")%
 	ELSE
-		PRINTFORM %TEXTR("������R���鎖���Ȃ�/�����ɕ�������������Ȃ�/�]�܂��܂܂�")%
+		PRINTFORM %TEXTR("強く抵抗する事もなく/声高に文句を言う事もなく/望まれるままに")%
 	ENDIF
-	PRINTFORMW %CALLNAME:MASTER%�̌ҊԂ̑O%TEXTR("���L���̎p���������/�ɍ������낵��/�ŕЕG������")%�B
+	PRINTFORMW %CALLNAME:MASTER%の股間の前%TEXTR("で蹲踞の姿勢を取った/に腰を下ろした/で片膝をついた")%。
 
-	;����Ă���
-	IF EXP:�������o�� >= 5 && EXP:�t�F���o�� >= 20 && ABL:��g�� >= 3
-		PRINTFORM %TEXTR("���ꂽ�����/�����Ďw�ł͂Ȃ������g����/�Y�{�����e���g�𒣂��Ă���̂����Ď���ۂ�")%
+	;慣れている
+	IF EXP:性処理経験 >= 5 && EXP:フェラ経験 >= 20 && ABL:舌使い >= 3
+		PRINTFORM %TEXTR("慣れた手つきで/敢えて指ではなく口を使って/ズボンがテントを張っているのを見て取るや否や")%
 	ELSE
-		PRINTFORM %TEXTR("�������Ȃ������/����Ȃ������/�ْ��̂�����������Ԏ���")%
+		PRINTFORM %TEXTR("ぎこちない手つきで/慣れない手つきで/緊張のせいか少し手間取りつつも")%
 	ENDIF
-	IF RAND:2 && COND("�~���s��")
-		PRINTFORM �t�@�X�i�[�����낵��%TEXTR("�I�s����/�y�j�X�����o��/���ړ��Ă̕���T�蓖��")%��%CALLNAME:TARGET%�́A��яo���Ă�������
+	IF RAND:2 && COND("欲求不満")
+		PRINTFORM ファスナーを下ろして%TEXTR("露茎させ/ペニスを取り出し/お目当ての物を探り当て")%た%CALLNAME:TARGET%は、飛び出してきたそれ
 	ELSE
-		PRINTFORM �t�@�X�i�[�����낵��%CALLNAME:TARGET%�́A��яo���Ă���%TEXTR("���΂�/�L���̋���/�摖��𐂂炷")%�y�j�X
+		PRINTFORM ファスナーを下ろした%CALLNAME:TARGET%は、飛び出してきた%TEXTR("汗ばむ/臭いの強い/先走りを垂らす")%ペニス
 	ENDIF
-	IF COND("�����t�F���\")
-		PRINTFORM ��%TEXTR("�L�X������/���A����/��Ȃ߂��肷��/��𔇂킹��")%�ƁA
+	IF COND("自発フェラ可能")
+		PRINTFORM に%TEXTR("キスをする/挨拶する/舌なめずりする/舌を這わせる")%と、
 	ELSE
-		PRINTFORM ��
+		PRINTFORM を
 	ENDIF
-	;���Ȃ���C
-	IF (COND("�~���s��") || TALENT:���� || TALENT:�D�F) && RAND:3
-		;IF COND("�����t�F���\") && TALENT:�I�g�R == 0 && ABL:���Ԓ��� > RAND:4 && COND("�~���s��") > RAND:3
-		;	PRINTFORM %TEXTR("����̃A�\�R���w�ŘM���")%
+	;かなり乗り気
+	IF (COND("欲求不満") || TALENT:淫乱 || TALENT:好色) && RAND:3
+		;IF COND("自発フェラ可能") && TALENT:オトコ == 0 && ABL:自慰中毒 > RAND:4 && COND("欲求不満") > RAND:3
+		;	PRINTFORM %TEXTR("自らのアソコを指で弄りつつ")%
 		;ELSE
-			PRINTFORM %TEXTR("�҂�����Ȃ��Ƃ������ԓx��/�����Ƃ肵���l�q��/�A��`�����t���C�ɂ��镗���Ȃ�/�ڂ���Ĉӎ����W��������")%
+			PRINTFORM %TEXTR("待ちきれないといった態度で/うっとりした様子で/喉を伝う唾液を気にする風もなく/目を閉じて意識を集中させつつ")%
 		;ENDIF
 	ELSE
-		PRINTFORM %CALLNAME:PLAYER%%TEXTR("�̊�����߂�/�̗l�q���f����/����ڌ����Ō������Ċy���܂���")%�A
+		PRINTFORM %CALLNAME:PLAYER%%TEXTR("の顔を見つめつつ/の様子を伺いつつ/を上目遣いで見あげて楽しませつつ")%、
 	ENDIF
-	IF TALENT:���� || COND("�~���s��") || TALENT:���� || TALENT:�D�F
-		PRINTFORMW %TEXTR("�M�S��/������������/������������/�[�������ĕ@�ő��p�����Ȃ���")%����Ԃ肾�����c�c
+	IF TALENT:恋慕 || COND("欲求不満") || TALENT:淫乱 || TALENT:好色
+		PRINTFORMW %TEXTR("熱心に/美味しそうに/愛おしそうに/深く咥えて鼻で息継ぎしながら")%しゃぶりだした……
 	ELSE
-		PRINTFORMW %TEXTR("��������悤��/���͂��C�ɂ��Ȃ���/�p������������")%����Ԃ肾�����c�c
+		PRINTFORMW %TEXTR("いつもするように/周囲を気にしながら/恥ずかしそうに")%しゃぶりだした……
 	ENDIF
 
-CASE "���������R�L���Ă��炤"
-	PRINTFORM %CALLNAME:PLAYER%�̃y�j�X�֎��U�����ꂽ%CALLNAME:TARGET%�́A
-	SELECTCASE SAVESTR:�f�[�g
-	CASE "�f��قɍs��"
-		IF COND("�~���s��") || TALENT:�D�F || TALENT:����
-			PRINTFORM �f��̓��e�������̂���%CALLNAME:MASTER%�̖ڂ����Ȃ���A
-		ELSEIF TALENT:�p���炢
-			PRINTFORM �j��Ԃ�߂ĂȂ�ׂ��X�N���[���̕��ɖڂ������Ȃ���A
+CASE "こっそり手コキしてもらう"
+	PRINTFORM %CALLNAME:PLAYER%のペニスへ手を誘導された%CALLNAME:TARGET%は、
+	SELECTCASE SAVESTR:デート
+	CASE "映画館に行く"
+		IF COND("欲求不満") || TALENT:好色 || TALENT:淫乱
+			PRINTFORM 映画の内容そっちのけで%CALLNAME:MASTER%の目を見ながら、
+		ELSEIF TALENT:恥じらい
+			PRINTFORM 頬を赤らめてなるべくスクリーンの方に目を向けながら、
 		ELSE
-			PRINTFORM %CALLNAME:MASTER%�̈Ӑ}���@���āA
+			PRINTFORM %CALLNAME:MASTER%の意図を察して、
 		ENDIF
-	;������ǂ����ł���R�L�����ĖႦ��Ɨǂ��ˁi
+	;いずれどっかでも手コキさせて貰えると良いね（
 	CASEELSE
-		IF COND("�~���s��") || TALENT:�D�F || TALENT:����
-			PRINTFORM �҂��Ă��܂����Ƃ΂���ɏΊ��������ƁA
-		ELSEIF TALENT:�p���炢
-			PRINTFORM �@���Ėj����߁A����������
+		IF COND("欲求不満") || TALENT:好色 || TALENT:淫乱
+			PRINTFORM 待っていましたとばかりに笑顔を見せると、
+		ELSEIF TALENT:恥じらい
+			PRINTFORM 察して頬を染め、おずおずと
 		ELSE
-			PRINTFORM %CALLNAME:MASTER%�̈Ӑ}���@���āA
+			PRINTFORM %CALLNAME:MASTER%の意図を察して、
 		ENDIF
 	ENDSELECT
-	PRINTFORMW ���N����%CALLNAME:MASTER%�̃��m����������܂ň����グ���B
-CASE "�L�X����"
-	;PRINTFORMW %CALLNAME:TARGET%�͊y�������ɔ��΂݂Ȃ���A%CALLNAME:MASTER%�ɃL�X�����Ԃ��Ă����B
-CASE "���K��G��"
-	PRINTFORM %CALLNAME:TARGET%��%TEXTR("�O�G��̖������Y/���˂ȃZ�N�n��/�ˑR���K�𕏂ł܂킳�ꂽ��")%��
-	IF TALENT:���C + TALENT:��� + TALENT:����R���� && RAND:4
-		PRINTFORM %TEXTR("���g�����΂݂𕂂��ׂ���/���債�ē����邱�ƂȂ�")%�A
-	ELSEIF TALENT:�f�� + TALENT:�z�C + TALENT:���C && RAND:4
-		PRINTFORM %TEXTR("�������l�q��������/��u�g�̂������点��/")%���A
+	PRINTFORMW 隆起する%CALLNAME:MASTER%のモノが満足するまで扱き上げた。
+CASE "キスする"
+	;PRINTFORMW %CALLNAME:TARGET%は楽しそうに微笑みながら、%CALLNAME:MASTER%にキスをし返してきた。
+CASE "お尻を触る"
+	PRINTFORM %CALLNAME:TARGET%は%TEXTR("前触れの無い悪戯/唐突なセクハラ/突然お尻を撫でまわされた事")%に
+	IF TALENT:強気 + TALENT:冷静 + TALENT:感情乏しい && RAND:4
+		PRINTFORM %TEXTR("生暖かい笑みを浮かべたが/も大して動じることなく")%、
+	ELSEIF TALENT:素直 + TALENT:陽気 + TALENT:内気 && RAND:4
+		PRINTFORM %TEXTR("驚いた様子を見せた/一瞬身体を強張らせた/")%が、
 	ELSE
-		PRINTFORM %TEXTR("�j���g��������/���Ԃ�����/�ςȐ����o���Ă��܂���")%���A
+		PRINTFORM %TEXTR("頬を紅潮させた/顔を赤くした/変な声を出してしまった")%が、
 	ENDIF
-	PRINTFORM %TEXTR("�����R�c������ł��Ȃ�/���ɐU�蕥����������/����قǌ��ȑf�U�����������")%
-	IF TFLAG:�����f�[�g
-		PRINTFORMW %CALLNAME:MASTER%�ɂ���邪�܂܂̏�ԂŐ����ł̃f�[�g���y����ł���悤���c�c
+	PRINTFORM %TEXTR("強く抗議をするでもなく/特に振り払う事もせず/それほど嫌な素振りも見せずに")%
+	IF TFLAG:水着デート
+		PRINTFORMW %CALLNAME:MASTER%にされるがままの状態で水着でのデートを楽しんでいるようだ……
 	ELSE
-		PRINTFORMW %CALLNAME:MASTER%�ɍ��킹�ĕ��������Ă���c�c
+		PRINTFORMW %CALLNAME:MASTER%に合わせて歩き続けている……
 	ENDIF
-;�����ՃC�x���g
-CASE "�o���h���t", "����", "�肢�̊�", "���������~", "���Y�ݑ��k��", "�ςӂςӉ�", "���C�h�i��", "�����i��", "���X�g����"
+;文化祭イベント
+CASE "バンド演奏", "演劇", "占いの館", "お化け屋敷", "お悩み相談室", "ぱふぱふ屋", "メイド喫茶", "執事喫茶", "レストラン"
 	CALL DAILY_MESSAGE_BUNKASAI, ARGS
 ENDSELECT

@@ -1,28 +1,28 @@
-@COM178
-;��l�ɉ����|�����
-;��l��TARGET�A������l��TARGET:1�ŊǗ�����B������TARGET:1�����ݒ�̏ꍇ�ɂ͏��肪TARGET:1�ƂȂ�
+﻿@COM178
+;二人に押し倒される
+;一人はTARGET、もう一人はTARGET:1で管理する。もしもTARGET:1が未設定の場合には助手がTARGET:1となる
 
-PRINTL ��l�ɉ����|�����
+PRINTL 二人に押し倒される
 
 ;-------------------------------------------------
-;���s�ł��邩�̔���
+;実行できるかの判定
 ;-------------------------------------------------
 CALL SHOW_COM_ORDER_COM, 178
 
-;���s�ł��Ȃ�
-SIF TCVAR:���C == 0
+;実行できない
+SIF TCVAR:やる気 == 0
 	RETURN 0
 ;-------------------------------------------------
-;���s����
+;実行決定
 ;-------------------------------------------------
 CALL TRAIN_MESSAGE_B
 
 SIF REFUSE_CHECK()
 	RETURN 0
 
-STR:�O��R�}���h = ��l�ɉ����|�����
+STR:前回コマンド = 二人に押し倒される
 
-CALL SETFLAG, "�v�����|��"
+CALL SETFLAG, "Ｗ押し倒し"
 
 RETURN 1
 
@@ -31,38 +31,38 @@ RETURN 1
 @SOURCE_COM178, ARG
 CALL VARSET_COMF
 
-SOURCE:0:���s�� = 600
-SOURCE:0:�B���� = 1500
+SOURCE:0:性行動 = 600
+SOURCE:0:達成感 = 1500
 
-CALL CALC, "�����\�[�X", ARG
+CALL CALC, "調教ソース", ARG
 
 
 @TRAIN_MESSAGE_COM178
-IF TEQUIP:�����|��
-	PRINTFORMW %CALLNAME:TARGET%�̗U���ɉ����āA%CALLNAME:(TARGET:1)%��%CALLNAME:PLAYER%�ɕ��݊��c
-	IF TARGET:1 == ASSI && TEQUIP:�r�f�I�J����
-		PRINTFORMW �ǂ����A%CALLNAME:(TARGET:1)%�͎B�e�𒆎~���Ĉꏏ�Ɋy���ނ��Ƃɂ����悤���c
+IF TEQUIP:押し倒し
+	PRINTFORMW %CALLNAME:TARGET%の誘いに応じて、%CALLNAME:(TARGET:1)%が%CALLNAME:PLAYER%に歩み寄る…
+	IF TARGET:1 == ASSI && TEQUIP:ビデオカメラ
+		PRINTFORMW どうやら、%CALLNAME:(TARGET:1)%は撮影を中止して一緒に楽しむことにしたようだ…
 	ELSE
-		PRINTFORMW �ǂ����A%CALLNAME:(TARGET:1)%���Q������悤���c
+		PRINTFORMW どうやら、%CALLNAME:(TARGET:1)%も参加するようだ…
 	ENDIF
 ELSE
-	PRINTFORMW �d�������΂݂Ȃ���%CALLNAME:TARGET%��%CALLNAME:(TARGET:1)%��%CALLNAME:PLAYER%�ɕ��݊��c
-	PRINTFORMW %CALLNAME:PLAYER%�͓�l������ŉ����|����Ă��܂����c
+	PRINTFORMW 妖しく微笑みながら%CALLNAME:TARGET%と%CALLNAME:(TARGET:1)%が%CALLNAME:PLAYER%に歩み寄る…
+	PRINTFORMW %CALLNAME:PLAYER%は二人がかりで押し倒されてしまった…
 ENDIF
-TEQUIP:�r�f�I�J���� = 0
+TEQUIP:ビデオカメラ = 0
 
 
-;@EVENTCOM��SELECTCOM�ɉ����Č��肳���B
-;�������A�Ȃ����܂܂̎��ɂ͂��ꂼ���COMF���Ō��肷�邽�߁A@EVENTCOM�ł͌Ă΂Ȃ��B
+;@EVENTCOMでSELECTCOMに応じて決定される。
+;もがく、なすがままの時にはそれぞれのCOMF中で決定するため、@EVENTCOMでは呼ばない。
 @SET_SELECTCOM_W
 #DIM LCOUNT
-;���ꂼ��ATARGET:0orTARGET:1����ʋR��A�C���T�[�g�A��d����������
+;それぞれ、TARGET:0orTARGET:1が顔面騎乗、インサート、奉仕中かを見る
 #DIM IS_FENDAMU, 2
 #DIM IS_INSERT, 2
 #DIM IS_SERVICE, 2
-;�񌊑}���ɔh�����₷�������𖞂����Ă�����n�m
+;二穴挿入に派生しやすい条件を満たしていたらＯＮ
 #DIM IS_WPENE
-;TARGET:1���R�}���h���s�\���ǂ���
+;TARGET:1がコマンド実行可能かどうか
 #DIM CANCOM, 160
 
 
@@ -72,7 +72,7 @@ SWAP TARGET, TARGET:1
 
 VARSET CANCOM
 FOR LCOUNT, 0, 110
-	;�`�F�b�N�K�v�ȃR�}���h�͎��͏��Ȃ�
+	;チェック必要なコマンドは実は少ない
 	SELECTCASE LCOUNT
 	CASE 1, 9, 65, 75, 83, 90 TO 95, 97, 104
 		TRYCALLFORM COM_ABLE{LCOUNT}
@@ -111,18 +111,18 @@ CASE 90 TO 95, 97, 104
 	IS_SERVICE:1 = 1
 ENDSELECT
 
-;�C���T�[�g���Ȃ�A���s
-IF IS_INSERT:1 && FORBIDCOM(TARGET:1, "�Z�b�N�X", "�o�����g") == 0
+;インサート中なら、続行
+IF IS_INSERT:1 && FORBIDCOM(TARGET:1, "セックス", "Ｐ下半身") == 0
 	SELECTCOM:1 = PREVCOM:1
-;�A�x��͂v�A�x��
+;泡踊りはＷ泡踊り
 ELSEIF SELECTCOM == 94 && CANCOM:94
 	SELECTCOM:1 = 94
-;�v�R�撆�Ȃ獂�m���ő��s
+;Ｗ騎乗中なら高確率で続行
 ELSEIF RAND:3 && IS_INSERT && IS_FENDAMU:1
 	SELECTCOM:1 = PREVCOM:1
 ELSEIF RAND:3 && IS_FENDAMU && IS_INSERT:1
 	SELECTCOM:1 = PREVCOM:1
-;�v�R����N���Ղ�
+;Ｗ騎乗を起き易く
 ELSEIF IS_INSERT && CANCOM:1 + CANCOM:9 && RAND:3 == 0
 	IF CANCOM:1 && RANDIF(1, CANCOM:9)
 		SELECTCOM:1 = 1
@@ -137,48 +137,48 @@ ELSEIF IS_FENDAMU && CANCOM:65 + CANCOM:75 + CANCOM:83 && RAND:3 == 0
 	ELSE
 		SELECTCOM:1 = 75
 	ENDIF
-;������d���Ȃ瑱�s
+;同時奉仕中なら続行
 ELSEIF IS_SERVICE && SELECTCOM == PREVCOM && PREVCOM:1 == SELECTCOM
 	SELECTCOM:1 = PREVCOM:1
-;������d���N���Ղ�
+;同時奉仕を起き易く
 ELSEIF IS_SERVICE && PREVCOM:1 == SELECTCOM
 	SELECTCOM:1 = PREVCOM:1
 ELSEIF IS_SERVICE && CANCOM:SELECTCOM && RAND:3 == 0
 	SELECTCOM:1 = SELECTCOM
-;�񌊑}�����Ȃ�A���s
-ELSEIF INSERT("�񌊑}��", PLAYER)
+;二穴挿入中なら、続行
+ELSEIF INSERT("二穴挿入", PLAYER)
 	SELECTCOM:1 = PREVCOM:1
-;�񌊑}���ɂȂ�₷�����Ă݂�
+;二穴挿入になりやすくしてみる
 ELSEIF IS_WPENE && RAND:2 == 0
 	SELECTCOM:1 = IS_WPENE
 ELSEIF FORBIDCOM(TARGET:1)
 	SELECTCOM:1 = -1
 ELSE
-	;�⍲����ABL:��`ABL:���C�v������
+	;補佐役のABL:手～ABL:レイプを決定
 	CALL CALC_COUNTER_ABL, TARGET:1
 
-	;���C�v�̌�͘A�����C�v
-	IF (PREVCOM:1 == 120 || PREVCOM:1 == 126) && ABL:(TARGET:1):���C�v && RAND:4
-		ABL:(TARGET:1):�� = 0
-		ABL:(TARGET:1):�� = 0
-		ABL:(TARGET:1):�� = 0
-		ABL:(TARGET:1):�� = 0
-		ABL:(TARGET:1):��ʋR�� = 0
-		ABL:(TARGET:1):�R��� = 0
-		ABL:(TARGET:1):�L�X = 0
-		ABL:(TARGET:1):���K�ӂ� = 0
-		ABL:(TARGET:1):�f�� = 0
+	;レイプの後は連続レイプ
+	IF (PREVCOM:1 == 120 || PREVCOM:1 == 126) && ABL:(TARGET:1):レイプ && RAND:4
+		ABL:(TARGET:1):手 = 0
+		ABL:(TARGET:1):口 = 0
+		ABL:(TARGET:1):胸 = 0
+		ABL:(TARGET:1):足 = 0
+		ABL:(TARGET:1):顔面騎乗 = 0
+		ABL:(TARGET:1):騎乗位 = 0
+		ABL:(TARGET:1):キス = 0
+		ABL:(TARGET:1):お尻責め = 0
+		ABL:(TARGET:1):素股 = 0
 	ENDIF
 
 	SELECTCOM:1 = SET_COUNTERCOM(TARGET:1)
 ENDIF
 
-;�֎~�R�}���h����
+;禁止コマンド消去
 CALL SET_FORBIDCOM, TARGET:1, -1
 
 @EQUIP_COM178_2
-;3P��
-SIF TEQUIP:�v�����|�� || SELECTCOM:1 >= 0
+;3P中
+SIF TEQUIP:Ｗ押し倒し || SELECTCOM:1 >= 0
 	CALL EQUIP_COM_3P
 
 
@@ -186,61 +186,61 @@ SIF TEQUIP:�v�����|�� || SELECTCOM:1 >= 0
 VARSET LOCAL
 LOCALS = 
 
-;���ׂĂ̖��߂ɋ��ʂ̗v�f���l��
-;(�M���������Ɩ��߂ɏ]���₷���Ȃ�)
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
 CALL COM_ORDER, ARG
 
 LOCAL = RESULT
 
-;ABL:��d���_
-IF ABL:��d���_
-	LOCAL += MIN(ABL:��d���_, 10) * 2
-	LOCALS = %LOCALS% + ��d���_LV{ABL:��d���_}({MIN(ABL:��d���_, 10) * 2})
+;ABL:奉仕精神
+IF ABL:奉仕精神
+	LOCAL += MIN(ABL:奉仕精神, 10) * 2
+	LOCALS = %LOCALS% + 奉仕精神LV{ABL:奉仕精神}({MIN(ABL:奉仕精神, 10) * 2})
 ENDIF
-;ABL:�T�h���C
-IF ABL:�T�h���C
-	LOCAL += MIN(ABL:�T�h���C, 5) * 3
-	LOCALS = %LOCALS% + �T�h���CLV{ABL:�T�h���C}({MIN(ABL:�T�h���C, 5) * 3})
+;ABL:サドっ気
+IF ABL:サドっ気
+	LOCAL += MIN(ABL:サドっ気, 5) * 3
+	LOCALS = %LOCALS% + サドっ気LV{ABL:サドっ気}({MIN(ABL:サドっ気, 5) * 3})
 ENDIF
 
-;���C
-IF TALENT:���C
+;強気
+IF TALENT:強気
 	LOCAL += 10
-	LOCALS = %LOCALS% + ���C(10)
+	LOCALS = %LOCALS% + 強気(10)
 ENDIF
-;�p���炢
-IF TALENT:�p���炢
+;恥じらい
+IF TALENT:恥じらい
 	LOCAL -= 10
-	LOCALS = %LOCALS% - �p���炢(10)
+	LOCALS = %LOCALS% - 恥じらい(10)
 ENDIF
-;�����̔ے�
-IF TALENT:�����̔ے�
+;快感の否定
+IF TALENT:快感の否定
 	LOCAL -= 5
-	LOCALS = %LOCALS% - �����̔ے�(5)
+	LOCALS = %LOCALS% - 快感の否定(5)
 ENDIF
 
-;����
-IF TALENT:����
+;処女
+IF TALENT:処女
 	LOCAL -= 20
-	LOCALS = %LOCALS% - ����(20)
-ELSEIF EXP:�u�o�� < EXPLV:2
+	LOCALS = %LOCALS% - 処女(20)
+ELSEIF EXP:Ｖ経験 < EXPLV:2
 	LOCAL -= 5
-	LOCALS = %LOCALS% - �u�o���s��(5)
+	LOCALS = %LOCALS% - Ｖ経験不足(5)
 ENDIF
 
-;�󂯐g
-IF TALENT:�󂯐g
+;受け身
+IF TALENT:受け身
 	LOCAL -= 10
-	LOCALS = %LOCALS% - �󂯐g(10)
+	LOCALS = %LOCALS% - 受け身(10)
 ENDIF
 
-;�Z��
-IF TEQUIP:�Z��
+;媚薬
+IF TEQUIP:媚薬
 	LOCAL += 6
-	LOCALS = %LOCALS% + �Z��(6)
+	LOCALS = %LOCALS% + 媚薬(6)
 ENDIF
 
-;���v��\��(70�ȏ�Ŏ��s)
+;合計を表示(70以上で実行)
 CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 70
 
 RETURN RESULT
