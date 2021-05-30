@@ -1,0 +1,188 @@
+﻿@EVENTTRAIN
+#PRI
+SIF COND("第一対象") == 0
+	FLAG:状況判定 += TARGET
+;調教中のフラグON
+SETBIT FLAG:状況判定, 10
+;射精フラグ、処女喪失フラグなどをリセット
+VARSET TFLAG
+;調教開始時のTARGETの番号を記録
+FLAG:調教開始時の対象 = TARGET
+;ASSIを調教したフラグをリセット
+FLAG:助手を調教した = 0
+;Ｗ押し倒しの変数をリセット
+VARSET SELECTCOM, -1
+VARSET PREVCOM, -1
+;不要な文字列を初期化
+VARSET STR, "", 100, 110
+STR:ビデオ内容 = 
+STR:ビデオジャンル = 
+STR:青写真 = 
+;Ｐ汚れのリセット
+CVARSET CSTR, GETNUM(CSTR, "Ｐ汚れ")
+SAVESTR:Ｈ中の撮影履歴 = 
+
+CVARSET CFLAG, GETNUM(CFLAG, "寝起き")
+
+;フラグに使う現実時間を取得
+CALL GET_REALTIMEFORFLAG
+
+;調教者は誰か
+PLAYER = MASTER
+CALL SET_PARTNER
+
+;複数プレイの基本的な補佐に助手を設定。変更する時には違う人を設定する事
+IF ASSI
+	;パートナーがアドバイザー兼任の場合には能力は残すけど助手は不在扱い
+	IF TARGET == ASSI
+		ASSI = 0
+	ELSEIF COND("現在不在", ASSI) || COND("デート中") || CSTR:お誘い == "お風呂のお誘い"
+		CALL SET_CEVENT, "助手設定：下がらせる", ASSI
+		ASSI = 0
+		ASSI:1 = 0
+	ENDIF
+ENDIF
+
+;３Ｐの参加者として用いる
+PLAYER:1 = ASSI
+TARGET:1 = ASSI
+
+SIF EQUIP:Ｈなご褒美
+	FLAG:ムード += 90
+
+IF EQUIP:お風呂でＨ
+	CALL SETFLAG, "お風呂プレイ"
+	CALL SETFLAG, "衣装全脱ぎ", TARGET
+ENDIF
+
+SELECTCASE CSTR:お誘い
+CASE "お風呂のお誘い"
+	CALL SETFLAG, "お風呂プレイ"
+	CALL SETFLAG, "衣装全脱ぎ", TARGET
+	CFLAG:褒める = 2
+CASE "二人きりＨのお誘い"
+	FLAG:ムード += 60
+	CFLAG:褒める = 2
+CASE "Ｈのお誘い", "放課後Ｈのお誘い"
+	FLAG:ムード += 30
+	CFLAG:褒める = 2
+CASE "押し倒し"
+	;押し倒され状態の付与
+	TEQUIP:押し倒し = 1
+	FLAG:ムード += 30
+	CFLAG:褒める = 2
+ENDSELECT
+
+;クリスマスツリーチェック
+SIF DAYEV("クリスマス期間")
+	FLAG:ムード += NUM("クリスマスツリー") * 30
+;酔いによるムード補正
+SIF STATE("酔い", TARGET)
+	FLAG:ムード += 30
+;SIF STATE("酔い", MASTER)
+;	FLAG:ムード += 45
+;ときめき状態
+IF CFLAG:甘い言葉
+	FLAG:ムード += 60
+	TEQUIP:甘い言葉 = 5
+ENDIF
+SIF CFLAG:ムラムラ
+	FLAG:ムード += 30
+
+;★追加
+SELECTCASE SAVESTR:現在位置
+CASE "ラブホテル"
+	FLAG:ムード += 30
+CASE "人気のない教室"
+	;立位でスタート
+	SETBIT FLAG:調教フィルタ, 10
+CASEELSE
+	;相手の家
+	SIF PLACE("パートナーの自宅")
+		FLAG:ムード += 30
+	;野外は立位でスタート
+	SIF PLACE("野外")
+		SETBIT FLAG:調教フィルタ, 10
+ENDSELECT
+
+;消耗品の所持数記録
+CALL SETFLAG, "消耗品所持数"
+
+;開始前の諸設定１（口上前でリセットされてそうなもの）
+CALL SETFLAG, "調教開始前Ａ", TARGET
+CALL SETFLAG, "調教開始前Ａ", MASTER
+SIF ASSI
+	CALL SETFLAG, "調教開始前Ａ", ASSI
+
+CALL SETFLAG, "Ｈ前PALAM調整", MASTER
+CALL SETFLAG, "Ｈ前PALAM調整", TARGET
+SIF ASSI
+	CALL SETFLAG, "Ｈ前PALAM調整", ASSI
+
+;衣装の汚れ
+CALL STAIN_CALC_COSPLAY
+
+
+@EVENTTRAIN
+#LATER
+;開始前の諸設定２（前回記録で口上で使えそうなものをリセット）
+CALL SETFLAG, "調教開始前Ｂ", TARGET
+CALL SETFLAG, "調教開始前Ｂ", MASTER
+SIF ASSI
+	CALL SETFLAG, "調教開始前Ｂ", ASSI
+
+;アドバイザー能力発動
+CALL EVENTTRAIN_BONUS_ADVISER
+
+DRAWLINE
+;助手が忙しく色々準備
+CALL EVENT_ASSI_AUTO, "調教開始"
+
+IF CONFIG("下脱ぎフィルタ") && CHECK_CLO("アウター露出") && CHECK_CLO("Ｖ露出可") == 0
+	IF CONFIG("靴脱ぎフィルタ") && EQUIP:靴 && PLACE("野外") == 0
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の求めに応じて%OUTER(TARGET)%と%SHOES(TARGET)%を脱いだ。
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の求めに応じて%OUTER(TARGET)%を脱いだ。
+	ENDIF
+ELSEIF CONFIG("靴脱ぎフィルタ") && EQUIP:靴 && PLACE("野外") == 0
+	PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の求めに応じて%SHOES(TARGET)%を脱いだ。
+ENDIF
+IF CONFIG("下脱ぎフィルタ")
+	IF CHECK_CLO("アウター露出") && CHECK_CLO("Ｖ露出可") == 0
+		IF COND("パンツ形状確認") == 0
+			SIF CHECK_OUTER("パンスト")
+				CALL SET_OUTER, ""
+			IF EQUIP:パンツ == 0 || RAND:2
+				CALL TEXT_PANTU_CHECK, "アウター"
+			ELSE
+				CALL TEXT_PANTU_CHECK_SHORT
+			ENDIF
+		ENDIF
+		CALL SET_OUTER, ""
+	ENDIF
+	SIF ASSI && CHECK_CLO("アウター露出", ASSI) && CHECK_CLO("Ｖ露出可", ASSI) == 0
+		CALL SET_OUTER, "", ASSI
+ENDIF
+IF CONFIG("靴脱ぎフィルタ") && PLACE("野外") == 0
+	CALL SET_SHOES, ""
+	SIF ASSI
+		CALL SET_SHOES, "", ASSI
+ENDIF
+;３Ｐ出来るかを表示
+IF ASSI == 0
+ELSEIF COND("Ｈはあなたとだけ") && COND("Ｈはあなたとだけ", ASSI)
+	DRAWLINE
+	CALL PRINT_STRW, @"黄色_※%CALLNAME:TARGET%と%CALLNAME:ASSI%は%CALLNAME:MASTER%以外とはＨをしないので、交代や３Ｐは出来ません"
+ELSEIF COND("Ｈはあなたとだけ", ASSI)
+	DRAWLINE
+	CALL PRINT_STRW, @"黄色_※%CALLNAME:ASSI%は%CALLNAME:MASTER%以外とはＨをしないので、交代や３Ｐは出来ません"
+ELSEIF COND("Ｈはあなたとだけ")
+	DRAWLINE
+	CALL PRINT_STRW, @"黄色_※%CALLNAME:TARGET%は%CALLNAME:MASTER%以外とはＨをしないので、交代や３Ｐは出来ません"
+ENDIF
+
+CALL SETFLAG, "調教開始前Ｃ", TARGET
+CALL SETFLAG, "調教開始前Ｃ", MASTER
+SIF ASSI
+	CALL SETFLAG, "調教開始前Ｃ", ASSI
+

@@ -1,0 +1,232 @@
+﻿;ユニット移動メソッド
+;ARG:0 = 移動先Y座標
+;ARG:1 = 移動先X座標
+@Demoslaviya20XX_Move(Y_After,X_After)
+	#DIM DYNAMIC X_After
+	#DIM DYNAMIC Y_After
+	#DIM DYNAMIC X_Before
+	#DIM DYNAMIC Y_Before
+	#DIM DYNAMIC LCount
+	
+	;#region 初期設定
+		CALL Demoslaviya20XX_UnitSearch(Demoslaviya20XX_SelectUnit)
+		IF RESULT:0 == 1
+			Y_Before = RESULT:1
+			X_Before = RESULT:2
+		ENDIF
+	;#endregion
+	IF Demoslaviya20XX_MoveCostMap:Y_After:X_After >= 0 && TOINT(Demoslaviya20XX_Map:Y_After:X_After:1) == 0
+		Demoslaviya20XX_Map:Y_Before:X_Before:1 = TOSTR({0})
+		Demoslaviya20XX_Map:Y_After:X_After:1 = {Demoslaviya20XX_SelectUnit}
+	ENDIF
+
+	SIF Demoslaviya20XX_MoveCostMap:Y_After:X_After >= 0
+		Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:3 = {Demoslaviya20XX_MoveCostMap:Y_After:X_After}
+
+;ARGS = ユニット種類名
+;ARG:0 = 計算中残移動コスト
+;ARG:1 = 現在計算中心点Y座標
+;ARG:2 = 現在計算中心点X座標
+@Demoslaviya20XX_MoveCostCalc(UnitType,RemnantMovePower,Y_Before,X_Before)
+	#DIMS DYNAMIC UnitType
+	#DIM DYNAMIC RemnantMovePower
+	#DIM DYNAMIC X_Before
+	#DIM DYNAMIC Y_Before
+	#DIM DYNAMIC X_After
+	#DIM DYNAMIC Y_After
+
+	#DIM DYNAMIC LCount
+
+	IF STRFIND(Demoslaviya20XX_GET_UNITDATA(UnitType,"スキル"), "【地形無視】") == 0
+		;地形無視スキル持ってたときの計算はこっち
+		;1時方向のへクスへ移動したときのコスト計算
+		IF X_Before+1 <= 199 && Y_Before-1 >= 0;MAPの右端でも上端でも無いことの確認
+			X_After = X_Before + 1
+			Y_After = Y_Before - 1
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - 1 && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - 1
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+		
+		;3時方向のへクスへ移動したときのコスト計算
+		IF X_Before+2 <= 199;MAPの右端では無いことの確認
+			X_After = X_Before + 2
+			Y_After = Y_Before 
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - 1 && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - 1 
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;5時方向のへクスへ移動したときのコスト計算
+		IF X_Before+1 <= 199 && Y_Before+1 <= 200;MAPの右端でも下端でも無いことの確認
+			X_After = X_Before + 1
+			Y_After = Y_Before + 1
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - 1  && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - 1
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;7時方向のへクスへ移動したときのコスト計算
+		IF X_Before-1 >= 0 && Y_Before+1 <= 200;MAPの左端でも下端でも無いことの確認
+			X_After = X_Before - 1
+			Y_After = Y_Before + 1
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - 1  && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - 1
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;9時方向のへクスへ移動したときのコスト計算
+		IF X_Before-2 >= 0;MAPの左端では無いことの確認
+			X_After = X_Before - 2
+			Y_After = Y_Before 
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - 1  && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - 1
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;11時方向のへクスへ移動したときのコスト計算
+		IF X_Before-1 >= 0 && Y_Before-1 >= 0;MAPの左端でも上端でも無いことの確認
+			X_After = X_Before - 1
+			Y_After = Y_Before - 1
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - 1  && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - 1
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+	ELSEIF STRFIND(Demoslaviya20XX_GET_UNITDATA(UnitType,"スキル"),"【海上ユニット】") != -1
+		;海上ユニットの時の計算はこっち
+	ELSE
+		;通常消費移動コスト計算はこっち
+		;1時方向のへクスへ移動したときのコスト計算
+		IF X_Before+1 <= 199 && Y_Before-1 >= 0;MAPの右端でも上端でも無いことの確認
+			X_After = X_Before + 1
+			Y_After = Y_Before - 1
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") ) && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") )
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+		
+		;3時方向のへクスへ移動したときのコスト計算
+		IF X_Before+2 <= 199;MAPの右端では無いことの確認
+			X_After = X_Before + 2
+			Y_After = Y_Before 
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") ) && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") )
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;5時方向のへクスへ移動したときのコスト計算
+		IF X_Before+1 <= 199 && Y_Before+1 <= 200;MAPの右端でも下端でも無いことの確認
+			X_After = X_Before + 1
+			Y_After = Y_Before + 1
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") ) && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") )
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;7時方向のへクスへ移動したときのコスト計算
+		IF X_Before-1 >= 0 && Y_Before+1 <= 200;MAPの左端でも下端でも無いことの確認
+			X_After = X_Before - 1
+			Y_After = Y_Before + 1
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") ) && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") )
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;9時方向のへクスへ移動したときのコスト計算
+		IF X_Before-2 >= 0;MAPの左端では無いことの確認
+			X_After = X_Before - 2
+			Y_After = Y_Before 
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") ) && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") )
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;11時方向のへクスへ移動したときのコスト計算
+		IF X_Before-1 >= 0 && Y_Before-1 >= 0;MAPの左端でも上端でも無いことの確認
+			X_After = X_Before - 1
+			Y_After = Y_Before - 1
+			IF Demoslaviya20XX_MoveCostMap:Y_After:X_After < RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") ) && TOINT(Demoslaviya20XX_MAP:Y_After:X_After:1 ) == 0
+				Demoslaviya20XX_MoveCostMap:Y_After:X_After = RemnantMovePower - TOINT(Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_After:X_After:0,"移動コスト") )
+				CALL Demoslaviya20XX_MoveRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveCostCalc(UnitType,Demoslaviya20XX_MoveCostMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_MoveRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_MoveRoute_DelLast
+			ENDIF
+		ENDIF
+	ENDIF
+;ARG:0 = Y座標
+;ARG:1 = X座標
+@Demoslaviya20XX_MoveRoute_Add(ARG:0,ARG:1)
+	#DIM LCount
+	FOR LCount, 0, TOINT(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"行動力"))
+		IF Demoslaviya20XX_MoveRoute:LCount:0 == -1 && Demoslaviya20XX_MoveRoute:LCount:1 == -1
+			Demoslaviya20XX_MoveRoute:LCount:0 = ARG:0
+			Demoslaviya20XX_MoveRoute:LCount:1 = ARG:1
+			BREAK
+		ENDIF
+	NEXT
+@Demoslaviya20XX_MoveRoute_GetLast(Return_Y,Return_X)
+	#DIM REF Return_Y
+	#DIM REF Return_X
+	#DIM LCount
+	FOR LCount, 0, TOINT(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"行動力"))
+		IF Demoslaviya20XX_MoveRoute:LCount:0 == -1 && Demoslaviya20XX_MoveRoute:LCount:1 == -1 && LCount > 0
+			Return_Y = Demoslaviya20XX_MoveRoute:(LCount-1):0
+			Return_X = Demoslaviya20XX_MoveRoute:(LCount-1):1
+			BREAK
+		ENDIF
+	NEXT
+@Demoslaviya20XX_MoveRoute_DelLast
+	#DIM LCount
+	FOR LCount, 0, TOINT(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"行動力"))
+		IF Demoslaviya20XX_MoveRoute:LCount:0 == -1 && Demoslaviya20XX_MoveRoute:LCount:1 == -1 && LCount > 0
+			Demoslaviya20XX_MoveRoute:(LCount-1):0 = -1
+			Demoslaviya20XX_MoveRoute:(LCount-1):1 = -1
+			BREAK
+		ENDIF
+	NEXT
+	

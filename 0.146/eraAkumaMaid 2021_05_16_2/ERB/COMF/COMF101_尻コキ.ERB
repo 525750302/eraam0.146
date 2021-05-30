@@ -1,0 +1,170 @@
+@COM101
+;尻コキ
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+;-------------------------------------------------
+;実行できるかの判定
+;-------------------------------------------------
+CALL SHOW_COM_ORDER_COM, 101
+
+;実行できない
+SIF TCVAR:やる気 == 0
+	RETURN 0
+;-------------------------------------------------
+;実行決定
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+;-------------------------------------------------
+;射精チェック
+;-------------------------------------------------
+CALL SAMEN_CHECK
+
+RETURN 1
+
+@FLAG_COM101, ARG
+SIF ASSIPLAY == 0
+	TFLAG:好感度ボーナス += 1
+
+@SOURCE_COM101, ARG
+CALL VARSET_COMF
+
+SOURCE:0:欲情追加 = CALCF("実行値による欲情追加")
+SOURCE:0:屈従 = 1200
+SOURCE:0:逸脱 = 50
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM101
+#DIMS TEXT_ASS
+#DIMS TEXT_PENIS
+
+IF CHECK_CLO("Ｔバックヒップ") || CHECK_CLO("Ａ露出")
+	TEXT_ASS = %TEXTR(@"%TEXTS("お尻：視覚")%/%TEXTS("お尻：感触")%")%
+ELSE
+	TEXT_ASS = %TEXTS("お尻：視覚")%
+ENDIF
+;前回挿入行為
+IF PREVPLAY("挿入中", PLAYER)
+	TEXT_PENIS = 、穴から抜いたばかりの\@ CHECK_STAIN(STAIN:PLAYER:Ｐ, "Ｖ", "Ａ") ? 汚れた # \@ペニス
+ELSEIF TEXT_ASS == "お尻"
+	TEXT_PENIS = 、%TEXTS("ペニス：視覚", PLAYER)%ペニス
+ELSE
+	TEXT_PENIS = ペニス
+ENDIF
+
+IF CHECK_COM("Ｗ奉仕")
+	IF SELECTCOM:1 == PREVCOM:1 && SELECTCOM == PREVCOM
+		PRINTFORM 二人は
+		IF TALENT:(TARGET:1):淫乱 + TALENT:(TARGET:1):恋慕 && TALENT:淫乱 + TALENT:恋慕 && RAND:3 == 0
+			PRINT うっとりしながら
+		ELSEIF RAND:2 == 0
+			PRINT 夢中になって
+		ENDIF
+		PRINTFORMW %CALLNAME:MASTER%の%TEXT_PENIS%にお尻を擦り付け、刺激し続けている…
+	ELSE
+		PRINTFORM %CALLNAME:TARGET%と%CALLNAME:(TARGET:1)%は
+		SIF TALENT:(TARGET:1):淫乱 + TALENT:(TARGET:1):恋慕 + TALENT:淫乱 + TALENT:恋慕 && RAND:2 == 0
+			PRINTFORM 上気した瞳で%CALLNAME:MASTER%を見つめながら、
+		PRINTFORMW 協力してペニスをお尻で挟んで扱いてきた…
+	ENDIF
+;押し倒されているとき
+ELSEIF TEQUIP:押し倒し
+	IF SELECTCOM == PREVCOM
+		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の%TEXTS("ペニス：視覚", PLAYER)%ペニス
+		PRINTFORMW %TEXTR("にお尻を擦り付け/をお尻で扱き")%続けている…
+	ELSE
+		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%のペニス
+		IF RAND:2
+			PRINTFORMW を%TEXTS("お尻：感触")%で扱いてきた…
+		ELSE
+			PRINTFORMW に%TEXTS("お尻：視覚")%を擦り付けてきた…
+		ENDIF
+	ENDIF
+ELSEIF SELECTCOM == PREVCOM
+	PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%の%TEXTR(@"%TEXTS("お尻：視覚")%/%TEXTS("お尻：感触")%")%
+	IF TALENT:小尻 == 0 && RAND:2
+		PRINTFORMW でペニスを挟んで腰を振り続けた…
+	ELSE
+		PRINTFORMW %TEXTR("にペニスを擦り付け/でペニスを扱き")%続けた…
+	ENDIF
+ELSEIF PREVCOM == TNUM("Ａくぱぁさせる")
+	PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%に
+	IF RAND:2
+		PRINTFORMW %TEXTS("アナル")%アナルを剥き出しにさせながら、%TEXTS("お尻：感触")%にペニスを擦り付けた…
+	ELSE
+		PRINTFORMW お尻を開かせたまま、%TEXTS("肛門周辺")%へとペニスを擦り付けた…
+	ENDIF
+ELSE
+	PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%の
+	IF CHECK_CLO("Ａ露出")
+	;まずはボディスーツ
+	ELSEIF CHECK_CLO("ボディスーツ露出")
+		PRINTFORM %BODYS(TARGET, "略")%\@ CHECK_CLO("Ｔバックヒップ") ? が食い込んだ # を身に着けた \@
+	ELSEIF CHECK_CLO("パンスト露出") || CHECK_OUTER("ブルマ")
+		PRINTFORM %OUTER(TARGET, "略")%に包まれた
+	ELSEIF CHECK_CLO("アウター露出")
+		PRINTFORM %OUTER(TARGET, "略")%\@ CHECK_CLO("Ｔバックヒップ") ? が食い込んだ # を履いた \@
+	ELSEIF CHECK_CLO("パンツ露出")
+		PRINTFORM %PANTIES(TARGET)%\@ CHECK_CLO("Ｔバックヒップ") ? が食い込んだ # に包まれた \@
+	ENDIF
+	;長すぎる様なら"、"を前に着ける
+	SIF STRLENSU(TEXT_ASS) >= 15 && CHECK_CLO("Ａ露出") == 0
+		PRINTFORM 、
+	PRINTFORM %TEXT_ASS%
+	IF TALENT:小尻 == 0 && RAND:2 && CHECK_CLO("Ｔバックヒップ")
+		PRINTFORMW に%TEXT_PENIS%を押し当て、尻肉で挟みながら腰を振った…
+	ELSEIF CLO("股間") != ""
+		PRINTFORMW に%TEXT_PENIS%を擦り付けた…
+	ELSE
+		PRINTFORMW %TEXTR(@"に%TEXT_PENIS%を擦り付け/で%TEXT_PENIS%を扱い")%た…
+	ENDIF
+ENDIF
+
+@COM_ORDER_COM101, ARG
+VARSET LOCAL
+LOCALS = 
+
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
+CALL COM_ORDER, ARG
+
+LOCAL = RESULT
+
+;ABL:奉仕精神
+IF ABL:奉仕精神
+	LOCAL += MIN(ABL:奉仕精神, 10) * 2
+	LOCALS = %LOCALS% + 奉仕精神LV{ABL:奉仕精神}({MIN(ABL:奉仕精神, 10) * 2})
+ENDIF
+;ABL:精液中毒
+IF ABL:精液中毒
+	LOCAL += MIN(ABL:精液中毒, 5) * 3
+	LOCALS = %LOCALS% + 精液中毒LV{ABL:精液中毒}({MIN(ABL:精液中毒, 5) * 3})
+ENDIF
+
+;恥じらい
+IF TALENT:恥じらい
+	LOCAL -= 3
+	LOCALS = %LOCALS% - 恥じらい(3)
+ENDIF
+;快感の否定
+IF TALENT:快感の否定
+	LOCAL -= 1
+	LOCALS = %LOCALS% - 快感の否定(1)
+ENDIF
+
+;媚薬
+IF TEQUIP:媚薬
+	LOCAL += 6
+	LOCALS = %LOCALS% + 媚薬(6)
+ENDIF
+
+;合計を表示(20以上で実行)
+CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 20
+
+RETURN RESULT

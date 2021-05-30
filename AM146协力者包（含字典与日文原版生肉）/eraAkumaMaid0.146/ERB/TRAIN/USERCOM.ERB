@@ -1,0 +1,676 @@
+﻿@SHOW_USERCOM
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+;存在している調教のみを数えていって何番目か
+#DIM NUM_TRAIN
+#DIM NEXT_LINE
+#DIM NUM_COLUMN
+#DIMS SHOW_FILTER
+#DIMS COM_NAMES
+#DIMS COM_NAMES_HIDDEN
+
+REDRAW 0
+;主導権が無いフラグを一時的に消去
+CLEARBIT FLAG:状況判定, 11
+
+;キャラ独自のお願いを選ばせたい場合の処理
+TFLAG:取引可能 = 0
+TRYCALLFORM WISH_K{NO:TARGET}_ADDSELECT
+
+;300番台は各種フィルタ
+;PRINTFORM フィルタ：
+VARSET SHOW_FILTER
+SIF CONFIG("Ｖ調教フィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "Ｖ系_300/"
+
+SIF CONFIG("Ａ調教フィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "Ａ系_301/"
+
+SIF CONFIG("尿道調教フィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "尿道_302/"
+
+SIF CONFIG("逆挿入フィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "逆挿入_303/"
+
+SIF CONFIG("準備不足フィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "準備不足_304/"
+
+SIF CONFIG("道具調教フィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "道具_305/"
+
+SIF CONFIG("ハード調教フィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "ハードコマンド_306/"
+
+SIF CONFIG("消耗品フィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "消耗品_307/"
+
+;VARSET SHOW_FILTER
+SIF CONFIG("実行判定フィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "実行判定_308/"
+
+PRINTFORM %BL(17)%
+CALL PRINT_LIST, SHOW_FILTER
+PRINTL 
+
+VARSET SHOW_FILTER
+SIF CONFIG("極厚ゴム")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "極厚ゴム_309/"
+
+SIF CONFIG("立位")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "立位挿入_310/"
+
+SIF CONFIG("下脱ぎフィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "下脱ぎ_316/"
+SIF CONFIG("靴脱ぎフィルタ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "靴脱ぎ_315/"
+
+IF TALENT:MASTER:豊穣
+	SIF CONFIG("豊穣フィルタ")
+		SHOW_FILTER += "黄色/"
+	SHOW_FILTER += "豊穣_317/"
+ENDIF
+
+SHOW_FILTER += "ゴムリセット_350/"
+SIF TEQUIP:手加減
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "手加減_351/"
+
+PRINTFORM %BL(24)%
+CALL PRINT_LIST, SHOW_FILTER
+PRINTL 
+PRINTL 
+
+IF FLAG:COM_ABLEの一括OFF || CONFIG("コマンドフィルタ")
+	FLAG:COM_ABLEの一括OFF = 0
+
+	NUM_TRAIN = -1
+
+	NEXT_LINE = 0
+	NUM_COLUMN = 3
+
+	;直接選択できるコマンドは499番までだが、現状は300までで十分すぎる
+	FOR LCOUNT, 0, 300
+		SIF STRLENS(TRAINNAME:LCOUNT) == 0
+			CONTINUE
+
+		NUM_TRAIN += 1
+
+		IF CONFIG("コマンドフィルタ：全コマンド表示") == 0
+			TRYCALLFORM COM_ABLE{LCOUNT}
+			IF RESULT == 0
+				IF CONFIG("実行判定フィルタ")
+					TFLAG:実行値ボーナス = 1000
+					TRYCALLFORM COM_ABLE{LCOUNT}
+					IF RESULT == 0
+						TFLAG:実行値ボーナス = 0
+						CONTINUE
+					ENDIF
+				ELSE
+					CONTINUE
+				ENDIF
+			ENDIF
+		ENDIF
+
+		RESETCOLOR
+		SIF FIRSTCOM(LCOUNT) == 0
+			SETCOLOR DEF_COLOR("明灰色")
+
+		IF CONFIG("コマンドフィルタ") == 0
+			;コマンド表示フィルタ
+			SELECTCASE DITEMTYPE:0:LCOUNT
+			;禁止設定
+			CASE 2
+				CONTINUE
+			ENDSELECT
+		ELSE
+		 	SELECTCASE TRAINNAME:LCOUNT
+			CASE "～予備～"
+				CONTINUE
+			ENDSELECT
+		ENDIF
+
+		IF CONFIG("コマンドフィルタ") == 0
+			;コマンド名が通常と違う場合には色を変える(押し倒し状態での基本コマンドは色を変えない)
+			SIF TRAIN_NAME_SELECT(LCOUNT) != TRAIN_NAME_STANDARD(LCOUNT)
+				SETCOLOR DEF_COLOR("ハートピンク")
+
+			;プレイを終わらせられる時には色を変える
+			SELECTCASE LCOUNT
+			;潤滑不足の際には色を変える
+			CASE 60 TO 69
+				SIF COND("Ｖ潤十分") == 0
+					SETCOLOR DEF_COLOR("青")
+			CASE 70 TO 79
+				SIF COND("Ａ潤十分") == 0
+					SETCOLOR DEF_COLOR("青")
+			CASE 31
+				SIF TEQUIP:バイブ
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 33
+				SIF TEQUIP:アナルバイブ
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 99
+				SIF TEQUIP:シックスナイン
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 132
+				SIF TEQUIP:鼻フック
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 133
+				SIF TEQUIP:アイマスク
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 134
+				SIF TEQUIP:拘束
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 135
+				SIF TEQUIP:口枷
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 136
+				SIF COND("アナル栓")
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 149
+				SIF TEQUIP:カテーテル
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 152
+				SIF TEQUIP:尿道バイブ
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 170
+				SIF TEQUIP:ビデオカメラ
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 171
+				SIF TEQUIP:野外プレイ
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 172
+				SIF TEQUIP:お風呂プレイ
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 173
+				SIF TEQUIP:新妻プレイ
+					SETCOLOR DEF_COLOR("黄色")
+			CASE 174
+				SIF TEQUIP:室内露出プレイ
+					SETCOLOR DEF_COLOR("黄色")
+			;消耗品
+			CASE 260 TO 279
+				;色が異なる場合には消耗品フィルタがONでも例外的に表示
+				SIF CONFIG("消耗品フィルタ") && GETCOLOR() != DEF_COLOR("黄色") && GETCOLOR() != DEF_COLOR("ハートピンク")
+					CONTINUE
+			CASEELSE
+				;選んでも時間が進まないコマンドは色を変える
+				SIF NOTTIME_PLAY(LCOUNT)
+					SETCOLOR DEF_COLOR("緑")
+			ENDSELECT
+		ELSE
+			SELECTCASE DITEMTYPE:0:LCOUNT
+			;通常状態
+			CASE 0
+				SELECTCASE LCOUNT
+				CASE 0 TO 9, 60, 61, 65, 71, 75, 80 TO 95, 98, 99, 230 TO 289
+					SETCOLOR DEF_COLOR("暗黄色")
+				CASEELSE
+					RESETCOLOR
+				ENDSELECT
+			;禁止設定
+			CASE 2
+				SETCOLOR DEF_COLOR("緑")
+			ENDSELECT
+		ENDIF
+
+		;実行判定フィルタON
+		IF TFLAG:実行値ボーナス
+			SETCOLOR DEF_COLOR("水色")
+			TFLAG:実行値ボーナス = 0
+		ENDIF
+
+		PRINTFORMC %TRAIN_NAME_SELECT(LCOUNT)%\@ CHECK_COM("好きな体位", LCOUNT) ? ☆ # \@[{NUM_TRAIN, 3}]
+
+		NEXT_LINE += 1
+
+		SIF NEXT_LINE % NUM_COLUMN == 0
+			PRINTL 
+	NEXT
+	SIF NEXT_LINE % NUM_COLUMN
+		PRINTL 
+ENDIF
+RESETCOLOR
+
+CALL SETFLAG, "助手相手の恋慕外し終了"
+
+;-------------------------------------------------
+;特殊なコマンド
+;-------------------------------------------------
+PRINTL 
+
+;HARDで押し倒されているなら、主導権が無いフラグをセット
+;IF CONFIG("ＨＡＲＤ") && TEQUIP:押し倒し
+;	SETBIT FLAG:状況判定, 11
+;ELSE
+;	CLEARBIT FLAG:状況判定, 11
+;ENDIF
+
+
+NEXT_LINE = 0
+VARSET COM_NAMES
+VARSET COM_NAMES_HIDDEN
+
+IF CONFIG("コマンドフィルタ") == 0
+
+	PRINTC 能力表示[400]
+
+	IF TEQUIP:押し倒し
+		PRINTC 汚れ表示[410]
+	ELSE
+		PRINTC 汚れ表示＆管理[410]
+	ENDIF
+
+	SIF CHECK_EXCHANGE("パートナー") == 0
+		SETCOLOR DEF_COLOR("灰色")
+	IF PLAYER == MASTER
+		IF TEQUIP:Ｗ押し倒し
+			PRINTFORMC 主導側を交代する[420]
+		ELSEIF TEQUIP:押し倒し
+			PRINTFORMC %TEXTS("助手の名称")%と交代[420]
+		ELSEIF ASSI && TARGET == ASSI:1
+			PRINTFORMC %TEXTS("対象の名称")%と楽しむ[420]
+		ELSE
+			PRINTFORMC %TEXTS("助手の名称")%と楽しむ[420]
+		ENDIF
+	ELSE
+		PRINTFORMC 立場を逆転する[420]
+	ENDIF
+	RESETCOLOR
+
+	IF COND("魂の取引可能")
+		PRINTFORMC 取引をする[430]
+	ELSEIF COND("天使の取引可能") || TFLAG:取引可能
+		PRINTFORMC お願いする[430]
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORMC お願いする[430]
+	ENDIF
+	RESETCOLOR
+
+	;助手とできるのは悪魔の取引のみ
+	SIF ASSI == 0 || STATE("撃沈", ASSI) || (COND("悪魔の取引可能", ASSI) == 0 && COND("天使の取引可能", ASSI) == 0)
+		SETCOLOR DEF_COLOR("灰色")
+	PRINTFORMC %TEXTS("助手の名称")%と取引する[440]
+	RESETCOLOR
+
+	SIF CHECK_EXCHANGE("調教者") == 0
+		SETCOLOR DEF_COLOR("灰色")
+	IF PLAYER == MASTER
+		PRINTFORMC %TEXTS("助手の名称")%と交代する[450]
+	ELSE
+		PRINTFORMC %CALLNAME:MASTER%に交代する[450]
+	ENDIF
+	RESETCOLOR
+	PRINTL 
+
+	PRINTC コンフィグ[555]
+
+	PRINTC コマンドフィルタ[888]
+
+	PRINTC 秘め事の終了[999]
+ELSE
+	PRINTC コンフィグ[555]
+
+	PRINTC コマンドフィルタ終了[888]
+
+	IF CONFIG("コマンドフィルタ：全コマンド表示")
+		PRINTC 実行不可コマンド隠す[890]
+	ELSE
+		PRINTC コマンドの全表示[890]
+	ENDIF
+ENDIF
+
+PRINTL 
+
+SIF MAX(PREVCOM, PREVCOM:2) >= 0 && CONFIG("コマンドフィルタ") == 0
+	CALL SHOW_PREVCOM
+
+MEMO_LINECOUNT = LINECOUNT
+;選んだコマンド次第で軽い説明表示。原則１行
+SELECTCASE TFLAG:選択番号
+CASE 300
+	SIF CONFIG("Ｖ調教フィルタ")
+		PRINTFORML  Ｖ系コマンドフィルタON。相手が処女の時に、膣を使う行為を実行不可にします
+CASE 301
+	SIF CONFIG("Ａ調教フィルタ")
+		PRINTFORML  Ａ系コマンドフィルタON。相手のアナルを使う行為を実行不可にします
+CASE 302
+	SIF CONFIG("尿道調教フィルタ")
+		PRINTFORML  尿道コマンドフィルタON。相手の尿道を使う行為を実行不可にします
+CASE 303
+	SIF CONFIG("逆挿入フィルタ")
+		PRINTFORML  逆挿入コマンドフィルタON。あなたへの挿入行為を実行不可にします
+CASE 304
+	SIF CONFIG("準備不足フィルタ")
+		PRINTFORML  準備不足フィルタON。潤滑が不足している挿入行為を実行不可にします
+CASE 305
+	SIF CONFIG("道具調教フィルタ")
+		PRINTFORML  道具コマンドフィルタON。バイブなどを使う行為を実行不可にします
+CASE 306
+	SIF CONFIG("ハード調教フィルタ")
+		PRINTFORML  ハード系コマンドフィルタON。相手に負担が大きい行為を実行不可にします
+CASE 307
+	SIF CONFIG("消耗品フィルタ")
+		PRINTFORML  消耗品フィルタON。ローションなどを使うコマンドを隠します
+CASE 308
+	SIF CONFIG("実行判定フィルタ")
+		CALL PRINT_STR, "実行判定フィルタON。実行値不足のコマンドを_水色_ 水色 _で表示させ、選択すると現在値と要求値を示す_L_"
+CASE 309
+	SIF CONFIG("極厚ゴム")
+		PRINTFORML  極厚ゴムフィルタON。コンドーム装着時の挿入行為で受ける快感が激減します
+CASE 310
+	SIF CONFIG("立位")
+		PRINTFORML  立位モードON。セックス系コマンドが立位に変化します(全インサートが一旦リセットされます)
+
+CASE 315
+	SIF CONFIG("靴脱ぎフィルタ")
+		CALL PRINT_STR, "靴脱ぎフィルタON。これをONにした時とエッチ開始時に、屋内に限り靴を脱がせる_L_"
+CASE 316
+	SIF CONFIG("下脱ぎフィルタ")
+		CALL PRINT_STR, "下脱ぎフィルタON。これをONにした時とエッチ開始時にアソコの露出を妨げる衣装を脱がせる_L_"
+CASE 317
+	IF CONFIG("豊穣フィルタ")
+		CALL PRINT_STR, "豊穣ON。胸への愛撫or射精で相手の胸が大きくなります_L_"
+	ELSE
+		CALL PRINT_STR, "豊穣OFF。無暗におっぱいを大きくしたりするのは止めます_L_"
+	ENDIF
+
+CASE 350
+	PRINTFORML 今回の挿入行為でコンドームを使うかどうかの決定を全てリセットしました
+
+CASE 351
+	IF TEQUIP:手加減
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%を焦らすことにした！
+	;	CALL PRINT_STRL, @"二人の技巧差を考慮すると、_黄色_絶頂数の合計が{CALCF("寸止め可能絶頂数") + 1}になる_までは寸止めする事が出来そうだ"
+	;	CALL PRINT_STRL, "ただし、_黄色_強すぎる快感が与えられた_or_黄色_限界を超えて快感が蓄積された_ら絶頂を許してしまうかもしれない"
+	ELSE
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%への手加減を止めた
+	ENDIF
+
+CASE 888
+	SIF CONFIG("コマンドフィルタ")
+		CALL PRINT_STR, " 選択したコマンドを_緑_禁止_します（_暗黄色_この色_のものは禁止不可。表示だけさせてあります)_L_"
+CASE 890
+	IF CONFIG("コマンドフィルタ：全コマンド表示")
+		PRINTFORML  [{TARGET, 2}]%CALLNAME:TARGET%が現在実行できない行為も全て表示します
+	ELSE
+		PRINTFORML  [{TARGET, 2}]%CALLNAME:TARGET%が現在実行できる行為だけを表示します
+	ENDIF
+ENDSELECT
+
+SIF MEMO_LINECOUNT == LINECOUNT
+	PRINTL 
+
+
+@USERCOM
+#DIM CHOICE
+#DIM MEMO_LINECOUNT
+
+CHOICE = RESULT
+
+CLEARBIT FLAG:状況判定, 11
+
+TFLAG:選択番号 = CHOICE
+
+;コマンド選択
+IF CHOICE >= 0 && CHOICE <= 299
+	IF CONFIG("コマンドフィルタ") == 0
+		CALL NO_SELECTCOM, CHOICE
+
+		SIF RESULT == 999
+			RETURN 0
+
+		SELECTCOM = RESULT
+		TRYCALLFORM COM_ABLE{SELECTCOM}
+
+		IF RESULT == 0
+			IF CONFIG("実行判定フィルタ")
+				TFLAG:実行値ボーナス = 1000
+				TRYCALLFORM COM_ABLE{SELECTCOM}
+				TFLAG:実行値ボーナス = 0
+				SIF RESULT == 0
+					RETURN 0
+			ELSE
+				RETURN 0
+			ENDIF
+		ENDIF
+
+		;主導権が無いフラグを解除
+		CLEARBIT FLAG:状況判定, 11
+
+		REDRAW 1
+
+		DOTRAIN SELECTCOM
+	ELSE
+		CALL NO_SELECTCOM, CHOICE
+		CHOICE = RESULT
+
+		SELECTCASE CHOICE
+		CASE 999
+			CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+			RETURN 0
+		;禁止不可コマンド
+		CASE 0 TO 9, 60, 61, 65, 71, 75, 80 TO 95, 98, 99, 230 TO 289
+			CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+			RETURN 0
+		CASEELSE
+			IF STRLENS(TRAINNAME:CHOICE) == 0
+				CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+				RETURN 0
+			ENDIF
+
+		 	SELECTCASE TRAINNAME:CHOICE
+			CASE "～予備～"
+				CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+				RETURN 0
+			ENDSELECT
+		ENDSELECT
+
+		;値が２で禁止
+		INVERTBIT DITEMTYPE:0:CHOICE, 1
+	ENDIF
+;各種フィルタのＯＮＯＦＦ
+ELSEIF CHOICE >= 300 && CHOICE <= 351
+	SELECTCASE CHOICE
+	;立位モード
+	CASE 310
+		INVERTBIT FLAG:調教フィルタ, CHOICE - 300
+		CALL RESET_INSERT, TARGET, PLAYER
+	CASE 300 TO 310
+		INVERTBIT FLAG:調教フィルタ, CHOICE - 300
+	;靴脱ぎ
+	CASE 315
+		INVERTBIT FLAG:調教フィルタ, CHOICE - 300
+		SIF GETBIT(FLAG:調教フィルタ, 15) && PLACE("野外") == 0
+			CALL SET_SHOES, ""
+	;下脱ぎ
+	CASE 316
+		INVERTBIT FLAG:調教フィルタ, CHOICE - 300
+		SIF GETBIT(FLAG:調教フィルタ, 16) && CHECK_CLO("アウター露出") && CHECK_CLO("Ｖ露出可") == 0
+			CALL SET_OUTER, ""
+	CASE 317
+		SIF TALENT:MASTER:豊穣
+			INVERTBIT FLAG:調教フィルタ, CHOICE - 300
+	CASE 350
+		CALL SETFLAG, "ゴム交渉リセット"
+	CASE 351
+		INVERTBIT TEQUIP:手加減, 0
+	ENDSELECT
+
+	CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+
+	RETURN 1
+;コンフィグ[555]
+ELSEIF CHOICE == 555
+	CALL SET_CONFIGURE
+;コマンドフィルタへ[888]
+ELSEIF CHOICE == 888
+	INVERTBIT FLAG:調教フィルタ, 20
+;調教終了[999]
+ELSEIF CHOICE == 999 
+	IF COND("調教終了可能")
+		REDRAW 1
+		BEGIN AFTERTRAIN
+	ELSE
+		CALL KOJO_EVENT, "調教終了不可能"
+		PRINTFORMW %CALLNAME:TARGET%は、まだ満足していない様だ……
+	ENDIF
+ELSEIF CONFIG("コマンドフィルタ")
+	;調教コマンドの全表示[890]
+	SIF CHOICE == 890
+		INVERTBIT FLAG:調教フィルタ, 30
+ELSE
+	;能力表示[400]
+	IF CHOICE == 400
+		CALL NEW_PRINT_STATE, TARGET, "通常"
+	;汚れ表示[410]
+	ELSEIF CHOICE == 410
+		CALL STAIN_INFO
+	;TARGETとTARGET:1(いないならASSI)を交換[420]
+	ELSEIF CHOICE == 420
+		IF CHECK_EXCHANGE("パートナー")
+			CALL SETFLAG, "対象交代"
+			IF FLAG:助手を調教した == 0
+				MEMO_LINECOUNT = LINECOUNT
+				SIF TEQUIP:Ｗ押し倒し == 0
+					CALL KOJO_EVENT, "対象交代"
+				SIF LINECOUNT == MEMO_LINECOUNT
+					CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+			ENDIF
+		ELSEIF ASSI
+			IF COND("Ｈはあなたとだけ") || COND("Ｈはあなたとだけ", ASSI)
+				CALL PRINT_STRW, @"イエロー_どちらかが[ＮＴＲ禁止]フラグをONにしているので交代は出来ません"
+			ELSEIF COND("助手可能") == 0
+				CALL PRINT_STRW, @"イエロー_%CALLNAME:TARGET%が[%TEXTS("助手の名称")%可能]である必要があります"
+			ELSEIF (TEQUIP:押し倒し && TEQUIP:Ｗ押し倒し == 0) || TEQUIP:PLAYER:押し倒し || TEQUIP:拘束 || TEQUIP:ビデオカメラ
+				CALL PRINT_STRW, @"イエロー_[拘束中]や[撮影中]、単独での[押し倒し中]など幾つかの状態では交代する事が出来ません"
+			ENDIF
+		ELSE
+			CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+		ENDIF
+	;取引
+	ELSEIF CHOICE == 430
+		IF COND("魂の取引可能") || COND("天使の取引可能") || TFLAG:取引可能
+			CFLAG:Ｈ最中の取引 = TARGET
+			CALL EVENT_WISH
+			CFLAG:Ｈ最中の取引 = 0
+		ELSE
+			CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+		ENDIF
+	ELSEIF CHOICE == 440
+		IF ASSI && STATE("撃沈", ASSI) == 0 && (COND("悪魔の取引可能", ASSI) || COND("天使の取引可能", ASSI))
+			CFLAG:Ｈ最中の取引 = TARGET
+			SWAP TARGET, TARGET:1
+			CALL EVENT_WISH
+			SWAP TARGET, TARGET:1
+			CFLAG:Ｈ最中の取引 = 0
+		ELSE
+			CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+		ENDIF
+	ELSEIF CHOICE == 450
+		IF CHECK_EXCHANGE("調教者")
+			CALL SETFLAG, "調教者交代"
+			IF FLAG:助手を調教した == 0
+				MEMO_LINECOUNT = LINECOUNT
+				CALL KOJO_EVENT, "調教者交代"
+				SIF LINECOUNT == MEMO_LINECOUNT
+					CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+			ENDIF
+		ELSEIF ASSI
+			IF COND("Ｈはあなたとだけ") || COND("Ｈはあなたとだけ", ASSI)
+				CALL PRINT_STRW, @"イエロー_どちらかが[ＮＴＲ禁止]フラグをONにしているので交代は出来ません"
+			ELSEIF TALENT:貞操観念 + TALENT:ASSI:貞操観念 && COND("相性◎", ASSI) == 0
+				CALL PRINT_STRW, @"イエロー_どちらかが[貞操観念]を持っている場合は[相性：◎]が必要です"
+			ELSEIF COND("相性○", ASSI) == 0 && ABL:信頼 < 5 && COND("助手可能") == 0
+				CALL PRINT_STRW, @"イエロー_%CALLNAME:TARGET%に[相性：〇]or[信頼LV5]or[%TEXTS("助手の名称")%可能]が必要です"
+			ELSEIF TEQUIP:PLAYER:押し倒し || TEQUIP:押し倒し || TEQUIP:新妻プレイ || TEQUIP:ビデオカメラ
+				CALL PRINT_STRW, @"イエロー_[拘束中]や[撮影中]、単独での[押し倒し中]など幾つかの状態では交代する事が出来ません"
+			ENDIF
+		ELSE
+			CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+		ENDIF
+	ENDIF
+ENDIF
+
+SIF CONFIG("コマンドフィルタ")
+	CLEARLINE LINECOUNT - TFLAG:LINECOUNT記録
+
+
+
+;ARGSには"調教者"or"パートナー"が入る
+@CHECK_EXCHANGE(ARGS)
+#FUNCTION
+
+SELECTCASE ARGS
+;PLAYERとPLAYER:1を交代させる。（調教開始時にPLAYER = MASTER、PLAYER:1 = ASSIとなっている）
+CASE "調教者"
+	SIF PLAYER <= 0 || PLAYER:1 <= 0
+		RETURNF 0
+	SIF TEQUIP:PLAYER:押し倒し || TEQUIP:押し倒し || TEQUIP:新妻プレイ || TEQUIP:ビデオカメラ
+		RETURNF 0
+	SIF COND("Ｈはあなたとだけ") || COND("Ｈはあなたとだけ", ASSI)
+		RETURNF 0
+	;撃沈していたら交代できない
+	SIF STATE("撃沈", PLAYER) || STATE("撃沈", PLAYER:1)
+		RETURNF 0
+	;仲が良くないとダメ
+	SIF COND("相性○", ASSI) == 0 && ABL:信頼 < 5 && COND("助手可能") == 0
+		RETURNF 0
+	;貞操観念持ちは相手を選ぶ
+	SIF TALENT:貞操観念 + TALENT:ASSI:貞操観念 && COND("相性◎", ASSI) == 0
+		RETURNF 0
+
+	RETURNF 1
+;TARGETと(TARGET:1 or ASSI)間でTARGETを交代
+CASE "パートナー"
+	;押し倒し中は、Ｗ押し倒しでないと交代できない
+	SIF TEQUIP:押し倒し && TEQUIP:Ｗ押し倒し == 0
+		RETURNF 0
+	SIF TEQUIP:PLAYER:押し倒し || TEQUIP:拘束 || TEQUIP:ビデオカメラ
+		RETURNF 0
+	SIF COND("Ｈはあなたとだけ") || COND("Ｈはあなたとだけ", ASSI)
+		RETURNF 0
+	;TARGET:1が居る(主にＷ押し倒し中)
+	IF TARGET:1
+		SIF BASE:精力 <= 0 || BASE:(TARGET:1):精力 <= 0
+			RETURNF 0
+	 	SIF STATE("撃沈", TARGET:1)
+			RETURNF 0
+		;アドバイザーが調教している時
+		IF PLAYER != MASTER
+			SIF COND("助手可能") == 0
+				RETURNF 0
+		ENDIF
+		RETURNF 1
+	;助手は居る（交代＝助手とパートナーの立場交換）
+	ELSEIF ASSI
+		SIF BASE:精力 <= 0 || COND("助手可能") == 0
+			RETURNF 0
+	 	SIF STATE("撃沈", ASSI)
+			RETURNF 0
+		RETURNF 1
+	ENDIF
+ENDSELECT
+
+RETURNF 0
+
+@SHOW_PREVCOM
+PRINTFORM < 前回コマンド : %TEXTS("前回コマンド")%
+SIF NUM("ターン数") == 0 && PREVCOM:2 >= 0
+	PRINTFORM \@ PLAYER == MASTER ? (%TEXTS("助手の名称")%) # (主人) \@
+CALL PRINT_STR, @"イエロー_%STR:前回コマンドにおける絶頂%"
+PRINTFORML  >

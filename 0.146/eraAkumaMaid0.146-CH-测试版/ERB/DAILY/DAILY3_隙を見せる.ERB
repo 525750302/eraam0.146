@@ -1,0 +1,600 @@
+;-------------------------------------------------
+;隙を見せる。相手に行動してもらいます。
+;寝てる相手に布団かけてあげたり着衣の乱れを直してあげたりもこれ
+;-------------------------------------------------
+@MESSAGE_DAILY_SELECT3
+#DIM LCOUNT
+
+;起きうるイベントの判定に使う
+STR:選択肢 = 
+
+;相手が寝ている
+IF CFLAG:睡眠
+	STR:日常イベント名 = 寝姿を整える
+	RETURN 1
+ENDIF
+
+;出来る事の判定。何をやって貰えるかな？
+CALL CHECK_COM_ABLE, TARGET
+CALL SETFLAG, "性処理でのプレイ内容：計算のみ", TARGET
+
+IF TALENT:反抗的 + COND("性別嫌悪") == 0 && EXP:Ｈ回数 && ABL:信頼 >= 3
+	SIF COND("お風呂のお誘い可能")
+		STR:選択肢 += "お風呂のお誘い/"
+
+	IF COND("Ｈのお誘い可能")
+		STR:選択肢 += "Ｈのお誘い/"
+		;欲求不満度に応じてエロ展開
+		IF COND("欲求不満") >= 2
+			STR:選択肢 += "Ｈのお誘い/"
+			SIF COND("押し倒し騎乗位実行可能")
+				STR:選択肢 += "押し倒し/"
+		ENDIF
+	ENDIF
+
+	IF COND("自発パンツ見せ可能")
+		STR:選択肢 += "パンツ見せ/"
+		SIF TALENT:小悪魔 || TALENT:好色 || ABL:露出癖 >= 5
+			STR:選択肢 += "パンツ見せ/パンツ見せ/パンツ見せ/"
+		;複数パンツ見せ可能な人が居るなら確率ＵＰ
+		SIF FIND_COND("自発パンツ見せ可能", "現在存在")
+			STR:選択肢 += "パンツ見せ/パンツ見せ/パンツ見せ/パンツ見せ/"
+	ENDIF
+	IF BASE:欲求不満 >= 50
+		STR:選択肢 += "股間擦り付け/"
+		SIF EXP:キス経験 >= 20
+			STR:選択肢 += "キス/"
+		SIF CHARA_NUM("室内の邪魔者") == 0 && EXP:手淫経験 >= 20
+			STR:選択肢 += "手淫/"
+		SIF CHARA_NUM("室内の邪魔者") == 0 && EXP:フェラ経験 >= 20
+			STR:選択肢 += "口淫/"
+	ENDIF
+
+	SIF BASE:欲求不満 >= 25 && TALENT:巨乳
+		STR:選択肢 += "おっぱい押し付け/"
+
+	IF BASE:欲求不満 >= 25 && BASE:欲求不満 < 75
+		STR:選択肢 += "抱きつき/膝を枕にしてくる/"
+		SIF ABL:信頼 >= 5 || TALENT:恋慕 || COND("合意：キス")
+			STR:選択肢 += "頬キス/"
+	ENDIF
+	SIF BASE:欲求不満 < 25
+		STR:選択肢 += "なでなで/膝枕/"
+ENDIF
+
+IF BASE:欲求不満 < 25
+	STR:選択肢 += "隙を見せる/"
+	;SIF STATE("酔い", MASTER) && STATE("酔い", TARGET)
+	;	STR:選択肢 += "お酌/"
+ENDIF
+
+SIF CFLAG:MASTER:お茶 == 0 && TALENT:反抗的  == 0 && ABL:信頼
+	STR:選択肢 += "お茶汲み/"
+
+;試験が近いと勉強のお誘い
+SIF PLACE("勉強可能") && DAYEV("週末に試験") && STATE("酔い") == 0 && COND("勉強可能") && CHOSE_DEVENT("勉強のお誘い") == 0
+	STR:選択肢 += "勉強のお誘い/"
+
+VARSET LOCALS
+SPLIT STR:選択肢, "/", LOCALS
+STR:選択肢 = 
+
+;やってくることの調整
+FOR LCOUNT, 0, 100
+	SELECTCASE LOCALS:LCOUNT
+	CASE ""
+		BREAK
+	;基本同じ行為の連打はしない
+	CASE CONDS("直前行動")
+		CONTINUE
+	;これらは各時間帯で一回だけ
+	CASE "膝を枕にしてくる", "膝枕"
+		SIF CHOSE_DEVENT(LOCALS:LCOUNT)
+			CONTINUE
+	;エロい行為のお誘いは空気を読む
+	CASE "Ｈのお誘い", "押し倒し"
+		SIF STATE("酔い") == 0 && FIND_COND("直前行動")
+			CONTINUE
+	ENDSELECT
+	;実行済みのものは確率を下げる
+	SIF CHOSE_DEVENT(LOCALS:LCOUNT) && RAND:2
+		CONTINUE
+	STR:選択肢 += @"%LOCALS:LCOUNT%\/"
+NEXT
+
+;これ以下は選択肢を確定させる分岐
+IF COND("オートちょっかい中") && COND("キス魔") && STRCOUNT(STR:選択肢, "キス") && STRCOUNT(CSTR:DAILYCOM履歴, "キス") == 0
+	IF BASE:欲求不満 >= 50
+		STR:選択肢 = キス
+	ELSE
+		STR:選択肢 = 頬キス
+	ENDIF
+ENDIF
+;試験が近いと学力が低い人は教えて欲しがる
+SIF PLACE("勉強可能") && DAYEV("試験間近") && STATE("酔い") == 0 && COND("勉強可能") && CALCF("試験の予想点数") < 30 && CHOSE_DEVENT("勉強のお誘い") == 0
+	STR:選択肢 = 勉強のお誘い
+
+SELECTCASE STR:日常イベント選択名
+CASE "股間に見入る"
+	STR:選択肢 = Ｈのお誘い
+CASE "余韻に浸る"
+	STR:選択肢 = Ｈのお誘い
+CASE "お掃除を頼む"
+	STR:選択肢 = お掃除フェラ
+ENDSELECT
+
+SIF STR:選択肢 == ""
+	STR:選択肢 = 隙を見せる
+
+STR:日常イベント名 = %TEXTR(STR:選択肢)%
+
+
+;-------------------------------------------------
+;ここにはセリフのみを置く
+;-------------------------------------------------
+@MESSAGE_DAILY3
+#DIM MEMO_LINECOUNT
+
+SIF TFLAG:地の文スキップ
+	RETURN 0
+
+;寝ている場合
+SELECTCASE STR:日常イベント名
+CASE "寝姿を整える"
+	PRINTFORM %CALLNAME:MASTER%は
+	IF COND("着衣の乱れ")
+		PRINTFORMW 悪戯を中断して%CALLNAME:TARGET%の身体を拭き清め、\@ CFLAG:パンツ没収 ? 下着を穿かせた後に # \@毛布を掛けてあげた。
+	ELSEIF CFLAG:汗 >= 2
+		PRINTFORMW %CALLNAME:TARGET%の汗を拭き、毛布を掛けなおしてあげた。
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%の毛布を掛けなおしてあげた。
+	ENDIF
+	RETURN 1
+ENDSELECT
+
+PRINTFORM %CALLNAME:MASTER%が
+CALL TEXT, "隙を見せていると"
+
+SELECTCASE STR:日常イベント名
+CASE "勉強のお誘い"
+	IF COND("学生")
+		PRINTFORMW %CALLNAME:TARGET%が一緒に勉強しようと誘ってきた。
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%が試験に向けて勉強するようにと促してきた。
+	ENDIF
+	PRINTFORML ……どうする？
+
+	STR:選択肢 = 誘いに乗る/やめとく/
+	SIF COND("パンツ詳細確認") == 0 && COND("合意：パンツチェック") && ( (EQUIP:アウター && CHECK_OUTER("パンスト") == 0) || EQUIP:スカート)
+		STR:選択肢 += "パンツ見せてくれるならしてもいい/"
+	VARSET LOCALS
+	SPLIT STR:選択肢, "/", LOCALS
+	CALL PRINT_SELECT, STR:選択肢
+
+	SELECTCASE LOCALS:RESULT
+	CASE "誘いに乗る"
+	CASE "やめとく"
+		CALL KOJO_DAILYCOM, "勉強の誘いを断られた"
+		CSTR:DAILYCOM履歴 = %CSTR:DAILYCOM履歴%＠%STR:日常イベント名%\/＠勉強の誘いを断られた\/
+		STR:日常イベント名 = 
+	CASE "パンツ見せてくれるならしてもいい"
+		IF TALENT:恥薄い
+			CALL EMOTION_PLUS, "甘い言葉", TARGET
+		ELSE
+			CALL EMOTION_PLUS, "恥じらい", TARGET
+		ENDIF
+		CSTR:DAILYCOM履歴 = %CSTR:DAILYCOM履歴%＠勉強前にパンツ要求\/
+		MEMO_LINECOUNT = LINECOUNT
+		CALL KOJO_DAILYCOM, "勉強前にパンツ要求", "改行無し"
+		SIF LINECOUNT == MEMO_LINECOUNT
+			PRINTFORMW 「………」
+
+		PRINTFORM %CALLNAME:MASTER%の%TEXTR("望みを受け入れ/要求を聞い/無茶ぶりを受け")%た%CALLNAME:TARGET%は
+		;IF CHECK_SKIRT("スカート") && COND("自発パンツ見せ可能") && CHECK_CLO("クロッチ見せ可能") && RAND:3 == 0
+		;	PRINTFORM その場でスカートの下に手を入れて、脱いだパンツをあやとりのような手つきで広げて
+		;	PRINTFORM %TEXTR("汚れが蓄積されたクロッチ/クロッチ部分の愛液染み/うっすらと染みが出来ているクロッチ")%を
+		;ELSE
+			IF EQUIP:アウター && CHECK_OUTER("パンスト") == 0
+				PRINTFORM %OUTER(TARGET, "略")%を
+			ELSE
+				PRINTFORM %CLO("スカートめくり")%を
+			ENDIF
+			IF TALENT:強気 + TALENT:生意気 && RANDIF(1, TALENT:粗野, TALENT:気品, TALENT:陽気, TALENT:内気)
+				PRINTFORM %TEXTR("挑発的な仕草で/自信たっぷりの様子で")%
+			ELSEIF TALENT:内気 && RANDIF(1, TALENT:粗野, TALENT:気品, TALENT:陽気)
+				PRINTFORM %TEXTR("おずおずと/そろそろと")%
+			ELSEIF TALENT:陽気 && RANDIF(1, TALENT:粗野, TALENT:気品)
+				IF EQUIP:アウター && CHECK_OUTER("パンスト") == 0
+					PRINTFORM %TEXTR("太もも半ばまで/楽しそうに")%
+				ELSE
+					PRINTFORM %TEXTR("おへそが見える程に/楽しそうに")%
+				ENDIF
+			ELSEIF TALENT:気品 && RANDIF(1, TALENT:粗野)
+				PRINTFORM %TEXTR("優雅に/雰囲気たっぷりに")%
+			ELSEIF TALENT:粗野
+				IF EQUIP:アウター && CHECK_OUTER("パンスト") == 0
+					PRINTFORM %TEXTR("雑に/一息に/膝辺りまで")%
+				ELSE
+					PRINTFORM %TEXTR("バッと一気に/一息に/おへそが見える程に")%
+				ENDIF
+			ELSE
+				PRINTFORM %TEXTR("自発的に/ゆっくりと")%
+			ENDIF
+			IF EQUIP:アウター && CHECK_OUTER("パンスト") == 0
+				PRINTFORM 下ろし、その下の秘密の場所を
+			ELSE
+				PRINTFORM たくしあげ、その下の秘密の場所を
+			ENDIF
+		;ENDIF
+		IF ABL:奉仕精神 > ABL:露出癖
+			PRINTFORMW 見せてくれた。
+		ELSE
+			PRINTFORMW 見せつけてきた。
+		ENDIF
+		IF EQUIP:アウター && CHECK_OUTER("パンスト") == 0
+			CALL TEXT_PANTU_CHECK, "アウター"
+			SIF EQUIP:スカート
+				CALL SETFLAG_DAILY, "スカートめくり"
+		ELSE
+			CALL TEXT_PANTU_CHECK_SKIRT
+		ENDIF
+		CALL SETFLAG_DAILY, "パンツ形状確認"
+
+		PRINTL 
+		IF COND("学生")
+			PRINTFORMW という事で見る物を見た%CALLNAME:MASTER%は、約束通り%CALLNAME:TARGET%と一緒に勉強を始めた。
+		ELSE
+			PRINTFORMW という事で見る物を見た%CALLNAME:MASTER%は、言われた通りに勉強を開始した。
+		ENDIF
+	ENDSELECT
+CASE "お風呂のお誘い"
+	PRINTFORMW %CALLNAME:TARGET%がお風呂のお誘いをしてきた。
+CASE "Ｈのお誘い"
+	SELECTCASE STR:日常イベント選択名
+	CASE "股間に見入る"
+		;Ｖ熟達の人はアソコが優先
+		IF COND("Ｖ熟達")
+			SELECTCASE CONDS("直前行動")
+			CASE "アソコの見せつけ撮影"
+				PRINTFORM アソコを押し広げて見せつけている%CALLNAME:TARGET%が
+				IF TALENT:クリピアス && COND("陰核肥大") + TALENT:淫核 && RAND:3 == 0
+					PRINTFORM %TEXTR("クリピアスを指で弄るの/ピアスの付けられた陰核を弄って膣口から愛液が溢れ出す様")%を見せつけ
+				ELSE
+					PRINTFORM %TEXTR("膣口に指を出し入れし/陰核を指で弄り/更に腰を突き出し")%
+				ENDIF
+				PRINTFORMW ながらＨのお誘いをしてきた。
+				RETURN 1
+			CASE "アソコチェック", "アソコのチラ見せ撮影"
+				PRINTFORM %CALLNAME:TARGET%が%TEXTR("外側の襞を押し開いて/陰唇をクニッと広げて/アソコをぐにぃ…っと押し広げて")%
+				IF TALENT:クリピアス && RAND:3 == 0
+					IF RAND:2
+						SIF COND("陰核肥大")
+							PRINTFORM %TEXTR("肥大した/大きな")%
+						PRINTFORM %TEXTR("陰核を貫く/陰核を飾る")%%TEXTS("クリピアス")%
+					ELSE
+						PRINTFORM %TEXTS("クリピアス")%%TEXTR("で飾られた/が輝く")%\@ COND("陰核肥大") ? 巨クリ # 陰核 \@
+					ENDIF
+				ELSEIF CFLAG:ムラムラ || COND("発情中")
+					IF COND("陰核肥大") && RAND:2
+						PRINTFORM %TEXTR("指でつまめる程に肥大した陰核/勃起したデカクリ")%
+					ELSEIF STRCOUNT(CSTR:DAILYCOM履歴, "Ｖ中出し")
+						PRINTFORM %TEXTR("使われたばかりで発情気味の膣穴/精液混じりの涎を垂らす膣口")%
+					ELSE
+						PRINTFORM %TEXTR("物欲しそうに口を開けた膣穴/涎を垂らす膣口")%
+					ENDIF
+				ELSEIF STRCOUNT(CSTR:DAILYCOM履歴, "Ｖ中出し")
+					PRINTFORM %TEXTR("まだまだ満足していなさそうな膣穴/精液の残滓が見て取れる膣口")%
+				ELSE
+					PRINTFORM %TEXTR("内部の粘膜/膣口")%
+				ENDIF
+				PRINTFORMW を見せつけながらＨのお誘いをしてきた。
+				RETURN 1
+			ENDSELECT
+		ENDIF
+
+		SELECTCASE CONDS("直前行動")
+		CASE "アナルチェック", "アナルのチラ見せ撮影", "アナルの見せつけ撮影", "アソコチェック", "アソコのチラ見せ撮影", "アソコの見せつけ撮影"
+			IF STRCOUNT(CONDS("直前行動"), "アソコ")
+				PRINTFORM 股間を押し広げて恥ずかしい部分を余さず露出させている%CALLNAME:TARGET%が
+			ELSE
+				PRINTFORM お尻を押し広げて恥ずかしい部分を余さず露出させている%CALLNAME:TARGET%が
+			ENDIF
+			IF CFLAG:ムラムラ || COND("発情中")
+				IF STRCOUNT(CSTR:DAILYCOM履歴, "Ａ中出し")
+					PRINTFORM %TEXTR("使われたばかりで発情気味のアナル/精液混じりの涎を垂らす肛門")%
+				ELSE
+					PRINTFORM %TEXTR("物欲しそうに口を開けたアナル/待ちきれない様子のヒクつくアナル")%
+				ENDIF
+			ELSEIF STRCOUNT(CSTR:DAILYCOM履歴, "Ａ中出し")
+				PRINTFORM %TEXTR("、まだまだ満足していなさそうなアナル/精液の残滓が見て取れる肛門")%
+			ELSE
+				PRINTFORM 腰を突き出して、%TEXTS("アナル：視覚")%
+			ENDIF
+			PRINTFORMW を見せつけながらＨのお誘いをしてきた。
+
+		CASE "パンツチェック", "ブルマチェック", "股間観察", "パンツ見せ"
+			IF CHECK_CLO("Ｔバックヒップ") + CHECK_CLO("Ｏバックヒップ")
+				IF COND("身嗜み：Ａ拡張") && COND("身嗜み：腸洗浄") && RAND:3 == 0
+					PRINTFORM %CALLNAME:TARGET%が
+					SIF CHECK_CLO("Ｔバックヒップ")
+						PRINTFORM 布地をずらしながら
+					SELECTCASE COND("身嗜み：Ａ拡張")
+					CASE 1, 2
+						PRINTFORM アナルプラグを引き抜いて、口を開けている肛門
+					CASE 3
+						PRINTFORM 極太のアナルプラグを引きずり出して、ぽっかりと口を開けている肛門
+					CASE IS >= 4
+						PRINTFORM 特大のアナルプラグを引きずり出して、拳だろうとそのまま入りそうな大穴を開けている肛門
+					ENDSELECT
+					PRINTFORMW を見せつけながらＨのお誘いをしてきた。
+				ELSEIF CHECK_CLO("Ｏバックヒップ")
+					PRINTFORM %CALLNAME:TARGET%が%TEXTR("両手でお尻の肉をグッと押し開い/お尻を突き出し")%て
+					IF COND("身嗜み：Ａ拡張")
+						PRINTFORMW %TEXTS("肛門周辺")%を見せつけながらＨのお誘いをしてきた。
+					ELSEIF RAND:2
+						PRINTFORMW %TEXTS("アナル：視覚")%を見せつけながらＨのお誘いをしてきた。
+					ELSE
+						PRINTFORMW %TEXTS("肛門周辺")%をチラ見せしながらＨのお誘いをしてきた。
+					ENDIF
+				;以下はＴバック
+				ELSEIF RAND:2 && COND("身嗜み：Ａ拡張") == 0
+					PRINTFORMW %CALLNAME:TARGET%が布地をずらして%TEXTS("アナル：視覚")%を見せつけながらＨのお誘いをしてきた。
+				ELSE
+					PRINTFORMW %CALLNAME:TARGET%が%TEXTR("両手でお尻の肉をグッと押し開い/片手でお尻の肉を脇に寄せ")%て%TEXTS("肛門周辺")%をチラ見せしながらＨのお誘いをしてきた。
+				ENDIF
+			ELSEIF CHECK_CLO("Ｖ露出")
+				PRINTFORMW %CALLNAME:TARGET%が腰を突き出しながら股を開いて、布地の穴から覗く%TEXTS("割れ目：陰毛描写無し")%を見せつけながらＨのお誘いをしてきた。
+			ELSEIF RAND:3 && CHECK_CLO("食い込み") && (AGE(TARGET) >= 3 || TALENT:ラビアピアス)
+				PRINTFORM %CALLNAME:TARGET%が%TEXTR("股間の柔肉を押し開いて/陰唇をクニッと広げて/アソコをぐにぃ…っと押し広げて")%、食い込む%CLO("股間")%の脇から%TEXTR("食み出す/覗く/顔を出す")%
+				IF TALENT:ラビアピアス && (AGE(TARGET) < 3 || RAND:2)
+					PRINTFORM %TEXTS("ラビアピアス")%%TEXTR("で飾られた/が輝く")%
+				ELSE
+					SELECTCASE AGE(TARGET)
+					CASE IS >= 4
+						PRINTFORM %TEXTR("肉厚の/成熟したオトナの/黒ずんだ")%
+					CASEELSE
+						PRINTFORM %TEXTR("大人びた/鮮やかな色合いの")%
+					ENDSELECT
+				ENDIF
+				PRINTFORMW %TEXTR("小陰唇/ビラビラ")%を見せながらＨのお誘いをしてきた。
+			ELSEIF RAND:2 && COND("合意：アソコチェック")
+				PRINTFORMW %CALLNAME:TARGET%が%CLO("股間")%をずらして%TEXTS("割れ目：陰毛描写無し")%をチラ見せしながらＨのお誘いをしてきた。
+			ELSE
+				PRINTFORM %CALLNAME:TARGET%が腰を突き出しながら股を開いて、
+				PRINTFORM %TEXTR("股布が密着する恥丘の盛り上がり/クロッチ越しに陰唇を撫でさする様/クロッチ越しのアソコ")%
+				PRINTFORMW を見せつけながらＨのお誘いをしてきた。
+			ENDIF
+		ENDSELECT
+	CASE "余韻に浸る"
+		IF COND("やる気性処理直後")
+			PRINTFORMW たった今相手をしてくれた%CALLNAME:TARGET%がＨのお誘いをしてきた。
+		ELSE
+			PRINTFORMW お掃除を終えた%CALLNAME:TARGET%がＨのお誘いをしてきた。
+		ENDIF
+	CASEELSE
+		SELECTCASE CONDS("直前行動")
+		CASE "抱きつき", "頬キス"
+			PRINTFORMW %CALLNAME:TARGET%が身体を擦り付けながらＨのお誘いをしてきた。
+		CASE "おっぱい押し付け"
+			PRINTFORMW %CALLNAME:TARGET%がおっぱいを押し付けながらＨのお誘いをしてきた。
+		CASE "股間擦り付け"
+			PRINTFORMW %CALLNAME:TARGET%が股間を擦り付けながらＨのお誘いをしてきた。
+		CASE "キス"
+			PRINTFORMW %CALLNAME:TARGET%がキスの余韻に浸りながらＨのお誘いをしてきた。
+		CASE "口淫"
+			PRINTFORMW %CALLNAME:TARGET%がペニスに舌を這わせながら上目遣いにＨのお誘いをしてきた。
+		CASE "手淫"
+			PRINTFORMW %CALLNAME:TARGET%がペニスを撫でさすりながら上目遣いにＨのお誘いをしてきた。
+		CASE "膝枕"
+			PRINTFORMW 膝枕をしてくれている%CLO("現在の格好＆の")%%CALLNAME:TARGET%が髪を撫でながらＨのお誘いをしてきた。
+		CASEELSE
+			PRINTFORMW %CLO("現在の格好＆の")%%CALLNAME:TARGET%がＨのお誘いをしてきた。
+		ENDSELECT
+	ENDSELECT
+CASE "押し倒し"
+	PRINTFORMW %CLO("現在の格好＆の")%%CALLNAME:TARGET%が%NAMES("ベッド")%に押し倒してきた！
+CASE "パンツ見せ"
+	IF FIND_COND("自発パンツ見せ可能", "現在存在") && (COND("オートちょっかい中") || RAND:3)
+		IF TALENT:陽気 && RAND:4
+			PRINTFORM %CALLNAME:TARGET%達が「せーの」でスカートをたくし上げて各々の
+		ELSEIF TALENT:好奇心 && RAND:4
+			PRINTFORM ハンドサインでタイミングを合わせた%CALLNAME:TARGET%達がスカートをたくし上げて各々の
+		ELSE
+			PRINTFORM 目配せした%CALLNAME:TARGET%達がスカートをたくし上げて各々の
+		ENDIF
+		IF EQUIP:パンツ
+			PRINTFORMW パンツを見せてきた。
+		ELSE
+			PRINTFORMW 股間を見せてきた。
+		ENDIF
+		FLAG:対複数 = 1
+	ELSE
+	 	IF TALENT:恥薄い + TALENT:小悪魔 + TALENT:好色 + TALENT:生意気 && CHECK_SKIRT("ロング") == 0
+			IF CHECK_SKIRT("ミニ") && TALENT:小悪魔 + TALENT:生意気
+				PRINTFORM %TEXTR(@"座っている%CALLNAME:TARGET%が流し目を送りながら/目が合った%CALLNAME:TARGET%が不敵に微笑みながら/椅子に腰かけている%CALLNAME:TARGET%がミニスカートに泳いだ視線に気づいたのか")%、
+				PRINTFORM %TEXTR("浅く座り直しつつ腰を突き出して/ゆっくりと足を開いて/さりげなく足を組み替える仕草を交えつつ")%
+			ELSE
+				PRINTFORM 座っている%CALLNAME:TARGET%が
+				IF (TALENT:愚か && TALENT:恥薄い) || EQUIP:パンツ == 0
+					PRINTFORM お行儀悪く片膝を立てて
+				ELSE
+					PRINTFORM 股を開きながら片膝を立てて
+				ENDIF
+			ENDIF
+		ELSEIF CHECK_SKIRT("ミニ")
+			PRINTFORM %CALLNAME:TARGET%が短いスカートを軽くめくって
+		ELSE
+			PRINTFORM %CALLNAME:TARGET%がスカートをたくし上げて
+		ENDIF
+		IF EQUIP:パンツ
+			PRINTFORMW パンツを見せてきた。
+		ELSE
+			PRINTFORMW 股間を見せつけてきた。
+		ENDIF
+	ENDIF
+CASE "お掃除フェラ"
+	IF COND("性処理：生挿入直後")
+		PRINTFORMW %CALLNAME:TARGET%が股間に顔を寄せ、先程の性処理で使ったばかりのペニスに舌を這わせてきた。
+	ELSEIF COND("Ｐ汚れの相手", MASTER)
+		IF COND("Ｐ汚れの相手", MASTER) == TARGET
+			PRINTFORMW %CALLNAME:TARGET%が股間に顔を寄せ、Ｈで使って汚れたままだったペニスに舌を這わせてきた。
+		ELSE
+			PRINTFORMW %CALLNAME:TARGET%が股間に顔を寄せ、%CONDS("Ｐ汚れの相手", MASTER)%とのＨで汚れたままだったペニスに舌を這わせてきた。
+		ENDIF
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%が股間に顔を寄せ、先程の性処理で汚れたペニスに舌を這わせてきた。
+	ENDIF
+CASE "口淫"
+	PRINTFORMW %CALLNAME:TARGET%が股間の前にしゃがみ、ファスナーを口で咥えてジジーと下ろしてきた。
+CASE "手淫"
+	PRINTFORMW %CALLNAME:TARGET%が股間に手を伸ばしてきた。
+CASE "おっぱい押し付け"
+	IF RAND:2
+		PRINTFORMW 背後から忍び寄った%CALLNAME:TARGET%が頭におっぱいを乗せてきた。
+	ELSE
+		PRINTFORMW %CLO("現在の格好＆の")%%CALLNAME:TARGET%が後ろから抱きついて、おっぱいで顔を挟んできた。
+	ENDIF
+CASE "股間擦り付け"
+	IF RAND:2
+		PRINTFORMW %CLO("現在の格好＆の")%%CALLNAME:TARGET%が腕を股で挟み、腰を前後させてアソコを擦り付けてきた。
+	ELSE
+		PRINTFORMW %CLO("現在の格好＆の")%%CALLNAME:TARGET%が太ももに跨ってきた。
+	ENDIF
+CASE "キス"
+	;今度は
+	PRINTFORMW %CALLNAME:TARGET%が\@ CHOSE_DEVENT(STR:日常イベント名) ? 再び # \@唇を奪ってきた。
+CASE "頬キス"
+	PRINTFORMW %CALLNAME:TARGET%が\@ CHOSE_DEVENT(STR:日常イベント名) ? 再び # \@頬にキスしてきた。
+CASE "抱きつき"
+	PRINTFORM %CLO("現在の格好＆の")%
+	IF RAND:4 == 0
+		PRINTFORMW %CALLNAME:TARGET%が腰に手を回してきた。
+	ELSEIF RAND:3 == 0
+		PRINTFORMW %CALLNAME:TARGET%が肩に手を回してきた。
+	ELSEIF RAND:2
+		PRINTFORMW %CALLNAME:TARGET%が腕に抱きついてきた。
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%が抱きついてきた。
+	ENDIF
+CASE "膝を枕にしてくる"
+	PRINTFORMW %CALLNAME:TARGET%が膝を枕にしてきた。
+CASE "なでなで"
+	IF RAND:3 == 0
+		PRINTFORMW %CALLNAME:TARGET%が頬を撫でてきた。
+	ELSEIF RAND:2
+		PRINTFORMW %CALLNAME:TARGET%が頭を撫でてきた。
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%が髪を手ぐしで梳いてきた。
+	ENDIF
+CASE "膝枕"
+	PRINTFORMW %CLO("現在の格好＆の")%%CALLNAME:TARGET%が膝枕をしてくれた。
+CASE "お茶汲み"
+	SAVESTR:お茶 = %TEXTR(CSTR:お茶)%
+	SIF SAVESTR:お茶 == ""
+		SAVESTR:お茶 = お茶
+
+	IF STRCOUNT(SAVESTR:お茶, "茶")
+		PRINTFORMW %CALLNAME:TARGET%が%SAVESTR:お茶%を淹れてくれた。
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%が%SAVESTR:お茶%を用意してくれた。
+	ENDIF
+CASE "お酌"
+	PRINTFORMW %CALLNAME:TARGET%がお酒をすすめて来た。
+CASE "隙を見せる"
+	PRINTFORMW %CALLNAME:TARGET%がちょっかいをかけてきた。
+ENDSELECT
+
+
+@AFTERMESSAGE_DAILY3
+SELECTCASE STR:日常イベント名
+CASE "勉強のお誘い"
+	CALL SETFLAG_DAILY, "勉強"
+CASE "お風呂のお誘い"
+	PRINTFORML どうする？
+	PRINTFORML [0]お風呂に入る
+	PRINTFORML [1]やんわりと断る
+	REDRAW 0
+	FLAG:SELECT_USERSHOP = 202
+	CSTR:お誘い = %STR:日常イベント名%
+CASE "Ｈのお誘い"
+	PRINTFORML ……どうする？
+	IF FLAG:呼び出しＨ中
+		PRINTFORML [0]襲う
+		PRINTFORML [1]もう少しいちゃつく
+	ELSE
+		PRINTFORML [0]受ける
+		PRINTFORML [1]やんわりと断る
+	ENDIF
+	REDRAW 0
+	FLAG:SELECT_USERSHOP = 202
+	CSTR:お誘い = %STR:日常イベント名%
+CASE "押し倒し"
+	PRINTFORML ……どうする？
+	IF FLAG:呼び出しＨ中
+		PRINTFORML [0]受け入れる
+		PRINTFORML [1]もう少しいちゃつきたい
+	ELSE
+		PRINTFORML [0]受け入れる
+		PRINTFORML [1]抜け出す
+		;PRINTFORML [2]逆に押し倒し返す！
+	ENDIF
+	REDRAW 0
+	FLAG:SELECT_USERSHOP = 202
+	CSTR:お誘い = %STR:日常イベント名%
+CASE "パンツ見せ"
+	SIF FLAG:対複数
+		RETURN 0
+	;パンツの上に何かを履いている場合
+	IF CHECK_CLO("パンスト露出")
+		CALL TEXT_PANTU_CHECK, SKIRT(TARGET), "パンスト露出"
+	ELSEIF CHECK_CLO("アウター露出")
+		CALL TEXT_PANTU_CHECK, SKIRT(TARGET), "アウター露出"
+	ELSEIF EQUIP:パンツ == 0 || RAND:2
+		CALL TEXT_PANTU_CHECK, SKIRT(TARGET)
+	ELSE
+		CALL TEXT_PANTU_CHECK_SHORT
+	ENDIF
+CASE "口淫"
+	PRINTFORMW %CALLNAME:TARGET%はペロペロと舌を動かし、気持ち良いようなそうでも無いような刺激を%CALLNAME:MASTER%に与えている……
+CASE "手淫"
+	PRINTFORMW %CALLNAME:TARGET%は手淫というには弱い力加減で、やわやわと%CALLNAME:MASTER%の股間を弄っている……
+CASE "股間擦り付け"
+	IF COND("パンツ形状確認")
+
+	ELSE
+
+	ENDIF
+CASE "お掃除フェラ"
+	PRINTFORM %CALLNAME:TARGET%は
+	IF COND("性処理：生挿入直後") || COND("Ｐ汚れの相手", MASTER)
+		IF COND("Ｐ汚れの相手", MASTER) == TARGET
+			PRINTFORM 自分とのＨで付いた汚れ
+		ELSE
+			PRINTFORM %CONDS("Ｐ汚れの相手", MASTER)%とのＨで付いた汚れ
+		ENDIF
+	ELSE
+		PRINTFORM 纏わり付いた精液汚れ
+	ENDIF
+	IF CHECK_STAIN(STAIN:MASTER:Ｐ, "Ｐ恥垢") && COND("真性包茎", MASTER) == 0
+		PRINTFORM は勿論、恥垢に至るまで
+	ELSE
+		PRINTFORM を
+	ENDIF
+	PRINTFORM %TEXTR("舌でこそげとってペニスを綺麗に磨き上げ/余す事無く口でお掃除し/綺麗に舐め取ってペニスをお掃除しつくし")%、
+	IF TALENT:気品 && RAND:4
+		PRINTFORM %TEXTR("上品な仕草で/口元を手で隠しながら")%喉を鳴らした後に
+	ELSEIF TALENT:冷静 && RAND:4
+		PRINTFORM %TEXTR("涼しい顔で/顔色一つ変えずに")%喉を鳴らした後に
+	ELSE
+		PRINTFORM ゴクリと喉を鳴らした後に
+	ENDIF
+	IF TALENT:陽気 && RAND:4
+		PRINTFORMW %TEXTR("満足げに微笑んだ/口元を緩ませながらの上目づかいで様子を伺ってきた/にっこり笑いかけて来た")%。
+	ELSEIF TALENT:強気 + TALENT:高慢 && RAND:4
+		PRINTFORMW %TEXTR("不敵な笑みを見せた/舌なめずりをした/余裕を滲ませつつニヤリと微笑んだ")%。
+	ELSEIF TALENT:冷静 && RAND:4
+		PRINTFORMW %TEXTR("至らない所があったかを尋ねつつチロチロと亀頭の粘膜を舐めて来た/改めて拭き清めて来た/味についての感想を口にしつつ陰茎に舌を這わせた")%。
+	ELSE
+		PRINTFORMW %TEXTR("半勃ちになってしまったモノに頬ずりをしてきた/先端にチュッと口付けをしてきた/何も残っていない口の中を見せてきた")%。
+	ENDIF
+ENDSELECT

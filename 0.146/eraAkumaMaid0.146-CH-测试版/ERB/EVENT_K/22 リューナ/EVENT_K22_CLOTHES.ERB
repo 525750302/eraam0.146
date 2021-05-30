@@ -1,0 +1,141 @@
+;-------------------------------------------------
+;このキャラ独自の衣装を設定する。制服、体操服、水着は既存のものから選ぶのが楽です
+;-------------------------------------------------
+@CLOTHES_K22, ARGS
+
+SELECTCASE ARGS
+;高めの頻度で着用します。設定しなくてもかまいません
+CASE "下着"
+	IF CEVENT("アメスク化：リューナ") && COND("冬") == 0
+		CSTR:パンツ = ローライズパンツ/Ｈな色/
+		IF RAND:2
+			CSTR:ブラ = ビキニブラ/Ｈな色/
+		ELSE
+			CSTR:ブラ = ハーフカップブラ/Ｈな色/
+		ENDIF
+	ELSE
+		CSTR:パンツ = ローライズパンツ/おとなしい色/
+		CSTR:ブラ = シンプルブラ/おとなしい色/
+	ENDIF
+
+;衣装に関わらず常に付けているアクセサリです。設定しなくてもかまいません
+CASE "アクセサリ"
+	CALL SET_OTHER, "チョーカー"
+
+;学園での普段着です。設定必須です
+CASE "制服"
+	IF CEVENT("アメスク化：リューナ") && COND("冬") == 0
+		CALL SET_SHIRT, "ルーズブラウス"
+		CALL SET_SKIRT, "マイクロチェックスカート"
+		CALL SET_SOCKS, "ルーズソックス"
+		CALL SET_SHOES, "スニーカー"
+	ENDIF
+;学園の体育の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+CASE "体操服"
+
+;学園の水泳の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+CASE "水着"
+
+;自宅など学園外で着ます。設定必須です
+CASE "普段着"
+	SELECTCASE TEXTS("季節")
+	CASE "夏"
+		IF CEVENT("アメスク化：リューナ")
+			CALL SET_SHIRT, "ルーズブラウス"
+			CALL SET_SKIRT, "マイクロチェックスカート"
+			CALL SET_SOCKS, "ルーズソックス"
+			CALL SET_SHOES, "スニーカー"
+		ELSE
+			CALL SET_SHIRT, "変な柄のＴシャツ"
+			CALL SET_OUTER, "ホットパンツ"
+			CALL SET_SOCKS, "ソックス"
+			CALL SET_SHOES, "スニーカー"
+		ENDIF
+	CASE "冬"
+		CALL SET_SHIRT, "背中開きニットセーター"
+		CALL SET_OUTER, "ローライズジーンズ"
+		CALL SET_SOCKS, "ニーソックス"
+		CALL SET_SHOES, "スニーカー"
+		CALL SET_OTHER, "マフラー/分厚いコート"
+	CASEELSE
+		IF CEVENT("アメスク化：リューナ")
+			CALL SET_SHIRT, "ルーズブラウス"
+			CALL SET_SKIRT, "マイクロチェックスカート"
+			CALL SET_SOCKS, "ルーズソックス"
+			CALL SET_SHOES, "スニーカー"
+		ELSE
+			CALL SET_SHIRT, TEXTR("ワイシャツ/背中開きニットセーター")
+			CALL SET_OUTER, "ローライズジーンズ"
+			CALL SET_SOCKS, "ソックス"
+			CALL SET_SHOES, "スニーカー"
+		ENDIF
+	ENDSELECT
+
+;自分の部屋(notあなたの部屋)で着ます
+CASE "部屋着"
+	SELECTCASE TEXTS("季節")
+	CASE "夏"
+		CALL SET_SHIRT, "変な柄のＴシャツ"
+		CALL SET_SOCKS, "ソックス"
+	CASE "冬"
+		CALL SET_SHIRT, "背中開きニットセーター"
+		CALL SET_OUTER, "ローライズジーンズ"
+		CALL SET_SOCKS, "ニーソックス"
+		CALL SET_OTHER, "どてら"
+	CASEELSE
+		CALL SET_SHIRT, TEXTR("ワイシャツ/背中開きニットセーター")
+		CALL SET_OUTER, "ローライズジーンズ"
+		CALL SET_SOCKS, "ソックス"
+	ENDSELECT
+;デート以外で家から外に出る際に着ます。ラブホ呼出とかね
+CASE "外出着"
+
+;もちろんデートの際に着ます
+CASE "デート衣装"
+	SELECTCASE TEXTS("季節")
+	CASE "夏"
+		CALL SET_SHIRT, "ワイシャツ"
+		CALL SET_OUTER, "ホットパンツ"
+		CALL SET_SOCKS, "ソックス"
+		CALL SET_SHOES, "スニーカー"
+	CASE "冬"
+		CALL SET_SHIRT, "背中開きニットセーター"
+		CALL SET_OUTER, "ローライズジーンズ"
+		CALL SET_SOCKS, "ニーソックス"
+		CALL SET_SHOES, "スニーカー"
+		CALL SET_OTHER, "マフラー/分厚いコート"
+	CASEELSE
+		CALL SET_SHIRT, "ワイシャツ"
+		CALL SET_OUTER, "ローライズジーンズ"
+		CALL SET_SOCKS, "ソックス"
+		CALL SET_SHOES, "スニーカー"
+	ENDSELECT
+	SIF COND("髪型変更可能")
+		CSTR:前髪 = 片目隠れ
+ENDSELECT
+
+;変な柄処理
+IF CHECK_SHIRT("変な柄")
+	IF RAND:2
+		IF RAND:5 == 0
+			CSTR:服 += @"柄：I'm a dragon./習字風/英字/"
+		ELSE
+			CSTR:服 += @"柄：%TEXTR("部屋着/新春トマト狩り/今日の料理担当/絶許神/万丈だ。")%/習字風/"
+		ENDIF
+	ELSE
+		CSTR:服 += @"柄：%TEXTR("威風堂々/臥薪嘗胆/青息吐息/画竜点睛/火樹銀花/常鱗凡介")%/"
+	ENDIF
+ENDIF
+;-------------------------------------------------
+;時間帯や場所に応じた髪型、表情の変化を記述する。設定しなくてもかまいません
+;-------------------------------------------------
+@MAIDFACE_K22
+IF PLACE("自宅")
+	CSTR:前髪 = %TEXTR("片目隠れ/ボサボサ/ボサボサ２/ボサボサ３/ボサボサ４")%
+ELSE
+	IF COND("昼")
+		CALL SETFLAG, "普段の髪型復元", TARGET
+	ELSE
+		CSTR:前髪 = %TEXTR("片目隠れ/ボサボサ/ボサボサ２/ボサボサ３/ボサボサ４")%
+	ENDIF
+ENDIF

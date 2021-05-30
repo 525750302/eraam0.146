@@ -1,0 +1,239 @@
+;-------------------------------------------------
+;ここに記述する事で各コマンドの選択肢を増やすことができる
+;X1はキャラ番号に置換してください
+;-------------------------------------------------
+;お願い・取引での選択肢を追加。番号は60～89を使ってよい
+@WISH_K44_ADDSELECT
+;STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("追加選択肢その１", 16)% … %CALLNAME:TARGET%にＡＡＡしてもらいます/
+;STR:選択肢 = %STR:選択肢% [61] %TEXT_LJ("追加選択肢その２", 16)% … %CALLNAME:TARGET%にＢＢＢしてもらいます/
+
+;お願い・取引で増やした選択肢の地の文と台詞
+;@KOJO_WISH_K44_ADDSELECT, ARGS
+;SELECTCASE ARGS
+;CASE "追加選択肢その１"
+;	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+;	PRINTL 
+;	PRINTFORMW 「台詞」
+;	PRINTL 
+;	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+;	;フラグを弄る場合はそれもここで行う
+;CASE "追加選択肢その２"
+;	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+;	PRINTL 
+;	PRINTFORMW 「台詞」
+;	PRINTL 
+;	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+;	;フラグを弄る場合はそれもここで行う
+;ENDSELECT
+
+;-------------------------------------------------
+;トークコマンドの選択肢を追加
+@DAILY1_K44_ADDSELECT
+;STR:選択肢 += "追加選択肢その１/"
+;STR:選択肢 += "追加選択肢その２/"
+
+;トークコマンドで増やした選択肢の地の文と台詞
+;@KOJO_DAILY1_K44_ADDSELECT, ARGS
+;SELECTCASE ARGS
+;CASE "追加選択肢その１"
+;	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+;	PRINTL 
+;	PRINTFORMW 「台詞」
+;	PRINTL 
+;	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+;CASE "追加選択肢その２"
+;	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+;	PRINTL 
+;	PRINTFORMW 「台詞」
+;	PRINTL 
+;	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+;ENDSELECT
+
+;-------------------------------------------------
+;もてなすコマンドの選択肢を追加
+@DAILY2_K44_ADDSELECT
+SIF BASE:MASTER:魂 >= 101
+	STR:選択肢 += "刺される/"
+;STR:選択肢 += "遊ぶ/"
+
+;もてなすコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY2_K44_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "刺される"
+	IF CHARA_NUM("室内の邪魔者")
+		PRINTFORML 
+		PRINTFORMW 流石に他の人が居る時に刺されるのは不味いだろう…
+	ELSEIF BASE:MASTER:魂 >= 101 && CFLAG:花の意味 == 1
+		PRINTFORML 
+		CALL EMOTION_PLUS, "困り眉/無口系"
+		PRINTFORMW 「冗談はやめてください…」
+		PRINTFORMW %CALLNAME:MASTER%は昔の様に刺されようとしたが%CALLNAME:TARGET%はそれを断った。
+		PRINTFORMW 「もう%CNAME("一人称")%は、人を殺さないと決めたのです」
+		PRINTFORMW 「とくに、%CNAME("二人称")%さんをもう殺したくないです」
+		PRINTFORMW 「それに…」
+		CALL PRINT_STRW,@"暗灰色_「今は、%CNAME("二人称")%さんに貫かれる方が……_／／／_なっなんでもないです！_／／／_」"
+	ELSEIF BASE:MASTER:魂 >= 101
+		PRINTFORML 
+		PRINTFORMW %CALLNAME:MASTER%は%ARGS%事にした。
+		IF TALENT:恋慕 && (CFLAG:花の意味 == 0 || CFLAG:花の意味 == 2)
+			IF CEVENT("花の意味、言葉を選ぶ：白藤")
+				CALL EMOTION_PLUS, "リセット/無口系"
+				PRINTFORMW 「あなたを殺すことは罪なのでしょうね」
+				PRINTFORMW 「あはは……当たり前ですけれど」
+				PRINTFORMW 殺人であっても、親告しなければ罪に問われない。
+				;実際にどうかは知らないけど多分間違ってる。
+				PRINTFORMW 「……ふふっ、優しい嘘をありがとうです」
+				PRINTFORMW 「%CNAME("一人称")%はおかあさんとおとうさんから貰ったモノが捨てられない」
+				PRINTFORMW 「それでも」
+			ELSEIF CEVENT("数多くの罪とたった一つの罰")
+				CALL EMOTION_PLUS, "リセット/無口系"
+				PRINTFORMW 「……」
+				PRINTFORMW 「あっ、はい」
+				PRINTFORMW 何か考えているような表情をしているが、どうかしたのだろうか？
+				PRINTFORMW 「少し、……いえ、……いいえ、何でもありません」
+				PRINTFORMW 「……じゃっ、殺しますねっ♪」
+			ELSE
+				CALL EMOTION_PLUS, "褒める"
+				PRINTFORMW 「あっ！殺して良いのですかっ！」
+			ENDIF
+		ELSEIF CEVENT("がっこうへいこう") && CFLAG:好感度 >= 1000
+			CALL EMOTION_PLUS, "リセット/無口系"
+			PRINTFORMW 「あっ………いえ、なんでもないです」
+		ELSE
+			CALL EMOTION_PLUS, "リセット"
+			PRINTFORMW 「ん…？そうですか？わかりました！」
+		ENDIF
+		PRINTFORMW そう言うと%CALLNAME:TARGET%はナイフを取り出し%CALLNAME:MASTER%の腹部を刺した。
+		CALL K44_KNIFE_DEATH
+		IF TALENT:恋慕 && CFLAG:花の意味 == 0
+			CALL EMOTION_PLUS, "褒める/返り血"
+			PRINTFORMW 「うぅん……？うーん……？うんっ！」
+			PRINTFORMW 独りでに%CALLNAME:TARGET%は何かを考えて何かに納得したようだ。
+			PRINTFORML 何時も通りに復活した%CALLNAME:MASTER%の訝しむ顔を見たのか%CALLNAME:TARGET%は
+			PRINTFORMW 「えっと、やっぱり殺すのは%CNAME("二人称")%さんが良いなってだけです！」
+			PRINTFORMW それは褒めているのかどうなのか……
+			PRINTFORML 
+			PRINTFORML 　【%CALLNAME:MASTER%の魂-1.00】
+			PRINTFORML 　【%CALLNAME:TARGET%に殺された数　+1】
+			PRINTFORML 　【%CALLNAME:TARGET%の恭順の珠　+1400】
+			PRINTFORMW 　【%CALLNAME:TARGET%の%CALLNAME:MASTER%に対する好感度　+50】
+			CFLAG:好感度 += 50
+			JUEL:恭順 += 1400
+		ELSEIF TALENT:恋慕 && CFLAG:花の意味 == 2
+			CALL EMOTION_PLUS, "返り血/微笑"
+			IF CEVENT("花の意味、言葉を選ぶ：白藤")
+				PRINTFORMW 「『いっぱい殺させてくれるかわりになんでもします』」
+				PRINTFORMW 「最初に%CNAME("二人称")%さんと交わした約束」
+				PRINTFORMW 「%CNAME("二人称")%さんがいなければ、%CNAME("一人称")%じゃないです」
+				PRINTFORMW 「わたしはあなたといたい」
+				PRINTFORMW 「いたいです」
+				PRINTFORML 
+				PRINTFORMW 「いつか、罪を贖う時が来てもわたしを見ていてください」
+				PRINTFORMW 「%CNAME("一人称")%からのお願いです」
+				PRINTFORMW 「独りきりは寂しいですから……」
+				PRINTFORMW そう静かに微笑んで%CALLNAME:TARGET%は言った。
+			ELSE
+				PRINTFORMW 「人を殺すのはダメだって分かってますけど」
+				PRINTFORMW 「%CNAME("二人称")%さんを独占できてる気持ちになるので悪くないです」
+				PRINTFORMW 陶酔した表情で%CALLNAME:TARGET%は咲っている。
+				PRINTFORML 
+				PRINTFORMW すっと、表情を戻して再び口を開く。
+				PRINTFORMW 「%CNAME("一人称")%はもう他の人を殺しませんけど、」
+				PRINTFORMW そして、%CALLNAME:TARGET%は%CALLNAME:MASTER%の耳元に顔を寄せて、
+				PRINTFORML 
+				CALL PRINT_STRW,@"灰色_「%CNAME("一人称")%以外の他の人に殺されちゃダメですよ_HH_灰色_」"
+				PRINTFORML 
+				PRINTFORMW 蠱惑的に囁いた。
+			ENDIF
+			PRINTFORML 
+			PRINTFORML 　【%CALLNAME:MASTER%の魂-1.00】
+			PRINTFORML 　【%CALLNAME:TARGET%に殺された数　+1】
+			PRINTFORML 　【%CALLNAME:TARGET%の恭順の珠　+1400】
+			PRINTFORMW 　【%CALLNAME:TARGET%の%CALLNAME:MASTER%に対する好感度　+50】
+			CFLAG:好感度 += 50
+			JUEL:恭順 += 1400
+		ELSEIF CFLAG:好感度 >= 1000
+			PRINTFORMW 「……………」
+			PRINTFORML 
+			PRINTFORML 　【%CALLNAME:MASTER%の魂-1.00】
+			PRINTFORML 　【%CALLNAME:TARGET%に殺された数　+1】
+			PRINTFORML 　【%CALLNAME:TARGET%の恭順の珠　+700】
+			PRINTFORMW 　【%CALLNAME:TARGET%の%CALLNAME:MASTER%に対する好感度　+40】
+			CFLAG:好感度 += 40
+			JUEL:恭順 += 700
+		ELSEIF ABL:信頼 == 3
+			CALL EMOTION_PLUS, "返り血/困り眉/無口系"
+			PRINTFORMW 「うーん？うん……きのせいでしたっ！」
+			PRINTFORML 
+			PRINTFORML 　【%CALLNAME:MASTER%の魂-1.00】
+			PRINTFORML 　【%CALLNAME:TARGET%に殺された数　+1】
+			PRINTFORML 　【%CALLNAME:TARGET%の恭順の珠　+500】
+			PRINTFORMW 　【%CALLNAME:TARGET%の%CALLNAME:MASTER%に対する好感度　+30】
+			CFLAG:好感度 += 30
+			JUEL:恭順 += 500
+		ELSE
+			CALL EMOTION_PLUS, "褒める/返り血"
+			PRINTFORMW 「えへへ…」
+			PRINTFORML 
+			PRINTFORML 　【%CALLNAME:MASTER%の魂-1.00】
+			PRINTFORML 　【%CALLNAME:TARGET%に殺された数　+1】
+			PRINTFORML 　【%CALLNAME:TARGET%の恭順の珠　+300】
+			PRINTFORMW 　【%CALLNAME:TARGET%の%CALLNAME:MASTER%に対する好感度　+20】
+			CFLAG:好感度 += 20
+			JUEL:恭順 += 300
+		ENDIF
+		IF CFLAG:殺された数 >= 5 && ABL:信頼 < 3
+			ABL:信頼 += 1
+			CALL PRINT_STRW, @"黄色_　【%CALLNAME:TARGET%の%CALLNAME:MASTER%に対する信頼が{ABL:信頼}LVに上がった】"
+		ENDIF
+	ENDIF
+ENDSELECT
+;CASE "遊ぶ"
+;	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+;	PRINTL 
+;	PRINTFORMW 「台詞」
+;	PRINTL 
+;	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+;ENDSELECT
+
+;-------------------------------------------------
+;デート行き先の選択肢を追加。
+@DATE_K44_ADDSELECT
+;ここで増やした選択肢を選ぶと、それがSAVESTR:デート に代入される仕組みです
+;STR:選択肢 += "追加選択肢その１/"
+;STR:選択肢 += "追加選択肢その２/"
+;
+;増やした行先での地の文と台詞。起きうるイベントのフラグもここで決める
+;@KOJO_DATE_K44_ADDSELECT
+;SELECTCASE SAVESTR:デート
+;CASE "追加選択肢その１"
+;	PRINTFORMW 「台詞」
+;	;地の文
+;	PRINTFORMW %SAVESTR:デート%での%CALLNAME:TARGET%の反応
+;	;地の文を用意していない場合には汎用のものを使う
+;	;CALL DAILY_MESSAGE, "デート本番"
+;	PRINTL 
+;	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+;	FLAG:ムード += 30
+;	;それぞれ可能なもののコメントアウトを外す
+;	;TFLAG:デートエロ可能 = 1
+;	;TFLAG:デート手つなぎ可能 = 1
+;	;TFLAG:下着チラ見え可能 = 1
+;	;TFLAG:水着デート = 1
+;CASE "追加選択肢その２"
+;	PRINTFORMW 「台詞」
+;	;地の文
+;	PRINTFORMW %SAVESTR:デート%での%CALLNAME:TARGET%の反応
+;	;地の文を用意していない場合には汎用のものを使う
+;	;CALL DAILY_MESSAGE, "デート本番"
+;	PRINTL 
+;	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+;	FLAG:ムード += 30
+;	;それぞれ可能なもののコメントアウトを外す
+;	;TFLAG:デートエロ可能 = 1
+;	;TFLAG:デート手つなぎ可能 = 1
+;	;TFLAG:下着チラ見え可能 = 1
+;	;TFLAG:水着デート = 1
+;ENDSELECT
+
+

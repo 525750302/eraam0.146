@@ -1,0 +1,333 @@
+﻿;=========================
+;ミニゲーム ダエモスラビヤ20XX呼び出しメソッド
+;=========================
+@Demoslaviya20XX_Start
+	SETBGCOLOR 30,0,0
+	CALL Demoslaviya20XX_SelectStage
+	
+	CALL Demoslaviya20XX_EndGame
+;=========================
+;ステージ選択メソッド
+;まだステージ解放処理とか作ってないよ
+;=========================
+@Demoslaviya20XX_SelectStage
+	#DIMS StageList
+	#DIMS CHOICES
+	StageList = チュートリアル/デバッグ用MAP
+
+	VARSET LOCALS
+	SPLIT StageList, "/", LOCALS
+	PRINTFORML シナリオ選択
+	PRINTFORML ※未完成だよ！更新待っててね！
+
+	CALL PRINT_SELECT(StageList,"戻る")
+
+	CHOICES = %LOCALS:RESULT%
+	SELECTCASE CHOICES
+		CASE "チュートリアル"
+			CALL Demoslaviya20XX_MAP_チュートリアル
+			;CALL Demoslaviya20XX_MAP_チュートリアル_開始メッセージ
+			CALL Demoslaviya20XX_Main
+			IF RESULT == 1
+				;勝利のメッセージをモチモチ
+				;CALL Demoslaviya20XX_MAP_チュートリアル_勝利 
+			ELSEIF RESULT == 2;敗北時
+				;敗北のメッセージをモチモチ
+				;CALL Demoslaviya20XX_MAP_チュートリアル_敗北
+			ELSE
+				;中断したときのメッセージをモチモチ
+				;CALL Demoslaviya20XX_MAP_チュートリアル_撤退
+			ENDIF
+		CASE "デバッグ用MAP"
+			CALL Demoslaviya20XX_MAP_デバッグ用MAP
+			CALL Demoslaviya20XX_Main
+		CASE "戻る"
+			RETURN 1
+	ENDSELECT
+	
+;=========================
+;Demoslaviya20XXメインメソッド
+;ARGS = MAP情報三次元データ
+;ARGS:1 = ユニットデータ
+;=========================
+@Demoslaviya20XX_Main
+	#DIM DYNAMIC X_View
+	#DIM DYNAMIC Y_View
+	#DIM DYNAMIC LCount
+
+	#DIMS DYNAMIC WeaponList,3
+
+	#DIMS IsEND
+
+	#DIM DYNAMIC SelectX
+	#DIM DYNAMIC SelectY
+	#DIM DYNAMIC Temp;何か別の名前つけたい
+
+	;#region 初期化
+		X_View = 0 ;いずれはMAP事に初期描画位置を変えられるようにする予定でございまする
+		Y_View = 0 ;いずれはMAP事に初期描画位置を変えられるようにする予定でございまする
+		
+		Demoslaviya20XX_TarnMode = System
+
+		CALL Demoslaviya20XX_MoveCostMap_Constructor
+		CALL Demoslaviya20XX_AttackRangeMap_Constructor
+
+		;これはテスト用だよ、
+		Demoslaviya20XX_SelectCommandMode = 移動
+		Demoslaviya20XX_SelectWeapon = None
+
+	;#endregion
+
+	;CALL Demoslaviya20XX_MAP_チュートリアル
+	;メインループ
+	$MainLoop
+		;---------------------------------
+		;プレイヤーのターン(先手が解放軍のパターンにもしやすいようにモジュール化したいなぁ)
+		;---------------------------------
+		Demoslaviya20XX_TarnMode = Player
+		$PlayerLoop
+			CALL Demoslaviya20XX_GenerateHTML(X_View,Y_View)
+			CALL Demoslaviya20XX_ViewHTML
+			INPUT
+			;ユニットボタンが押ささった時
+			IF RESULT >= 2000000
+				Temp = RESULT - 2000000
+				SelectY = Temp / 1000
+				SelectX = Temp % 1000
+				IF Demoslaviya20XX_SelectUnit == 0
+					IF Demoslaviya20XX_SelectUnit != TOINT(Demoslaviya20XX_MAP:SelectY:SelectX:1)
+						IF Demoslaviya20XX_Unit:TOINT(Demoslaviya20XX_MAP:SelectY:SelectX:1):0 == "味方"
+							Demoslaviya20XX_SelectUnit = 0
+							Demoslaviya20XX_SelectUnit = TOINT(Demoslaviya20XX_MAP:SelectY:SelectX:1)
+						ELSE
+							CALL Demoslaviya20XX_KOJO_イェニイェル("敵ユニット選択警告")
+						ENDIF
+					ELSEIF Demoslaviya20XX_SelectUnit == TOINT(Demoslaviya20XX_MAP:SelectY:SelectX:1)
+						Demoslaviya20XX_SelectUnit = 0;同じユニットが押された時は選択中ユニットをリセット(解除)するわよ
+						;#region 武器選択初期化
+							VARSET WeaponList:0 ,"None"
+							Demoslaviya20XX_SelectWeapon = None
+						;#endregion
+					ENDIF
+				ELSEIF Demoslaviya20XX_SelectCommandMode == "移動"
+					IF Demoslaviya20XX_SelectUnit != TOINT(Demoslaviya20XX_MAP:SelectY:SelectX:1)
+						IF Demoslaviya20XX_Unit:TOINT(Demoslaviya20XX_MAP:SelectY:SelectX:1):0 == "味方"
+							Demoslaviya20XX_SelectUnit = TOINT(Demoslaviya20XX_MAP:SelectY:SelectX:1);選択ユニットを変更するわよ
+							;#region 武器選択初期化
+								VARSET WeaponList:0 ,"None"
+								Demoslaviya20XX_SelectWeapon = None
+							;#endregion
+						ELSE
+							CALL Demoslaviya20XX_KOJO_イェニイェル("敵ユニット選択警告")
+						ENDIF
+					ELSEIF Demoslaviya20XX_SelectUnit == TOINT(Demoslaviya20XX_MAP:SelectY:SelectX:1)
+						Demoslaviya20XX_SelectUnit = 0;同じユニットが押された時は選択中ユニットをリセット(解除)するわよ
+						;#region 武器選択初期化
+							VARSET WeaponList:0 ,"None"
+							Demoslaviya20XX_SelectWeapon = None
+						;#endregion
+					ENDIF
+				ELSEIF Demoslaviya20XX_SelectCommandMode == "攻撃"
+					IF Demoslaviya20XX_Unit:TOINT(Demoslaviya20XX_MAP:SelectY:SelectX:1):0 == "味方"
+						Demoslaviya20XX_SelectUnit = TOINT(Demoslaviya20XX_MAP:SelectY:SelectX:1)
+						Demoslaviya20XX_SelectWeapon = None
+					ELSE
+						CALL Demoslaviya20XX_HitCalc(SelectY,SelectX)
+					ENDIF
+				ENDIF
+				;GOTO PlayerLoop
+			;タイルボタンが押ささった時
+			ELSEIF RESULT >= 1000000
+				IF Demoslaviya20XX_SelectUnit != 0
+					Temp = RESULT - 1000000
+					SelectY = Temp / 1000
+					SelectX = Temp % 1000
+					SIF SelectY == 1000
+						SelectY = 0
+					
+					IF Demoslaviya20XX_SelectCommandMode == "移動"
+						CALL Demoslaviya20XX_Move(SelectY,SelectX)
+					ELSEIF Demoslaviya20XX_SelectCommandMode == "攻撃"
+						CALL Demoslaviya20XX_HitCalc(SelectY,SelectX)
+					ENDIF
+
+					;CALL Demoslaviya20XX_MoveCostMap_Constructor
+					;CALL Demoslaviya20XX_AttackRangeMap_Constructor
+					
+					;移動してもユニット選択解除しないほうが遊びやすかったですわ
+					;移動したらユニット選択を解除するわよ
+					;Demoslaviya20XX_SelectUnit = 0
+				ENDIF
+				;GOTO PlayerLoop
+			;その他コマンドが押ささった時
+			ELSE
+				;コマンドモード変更ボタンとかターン終了ボタンとかの処理回りね
+				;#region 武器選択
+					IF RESULT == 1;武器1が選ばれた場合
+						VARSET WeaponList:0 ,"None"
+						SPLIT Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:6,",",WeaponList
+						Demoslaviya20XX_SelectWeapon = %WeaponList:0%
+						Demoslaviya20XX_SelectCommandMode = 攻撃
+					ELSEIF RESULT == 2;武器2が選ばれた場合
+						VARSET WeaponList:0 ,"None"
+						SPLIT Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:6,",",WeaponList
+						Demoslaviya20XX_SelectWeapon = %WeaponList:1%
+						Demoslaviya20XX_SelectCommandMode = 攻撃
+					ELSEIF RESULT == 3;武器3が選ばれた場合
+						VARSET WeaponList:0 ,"None"
+						SPLIT Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:6,",",WeaponList
+						Demoslaviya20XX_SelectWeapon = %WeaponList:2%
+						Demoslaviya20XX_SelectCommandMode = 攻撃
+				;#endregion
+
+				;#region MAP移動キー
+					ELSEIF RESULT == 100;↑
+						SIF Y_View > 0
+							Y_View--
+					ELSEIF RESULT == 102;→
+						SIF X_View < 200
+							X_View++
+					ELSEIF RESULT == 101;←
+						SIF X_View > 0
+							X_View--
+					ELSEIF RESULT == 103;↓
+						SIF Y_View < 200
+							Y_View++ 
+				;#endregion
+
+				;#region 命令モード変更
+					ELSEIF RESULT == 200
+						IF Demoslaviya20XX_SelectCommandMode == "移動"
+							Demoslaviya20XX_SelectCommandMode = 攻撃
+						ELSEIF Demoslaviya20XX_SelectCommandMode == "攻撃"
+							Demoslaviya20XX_SelectCommandMode = 移動
+						ENDIF
+				;#endregion
+
+					ELSEIF RESULT == 800
+						PRINTFORML ごめんね！まだ未実装なんだ！
+						PRINTFORMW 更新待ってて！
+						;CALL Demoslaviya20XX_BlackMarket
+					
+					ELSEIF RESULT == 900;マニュアル
+						CALL Demoslaviya20XX_Manual
+					ELSEIF RESULT == 998
+						;プレイヤーのターン終了よ
+						Demoslaviya20XX_SelectUnit = 0
+						GOTO EndPlayerLoop
+					ELSEIF RESULT == 999
+						RETURN 0;後々、途中退室処理も作らねばならぬなぁ
+					ENDIF
+			ENDIF
+		GOTO PlayerLoop
+		$EndPlayerLoop
+		;---------------------------------
+		;敵のターン(先手が種族解放軍のパターンにもしやすいようにモジュール化したいなぁ)
+		;---------------------------------
+		Demoslaviya20XX_TarnMode = Enemy
+		CALL Demoslaviya20XX_AI_Test
+		;---------------------------------
+		;ターン終了時の処理
+		;---------------------------------
+		Demoslaviya20XX_TarnMode = System
+		CALL Demoslaviya20XX_Judgment
+		IF RESULT == 1
+			PRINTFORML 
+			PRINTFORML !!勝利!!
+			PRINTFORMW 
+			RETURN 1
+			;CALL CALL_LIB(@"勝利_%Demoslaviya20XX_StageName%")
+		ELSEIF RESULT == -1
+			PRINTFORML 
+			PRINTFORML 敗北...
+			PRINTFORMW 
+			RETURN 2
+		ELSE
+			CALL Demoslaviya20XX_UnitMovePower_Constructor
+			GOTO MainLoop
+		ENDIF
+@Demoslaviya20XX_ViewHTML
+	#DIM DYNAMIC LCount
+	#DIMS DYNAMIC Weapon,4
+		;CLEARLINE LINECOUNT
+		FOR LCount,0,21
+			HTML_PRINT @"%Demoslaviya20XX_HTML:LCOUNT%"
+		NEXT
+		DRAWLINE
+		CALL Demoslaviya20XX_Demol(@"所持軍資金：{CFLAG:MASTER:槞彁所持金}Д")
+		IF Demoslaviya20XX_SelectUnit > 0
+			PRINTFORML 選択中ユニット：%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"ユニット名")%
+			PRINTFORML HP:%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:2%/%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"HP")%　
+			PRINTFORML 行動力:%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:3%/%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"行動力")%　
+			PRINTFORML 指揮統制率:%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:4%/%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"指揮統制率")%　
+			PRINTFORML ERA:%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:5%/%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"ERA")%　
+			PRINTFORML 　-武装-
+			SPLIT Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:6,",",Weapon
+			FOR LCount, 0, 3
+				IF Weapon:LCount != ""
+					IF Demoslaviya20XX_SelectWeapon == Weapon:LCount
+						HTML_PRINT @"<shape type='space' param='200'><button value = '{LCount + 1}' title= '%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"解説")%'><font color='Yellow'><b>%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"武器名")%</b></font></button>"
+						HTML_PRINT @"<shape type='space' param='300'>威力:%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"威力")%×%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"射撃回数")%　命中率：%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"命中率")%　制圧力：%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"制圧力")%"
+					ELSE
+						HTML_PRINT @"<shape type='space' param='200'><button value = '{LCount + 1}' title= '%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"解説")%'>%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"武器名")%</button>"
+						HTML_PRINT @"<shape type='space' param='300'>威力:%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"威力")%×%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"射撃回数")%　命中率：%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"命中率")%　制圧力：%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"制圧力")%"
+					ENDIF
+				ELSE 
+					PRINTL
+					PRINTL
+				ENDIF 
+			NEXT
+		ELSE
+			CALL Demoslaviya20XX_KOJO_イェニイェル("ユニット未選択")
+			FOR LCount, 0, 11
+				PRINTL 
+			NEXT 
+		ENDIF
+
+		DRAWLINE
+		;TRYCALLFORM Demoslaviya20XX_Start_KOJO_K15
+		PRINTFORML [800] イェニイェル兵器廠社 [900] 操作説明 [999] ミニゲームを終了する
+
+@Demoslaviya20XX_ViewHTML_Enemy
+	#DIM DYNAMIC LCount
+	#DIMS DYNAMIC Weapon,4
+		;CLEARLINE LINECOUNT
+		FOR LCount,0,21
+			HTML_PRINT @"%Demoslaviya20XX_HTML:LCOUNT%"
+		NEXT
+		DRAWLINE
+		CALL Demoslaviya20XX_Demol(@"所持軍資金：{CFLAG:MASTER:槞彁所持金}Д")
+		IF Demoslaviya20XX_SelectUnit > 0
+			PRINTFORML 選択中ユニット：%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"ユニット名")%
+			PRINTFORML HP:%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:2%/%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"HP")%　
+			PRINTFORML 行動力:%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:3%/%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"行動力")%　
+			PRINTFORML 指揮統制率:%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:4%/%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"指揮統制率")%　
+			PRINTFORML ERA:%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:5%/%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1,"ERA")%　
+			PRINTFORML 　-武装-
+			SPLIT Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:6,",",Weapon
+			FOR LCount, 0, 3
+				IF Weapon:LCount != ""
+					IF Demoslaviya20XX_SelectWeapon == Weapon:LCount
+						HTML_PRINT @"<shape type='space' param='200'><button value = '{LCount + 1}' title= '%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"解説")%'><font color='Yellow'><b>%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"武器名")%</b></font></button>"
+						HTML_PRINT @"<shape type='space' param='500'>威力:%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"威力")%×%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"射撃回数")%　命中率：%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"命中率")%　制圧力：%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"制圧力")%"
+					ELSE
+						HTML_PRINT @"<shape type='space' param='200'><button value = '{LCount + 1}' title= '%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"解説")%'>%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"武器名")%</button>"
+						HTML_PRINT @"<shape type='space' param='500'>威力:%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"威力")%×%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"射撃回数")%　命中率：%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"命中率")%　制圧力：%Demoslaviya20XX_GET_WEAPONDATA(Weapon:LCount,"制圧力")%"
+					ENDIF
+				ELSE 
+					PRINTL
+				ENDIF 
+			NEXT
+		ELSE
+			PRINTFORML 
+			FOR LCount, 0, 13
+				PRINTL 
+			NEXT 
+		ENDIF
+
+		DRAWLINE 
+;背景色変更するタイミングを用意するために、ミニゲーム終了時はココに来るようにする。
+@Demoslaviya20XX_EndGame
+	CALL Demoslaviya20XX_KOJO_イェニイェル("ゲーム終了")
+	RESETBGCOLOR
+	RETURN 0

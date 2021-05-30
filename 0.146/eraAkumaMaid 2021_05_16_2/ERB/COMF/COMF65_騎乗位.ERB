@@ -1,0 +1,262 @@
+@COM65
+;騎乗位
+;押し倒しの時に一定条件を満たすと、ワイルドスウィングになり、効果上昇。
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+;-------------------------------------------------
+;実行できるかの判定
+;-------------------------------------------------
+CALL SHOW_COM_ORDER_COM, 65
+
+;実行できない
+SIF TCVAR:やる気 == 0
+	RETURN 0
+;-------------------------------------------------
+;実行決定
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+;-------------------------------------------------
+;射精チェック
+;-------------------------------------------------
+CALL SAMEN_CHECK
+
+RETURN 1
+
+@FLAG_COM65, ARG
+IF INSERT("ワイルドスウィング")
+	CALL FLAG_INSERTION, "Ｖインサート", ARG, 120
+ELSE
+	CALL FLAG_INSERTION, "Ｖインサート", ARG, 70
+ENDIF
+
+
+@SOURCE_COM65, ARG
+IF INSERT("ワイルドスウィング")
+	CALL SOURCE_INSERTION, "Ｖインサート", ARG, 120
+ELSE
+	CALL SOURCE_INSERTION, "Ｖインサート", ARG, 70
+ENDIF
+
+CALL VARSET_COMF
+
+CALL SOURCE_DOWNBASE_HP, 65
+
+SOURCE:0:欲情追加 = CALCF("実行値による欲情追加")
+SOURCE:0:露出 = 900
+SOURCE:0:情愛 = 500
+
+;根元まで受け入れられる場合にはクリを擦られてしまう
+IF ABL:Ｖ拡張 > SIZE("ペニス", PLAYER) && PENIS(TARGET) == 0
+	;ABL:Ｃ感覚をみる
+	SOURCE:0:Ｃ快楽 = CALCF("Ｃ刺激", 2, 30)
+	SOURCE:0:Ｃ快楽 = SOURCE_EXABL(SOURCE:0:Ｃ快楽, "腰使い", PLAYER)
+ENDIF
+
+;ABL:奉仕精神をみる
+SELECTCASE ABL:奉仕精神
+CASE 0 TO 5
+	SOURCE:0:性行動 = 300 + ABL:奉仕精神*200
+	SOURCE:0:達成感 = 100 + ABL:奉仕精神*300
+	SOURCE:0:逸脱 = MAX(300 - ABL:奉仕精神*100, 0)
+CASE 6 TO 10
+	SOURCE:0:性行動 = 1300 + (ABL:奉仕精神 - 5)*100
+	SOURCE:0:達成感 = 1600 + (ABL:奉仕精神 - 5)*200
+CASEELSE
+	SOURCE:0:性行動 = 1800 + (ABL:奉仕精神 - 10)*50
+	SOURCE:0:達成感 = 2600 + (ABL:奉仕精神 - 10)*100
+ENDSELECT
+
+;PALAM:欲情をみる
+SELECTCASE PALAM:欲情
+CASE IS < PALAMLV:1
+	TIMES SOURCE:0:情愛, 0.30
+CASE IS < PALAMLV:2
+	TIMES SOURCE:0:情愛, 0.60
+CASE IS < PALAMLV:3
+	TIMES SOURCE:0:情愛, 1.00
+CASE IS < PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.50
+CASE IS >= PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.80
+ENDSELECT
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM65
+#DIM MEMO_LINECOUNT
+
+MEMO_LINECOUNT = LINECOUNT
+CALL TRAIN_MESSAGE_INSERTION
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+PRINTFORM %CALLNAME:TARGET%は
+IF COND("前Ｔから対象のみ変更") && VAU_INSERT_PLAY(PREVCOM:1)
+	CALL ADD_TEXT, "性器から性器へ"
+;穴開きでないパンツをはいていて、ずらされていないなら、必ずずらす
+ELSEIF CHECK_CLO("Ｖ露出") == 0 && CHECK_CLO("Ｖ露出可")
+	CALL SETFLAG, "ボトムを露出：テキスト無し", TARGET
+ENDIF
+IF TALENT:好色 && RAND:2 == 0
+	PRINTFORM %CALLNAME:PLAYER%のペニスに%TEXTR("照準/膣口")%を合わせると、
+ELSE
+	PRINTFORM %CALLNAME:PLAYER%の%TEXTR("上にまたがる/ペニスの位置を確認する")%と、
+ENDIF
+
+;スカートなどをはいているなら
+IF EQUIP:スカート + TEQUIP:新妻プレイ && (TALENT:好色 + TALENT:淫乱 || ABL:露出癖 >= 3) && RAND:2
+	IF TEQUIP:新妻プレイ
+		PRINTFORM エプロンを
+	ELSE
+		PRINTFORM %SKIRT(TARGET, "略")%を
+	ENDIF
+	IF COND("口の使用") && RANDIF(2, COND("指の使用") )
+		PRINT 口で咥えて
+	ELSEIF COND("指の使用") && RAND:2
+		PRINT 指で摘んで
+	ELSE
+		PRINT めくって
+	ENDIF
+	IF RAND:2
+		PRINTFORM %TEXTS("アソコ：視覚")%
+	ELSEIF RAND:2 && PALAM:Ｖ潤 >= 10000 && PALAM:欲情 >= 10000
+		PRINTFORM 涎を垂らす穴
+	ELSE
+		PRINTFORM %TEXTR("恥ずかしい所/股間")%
+	ENDIF
+	PRINTFORM を%TEXTR("見せ付け/見せびらかし")%ながら
+ELSE
+	SIF TEQUIP:電話中
+		PRINTFORM %TEXTS("彼氏")%と電話したまま、
+
+	IF TALENT:好色 + TALENT:淫乱 + TALENT:恋慕 && COND("視力") && RAND:3 == 0
+		PRINT 顔を見つめながら
+	ELSEIF TEQUIP:押し倒し && ABL:サドっ気 >= 2 && RAND:2
+		IF TALENT:高慢 + TALENT:強気 && RANDIF(2, TALENT:生意気 + TALENT:小悪魔)
+			PRINT 不敵な笑みを浮かべながら
+		ELSEIF TALENT:生意気 + TALENT:小悪魔 && RAND:2
+			PRINT ニヤニヤしながら
+		ELSE
+			PRINT 嗜虐的な悦びを滲ませながら
+		ENDIF
+	ELSEIF ABL:Ｖ感覚 >= 3 && RAND:2
+		PRINTFORM %TEXTR("甘い吐息を漏らし/気持ち良さそうな顔を見せ")%ながら
+	ELSE
+		PRINT 熱っぽい息を吐きながら
+	ENDIF
+	IF ABL:Ｖ拡張 >= SIZE("ペニス", PLAYER) && ABL:サドっ気 && RAND:2
+		PRINT 一気に
+	ELSE
+		PRINT ゆっくりと
+	ENDIF
+ENDIF
+PRINTFORM %TEXTR(@"腰/%TEXTS("お尻：視覚")%")%を下ろして
+IF PREVPLAY("お掃除フェラ") && RAND:3 == 0
+	PRINTFORMW 、%TEXTR("綺麗に舐め清めたばかりの/お掃除フェラ直後の/口で奉仕して力を取り戻させた")%ペニスを\@ CHOSECOMS("Ｖ挿入") ? 再び # 今度は \@膣で呑み込んできた。
+ELSEIF ABL:Ｖ拡張 >= SIZE("ペニス", PLAYER) && PALAM:Ｖ潤 >= 3000 && RAND:3
+	IF ABL:Ｖ拡張 > SIZE("ペニス", PLAYER) && RAND:2
+		PRINTW 、根元までペニスを呑み込んだ。
+	ELSE
+		PRINTW 、綻んだ膣でペニスを呑み込んできた。
+	ENDIF
+ELSE
+	PRINTW きた。
+ENDIF
+
+
+@COM_ORDER_COM65, ARG
+VARSET LOCAL
+LOCALS = 
+
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
+CALL COM_ORDER, ARG
+
+LOCAL = RESULT
+
+;ABL:奉仕精神
+IF ABL:奉仕精神
+	LOCAL += MIN(ABL:奉仕精神, 10) * 2
+	LOCALS = %LOCALS% + 奉仕精神LV{ABL:奉仕精神}({MIN(ABL:奉仕精神, 10) * 2})
+ENDIF
+;ABL:精液中毒
+IF ABL:精液中毒
+	LOCAL += MIN(ABL:精液中毒, 5) * 3
+	LOCALS = %LOCALS% + 精液中毒LV{ABL:精液中毒}({MIN(ABL:精液中毒, 5) * 3})
+ENDIF
+IF COND("調教中")
+	;PALAM:Ｖ潤（の不足）
+	IF PALAM:Ｖ潤 < PALAMLV:3
+		LOCAL -= 5
+		LOCALS = %LOCALS% - Ｖ潤不足(5)
+	ENDIF
+ENDIF
+
+;強気
+IF TALENT:強気
+	LOCAL += 10
+	LOCALS = %LOCALS% + 強気(10)
+ENDIF
+;恥じらい
+IF TALENT:恥じらい
+	LOCAL -= 10
+	LOCALS = %LOCALS% - 恥じらい(10)
+ENDIF
+;Ｖ損傷
+IF TALENT:Ｖ損傷
+	LOCAL -= 30 * TALENT:Ｖ損傷
+	LOCALS = %LOCALS%- Ｖ損傷({30 * TALENT:Ｖ損傷})
+ENDIF
+;献身的
+IF TALENT:献身
+	LOCAL += 6
+	LOCALS = %LOCALS% + 献身(6)
+ENDIF
+;快感の否定
+IF TALENT:快感の否定
+	LOCAL -= 1
+	LOCALS = %LOCALS% - 快感の否定(1)
+ENDIF
+;Ｖ性向
+IF TALENT:Ｖ性向
+	LOCAL += 10
+	LOCALS = %LOCALS% + Ｖ性向(10)
+ENDIF
+;処女
+IF TALENT:処女
+	LOCAL -= 20
+	LOCALS = %LOCALS% - 処女(20)
+ELSEIF EXP:Ｖ経験 < EXPLV:2
+	LOCAL -= 5
+	LOCALS = %LOCALS% - Ｖ経験不足(5)
+ENDIF
+
+;媚薬
+IF TEQUIP:媚薬
+	LOCAL += 6
+	LOCALS = %LOCALS% + 媚薬(6)
+ENDIF
+
+;汚れあり
+IF COM_ORDER_STAIN("Ｐ", "Ｖ")
+	LOCAL -= COM_ORDER_STAIN("Ｐ", "Ｖ")
+	LOCALS = %LOCALS% - 汚れあり
+	;汚臭鈍感
+	SIF TALENT:汚臭鈍感 || TALENT:汚臭敏感
+		LOCALS = %LOCALS%、\@TALENT:汚臭鈍感 ? 汚臭鈍感 # 汚臭敏感\@
+	SIF COND("陶酔")
+		LOCALS = %LOCALS%、陶酔で半減
+	LOCALS = %LOCALS%({COM_ORDER_STAIN("Ｐ", "Ｖ")})
+ENDIF
+
+;合計を表示(24以上で実行)
+CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 24
+
+RETURN RESULT

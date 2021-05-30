@@ -1,0 +1,119 @@
+;-------------------------------
+;タイルIDからタイルデータを取得する
+;ARGS = 取得タイル名
+;ARGS:1 = 取得したいデータ
+;-------------------------------
+@Demoslaviya20XX_GET_HEXDATA(ARGS,ARGS:1)
+#FUNCTIONS
+	;タイル名
+	#DIMS HEX_NAME
+	;resource.csvで設定した画像呼び出し名
+	#DIMS HEX_FILENAME
+	;移動コスト
+	#DIMS HEX_MOVE_COST
+	;遮蔽率(%) これが高いタイルに居るユニットは敵の命中率が低下する
+	#DIMS HEX_COVER_RATE
+
+	;直射攻撃障害物判定(True/false)
+	#DIMS HEX_Obstacle
+	
+	;タイルの解説（改行は「\n」だよ気を付けてね）
+	#DIMS COMMENT
+
+	SELECTCASE ARGS
+		CASE "草"
+			HEX_NAME = 草原
+			HEX_FILENAME = Parairie
+			HEX_MOVE_COST = 2
+			HEX_COVER_RATE = 0
+			HEX_Obstacle = False
+
+		CASE "森"
+			HEX_NAME = 森林
+			HEX_FILENAME = Forest
+			HEX_MOVE_COST = 5
+			HEX_COVER_RATE = 20
+			HEX_Obstacle = True
+
+		CASE "海"
+			HEX_NAME = 海
+			HEX_FILENAME = Sea
+			HEX_MOVE_COST = 999
+			HEX_COVER_RATE = 0
+			HEX_Obstacle = False
+
+		CASE "街"
+			HEX_NAME = 都市
+			HEX_FILENAME = City
+			HEX_MOVE_COST = 5
+			HEX_COVER_RATE = 35
+			HEX_Obstacle = True
+
+		CASE "家"
+			HEX_NAME = 住宅街
+			HEX_FILENAME = Error
+			HEX_MOVE_COST = 3
+			HEX_COVER_RATE = 30
+			HEX_Obstacle = True
+
+		CASE "道"
+			HEX_NAME = 道路
+			HEX_FILENAME = Road
+			HEX_MOVE_COST = 1
+			HEX_COVER_RATE = 0
+			HEX_Obstacle = False
+
+		CASE "砂"
+			HEX_NAME = 砂漠
+			HEX_FILENAME = Desert
+			HEX_MOVE_COST = 3
+			HEX_COVER_RATE = 10
+			HEX_Obstacle = False
+
+		CASE "無"
+			HEX_NAME = 虚無
+			HEX_FILENAME = NoneHex
+			HEX_MOVE_COST = 999
+			HEX_COVER_RATE = 0
+			HEX_Obstacle = True
+
+		CASEELSE
+			HEX_NAME = Error
+			HEX_FILENAME = Error
+			HEX_MOVE_COST = 999
+			HEX_COVER_RATE = 0
+			HEX_Obstacle = True
+			
+	ENDSELECT
+
+	SELECTCASE ARGS:1
+		CASE "タイル名"
+			RETURNF HEX_NAME
+		CASE "ファイル名"
+			RETURNF HEX_FILENAME
+		CASE "移動コスト"
+			RETURNF HEX_MOVE_COST
+		CASE "遮蔽率"
+			RETURNF HEX_COVER_RATE
+		CASE "解説"
+			RETURNF @"%HEX_NAME%\n移動コスト：%HEX_MOVE_COST%\n遮蔽率：%HEX_COVER_RATE%"
+		CASEELSE
+			RETURNF "Demoslaviya20XX_GET_HEXDATA の第二引数に、何が欲しいか記入してくれよな!"
+	ENDSELECT
+;=========================
+;ヘクスタイル解説ツールチップ作成メソッド
+;ARGS = タイル名
+;=========================
+@Demoslaviya20XX_Generate_Hex_Comment(ARGS)
+#FUNCTIONS
+	#DIMS RESULT_DATA
+
+	RESULT_DATA = 
+	RESULT_DATA += @"%Demoslaviya20XX_GET_HEXDATA(ARGS,"タイル名")%"
+	RESULT_DATA += @"\n"
+	RESULT_DATA += @"移動コスト：%Demoslaviya20XX_GET_HEXDATA(ARGS,"移動コスト")%\n"
+	RESULT_DATA += @"遮蔽率　：%Demoslaviya20XX_GET_HEXDATA(ARGS,"遮蔽率")%\n"
+	RESULT_DATA += @"---解説---\n"
+	RESULT_DATA += @"%Demoslaviya20XX_GET_HEXDATA(ARGS,"解説")%"
+	
+	RETURNF RESULT_DATA

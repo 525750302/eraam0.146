@@ -1,0 +1,85 @@
+﻿@COM87
+;尿道背面座位
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+;-------------------------------------------------
+;射精チェック
+;-------------------------------------------------
+CALL SAMEN_CHECK
+
+RETURN 1
+
+@FLAG_COM87, ARG
+CALL FLAG_INSERTION, "尿道インサート", ARG, 60
+CALL FLAG_COM5, 50
+
+
+@SOURCE_COM87, ARG
+CALL SOURCE_INSERTION, "尿道インサート", ARG, 60
+CALL SOURCE_COM5, 50
+
+CALL VARSET_COMF
+
+SOURCE:0:露出 = 500
+SOURCE:0:情愛 = 500
+
+;PALAM:欲情をみる
+SELECTCASE PALAM:欲情
+CASE IS < PALAMLV:1
+	TIMES SOURCE:0:情愛, 0.30
+CASE IS < PALAMLV:2
+	TIMES SOURCE:0:情愛, 0.60
+CASE IS < PALAMLV:3
+	TIMES SOURCE:0:情愛, 1.00
+CASE IS < PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.50
+CASE IS >= PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.80
+ENDSELECT
+
+CALL CALC, "調教ソース", ARG
+
+
+
+@TRAIN_MESSAGE_COM87
+#DIM MEMO_LINECOUNT
+
+MEMO_LINECOUNT = LINECOUNT
+CALL TRAIN_MESSAGE_INSERTION
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+PRINTFORM %CALLNAME:PLAYER%は
+IF COND("前Ｔから対象のみ変更") && VAU_INSERT_PLAY(PREVCOM:1)
+	CALL ADD_TEXT, "性器から性器へ"
+	PRINTFORM %CALLNAME:TARGET%に身体をもたれかけさせながら%TEXTS("尿道")%尿道
+;穴開きでないパンツをはいていて、ずらされていないなら、必ずずらす
+ELSEIF !CHECK_CLO("Ｖ露出") && CHECK_CLO("Ｖ露出可")
+	PRINTFORM %CALLNAME:TARGET%の
+	CALL SETFLAG, "ボトムを露出：テキスト有り", TARGET
+	PRINTFORM 、身体をもたれかけさせながら%TEXTS("尿道")%尿道
+ELSE
+	PRINTFORM %CALLNAME:TARGET%に身体をもたれかけさせながら%TEXTS("尿道")%尿道
+ENDIF
+
+IF (TALENT:淫乱 || ABL:露出癖 >= 3) && RAND:2 == 0
+	PRINTFORM にペニスをゆっくりと呑み込ませ、
+	IF TEQUIP:キス
+		PRINTFORMW 唇を奪った…
+		CALL SETFLAG, "追加キスフラグ", TARGET
+	ELSE
+		PRINTFORMW 脚を大きく開かせた…
+	ENDIF
+ELSEIF TEQUIP:キス
+	PRINTFORMW を待ち構えていたペニスでゆっくりと貫き、唇を奪った…
+	CALL SETFLAG, "追加キスフラグ", TARGET
+ELSE
+	PRINTFORMW を待ち構えていたペニスでゆっくりと貫いた…
+ENDIF

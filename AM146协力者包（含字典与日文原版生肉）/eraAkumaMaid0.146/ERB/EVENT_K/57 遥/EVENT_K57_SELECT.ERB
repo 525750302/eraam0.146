@@ -1,0 +1,69 @@
+﻿;-------------------------------------------------
+;ここに記述する事で各コマンドの選択肢を増やすことができる
+;X1はキャラ番号に置換してください
+;-------------------------------------------------
+;お願い・取引での選択肢を追加。番号は60～89を使ってよい
+;ここで TFLAG:取引可能 = 1 とすると、Ｈの最中でもここの選択肢が出ます
+@WISH_K57_ADDSELECT
+;女装or男装に姿を変えるお願い
+;ノノくんの女装をそのまま移植したもの
+IF CEVENT("女装教習")
+	IF CEVENT("女装")
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("服を戻して", 16)% … %CALLNAME:TARGET%の服を戻してもらいます/
+	ELSE
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("女装して", 16)% … %CALLNAME:TARGET%に女装してもらいます/
+	ENDIF
+ENDIF
+
+;お願い・取引で増やした選択肢の地の文と台詞
+@KOJO_WISH_K57_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "服を戻して"
+	IF CFLAG:女装乗り気度 >= 30
+		PRINTFORMW 「え？　もういいのか？」
+	ELSE
+		PRINTFORMW 「や、やっと終わった……」
+	ENDIF
+	PRINTL 
+	PRINTFORMW %CALLNAME:TARGET%は明日から男物の服を着て部室に遊びにくるようになりました。
+	CALL DEL_CEVENT, "女装"
+	CALL K57_CLOTHCHANGE
+	;フラグを弄る場合はそれもここで行う
+CASE "女装して"
+	CALL PRINT_STRW, @"「わ、わかった……_H_」"
+	PRINTL 
+	PRINTFORMW %CALLNAME:TARGET%は明日から女装して部室に遊びにくるようになりました。
+	CALL SET_CEVENT, "女装"
+	CALL K57_CLOTHCHANGE
+	;フラグを弄る場合はそれもここで行う
+ENDSELECT
+
+;-------------------------------------------------
+;トークコマンドの選択肢を追加
+@DAILY1_K57_ADDSELECT
+SIF CEVENT("女装")
+	STR:選択肢 += "女装を褒める/"
+
+;トークコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY1_K57_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "女装を褒める"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の女装を褒めた
+	PRINTL 
+	SELECTCASE CFLAG:女装乗り気度
+	CASE IS >= 30
+		PRINTFORMW 「フッフッフ、そうだろー？」
+		PRINTFORMW %CALLNAME:TARGET%は嬉しそうだ……。
+	CASE IS >= 15
+		PRINTFORMW 「そ、そうかな……ヘヘヘ……」
+		PRINTFORMW %CALLNAME:TARGET%は顔を赤らめている……。
+	CASE IS >= 5
+		PRINTFORMW 「……そ、そんなに似合ってるのか……？」
+		PRINTFORMW %CALLNAME:TARGET%はまんざらでもなさそうだ……。
+	CASEELSE
+		PRINTFORMW 「えー？　そんなことないだろー？」
+		PRINTFORMW %CALLNAME:TARGET%は怪訝そうな視線を%CALLNAME:MASTER%によこしている……。
+	ENDSELECT
+	SIF CFLAG:女装乗り気度 <= 999
+		CFLAG:女装乗り気度++
+ENDSELECT

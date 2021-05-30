@@ -1,0 +1,150 @@
+;-------------------------------------------------
+;ABL:尿道感覚 のLVUP処理
+;-------------------------------------------------
+@ABLUP15
+#DIM LCOUNT
+#DIM CHOICE
+#DIM NUM_CHOICES
+#DIM SET_CHOICE
+#DIM NUM_JUEL, 10
+
+;必要な珠などの値を取得
+CALL IS_ABLUP15
+;何もできない場合
+IF RESULT == 0 && ABL:尿道感覚 >= 99
+	PRINTFORMW 既にMAXです。
+	RETURN 0
+ENDIF
+
+DRAWLINE
+
+VARSET NUM_JUEL
+NUM_CHOICES = 0
+IF ABL:尿道感覚 < 99
+	;珠以外で必要な条件や軽減の内訳の記載
+	SETCOLOR DEF_COLOR("黄色")
+	SELECTCASE EXP:尿道経験
+	CASE IS >= EXP_LV(ABL:尿道感覚 + 3)
+		PRINTFORML ※尿道経験が非常に多いので、要求される珠が80％減少しています※
+	CASE IS >= EXP_LV(ABL:尿道感覚 + 2)
+		PRINTFORML ※尿道経験がとても多いので、要求される珠が50％減少しています※
+	CASE IS >= EXP_LV(ABL:尿道感覚 + 1)
+		PRINTFORML ※尿道経験が多いので、要求される珠が20％減少しています※
+	;著しく足りていない
+	CASE IS < MAX(EXP_LV(ABL:尿道感覚), 1)
+		PRINTFORML ※尿道経験が少なすぎるので、要求される珠が３倍に増加しています※
+	ENDSELECT
+	RESETCOLOR
+
+	FOR LCOUNT, 0, 16
+		SIF JUEL:0:LCOUNT == 0
+			CONTINUE
+
+		IF JUEL:LCOUNT >= JUEL:0:LCOUNT
+			PRINTFORML  [{NUM_CHOICES, 2}] %PALAMNAME:LCOUNT%の珠 {JUEL:LCOUNT, 8}/{JUEL:0:LCOUNT} ……ＯＫ
+		ELSE
+			SETCOLOR DEF_COLOR("灰色")
+			PRINTFORML  [×] %PALAMNAME:LCOUNT%の珠 {JUEL:LCOUNT, 8}/{JUEL:0:LCOUNT}
+			RESETCOLOR
+		ENDIF
+		NUM_JUEL:NUM_CHOICES = LCOUNT
+		NUM_CHOICES += 1
+	NEXT
+ENDIF
+
+;特殊な選択肢
+SET_CHOICE = 0
+;尿道狂いを得る
+IF TALENT:尿道狂い == 0
+	IF COND("尿道狂い取得可能")
+		PRINTFORML  [10] [尿道狂い]を獲得する
+		SET_CHOICE = 10
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORML  [×] [尿道狂い]を獲得する(要:快尿の珠{NUM("宝珠：尿道狂い取得")}、尿道感覚4LV、今回の尿道絶頂数20)
+		RESETCOLOR
+	ENDIF
+ENDIF
+
+PRINTL [100] 戻る
+
+CALL INPUT_SELECT, NUM_CHOICES, SET_CHOICE, 100
+
+CHOICE = RESULT
+
+SELECTCASE CHOICE
+CASE 100
+	RETURN 0
+CASE 10
+	IF JUEL:快尿 >= NUM("宝珠：尿道狂い取得") && TALENT:尿道狂い == 0
+		JUEL:快尿 -= NUM("宝珠：尿道狂い取得")
+		TALENT:尿道狂い = 1
+		PRINTFORMW %CALLNAME:TARGET%のこちらを見る目がおかしい…
+		IF TALENT:恋慕 || TALENT:淫乱
+			PRINTFORMW %CALLNAME:TARGET%は一戦終えた後にもかかわらず、%CALLNAME:MASTER%にオシッコの穴をいじめて欲しいと懇願してきた…
+		ELSE
+			PRINTFORMW %CALLNAME:TARGET%は自らの尿道を慰めながら%CALLNAME:MASTER%に物欲しげな視線を送っている…
+		ENDIF
+		PRINTL 
+		SETCOLOR DEF_COLOR("ハートピンク")
+		PRINTFORMW %CALLNAME:TARGET%は[尿道狂い]を得た
+		RESETCOLOR
+	ENDIF
+CASEELSE
+	IF NUM_CHOICES && JUEL:(NUM_JUEL:CHOICE) >= JUEL:0:(NUM_JUEL:CHOICE)
+		JUEL:(NUM_JUEL:CHOICE) -= JUEL:0:(NUM_JUEL:CHOICE)
+		ABL:尿道感覚 += 1
+		PRINTFORMW 尿道感覚が{ABL:尿道感覚}LVになりました。
+	ENDIF
+ENDSELECT
+
+;まだレベルが上げられたりする場合には最初に戻る
+CALL IS_ABLUP15
+SIF RESULT
+	RESTART
+
+
+
+;ABL:尿道感覚のLVUPに必要な条件を算出し、LVUP出来るなら1を返す
+@IS_ABLUP15, ARGS
+CALL VARSET_ABLUP
+SELECTCASE ABL:尿道感覚
+CASE 0
+	JUEL:0:快尿 = 500
+CASE 1
+	JUEL:0:快尿 = 1000
+CASE 2
+	JUEL:0:快尿 = 3000
+CASE 3 TO 4
+	JUEL:0:快尿 = (ABL:尿道感覚 - 2) * 5000
+CASE 5 TO 9
+	JUEL:0:快尿 = 10000 + (ABL:尿道感覚 - 4) * 10000
+CASEELSE
+	JUEL:0:快尿 = 70000 + (ABL:尿道感覚 - 9) * 30000
+ENDSELECT
+
+;尿道経験による軽減(増えづらい経験なので回数はＶやＡより格段に少ない)
+SELECTCASE EXP:尿道経験
+CASE IS >= EXP_LV(ABL:尿道感覚 + 3)
+	TIMES JUEL:0:快尿, 0.20
+CASE IS >= EXP_LV(ABL:尿道感覚 + 2)
+	TIMES JUEL:0:快尿, 0.50
+CASE IS >= EXP_LV(ABL:尿道感覚 + 1)
+	TIMES JUEL:0:快尿, 0.80
+;著しく足りていない
+CASE IS < MAX(EXP_LV(ABL:尿道感覚), 1)
+	TIMES JUEL:0:快尿, 3.00
+ENDSELECT
+
+
+;尿道狂いが獲得できる？
+SIF COND("尿道狂い取得可能") && ARGS != "ＬＶ限定"
+	RETURN 1
+;最大LV未満か？
+SIF ABL:尿道感覚 >= 99
+	RETURN 0
+
+;条件のどれかをクリアしてる？
+SIF JUEL:0:快尿 && JUEL:快尿 >= JUEL:0:快尿
+	RETURN 1
+RETURN 0

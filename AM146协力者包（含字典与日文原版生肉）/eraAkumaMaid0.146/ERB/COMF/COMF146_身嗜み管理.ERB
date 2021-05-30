@@ -1,0 +1,933 @@
+﻿@COM146
+;身嗜み管理
+
+PRINTL 身嗜み管理
+
+;-------------------------------------------------
+;実行できるかの判定
+;-------------------------------------------------
+CALL SHOW_COM_ORDER_COM, 146
+
+;実行できない
+SIF TCVAR:やる気 == 0
+	RETURN 0
+;-------------------------------------------------
+;実行決定
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = 身嗜み管理
+
+CALL SETFLAG, "今回コマンド"
+
+RETURN 0
+
+
+@TRAIN_MESSAGE_COM146
+CALL SET_MIDASHINAMI
+
+
+@SET_MIDASHINAMI, ARG
+#DIM MEMO_LINECOUNT
+#DIM MEMO_FLAG
+#DIM MEMO_PRE, 20
+#DIM MEMO, 20
+
+SIF ARG < 0
+	RETURN 0
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+
+REDRAW 0
+
+VARSET MEMO, 100
+
+MEMO_FLAG = CFLAG:ARG:身嗜み
+;MARK:屈服刻印で判定する
+MEMO_PRE:0 = COND("身嗜み：陰毛", ARG)
+MEMO_PRE:1 = COND("身嗜み：腋毛", ARG)
+MEMO_PRE:2 = COND("身嗜み：Ｖ拡張", ARG)
+MEMO_PRE:3 = COND("身嗜み：Ａ拡張", ARG)
+MEMO_PRE:4 = COND("身嗜み：Ａ準備", ARG)
+MEMO_PRE:5 = COND("身嗜み：Ｐ準備", ARG)
+MEMO_PRE:6 = COND("身嗜み：Ｖ準備", ARG)
+MEMO_PRE:7 = COND("身嗜み：服装", ARG)
+MEMO_PRE:8 = COND("身嗜み：尿道拡張", ARG)
+MEMO_PRE:9 = COND("身嗜み：性行為の制限", ARG)
+MEMO_PRE:10 = COND("身嗜み：性欲の管理", ARG)
+
+
+$START
+
+TFLAG:地の文分岐 = 0
+
+IF ARG != MASTER
+	PRINTL 
+	PRINTFORML %CALLNAME:ARG%に普段の身だしなみについてお願いしてみましょう
+	IF COND("調教中", ARG)
+		PRINTFORML ※注：このコマンドは各エッチ中に一度しか選択できません
+		;PRINTFORML 出したい指示を全部出してから終了してあげましょう
+	ENDIF
+ENDIF
+PRINTL 
+
+IF CONFIG("陰毛")
+	IF ARG == MASTER || MARK:ARG:屈服刻印 >= 1
+		PRINTFORM  [ 0] %TEXT_RJ("陰毛の状態", 20)%：
+		SETCOLOR DEF_COLOR("暗黄色")
+		MEMO:0 = 0
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORM  [×] %TEXT_RJ("陰毛の状態", 20)%：
+	ENDIF
+	SELECTCASE COND("身嗜み：陰毛", ARG)
+	CASE 0
+		SIF MEMO:0 == 0
+			RESETCOLOR
+		PRINTFORM \@ ARG == MASTER ? 特に気にしない # 指示なし \@
+	CASE 3
+		PRINTFORM 常にツルツル
+	CASE 5
+		PRINTFORM 常に整える
+	CASE 7
+		PRINTFORM \@ ARG == MASTER ? 剃らない # 剃らせない \@
+	ENDSELECT
+	SIF GETCOLOR() == DEF_COLOR("灰色")
+		PRINTFORM （要:屈服刻印１LV）
+	PRINTL 
+	RESETCOLOR
+ENDIF
+
+IF CONFIG("腋毛")
+	IF ARG == MASTER || MARK:ARG:屈服刻印 >= 1
+		PRINTFORM  [ 1] 　　　　　%TEXTS("腋")%毛の状態：
+		SETCOLOR DEF_COLOR("暗黄色")
+		MEMO:1 = 1
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORM  [×] 　　　　　%TEXTS("腋")%毛の状態：
+	ENDIF
+	SELECTCASE COND("身嗜み：腋毛", ARG)
+	CASE 0
+		SIF MEMO:1 == 1
+			RESETCOLOR
+		PRINTFORM \@ ARG == MASTER ? 特に気にしない # 指示なし \@
+	CASE 3
+		PRINTFORM 常にツルツル
+	CASE 7
+		PRINTFORM \@ ARG == MASTER ? 剃らない # 剃らせない \@
+	ENDSELECT
+	SIF GETCOLOR() == DEF_COLOR("灰色")
+		PRINTFORM （要:屈服刻印１LV）
+	PRINTL 
+	RESETCOLOR
+ENDIF
+
+IF TALENT:ARG:オトコ == 0
+	IF ARG == MASTER || (ABL:ARG:Ｖ拡張 >= 1 && MARK:ARG:屈服刻印 >= 2)
+		PRINTFORM  [ 2] %TEXT_RJ("常時Ｖバイブ挿入", 20)%：
+		SETCOLOR DEF_COLOR("暗黄色")
+		MEMO:2 = 2
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORM  [×] %TEXT_RJ("常時Ｖバイブ挿入", 20)%：
+	ENDIF
+	SELECTCASE COND("身嗜み：Ｖ拡張", ARG)
+	CASE 0
+		SIF MEMO:2 == 2
+			RESETCOLOR
+		PRINTFORM \@ ARG == MASTER ? しない # 指示なし \@
+	CASE 1
+		PRINTFORM 普通の大きさ
+	CASE 2
+		PRINTFORM おっきいの
+	CASE 3
+		PRINTFORM 極太
+	CASE 4
+		PRINTFORM 超極太
+	ENDSELECT
+	SIF GETCOLOR() == DEF_COLOR("灰色")
+		PRINTFORM （要:屈服刻印２LV＆Ｖ拡張１LV）
+	PRINTL 
+	RESETCOLOR
+ENDIF
+
+IF ARG == MASTER || (ABL:ARG:Ａ拡張 >= 1 && MARK:ARG:屈服刻印 >= 3)
+	PRINTFORM  [ 3] %TEXT_RJ("常時Ａプラグ挿入", 20)%：
+	SETCOLOR DEF_COLOR("暗黄色")
+	MEMO:3 = 3
+ELSE
+	SETCOLOR DEF_COLOR("灰色")
+	PRINTFORM  [×] %TEXT_RJ("常時Ａプラグ挿入", 20)%：
+ENDIF
+SELECTCASE COND("身嗜み：Ａ拡張", ARG)
+CASE 0
+	SIF MEMO:3 == 3
+		RESETCOLOR
+	PRINTFORM \@ ARG == MASTER ? しない # 指示なし \@
+CASE 1
+	PRINTFORM 普通の大きさ
+CASE 2
+	PRINTFORM おっきいの
+CASE 3
+	PRINTFORM 極太
+CASE 4
+	PRINTFORM 超極太
+ENDSELECT
+SIF GETCOLOR() == DEF_COLOR("灰色")
+	PRINTFORM （要:屈服刻印３LV＆Ａ拡張１LV）
+PRINTL 
+RESETCOLOR
+
+IF ARG == MASTER || (MARK:ARG:屈服刻印 >= 3 && (COND("Ａ熟達") || CONDS("調教知識", ARG) == "Ａ調教知識") )
+	PRINTFORM  [ 4] %TEXT_RJ("アナルプレイの準備", 20)%：
+	SETCOLOR DEF_COLOR("暗黄色")
+	MEMO:4 = 4
+ELSE
+	SETCOLOR DEF_COLOR("灰色")
+	PRINTFORM  [×] %TEXT_RJ("アナルプレイの準備", 20)%：
+ENDIF
+SELECTCASE COND("身嗜み：Ａ準備", ARG)
+CASE 0
+	SIF MEMO:4 == 4
+		RESETCOLOR
+	PRINTFORM \@ ARG == MASTER ? しない # 指示なし \@
+CASE 1
+	PRINTFORM 調教前に洗浄
+CASE 2
+	PRINTFORM ローション
+CASE 3
+	PRINTFORM 調教前に洗浄＆ローション
+ENDSELECT
+SIF GETCOLOR() == DEF_COLOR("灰色")
+	PRINTFORM （要:屈服刻印３LVに加えて、[Ａ熟達]or[Ａ調教知識]）
+PRINTL 
+RESETCOLOR
+
+IF PENIS(ARG) && COND("真性包茎", ARG) == 0
+	IF ARG == MASTER || MARK:ARG:屈服刻印 >= 1
+		PRINTFORM  [ 5] %TEXT_RJ("ペニスの状態", 20)%：
+		SETCOLOR DEF_COLOR("暗黄色")
+		MEMO:5 = 5
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORM  [×] %TEXT_RJ("ペニスの状態", 20)%：
+	ENDIF
+
+	SELECTCASE COND("身嗜み：Ｐ準備", ARG)
+	CASE 0
+		SIF MEMO:5 == 5
+			RESETCOLOR
+		PRINTFORM \@ ARG == MASTER ? 特に気にしない # 指示なし \@
+	CASE 1
+		PRINTFORM \@ ARG == MASTER ? 汚れを意図的にそのままにする # 汚れをそのままにさせる \@
+	ENDSELECT
+	SIF GETCOLOR() == DEF_COLOR("灰色")
+		PRINTFORM （要:屈服刻印１LV）
+	PRINTL 
+	RESETCOLOR
+ENDIF
+
+IF TALENT:ARG:オトコ == 0
+	IF ARG == MASTER || MARK:ARG:屈服刻印 >= 2
+		PRINTFORM  [ 6] %TEXT_RJ("アソコの状態", 20)%：
+		SETCOLOR DEF_COLOR("暗黄色")
+		MEMO:6 = 6
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORM  [×] %TEXT_RJ("アソコの状態", 20)%：
+	ENDIF
+
+	SELECTCASE COND("身嗜み：Ｖ準備", ARG)
+	CASE 0
+		SIF MEMO:6 == 6
+			RESETCOLOR
+		PRINTFORM \@ ARG == MASTER ? 特に気にしない # 指示なし \@
+	CASE 1
+		PRINTFORM \@ ARG == MASTER ? 汚れを意図的にそのままにする # あまりよく洗わない \@
+	ENDSELECT
+	SIF GETCOLOR() == DEF_COLOR("灰色")
+		PRINTFORM （要:屈服刻印２LV）
+	PRINTL 
+	RESETCOLOR
+ENDIF
+
+;ちんこ有る場合にはパンツはいた方が良いと思う
+IF PENIS(ARG) == 0
+	IF ARG == MASTER || MARK:ARG:屈服刻印 >= 2
+		PRINTFORM  [ 7] %TEXT_RJ("服装", 20)%：
+		SETCOLOR DEF_COLOR("暗黄色")
+		MEMO:7 = 7
+
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORM  [×] %TEXT_RJ("服装", 20)%：
+	ENDIF
+
+	SELECTCASE COND("身嗜み：服装", ARG)
+	CASE 0
+		SIF MEMO:7 == 7
+			RESETCOLOR
+		PRINTFORM \@ ARG == MASTER ? 特に気にしない # 指示なし \@
+	CASE 1
+		PRINTFORM \@ ARG == MASTER ? ノーパン主義 # パンツの着用禁止 \@
+	ENDSELECT
+	SIF GETCOLOR() == DEF_COLOR("灰色")
+		PRINTFORM （要:屈服刻印２LV）
+	PRINTL 
+	RESETCOLOR
+ENDIF
+
+;尿道の拡張が進んでいるなら自分にもやらせる事が可能
+IF ARG == MASTER || (MARK:ARG:屈服刻印 >= 2 && ABL:ARG:尿道拡張 >= 0)
+	PRINTFORM  [ 8] %TEXT_RJ("常時尿道プラグ挿入", 20)%：
+	SETCOLOR DEF_COLOR("暗黄色")
+	MEMO:8 = 8
+ELSE
+	SETCOLOR DEF_COLOR("灰色")
+	PRINTFORM  [×] %TEXT_RJ("常時尿道プラグ挿入", 20)%：
+ENDIF
+
+SELECTCASE COND("身嗜み：尿道拡張", ARG)
+CASE 0
+	SIF MEMO:8 == 8
+		RESETCOLOR
+	PRINTFORM \@ ARG == MASTER ? しない # 指示なし \@
+CASE 1
+	PRINTFORM 指ほどの太さ
+CASE 2
+	PRINTFORM 平均的なペニスほどの大きさ
+CASE 3
+	PRINTFORM おっきいの
+CASE 4
+	PRINTFORM 極太
+CASE 5
+	PRINTFORM 超極太
+ENDSELECT
+SIF GETCOLOR() == DEF_COLOR("灰色")
+	PRINTFORM （要:屈服刻印２LV＆尿道拡張０LV）
+PRINTL 
+RESETCOLOR
+
+;性交の制限をさせる
+IF ARG != MASTER
+	IF MARK:ARG:屈服刻印 >= 3
+		PRINTFORM  [ 9] %TEXT_RJ("性行為の制限", 20)%：
+		SETCOLOR DEF_COLOR("暗黄色")
+		MEMO:9 = 9
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORM  [×] %TEXT_RJ("性行為の制限", 20)%：
+	ENDIF
+
+	SELECTCASE COND("身嗜み：性行為の制限", ARG)
+	CASE 0
+		SIF MEMO:9 == 9
+			RESETCOLOR
+		PRINTFORM 指示なし
+	CASE 1
+		PRINTFORM 前の穴を使っての性行為禁止
+	CASE 2
+		PRINTFORM アナルを使っての性行為禁止
+	CASE 3
+		PRINTFORM 口を使っての奉仕禁止
+	CASE 4
+		PRINTFORM %CALLNAME:MASTER%以外とはキス禁止
+	CASE 5
+		PRINTFORM ペニスを使っての性行為禁止
+	CASE 100
+		PRINTFORM %CALLNAME:TARGET%は%CALLNAME:MASTER%専用
+	CASEELSE
+		VARSET LOCALS
+		LOCALS = %LOCALS%\@ COND("身嗜み：Ｖ独占", ARG) ? アソコと # \@
+		LOCALS = %LOCALS%\@ COND("身嗜み：Ａ独占", ARG) ? アナルと # \@
+		LOCALS = %LOCALS%\@ COND("身嗜み：口独占", ARG) ? 口での奉仕と # \@
+		LOCALS = %LOCALS%\@ COND("身嗜み：キス独占", ARG) ? キスと # \@
+		LOCALS = %LOCALS%\@ COND("身嗜み：Ｐ独占", ARG) ? 肉棒と # \@
+		PRINTFORM %SUBSTRING(LOCALS, 0, STRLENS(LOCALS) - 2)%を用いた行為を禁止
+	ENDSELECT
+	SIF GETCOLOR() == DEF_COLOR("灰色")
+		PRINTFORM （要:屈服刻印３LV）
+	PRINTL 
+	RESETCOLOR
+ENDIF
+
+;性欲の管理…なのだが今のところ自慰のみなので分かりやすく表記
+IF ARG != MASTER
+	IF MARK:ARG:屈服刻印 >= 2
+		;PRINTFORM  [10] %TEXT_RJ("性欲の管理", 20)%：
+		PRINTFORM  [10] %TEXT_RJ("自慰の制限", 20)%：
+		SETCOLOR DEF_COLOR("暗黄色")
+		MEMO:10 = 10
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		;PRINTFORM  [10] %TEXT_RJ("性欲の管理", 20)%：
+		PRINTFORM  [×] %TEXT_RJ("自慰の制限", 20)%：
+	ENDIF
+
+	SELECTCASE COND("身嗜み：性欲の管理", ARG)
+	CASE 0
+		SIF MEMO:10 == 10
+			RESETCOLOR
+		PRINTFORM 指示なし
+	CASE 1
+		PRINTFORM 自慰を禁止する
+	ENDSELECT
+	SIF GETCOLOR() == DEF_COLOR("灰色")
+		PRINTFORM （要:屈服刻印２LV）
+	PRINTL 
+	RESETCOLOR
+ENDIF
+
+
+IF ARG == MASTER
+	PRINTFORML [100] \@ MEMO_FLAG != CFLAG:ARG:身嗜み ? これでいい # やめる\@
+ELSE
+	PRINTFORML [100] \@ MEMO_FLAG != CFLAG:ARG:身嗜み ? 指示変更終了 # やめる\@
+ENDIF
+
+$INPUT_LOOP
+
+CALL INPUT_SELECT, 11, 100
+
+SELECTCASE RESULT
+CASE 100
+	SIF MEMO_FLAG == CFLAG:ARG:身嗜み
+		TFLAG:コマンドキャンセル = 1
+	REDRAW 1
+	RETURN 0
+CASEELSE
+	SIF RESULT != MEMO:RESULT
+		GOTO INPUT_LOOP
+
+	SELECTCASE RESULT
+	CASE 0
+		CALL SELECT_MIDASHINAMI, "身嗜み：陰毛", ARG, MEMO_PRE:0
+	CASE 1
+		CALL SELECT_MIDASHINAMI, "身嗜み：腋毛", ARG, MEMO_PRE:1
+	CASE 2
+		CALL SELECT_MIDASHINAMI, "身嗜み：Ｖ拡張", ARG, MEMO_PRE:2
+	CASE 3
+		CALL SELECT_MIDASHINAMI, "身嗜み：Ａ拡張", ARG, MEMO_PRE:3
+	CASE 4
+		CALL SELECT_MIDASHINAMI, "身嗜み：Ａ準備", ARG, MEMO_PRE:4
+	CASE 5
+		CALL SELECT_MIDASHINAMI, "身嗜み：Ｐ準備", ARG, MEMO_PRE:5
+	CASE 6
+		CALL SELECT_MIDASHINAMI, "身嗜み：Ｖ準備", ARG, MEMO_PRE:6
+	CASE 7
+		CALL SELECT_MIDASHINAMI, "身嗜み：服装", ARG, MEMO_PRE:7
+	CASE 8
+		CALL SELECT_MIDASHINAMI, "身嗜み：尿道拡張", ARG, MEMO_PRE:8
+	CASE 9
+		CALL SELECT_MIDASHINAMI, "身嗜み：性行為の制限", ARG, MEMO_PRE:9
+	CASE 10
+		CALL SELECT_MIDASHINAMI, "身嗜み：性欲の管理", ARG, MEMO_PRE:10
+	ENDSELECT
+ENDSELECT
+
+
+IF TFLAG:地の文分岐 && ARG == TARGET
+	MEMO_LINECOUNT = LINECOUNT
+
+	CALL KOJO_MESSAGE_COM
+
+	SIF LINECOUNT > MEMO_LINECOUNT
+		PRINTL 
+ENDIF
+
+GOTO START
+
+@SELECT_MIDASHINAMI, ARGS, ARG, ARG:1
+#DIM MEMO_LINECOUNT
+MEMO_LINECOUNT = LINECOUNT
+
+PRINTL 
+
+SELECTCASE ARGS
+CASE "身嗜み：陰毛"
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0 ? ○ # － \@ \@ ARG == MASTER ? 特に気にしない # 指示なし \@
+	PRINTFORML  [ 1] \@ COND(ARGS, ARG) == 3 ? ○ # － \@ \@ ARG == MASTER ? 常にツルツル状態を保つ # 常にツルツル状態を保たせる \@
+	PRINTFORML  [ 2] \@ COND(ARGS, ARG) == 5 ? ○ # － \@ \@ ARG == MASTER ? 常に綺麗に剃り整える # 常に綺麗に剃り整えさせる \@
+	PRINTFORML  [ 3] \@ COND(ARGS, ARG) == 7 ? ○ # － \@ \@ ARG == MASTER ? 剃らない # 自分では剃らないようにお願いする \@
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, 4, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 1
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASEELSE
+		VARSET LOCALS
+		CFLAG:ARG:身嗜み = CLEARBITS(CFLAG:ARG:身嗜み, 1, 5)
+		SIF RESULT
+			SETBIT CFLAG:ARG:身嗜み, RESULT
+
+		IF COND(ARGS, ARG) != ARG:1
+			SELECTCASE COND(ARGS, ARG)
+			CASE 0
+				LOCALS = 特には指示しないことにしました
+			CASE 3
+				LOCALS = %CALLNAME:ARG%に、毎朝ツルツルに剃るようにお願いしました
+			CASE 5
+				LOCALS = %CALLNAME:ARG%に、可能な限り陰毛の形を綺麗に保つようにお願いしました
+			CASE 7
+				LOCALS = %CALLNAME:ARG%に、陰毛を剃らないようにお願いしました
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+
+CASE "身嗜み：腋毛"
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0 ? ○ # － \@ \@ ARG == MASTER ? 特に気にしない # 指示なし \@
+	PRINTFORML  [ 1] \@ COND(ARGS, ARG) == 3 ? ○ # － \@ \@ ARG == MASTER ? 常にツルツル状態を保つ # 常にツルツル状態を保たせる \@
+	PRINTFORML  [ 2] \@ COND(ARGS, ARG) == 7 ? ○ # － \@ \@ ARG == MASTER ? 剃らない # 自分では剃らないようにお願いする \@
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, 3, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 2
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASEELSE
+		VARSET LOCALS
+		CFLAG:ARG:身嗜み = CLEARBITS(CFLAG:ARG:身嗜み, 6, 10)
+		SIF RESULT
+			SETBIT CFLAG:ARG:身嗜み, RESULT + 5
+
+		IF COND(ARGS, ARG) != ARG:1
+			SELECTCASE COND(ARGS, ARG)
+			CASE 0
+				LOCALS = 特には指示しないことにしました
+			CASE 3
+				LOCALS = %CALLNAME:ARG%に、毎朝ツルツルに剃るようにお願いしました
+			CASE 7
+				LOCALS = %CALLNAME:ARG%に、%TEXTS("腋")%毛を剃らないようにお願いしました
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+
+CASE "身嗜み：Ｖ拡張"
+	IF ARG != MASTER
+		PRINTFORML 膣の長さに合わせた専用のバイブ(持ち手は無し)を、日常生活において挿入してもらいます
+		PRINTFORML 長時間楽しみたい時に備えて、バイブの底に接続できるコード付きの電源ボックスも渡します
+		PRINTFORML （上限付きでＶ拡張経験等を獲得＆バイブ以下の大きさの挿入での苦痛減少）
+	ENDIF
+	PRINTFORML どのバイブにしますか？
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0 ? ○ # － \@ \@ ARG == MASTER ? 挿入しない # 指示しない \@
+	PRINTFORML  [ 1] \@ COND(ARGS, ARG) == 1 ? ○ # － \@ 平均的な大きさ
+	SIF ABL:ARG:Ｖ拡張 >= 2
+		PRINTFORML  [ 2] \@ COND(ARGS, ARG) == 2 ? ○ # － \@ ちょっと大きな上級者向け
+	SIF ABL:ARG:Ｖ拡張 >= 3
+		PRINTFORML  [ 3] \@ COND(ARGS, ARG) == 3 ? ○ # － \@ 女の腕より太そうな極太のバイブ
+	SIF ABL:ARG:Ｖ拡張 >= 4
+		PRINTFORML  [ 4] \@ COND(ARGS, ARG) == 4 ? ○ # － \@ 男の腕ほどの太さのある超極太のバイブ
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, LIMIT(ABL:ARG:Ｖ拡張 + 1, 2, 5), 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 3
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASEELSE
+		VARSET LOCALS
+		CFLAG:ARG:身嗜み = CLEARBITS(CFLAG:ARG:身嗜み, 11, 15)
+		SIF RESULT
+			SETBIT CFLAG:ARG:身嗜み, RESULT + 10
+
+		IF COND(ARGS, ARG) != ARG:1
+			SELECTCASE COND(ARGS, ARG)
+			CASE 0
+				LOCALS = 特には指示しないことにしました
+			CASE 1
+				LOCALS = %CALLNAME:ARG%に、バイブを挿入しておくようにお願いしました
+			CASE 2
+				LOCALS = %CALLNAME:ARG%に、大きなバイブを挿入しておくようにお願いしました
+			CASE 3
+				LOCALS = %CALLNAME:ARG%に、極太のバイブを挿入しておくようにお願いしました
+			CASE 4
+				LOCALS = %CALLNAME:ARG%に、超極太のバイブを挿入しておくようにお願いしました
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+
+CASE "身嗜み：Ａ拡張"
+	IF ARG != MASTER
+		PRINTFORML お尻の穴をみっちりと塞ぐアナルプラグを、日常生活において挿入してもらいます
+		PRINTFORML （上限付きでＡ拡張経験等を獲得＆Ａプラグ以下の大きさの挿入での苦痛減少）
+	ENDIF
+	PRINTFORML どのサイズにしますか？
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0 ? ○ # － \@ \@ ARG == MASTER ? 挿入しない # 指示しない \@
+	PRINTFORML  [ 1] \@ COND(ARGS, ARG) == 1 ? ○ # － \@ 平均的な大きさのアナルプラグ
+	SIF ABL:ARG:Ａ拡張 >= 2
+		PRINTFORML  [ 2] \@ COND(ARGS, ARG) == 2 ? ○ # － \@ 出し入れに梃子摺りそうな大きめサイズ
+	SIF ABL:ARG:Ａ拡張 >= 3
+		PRINTFORML  [ 3] \@ COND(ARGS, ARG) == 3 ? ○ # － \@ ずっしりとした極大サイズ
+	SIF ABL:ARG:Ａ拡張 >= 4
+		PRINTFORML  [ 4] \@ COND(ARGS, ARG) == 4 ? ○ # － \@ 日常生活に影響が出そうな超大型サイズ
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, LIMIT(ABL:ARG:Ａ拡張 + 1, 2, 5), 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 4
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASEELSE
+		VARSET LOCALS
+		CFLAG:ARG:身嗜み = CLEARBITS(CFLAG:ARG:身嗜み, 16, 20)
+		SIF RESULT
+			SETBIT CFLAG:ARG:身嗜み, RESULT + 15
+
+		IF COND(ARGS, ARG) != ARG:1
+			SELECTCASE COND(ARGS, ARG)
+			CASE 0
+				LOCALS = 特には指示しないことにしました
+			CASE 1
+				LOCALS = %CALLNAME:ARG%に、アナルプラグを挿入しておくようにお願いしました
+			CASE 2
+				LOCALS = %CALLNAME:ARG%に、大きなアナルプラグを挿入しておくようにお願いしました
+			CASE 3
+				LOCALS = %CALLNAME:ARG%に、極太のアナルプラグを挿入しておくようにお願いしました
+			CASE 4
+				LOCALS = %CALLNAME:ARG%に、超大型のアナルプラグを挿入しておくようにお願いしました
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+
+CASE "身嗜み：Ａ準備"
+	IF ARG != MASTER
+		PRINTFORML アナルでのプレイを快適に行うために、エッチの前準備をお願いします
+		;PRINTFORML （事前に綺麗にさせておくとＡ汚れと排泄での見苦しさの緩和作用有り）
+		PRINTFORML （事前に綺麗にさせておくと排泄等での見苦しさの緩和作用有り）
+	ENDIF
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0 ? ○ # － \@ \@ ARG == MASTER ? しない # 指示なし \@
+	PRINTFORML  [ 1] \@ COND(ARGS, ARG) == 1 ? ○ # － \@ \@ ARG == MASTER ? 前もって綺麗にする # 前もって綺麗にさせる \@
+	PRINTFORML  [ 2] \@ COND(ARGS, ARG) == 2 ? ○ # － \@ \@ ARG == MASTER ? 前もってローションを塗りこんでおく # 前もってローションを塗りこませる \@
+	PRINTFORML  [ 3] \@ COND(ARGS, ARG) == 3 ? ○ # － \@ 事前準備＆ローション
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, 4, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 5
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASEELSE
+		VARSET LOCALS
+		CFLAG:ARG:身嗜み = CLEARBITS(CFLAG:ARG:身嗜み, 21, 25)
+		SIF RESULT
+			SETBIT CFLAG:ARG:身嗜み, RESULT + 20
+
+		IF COND(ARGS, ARG) != ARG:1
+			SELECTCASE COND(ARGS, ARG)
+			CASE 0
+				LOCALS = 特には指示しないことにしました
+			CASE 1
+				LOCALS = %CALLNAME:ARG%に、調教前に腸内を綺麗にしておくようにお願いしました
+			CASE 2
+				LOCALS = %CALLNAME:ARG%に、調教前にローションをアナルに塗りこむようにお願いしました
+			CASE 3
+				LOCALS = %CALLNAME:ARG%に、調教前の腸内洗浄とローションの準備をお願いしました
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+
+CASE "身嗜み：Ｐ準備"
+	IF ARG != MASTER
+		PRINTFORML ペニスでのプレイを快適に行うために普段の身嗜みをお願いします
+	ENDIF
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0 ? ○ # － \@ \@ ARG == MASTER ? 特に気にしない # 指示なし \@（基本的には不潔な状態は避けます）
+	PRINTFORML  [ 1] \@ COND(ARGS, ARG) == 1 ? ○ # － \@ \@ ARG == MASTER ? 汚れを意図的にそのままにする # 汚れをそのままにさせる \@
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, 3, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 6
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASEELSE
+		VARSET LOCALS
+
+		SELECTCASE RESULT
+		CASE 0
+			CLEARBIT CFLAG:ARG:身嗜み, 26
+		CASE 1
+			SETBIT CFLAG:ARG:身嗜み, 26
+		ENDSELECT
+
+		IF COND(ARGS, ARG) != ARG:1
+			SELECTCASE COND(ARGS, ARG)
+			CASE 0
+				LOCALS = 特には指示しないことにしました
+			CASE 1
+				LOCALS = %CALLNAME:ARG%に、ペニスの恥垢をそのままにするようにお願いしました
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+
+CASE "身嗜み：Ｖ準備"
+	IF ARG != MASTER
+		PRINTFORML アソコでのプレイを快適に行うために普段の身嗜みをお願いします
+	ENDIF
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0 ? ○ # － \@ \@ ARG == MASTER ? 特に気にしない # 指示なし \@（基本的には不潔な状態は避けます）
+	PRINTFORML  [ 1] \@ COND(ARGS, ARG) == 1 ? ○ # － \@ \@ ARG == MASTER ? 汚れを意図的にそのままにする # 汚れをそのままにさせる \@
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, 3, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 7
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASEELSE
+		VARSET LOCALS
+
+		SELECTCASE RESULT
+		CASE 0
+			CLEARBIT CFLAG:ARG:身嗜み, 28
+		CASE 1
+			SETBIT CFLAG:ARG:身嗜み, 28
+		ENDSELECT
+
+		IF COND(ARGS, ARG) != ARG:1
+			SELECTCASE COND(ARGS, ARG)
+			CASE 0
+				LOCALS = 特には指示しないことにしました
+			CASE 1
+				LOCALS = %CALLNAME:ARG%に、丁寧に洗うのは止めるようにお願いしました
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+
+CASE "身嗜み：服装"
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0 ? ○ # － \@ \@ ARG == MASTER ? 特に気にしない # 指示なし \@
+	PRINTFORML  [ 1] \@ COND(ARGS, ARG) == 1 ? ○ # － \@ \@ ARG == MASTER ? パンツを穿かない事にする # パンツの着用を禁止する \@
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, 2, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 8
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASEELSE
+		VARSET LOCALS
+		CFLAG:ARG:身嗜み = CLEARBITS(CFLAG:ARG:身嗜み, 31, 35)
+		SIF RESULT
+			SETBIT CFLAG:ARG:身嗜み, RESULT + 30
+
+		IF COND(ARGS, ARG) != ARG:1
+			SELECTCASE COND(ARGS, ARG)
+			CASE 0
+				LOCALS = 特には指示しないことにしました
+			CASE 1
+				LOCALS = %CALLNAME:ARG%に、パンツを穿かない様にお願いしました
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+
+CASE "身嗜み：尿道拡張"
+	IF ARG != MASTER
+		PRINTFORML 粘膜を埋めて押し広げるプラグを、日常生活において尿道に挿入してもらいます
+		PRINTFORML 滑らかな凹凸のある抜けにくい形状で、外に出た部分はお洒落な装飾で抓みやすい作りです
+		PRINTFORML （上限付きで尿道拡張経験等を日々獲得します）
+	ENDIF
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0 ? ○ # － \@ \@ ARG == MASTER ? 挿入しない # 指示なし \@
+
+	PRINTFORML  [ 1] \@ COND(ARGS, ARG) == 1 ? ○ # － \@ 指ほどの太さのもの
+	SIF ABL:ARG:尿道拡張 >= 1
+		PRINTFORML  [ 2] \@ COND(ARGS, ARG) == 2 ? ○ # － \@ 平均的なペニスほどのサイズ
+	SIF ABL:ARG:尿道拡張 >= 2
+		PRINTFORML  [ 3] \@ COND(ARGS, ARG) == 3 ? ○ # － \@ 尿道に入れて良いか不安になる巨根サイズ
+	SIF ABL:ARG:尿道拡張 >= 3
+		PRINTFORML  [ 4] \@ COND(ARGS, ARG) == 4 ? ○ # － \@ 今後の日常生活に影響が出そうな超極太サイズ
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, LIMIT(ABL:ARG:尿道拡張 + 2, 2, 5), 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 9
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASEELSE
+		VARSET LOCALS
+		CFLAG:ARG:身嗜み = CLEARBITS(CFLAG:ARG:身嗜み, 36, 40)
+		SIF RESULT
+			SETBIT CFLAG:ARG:身嗜み, RESULT + 35
+
+		IF COND(ARGS, ARG) != ARG:1
+			SELECTCASE COND(ARGS, ARG)
+			CASE 0
+				LOCALS = 特には指示しないことにしました
+			CASEELSE
+				LOCALS = %CALLNAME:ARG%に、これで尿道を日々広げておくようにとお願いしました
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+
+CASE "身嗜み：性行為の制限"
+	PRINTFORML %CALLNAME:MASTER%以外との性行為での禁止項目をお願いします
+	PRINTFORML （愛撫や道具を用いてのプレイは見逃します）
+
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0  ? ○ # － \@ 指示なし
+	PRINTFORML  [ 1] \@ COND("身嗜み：Ｖ独占", ARG)  ? ○ # － \@ 前の穴を使っての性行為禁止
+	PRINTFORML  [ 2] \@ COND("身嗜み：Ａ独占", ARG)  ? ○ # － \@ アナルを使っての性行為禁止
+	PRINTFORML  [ 3] \@ COND("身嗜み：口独占", ARG)  ? ○ # － \@ 口を使っての奉仕の禁止
+	PRINTFORML  [ 4] \@ COND("身嗜み：キス独占", ARG)  ? ○ # － \@ %CALLNAME:MASTER%以外とはキス禁止
+	PRINTFORML  [ 5] \@ COND("身嗜み：Ｐ独占", ARG)  ? ○ # － \@ ペニスを使っての性行為禁止
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, 6, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 10
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASE 0
+		CFLAG:ARG:身嗜み = CLEARBITS(CFLAG:ARG:身嗜み, 41, 45)
+	CASEELSE
+		INVERTBIT CFLAG:ARG:身嗜み, RESULT + 40
+	ENDSELECT
+
+	VARSET LOCALS
+	IF COND(ARGS, ARG) != ARG:1
+		SELECTCASE COND(ARGS, ARG)
+		CASE 0
+			LOCALS = 特には指示しないことにしました
+		CASE 1
+			LOCALS = %CALLNAME:ARG%にアソコは%CALLNAME:MASTER%専用にするようにとお願いしました
+		CASE 2
+			LOCALS = %CALLNAME:ARG%に後ろの穴は%CALLNAME:MASTER%専用にするようにとお願いしました
+		CASE 3
+			LOCALS = %CALLNAME:ARG%に口を使っての奉仕は%CALLNAME:MASTER%専用にするようにとお願いしました
+		CASE 4
+			LOCALS = %CALLNAME:ARG%に、%CALLNAME:MASTER%以外とはキスをしないようにとお願いしました
+		CASE 5
+			LOCALS = %CALLNAME:ARG%にペニスを%CALLNAME:MASTER%専用にするようにとお願いしました
+		CASE 100
+			LOCALS = %CALLNAME:ARG%に%CALLNAME:MASTER%専用になるようにとお願いしました
+		CASEELSE
+			LOCALS = %CALLNAME:ARG%に、%CALLNAME:MASTER%が独占したい性行為を細かくお願いしました
+		ENDSELECT
+	ENDIF
+
+CASE "身嗜み：性欲の管理"
+	PRINTFORML %CALLNAME:MASTER%に許可された時を除いて、自慰行為を禁止します
+
+	PRINTFORML  [ 0] \@ COND(ARGS, ARG) == 0  ? ○ # － \@ 指示なし
+	PRINTFORML  [ 1] \@ COND("身嗜み：自慰禁止", ARG)  ? ○ # － \@ 自慰を禁止する
+	PRINTFORML [100] \@ COND(ARGS, ARG) == ARG:1 ? 変更しない # これでいい \@
+
+	CALL INPUT_SELECT, 2, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		IF LOCALS != "" && COND(ARGS, ARG) != ARG:1 && ARG != MASTER
+			TFLAG:地の文分岐 = 11
+			CALL PRINT_STRW, LOCALS
+		ENDIF
+		VARSET LOCALS
+		RETURN 0
+	CASE 0
+		CFLAG:ARG:身嗜み = CLEARBITS(CFLAG:ARG:身嗜み, 46, 50)
+	CASEELSE
+		INVERTBIT CFLAG:ARG:身嗜み, RESULT + 45
+	ENDSELECT
+
+	VARSET LOCALS
+	IF COND(ARGS, ARG) != ARG:1
+		SELECTCASE COND(ARGS, ARG)
+		CASE 0
+			LOCALS = 特には指示しないことにしました
+		CASE 1
+			LOCALS = %CALLNAME:ARG%に自慰をしないようにとお願いしました
+		ENDSELECT
+	ENDIF
+
+ENDSELECT
+
+CLEARLINE LINECOUNT - MEMO_LINECOUNT
+
+RESTART
+
+@COM_ORDER_COM146, ARG
+VARSET LOCAL
+LOCALS = 
+
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
+CALL COM_ORDER, ARG
+
+LOCAL = RESULT
+
+SELECTCASE TALENT:彼氏持ち
+CASE 2
+	LOCAL -= 20
+	LOCALS = %LOCALS% - %TALENT_NAME(GETNUM(TALENT, "彼氏持ち"), TALENT:彼氏持ち)%(20)
+CASE 1
+	LOCAL -= 10
+	LOCALS = %LOCALS% - %TALENT_NAME(GETNUM(TALENT, "彼氏持ち"), TALENT:彼氏持ち)%(10)
+ENDSELECT
+;ABL:マゾっ気
+IF ABL:マゾっ気
+	LOCAL += MIN(ABL:マゾっ気, 5) * 3
+	LOCALS = %LOCALS% + マゾっ気LV{ABL:マゾっ気}({MIN(ABL:マゾっ気, 5) * 3})
+ENDIF
+;倒錯的
+IF TALENT:倒錯的
+	LOCAL += 5
+	LOCALS = %LOCALS% + 倒錯的(5)
+ENDIF
+
+;合計を表示(40以上で実行)
+CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 40
+
+RETURN RESULT

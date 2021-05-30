@@ -1,0 +1,286 @@
+;-------------------------------------------------
+;このキャラ独自の衣装を設定する。制服、体操服、水着は既存のものから選ぶのが楽です
+;-------------------------------------------------
+@CLOTHES_K25, ARGS
+
+SELECTCASE ARGS
+;高めの頻度で着用します。設定しなくてもかまいません
+CASE "下着"
+	CSTR:パンツ = パンティ/黒/
+	CSTR:ブラ = マイクロブラ/黒/
+
+;衣装に関わらず常に付けているアクセサリです。設定しなくてもかまいません
+CASE "アクセサリ"
+	CSTR:アクセサリ = 
+
+;学園での普段着です。設定必須です
+CASE "制服"
+	IF DAYEV("ハロウィン", "ゲーム内")
+		IF CEVENT("ノノ：男装")
+			;ハロウィン時男装は中世の庶民風のコスプレ
+			CALL SET_SHIRT, "中世チュニック"
+			CALL SET_OUTER, "ズボン"
+			CALL SET_SOCKS, "靴下"
+			CALL SET_SHOES, "ブーツ"
+		ELSE
+			;女装時は……ランダムな何か着せる
+			SELECTCASE RAND:7
+			CASE 0
+				IF YOKUBO() && RAND:2
+					CALL SET_COSTUME, "ボンデージ"
+				ELSE
+					CALL SET_COSTUME, "女教師"
+				ENDIF
+			CASE 1
+				IF YOKUBO() && RAND:2
+					CALL SET_COSTUME, "ネコランジェリー"
+				ELSE
+					CALL SET_COSTUME, "バニースーツ"
+				ENDIF
+			CASE 2
+				IF YOKUBO() && RAND:2
+					CALL SET_COSTUME, "体操服ハイレグブルマ"
+				ELSE
+					CALL SET_COSTUME, "チアユニフォーム"
+				ENDIF
+			CASE 3
+				CALL SET_COSTUME, "チャイナドレス"
+			CASE 4
+				CALL SET_COSTUME, "ナース"
+			CASE 5
+				IF YOKUBO() && RAND:2
+					CALL SET_COSTUME, "フレンチメイド"
+				ELSE
+					CALL SET_COSTUME, "メイド服"
+				ENDIF
+			ENDSELECT
+		ENDIF
+		CFLAG:コスプレ中 = 1
+	ELSE
+		;男装のお願いをしている場合
+		IF CEVENT("ノノ：男装")
+			CALL SET_COSTUME, TEXTR("学ラン/男子ブレザー")
+			;冬以外はランダムで半ズボン
+			SIF COND("冬") == 0 && RAND:3 == 0
+				CALL SET_OUTER, "ハーフパンツ"
+			;下着を男性用のものに替える
+			IF YOKUBO(TARGET) && RAND:2
+				;ここはランダムで女の子のもののままとそうでない場合に分かれるように
+				;こちらを進んだらとりあえず飛ばしておく
+			ELSE
+				CALL SET_PANTIES, "ボクサーパンツ"
+				CALL SET_BRA, ""
+			ENDIF
+		ELSE
+			CALL SET_COSTUME, "ミニスカブレザー"
+			CALL SET_OUTER, "黒いパンスト"
+		ENDIF
+	ENDIF
+
+;学園の体育の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+CASE "体操服"
+	CALL SET_COSTUME, "体操服スパッツ"
+;学園の水泳の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+CASE "水着"
+	CALL SET_COSTUME, "スク水"
+
+;自宅など学園外で着ます。設定必須です
+CASE "普段着"
+	SELECTCASE TEXTS("季節")
+	CASE "冬"
+		CALL SET_SHIRT, "ブレザー"
+		CALL SET_OUTER, "ズボン"
+		CALL SET_SOCKS, "ハイソックス"
+		CALL SET_SHOES, "ロングブーツ"
+		CALL SET_GLOVE, "レザースリーブ"
+	CASE "秋"
+		CALL SET_SHIRT, "チュニック"
+		CALL SET_OUTER, "キュロットスカート"
+		CALL SET_SOCKS, "ストッキング"
+		CALL SET_SHOES, "バレエシューズ"
+	CASE "夏"
+		CALL SET_SHIRT, "Ｔシャツ"
+		CALL SET_SKIRT, "プリーツミニスカート"
+		CALL SET_SHOES, "サンダル"
+	CASEELSE
+		CALL SET_SHIRT, "ノースリーブブラウス"
+		CALL SET_SKIRT, "マイクロチェックスカート"
+		CALL SET_SOCKS, "フリルニーソ"
+		CALL SET_SHOES, "パンプス"
+	ENDSELECT
+
+;自分の部屋(notあなたの部屋)で着ます
+CASE "部屋着"
+	IF CEVENT("ノノ：服追加") && RAND:2
+		CALL SET_SHIRT, "ベビードール"
+		CALL SET_OTHER, "リボン"
+		CALL SET_BRA, ""
+	ELSEIF COND("夏")
+		CALL SET_SHIRT, "だぼだぼＴシャツ"
+	ELSE
+		CALL SET_SHIRT, "Ｙシャツ"
+		CALL SET_OUTER, "ハーフパンツ"
+		CALL SET_PANTIES, "ボクサーパンツ"
+		CALL SET_BRA, ""
+	ENDIF
+	SIF COND("髪型変更可能")
+		CSTR:前髪 = 片目隠れ
+;デート以外で家から外に出る際に着ます。ラブホ呼出とかね
+CASE "外出着"
+	SELECTCASE TEXTS("季節")
+	CASE "冬"
+		IF CEVENT("ノノ：男装")
+			CALL SET_SHIRT, "ニットセーター"
+			CALL SET_PANTIES, "ボクサーパンツ"
+			CALL SET_BRA, ""
+		ELSEIF YOKUBO() && RAND:2
+			CALL SET_SHIRT, "背中開きニットセーター"
+		ELSE
+			CALL SET_SHIRT, "萌え袖セーター"
+		ENDIF
+		CALL SET_OUTER, "ジーンズ"
+		CALL SET_SOCKS, "靴下"
+		CALL SET_SHOES, "モカシン"
+		SIF RAND:2
+			CALL SET_OTHER, "マフラー"
+	CASE "夏"
+		IF CEVENT("ノノ：男装")
+			CALL SET_SHIRT, "Ｔシャツ"
+			CALL SET_OUTER, "スラックス"
+			CALL SET_SOCKS, "靴下"
+			CALL SET_SHOES, "スニーカー"
+			CALL SET_PANTIES, "ボクサーパンツ"
+			CALL SET_BRA, ""
+		ELSE
+			IF RAND:2
+				IF RAND:2
+					CALL SET_SHIRT, "バックリボンカットソー"
+				ELSE
+					CALL SET_SHIRT, "ノースリーブブラウス"
+				ENDIF
+				CALL SET_SKIRT, "ロングスカート"
+			ELSE
+				CALL SET_SHIRT, "サマードレス"
+			ENDIF
+			IF RAND:2
+				CALL SET_SHOES, "サンダル"
+			ELSE
+				CALL SET_SHOES, "ミュール"
+			ENDIF
+		ENDIF
+	CASEELSE
+		IF CEVENT("ノノ：男装")
+			CALL SET_SHIRT, "カットソー"
+			CALL SET_OUTER, "ハーフパンツ"
+			CALL SET_SOCKS, "靴下"
+			IF RAND:2
+				CALL SET_SHOES, "靴"
+			ELSE
+				CALL SET_SHOES, "スニーカー"
+			ENDIF
+			IF YOKUBO() == 0 || RAND:2
+				CALL SET_PANTIES, "ボクサーパンツ"
+				CALL SET_BRA, ""
+			ENDIF
+		ELSE
+			CALL SET_SHIRT, "フリルブラウス"
+			CALL SET_SKIRT, "マイクロスカート"
+			CALL SET_OUTER, "黒いパンスト"
+			CALL SET_SHOES, "ミュール"
+		ENDIF
+	ENDSELECT
+
+;もちろんデートの際に着ます
+CASE "デート衣装"
+	SELECTCASE TEXTS("季節")
+	CASE "冬"
+		IF CEVENT("ノノ：男装")
+			CALL SET_SHIRT, "Ｔシャツ"
+			CALL SET_OUTER, "ズボン"
+			CALL SET_SOCKS, "靴下"
+			CALL SET_SHOES, "ブーツ"
+			CALL SET_OTHER, "ダウンジャケット"
+			CALL SET_PANTIES, "ボクサーパンツ"
+			CALL SET_BRA, ""
+		ELSE
+			CALL SET_SHIRT, "チュニック"
+			CALL SET_OUTER, "ズボン"
+			CALL SET_SOCKS, "ハイソックス"
+			CALL SET_SHOES, "モカシン"
+			CALL SET_OTHER, "ポンチョコート"
+			CALL SET_PANTIES, "オープンクロッチパンツ"
+			CALL SET_BRA, "シースルーブラ"
+		ENDIF
+	CASE "秋"
+		IF CEVENT("ノノ：男装")
+			CALL SET_SHIRT, "Ｔシャツ"
+			CALL SET_OUTER, "ジーンズ"
+			CALL SET_SOCKS, "靴下"
+			CALL SET_SHOES, "靴"
+			CALL SET_OTHER, "パーカー"
+			CALL SET_PANTIES, "ボクサーパンツ"
+			CALL SET_BRA, ""
+		ELSE
+			CALL SET_SHIRT, "ルーズブラウス"
+			CALL SET_SKIRT, "プリーツミニスカート"
+			CALL SET_OUTER, "黒いパンスト"
+			CALL SET_SHOES, "ハイヒール"
+		ENDIF
+	CASE "夏"
+		IF CEVENT("ノノ：男装")
+			CALL SET_SHIRT, "Ｙシャツ"
+			CALL SET_OUTER, "ハーフパンツ"
+			CALL SET_SOCKS, "靴下"
+			CALL SET_SHOES, "靴"
+			CALL SET_OTHER, "サングラス"
+			CALL SET_PANTIES, "ボクサーパンツ"
+			CALL SET_BRA, ""
+		ELSE
+			IF RAND:2
+				CALL SET_SHIRT, "ノースリーブブラウス"
+				CALL SET_OUTER, "ショートパンツ"
+				CALL SET_SHOES, "ミュール"
+			ELSE
+				CALL SET_SHIRT, "チュニック"
+				CALL SET_OUTER, "ホットパンツ"
+				CALL SET_SOCKS, "ストッキング"
+				CALL SET_SHOES, "ミュール"
+				CALL SET_PANTIES, "紐パン"
+				CALL SET_BRA, "マイクロビキニブラ"
+			ENDIF
+		ENDIF
+	CASEELSE
+		IF CEVENT("ノノ：男装")
+			CALL SET_SHIRT, "Ｙシャツ"
+			CALL SET_OUTER, "ズボン"
+			CALL SET_SOCKS, "靴下"
+			CALL SET_SHOES, "スニーカー"
+			CALL SET_PANTIES, "ボクサーパンツ"
+			CALL SET_BRA, ""
+		ELSE
+			IF RAND:2
+				CALL SET_SHIRT, "ルーズブラウス"
+				CALL SET_SKIRT, "プリーツミニスカート"
+				CALL SET_OUTER, "黒いパンスト"
+				CALL SET_SHOES, "ハイヒール"
+			ELSE
+				CALL SET_SHIRT, "ノースリーブブラウス"
+				CALL SET_OUTER, "ショートパンツ"
+				CALL SET_SHOES, "ミュール"
+			ENDIF
+		ENDIF
+	ENDSELECT
+
+ENDSELECT
+
+
+;-------------------------------------------------
+;時間帯や場所に応じた髪型、表情の変化を記述する。設定しなくてもかまいません
+;-------------------------------------------------
+@MAIDFACE_K25
+CALL SETFLAG, "普段の髪型復元", TARGET
+IF CEVENT("ノノ：男装")
+	CSTR:アレンジ = 一つ結び
+ELSE
+	CSTR:アレンジ = ノーアレンジ
+ENDIF

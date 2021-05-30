@@ -1,0 +1,563 @@
+@COM158
+;写真撮影調教版
+;特定の条件でのみ撮影可能
+
+PRINTL 写真撮影
+
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = 写真撮影
+
+CALL SOURCE_CHECK_SHORT
+
+RETURN 0
+
+;今回のエロ中に既に撮った物と似たシチュなら保存はしない
+@TRAIN_MESSAGE_COM158
+#DIM LCOUNT
+#DIMS EVENT_TABLE
+;誰の精液か
+#DIMS SPERMS
+
+STR:写真 = 
+STR:補足 = 
+
+SAVESTR:写真 = 
+EVENT_TABLE = 
+SPERMS = %TEXTS("最新中出し相手の")%
+
+PRINTFORM %CALLNAME:PLAYER%は
+;射精直後は抜いて撮る　中出し後の撮影機会を増やすため
+IF PREVEX("射精", PLAYER) && INSERT("インサート")
+	PRINTFORM ペニスを引き抜くと、
+	CALL RESET_INSERT, TARGET, PLAYER
+ENDIF
+IF PREVCOM == TNUM("くぱぁさせる") && STR:青写真 != ""
+	PRINTFORM アソコを自分で押し広げている%CALLNAME:TARGET%に向かって
+	STR:写真 = %STR:青写真%
+	STR:補足 += "_アソコ"
+ELSEIF PREVCOM == TNUM("Ａくぱぁさせる") && STR:青写真 != ""
+	IF PREVPLAY("排泄")
+		PRINTFORM 出すものを出し切った直後の%CALLNAME:TARGET%に向かって
+		STR:写真 = %TEXTS("お尻：感触")%を押し開いて排泄直後の
+		IF TALENT:縦割れアナル
+			STR:写真 += "縦割れアナルを"
+		ELSE
+			STR:写真 += "アナルを"
+		ENDIF
+		STR:写真 += @"%PHOTO_SHOWING("見せつけ")%"
+	ELSE
+		PRINTFORM お尻を自分で押し広げている%CALLNAME:TARGET%に向かって
+		STR:写真 = %STR:青写真%
+	ENDIF
+	STR:補足 += "_肛門"
+;口に出した
+ELSEIF PREVEX("口内射精") && !PREVPLAY("お掃除フェラ")
+	IF PREVPLAY("セルフ口内射精")
+		PRINTFORM 精液を自分の口に出したばかりの%CALLNAME:TARGET%に向かって
+		SPERMS = 自らの
+	ELSE
+		PRINTFORM 精液を口に出されたばかりの%CALLNAME:TARGET%に向かって
+	ENDIF
+	IF ABL:精液中毒 == 0 && ABL:奉仕精神 < 5
+		STR:写真 += "%SPERMS%精液の味に顔をしかめている"
+	ELSE
+		IF TEQUIP:口枷
+			STR:写真 += "器具で開かされたままの口をカメラに向け、"
+		ELSE
+			STR:写真 += "大きく口を開け、"
+		ENDIF
+		IF ABL:精液中毒 && (ABL:精液中毒 >= 3 || ABL:奉仕精神 >= 5)
+			STR:写真 += @"%SPERMS%精液をすべて飲んだことをアピールしている"
+		ELSE
+			STR:写真 += @"口内に溜まった%SPERMS%精液を見せている"
+		ENDIF
+	ENDIF
+;ハメ撮り
+ELSEIF INSERT("インサート")
+	PRINTFORM %CALLNAME:TARGET%と繋がったままの体勢で
+	IF INSERT("正常位") || INSERT("屈曲位") || INSERT("対面座位")
+		IF PREVEX("トコロテン")
+			STR:写真 += @"%TEXTR("柔らかくなった/ふにゃふにゃの")%ペニスからだらしなく精液を%TEXTR("漏ら/垂ら")%し"
+		ELSEIF (INSERT("正常位") || INSERT("屈曲位")) && TEQUIP:拘束 == 0 && RAND:2
+			IF (TALENT:陽気 || TALENT:目立ちたがり || TALENT:愚か) && CFLAG:褒める + TEQUIP:甘い言葉
+				STR:写真 += "笑顔でピースし"
+			ELSEIF ABL:PLAYER:サドっ気 >= 3 && RAND:3 == 0
+				STR:写真 += "片手を押さえつけられ"
+			ELSEIF (TALENT:恥じらい || TALENT:内気) && RAND:2
+				STR:写真 += "両手で顔を隠し"
+			ELSE
+				STR:写真 += "後ろ手にシーツをつかみ"
+			ENDIF
+		ELSEIF ABL:欲望 >= 5 && PALAM:欲情 >= 10000 && COND("ガチオトコ") == 0
+			STR:写真 += @"%TEXTR("雌の表情を浮かべ/口の端から涎を垂らし")%"
+		ELSE
+			STR:写真 += "頬を上気させ"
+		ENDIF
+		STR:写真 += @"ながら%CALLNAME:PLAYER%"
+		IF ABL:欲望 >= 5 && RAND:3 == 0
+			IF INSERT("Ａインサート")
+				STR:写真 += "とのアナルセックスを楽しんでいる"
+			ELSEIF TEQUIP:PLAYER:コンドーム
+				STR:写真 += "との快楽目的でのセックスを楽しんでいる"
+			ELSE
+				STR:写真 += "との生セックスを楽しんでいる"
+			ENDIF
+		ELSEIF SIZE("ペニス", PLAYER) >= 2 && RAND:2
+			IF INSERT("Ａインサート")
+				STR:写真 += @"の巨根%TEXTR("でアナルを犯されて/をお尻の穴でくわえ込んで")%いる"
+			ELSE
+				STR:写真 += @"の巨根%TEXTR("で犯されて/をくわえ込んで")%いる"
+			ENDIF
+		ELSEIF INSERT("Ａインサート")
+			STR:写真 += @"%TEXTR("にアナルを犯されて/とお尻の穴で交わって")%いる"
+		ELSE
+			STR:写真 += @"%TEXTR("に犯されて/と交わって")%いる"
+		ENDIF
+	ELSEIF INSERT("後背位")
+		SIF PREVEX("トコロテン")
+			STR:写真 += @"%TEXTR("柔らかくなった/ふにゃふにゃの")%ペニスからだらしなく精液を%TEXTR("漏ら/垂ら")%しながら、"
+		IF TEQUIP:アナルバイブ
+			STR:写真 += "バイブが挿入された"
+		ELSEIF COND("アナル栓")
+			STR:写真 += "プラグで栓をされた"
+		ENDIF
+		IF TALENT:巨尻
+			STR:写真 += "大きな"
+		ELSEIF TALENT:小尻
+			STR:写真 += "小さな"
+		ENDIF
+		STR:写真 += @"お尻を%TEXTR("突き/差し")%出す格好で%CALLNAME:PLAYER%に犯されている"
+	ELSEIF INSERT("背面座位")
+		SIF PREVEX("トコロテン")
+			STR:写真 += @"%TEXTR("柔らかくなった/ふにゃふにゃの")%ペニスからだらしなく精液を%TEXTR("漏ら/垂ら")%しながら"
+		STR:写真 += @"%CALLNAME:PLAYER%の膝の上に座る体勢でペニスに貫かれている"
+	ELSEIF INSERT("騎乗位")
+		IF TALENT:淫乱 + TALENT:好色 + TALENT:小悪魔 + TALENT:恥薄い && TEQUIP:拘束 == 0 && RANDIF(2, !TALENT:貧乳)
+			STR:写真 += @"%CALLNAME:PLAYER%の上に跨り、"
+		SIF PREVEX("トコロテン")
+			STR:写真 += @"%TEXTR("柔らかくなった/ふにゃふにゃの")%ペニスからだらしなく精液を%TEXTR("漏ら/垂ら")%しながら"
+			IF ABL:露出癖 >= 3 && RAND:2
+				STR:写真 += "大きく足を広げて結合部を見せつけている"
+			ELSE
+				STR:写真 += "楽しそうに腰を振っている"
+			ENDIF
+		ELSE
+			STR:写真 += @"%CALLNAME:PLAYER%に突き上げられ、"
+			SIF PREVEX("トコロテン")
+				STR:写真 += @"%TEXTR("柔らかくなった/ふにゃふにゃの")%ペニスからだらしなく精液を%TEXTR("漏ら/垂ら")%しつつ"
+			IF !TALENT:貧乳 && !TALENT:オトコ && ABL:Ｂ感覚 >= 3 && TEQUIP:拘束 == 0 && RAND:2
+				STR:写真 += "自らの胸を揉みしだきながら喘いでいる"
+			ELSEIF ABL:欲望 >= 3 && PALAM:欲情 >= 10000
+				STR:写真 += @"%TEXTR("官能的/切なそう/気持ちよさそう")%な表情で悶えている"
+			ELSE
+				STR:写真 += "ほんのりと頬を上気させている"
+			ENDIF
+		ENDIF
+	ENDIF
+;拘束中
+ELSEIF TEQUIP:拘束
+	PRINTFORM 身動きのままならない%CALLNAME:TARGET%に向かって
+	IF BIND("縄", TEQUIP:拘束)
+		IF BIND("縄：亀甲縛り", TEQUIP:拘束)
+			STR:写真 += "亀甲状に縛られ"
+		;ELSEIF BIND("縄：足吊り", TEQUIP:拘束)
+		;	STR:写真 += "片足を縄で吊られ"
+		ELSE
+			STR:写真 += "縄で縛られ"
+		ENDIF
+	ELSE
+		IF BIND("吊り", TEQUIP:拘束)
+			STR:写真 += "手首を鎖で天井から吊られ"
+		ELSE
+			IF BIND("手枷", TEQUIP:拘束)
+				STR:写真 += "手枷で両手を"
+			ELSEIF BIND("ベッド", TEQUIP:拘束)
+				STR:写真 += "ベッドに"
+			ELSEIF BIND("四つん這い", TEQUIP:拘束)
+				STR:写真 += "テーブルに"
+			ELSE
+				STR:写真 += "専用の台に"
+			ENDIF
+			STR:写真 += "拘束され"
+		ENDIF
+	ENDIF
+	IF PREVPLAY("お掃除フェラ")
+		STR:写真 += @"たまま%CALLNAME:PLAYER%の"
+		IF SIZE("ペニス", PLAYER) >= 3
+			STR:写真 += "巨大なペニス"
+		ELSEIF SIZE("ペニス", PLAYER) >= 2
+			STR:写真 += "巨根"
+		ELSE
+			STR:写真 += "ペニス"
+		ENDIF
+		STR:写真 += "をお掃除させられている"
+	ELSE
+		;足開かれてる
+		IF GETBIT(TEQUIP:拘束, 21)
+			IF PREVPLAY("インサート")
+				IF PREVEX("Ｖ中出し") || PREVEX("Ａ中出し") || PREVEX("尿道内射精")
+					STR:写真 += @"%SPERMS%精液が垂れ落ちる"
+				ELSE
+					STR:写真 += "犯されたばかりの"
+				ENDIF
+				IF PREVPLAY("Ｖインサート")
+					STR:写真 += "アソコ"
+				ELSEIF PREVPLAY("Ａインサート")
+					STR:写真 += "お尻"
+				ELSE
+					STR:写真 += "尿道"
+				ENDIF
+			;多分貝合わせと指挿れの場合　女あなた用
+			ELSE
+				STR:写真 += @"%TEXTR("ヒクヒクと痙攣する/愛液でぐちょぐちょの")%アソコ"
+			ENDIF
+			STR:写真 += "をまる見えにされている"
+		ELSE
+			IF ABL:マゾっ気 >= 3 && RAND:2
+				STR:写真 += "、興奮で顔を紅潮させている"
+			ELSEIF PREVEX("絶頂数合計") && RAND:2
+				STR:写真 += "たまま絶頂の余韻に浸っている"
+			ELSE
+				STR:写真 += "、羞恥の表情を浮かべている"
+			ENDIF
+		ENDIF
+	ENDIF
+;お掃除
+ELSEIF PREVPLAY("お掃除フェラ")
+	PRINTFORM %CALLNAME:TARGET%に奉仕を続けさせつつ
+	IF (TALENT:目立ちたがり || TALENT:陽気) && RAND:2
+		STR:写真 += @"%TEXTR("ピースをしながらカメラ目線で/片手でピースをしながら/カメラに向けてピースしながら")%"
+	ELSEIF (TALENT:好奇心 || TALENT:献身 || TALENT:小悪魔) && RAND:2
+		STR:写真 += "上目づかいでこちらを見つめながら"
+	ELSEIF (TALENT:冷静 || TALENT:感情乏しい) && RAND:2
+ 		IF PREVEX("絶頂数合計") || COND("弛緩")
+			STR:写真 += "ほんのり上気した表情で"
+		ELSE
+			STR:写真 += "表情一つ崩さずに"
+		ENDIF
+	ELSEIF (TALENT:恥じらい || TALENT:内気) && RAND:2
+		STR:写真 += "カメラから視線を外しつつも"
+	ELSEIF ABL:精液中毒 <= 2 && ABL:奉仕精神 <= 2
+		STR:写真 += "少し顔をしかめながら"
+	ELSEIF ABL:精液中毒 >= 3 && RANDIF(1, ABL:奉仕精神 >= 3)
+		STR:写真 += "うっとりとした表情を浮かべながら"
+	ELSEIF ABL:奉仕精神 >= 3
+		STR:写真 += "目をつぶって一心不乱に"
+	ENDIF
+	STR:写真 += @"%CALLNAME:PLAYER%の"
+	IF SIZE("ペニス", PLAYER) >= 3
+		STR:写真 += "巨大なペニス"
+	ELSEIF SIZE("ペニス", PLAYER) >= 2
+		STR:写真 += "巨根"
+	ELSE
+		STR:写真 += "ペニス"
+	ENDIF
+	STR:写真 += "を口でお掃除している"
+;ゴムで遊ぶ
+ELSEIF PREVPLAY("ゴム内射精", PLAYER) && RAND:2
+	PRINTFORM 取り外したゴムを
+	STR:写真 += "精液で膨れ上がったコンドームを"
+	IF (TALENT:小悪魔 || TALENT:好色 || TALENT:淫乱) && RAND:3 == 0
+		PRINTFORM %CALLNAME:TARGET%に手渡してから
+		IF COND("精液入りゴム数") >= 2
+			STR:写真 += "両方の手にぶら下げている"
+		ELSE
+			STR:写真 += "口にくわえている"
+		ENDIF
+	ELSEIF (TALENT:好奇心 || MARK:屈服刻印 >= 2) && RAND:2
+		PRINTFORM %CALLNAME:TARGET%に持たせて
+		STR:写真 += "摘んで持ち上げている"
+	ELSE
+		PRINTFORM セッティングしてから
+		IF ABL:PLAYER:サドっ気 >= 3 && RAND:4 == 0
+			STR:写真 += "顔の上に"
+		ELSE
+			IF PREVPLAY("後背位")
+				STR:写真 += "背中の上に"
+			ELSE
+				STR:写真 += "お腹の上に"
+			ENDIF
+			SIF COND("精液入りゴム数") >= 3
+				STR:写真 += "いくつも"
+			STR:写真 += "置かれている"
+		ENDIF
+	ENDIF
+;見せ槍
+ELSEIF PREVPLAY("見せ槍")
+	PRINTFORM あなたは%CALLNAME:TARGET%に向かって怒張を突き出したまま
+	STR:写真 += "あなたのペニス"
+	IF TALENT:淫乱 && BASE:欲求不満 >= 50 && RAND:3 == 0
+		IF RAND:2
+			STR:写真 += @"を%TEXTR("ハートマークが浮かんだ目で/涎が垂れそうなほど恍惚とした表情で")%見つめている"
+		ELSE
+			STR:写真 += "を優しく握っておねだりしている"
+		ENDIF
+	ELSEIF TALENT:好奇心 && RAND:2
+		STR:写真 += "を食い入るように見つめている"
+	ELSEIF (TALENT:陽気 || TALENT:目立ちたがり) && RAND:2
+		STR:写真 += "に片手を添えながらピースをしている"
+	ELSEIF TALENT:恥じらい || TALENT:清楚  && RAND:2
+		STR:写真 += "を前にして恥ずかしそうにしている"
+	ELSEIF TALENT:反抗的
+		STR:写真 += @"を押し付けられて%TEXTR("顔をしかめ/こちらを睨みつけ")%ている"
+	ELSEIF TALENT:感情乏しい
+		STR:写真 += "を平然とした顔で見つめている"
+	ELSE
+		STR:写真 += @"を押し付けられ%TEXTR("頬を紅潮させ/わずかに目を逸らし")%ている"
+	ENDIF
+;その他
+ELSE
+	PRINTFORM 荒い息をついている%CALLNAME:TARGET%に向かって
+	;ダブルピースとかくぱぁとか
+	IF MARK:屈服刻印 >= 2 && COND("指の使用") && TALENT:好色 + TALENT:淫乱 + COND("陶酔") + COND("満足") && RAND:2
+		IF PREVPLAY("Ａインサート")
+			IF ABL:Ａ拡張 >= 3 && PREVPLAY("Ａ挿入中", PLAYER) && SIZE("ペニス", PLAYER) >= 2
+				IF PREVEX("Ａ中出し")
+					STR:写真 += "だらしなく精液を垂れ流す"
+				ELSE
+					STR:写真 += "アナルセックス直後でぽっかりと口を開けている"
+				ENDIF
+			ELSEIF PREVEX("Ａ中出し")
+				STR:写真 += @"%SPERMS%精液が垂れ落ちる"
+			ELSE
+				STR:写真 += "犯されたばかりの"
+			ENDIF
+			STR:写真 += "お尻の穴"
+		ELSEIF PREVPLAY("インサート")
+			IF PREVEX("Ｖ中出し") || PREVEX("尿道内射精")
+				STR:写真 += @"%SPERMS%精液が垂れ落ちる"
+			ELSE
+				STR:写真 += "犯されたばかりの"
+			ENDIF
+			IF PREVPLAY("Ｖインサート")
+				SIF COND("陰毛") && COND("陰毛") <= 3
+					STR:写真 += "ツルツルの"
+				STR:写真 += "アソコ"
+			ELSE
+				STR:写真 += "尿道"
+			ENDIF
+		;女あなた用
+		ELSE
+			STR:写真 += @"%TEXTR("ヒクヒクと痙攣する/愛液でぐちょぐちょの")%アソコ"
+		ENDIF
+		;Ｗピース乗り気
+		IF TALENT:陽気 + TALENT:好色 + TALENT:淫乱 && RAND:3
+			STR:写真 += "を露わにしながらＷピースをしている"
+		;Ｗピースさせられ
+		ELSEIF COND("大満足") == 0 && TALENT:恥じらい && RAND:3
+			STR:写真 += "を露わにしながらＷピースをさせられている"
+		;Ｗピース陶酔
+		ELSEIF COND("陶酔") && COND("大満足") && RAND:3
+			STR:写真 += "を露わにしながら、だらしなく快楽で蕩けた顔でＷピースをしている"
+		ELSE
+			STR:写真 += "を指で広げ、カメラに向かって見せつけている"
+		ENDIF
+	ELSE
+		IF PREVPLAY("騎乗位")
+			IF (TALENT:小悪魔 || TALENT:好色 || TALENT:淫乱) && RAND:2
+				STR:写真 += @"%CALLNAME:PLAYER%を跨ぐように立ち、"
+				IF PREVEX("Ｖ中出し") && PREVEX("Ａ中出し")
+					STR:写真 += "精液を垂れ流している前後の穴"
+				ELSEIF PREVEX("Ｖ中出し")
+					IF PREVEX("絶頂お漏らし")
+						STR:写真 += "おしっこと精液を垂れ流している股間"
+					ELSE
+						STR:写真 += @"%SPERMS%精液を垂れ流している膣穴"
+					ENDIF
+				ELSEIF PREVEX("Ａ中出し")
+					STR:写真 += @"%SPERMS%精液を垂れ流している肛門"
+				ELSE
+					STR:写真 += "犯されたばかりの"
+					IF PREVPLAY("Ｖインサート")
+						STR:写真 += "膣穴"
+					ELSEIF PREVPLAY("Ａインサート")
+						STR:写真 += "肛門"
+					ELSE
+						STR:写真 += "尿道"
+					ENDIF
+				ENDIF
+				STR:写真 += "をカメラに向かって見せつけている"
+			ELSE
+				STR:写真 += @"%CALLNAME:PLAYER%に跨ったまま"
+				IF (TALENT:小悪魔 || TALENT:好色 || TALENT:淫乱) && RAND:2
+					STR:写真 += "妖艶な表情"
+				ELSE
+					STR:写真 += "紅潮した顔"
+				ENDIF
+				STR:写真 += "でこちらを見下ろしている"
+			ENDIF
+		;うつ伏せor屈曲位
+		ELSEIF PREVPLAY("後背位") || PREVPLAY("屈曲位")
+			IF PREVPLAY("後背位")
+				IF RAND:2 && NAMES("ベッド") == "ベッド"
+					STR:写真 += @"シーツを握りしめたまま%NAMES("ベッド")%に突っ伏して"
+				ELSE
+					STR:写真 += @"%NAMES("ベッド")%にうつ伏せに倒れて"
+				ENDIF
+			ELSEIF PREVPLAY("屈曲位")
+				STR:写真 += "まんぐり返しの体勢にされたまま"
+			ENDIF
+			IF PREVEX("Ｖ中出し") && PREVEX("Ａ中出し")
+				STR:写真 += "前後の穴から精液を垂れ流している"
+			ELSEIF PREVEX("Ｖ中出し")
+				IF PREVEX("絶頂お漏らし")
+					STR:写真 += "股間からおしっこと精液を垂れ流している"
+				ELSE
+					STR:写真 += @"膣穴から%SPERMS%精液を垂れ流している"
+				ENDIF
+			ELSEIF PREVEX("Ａ中出し")
+				IF PREVEX("トコロテン")
+					STR:写真 += "肛門とペニスから精液を垂れ流している"
+				ELSE
+					STR:写真 += @"肛門から%SPERMS%精液を垂れ流している"
+				ENDIF
+			ELSE
+				STR:写真 += "ぐったりしている"
+			ENDIF
+		ELSEIF PREVPLAY("背面座位")
+			IF PREVEX("トコロテン")
+				STR:写真 += @"%CALLNAME:PLAYER%にもたれかかり、ペニスからトロトロと精液を垂れ流している"
+			ELSE
+				STR:写真 += @"%CALLNAME:PLAYER%にもたれかかったまま脱力している"
+			ENDIF
+		ELSE
+			IF RAND:2 && NAMES("ベッド") == "ベッド"
+				STR:写真 += "ぐしゃぐしゃになったシーツの上で仰向けになって"
+			ELSE
+				STR:写真 += @"%NAMES("ベッド")%に仰向けに倒れ"
+			ENDIF
+			IF PREVEX("Ｖ中出し") && PREVEX("Ａ中出し")
+				STR:写真 += "、前後の穴から精液を垂れ流しながら"
+			ELSEIF PREVEX("Ｖ中出し")
+				IF PREVEX("絶頂お漏らし")
+					STR:写真 += "、アソコからおしっこと精液を垂れ流しながら"
+				ELSE
+					STR:写真 += @"、膣穴から%SPERMS%精液を垂れ流しながら"
+				ENDIF
+			ELSEIF PREVEX("Ａ中出し")
+				IF PREVEX("トコロテン")
+					STR:写真 += "、お尻の穴とペニスから精液を垂れ流しながら"
+				ELSE
+					STR:写真 += @"、お尻の穴から%SPERMS%精液を垂れ流しながら"
+				ENDIF
+			ENDIF
+			IF PREVEX("絶頂数合計") && RAND:4 == 0
+				SIF TALENT:感情乏しい
+					STR:写真 += "かすかに"
+				STR:写真 += "潤んだ瞳でこちらを見つめている"
+			ELSEIF TALENT:相思相愛 && RAND:2
+				STR:写真 += "蕩け切った笑顔を浮かべている"
+			ELSEIF TALENT:恥薄い || TALENT:感情乏しい
+				STR:写真 += "放心したような表情をしている"
+			ELSE
+				STR:写真 += @"%TEXTR("両手/片手/腕")%で目を隠している"
+			ENDIF
+		ENDIF
+	ENDIF
+ENDIF
+
+STR:写真 += @"%PHOTO_COSTUME(TARGET)%%CALLNAME:TARGET%"
+
+STR:補足 += @"_%CALLNAME:TARGET%"
+STR:補足 += "_事後"
+
+SIF CHECK_CLO("水着姿")
+	STR:補足 += "_水着"
+SIF CHECK_CLO("体操服姿")
+	STR:補足 += "_体操服"
+SIF CHECK_CLO("学生服姿")
+	STR:補足 += "_学生服"
+
+;日付の記録
+STR:補足 += @"_日付%TOSTR(DAY*10 + TIME)%"
+
+SAVESTR:写真 = %STR:写真%
+
+CALL SAVE_PHOTO, @"%STR:写真%%STR:補足%"
+
+PRINTFORMW スマホを構えた…
+PRINTFORML ﾋﾟｯ
+PRINTFORMW %CALLNAME:PLAYER%は『%SAVESTR:写真%』を写真に収めた。
+
+;履歴を残す
+VARSET LOCALS
+SPLIT SAVESTR:Ｈ中の撮影履歴, "/", LOCALS
+
+FOR LCOUNT, 0, 100
+	SIF LOCALS:LCOUNT == ""
+		BREAK
+	;すでに似た写真があるかをチェック
+	SIF CHECK_HIGHMATCH(SAVESTR:写真, LOCALS:LCOUNT) == 0
+		CONTINUE
+	SAVESTR:写真 = 
+NEXT
+SIF SAVESTR:写真 != ""
+	SAVESTR:Ｈ中の撮影履歴 += @"%SAVESTR:写真%\/"
+
+STR:青写真 = 
+
+
+@FLAG_COM158, ARG
+
+@SOURCE_COM158, ARG
+;とりあえずビデオカメラを少し弱めた感じ
+CALL VARSET_COMF
+
+SOURCE:0:露出 = 2000
+SOURCE:0:逸脱 = 1000
+
+;ハダカ
+IF CHECK_CLO("ハダカ")
+	;種族衣装がハダカでない
+	IF CLO_ORI(TARGET, "服", "ボディスーツ", "アウター", "パンツ")
+		SOURCE:0:露出 += 3000
+		SOURCE:0:逸脱 += 1000
+	ENDIF
+;パンツのみ
+ELSEIF CHECK_CLO("下着姿")
+	;種族衣装が服orボディスーツorアウターを含む
+	IF CLO_ORI(TARGET, "服", "ボディスーツ", "アウター")
+		SOURCE:0:露出 += 2000
+		SOURCE:0:逸脱 += 500
+	ENDIF
+;ノーパン
+ELSEIF CHECK_CLO("ノーパン")
+	;種族衣装に下着あり
+	IF CLO_ORI(TARGET, "パンツ")
+		SOURCE:0:露出 += 1000
+		SOURCE:0:逸脱 += 300
+	ENDIF
+ENDIF
+
+;拘束の状態により露出を追加
+IF GETBIT(TEQUIP:拘束, 5)
+	SOURCE:0:露出 += 1000
+ELSEIF GETBIT(TEQUIP:拘束, 4)
+	SOURCE:0:露出 += 500
+ELSEIF GETBIT(TEQUIP:拘束, 3)
+	SOURCE:0:露出 += 200
+ENDIF
+
+;露出はTRACHECKで補正がかかるので、逸脱に恥じらいなどで補正
+SIF TALENT:恥じらい
+	TIMES SOURCE:0:逸脱, 2.00
+SIF TALENT:清楚
+	TIMES SOURCE:0:逸脱, 1.50
+SIF TALENT:目立ちたがり
+	TIMES SOURCE:0:逸脱, 0.50
+SIF TALENT:内気
+	TIMES SOURCE:0:逸脱, 1.70
+SIF TALENT:賢い
+	TIMES SOURCE:0:露出, 1.50
+SIF TALENT:愚か
+	TIMES SOURCE:0:露出, 0.70
+
+SOURCE:0:恐れ += SOURCE:0:逸脱 / 10
+
+CALL CALC, "調教ソース", ARG
+
+

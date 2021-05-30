@@ -1,0 +1,103 @@
+﻿@COM132
+;鼻フック
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+RETURN 1
+
+@FLAG_COM132, ARG
+
+@SOURCE_COM132, ARG
+CALL SOURCE_SMPLAY, "鼻フック", ARG
+
+CALL VARSET_COMF
+
+CALL SOURCE_DOWNBASE_HP, 132
+
+;羞恥・逸脱系
+SOURCE:0:露出 = 1000
+SOURCE:0:逸脱 = 500
+
+SOURCE:0:露出 = 3000
+SOURCE:0:屈従 = 3000
+SOURCE:0:逸脱 = 1000
+
+;撮影したなら
+SIF TEQUIP:ビデオカメラ
+	TIMES SOURCE:0:逸脱, 2.00
+SIF TALENT:内気
+	TIMES SOURCE:0:逸脱, 1.50
+
+;場所をみる
+IF COND("人里") || TEQUIP:室内露出プレイ
+	TIMES SOURCE:0:露出, 1.50
+	TIMES SOURCE:0:逸脱, 3.00
+ELSEIF TEQUIP:野外プレイ
+	TIMES SOURCE:0:露出, 1.50
+	TIMES SOURCE:0:逸脱, 2.00
+ELSEIF TEQUIP:お風呂プレイ
+	TIMES SOURCE:0:逸脱, 0.50
+ENDIF
+;ABL:露出癖をみる
+SELECTCASE ABL:露出癖
+CASE 0 TO 5
+	SOURCE:0:逸脱 = MULTIPLY(SOURCE:0:逸脱, 100 - ABL:露出癖*13)
+CASE 6 TO 10
+	SOURCE:0:逸脱 = MULTIPLY(SOURCE:0:逸脱, 35 - (ABL:露出癖 - 5)*5)
+CASEELSE
+	SOURCE:0:逸脱 = MULTIPLY(SOURCE:0:逸脱, 10 - (ABL:露出癖 - 10)*1)
+ENDSELECT
+
+SIF CHECK("鼻フック")
+	TIMES SOURCE:0:逸脱, 0.10
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM132
+;鼻フックの着脱
+IF TEQUIP:鼻フック
+	TEQUIP:鼻フック = 0
+	PRINTFORMW %CALLNAME:TARGET%から鼻フックをはずしてやった。
+	CALL REMOVE_TEQUIP, "鼻フック", "アイマスク", "口枷"
+ELSE
+	TEQUIP:鼻フック = 1
+	PRINTFORMW %CALLNAME:TARGET%に鼻フックを着けさせた。
+
+	PRINTFORM 金属製の%TEXTR("器具/フック")%で鼻%TEXTR("＿/の穴")%を%TEXTR("引っ張られ/吊り上げられ")%た顔は無様に歪み、
+	IF CHECK("鼻フック") == 0 && (TALENT:強気 || TALENT:生意気 || TALENT:高慢)
+		PRINTFORMW %CALLNAME:TARGET%は屈辱に顔をしかめながら耐えている……
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%の鼻はまるで豚のような有様になってしまっている……
+	ENDIF
+	CALL ADD_TEQUIP, "鼻フック", "アイマスク", "口枷"
+ENDIF
+
+
+@EQUIP_COM132
+;鼻フック
+SIF TEQUIP:鼻フック == 0
+	RETURN 0
+SIF SELECTCOM == 132
+	RETURN 0
+CALL SOURCE_COM132, 20
+
+RETURN 1
+
+@EQUIP_COM132_2
+;鼻フック
+SIF TEQUIP:鼻フック == 0
+	RETURN 0
+
+PRINTL ＜鼻フック装着中＞
+
+EXP:拘束経験 += 1
+PRINTL 拘束経験＋１
+
+RETURN 1

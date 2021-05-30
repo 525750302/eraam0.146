@@ -1,0 +1,43 @@
+﻿;-------------------------------------------------
+;部員同士での交流。自分はTARGETとして呼ばれ、話相手の部員はPARTNER()として呼ばれる
+;話相手への呼びかけはCNAME("パートナー")で出来る
+;TFLAG:台詞スキップ = 1で話している相手のセリフのスキップ、TFLAG:地の文スキップ = 1で続く地の文のスキップをする事が出来る
+;-------------------------------------------------
+@KOJO_COMM_K36, ARGS
+#DIM MEMO_LINECOUNT
+;対話相手にしたいキャラの名前を/区切りでこれに突っ込んでFIND_TaiTa(EVENT_TABLE)とするとそのうち一人が選ばれる
+#DIMS EVENT_TABLE
+
+EVENT_TABLE = 
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+;話しかける側のセリフ。COND("対話可能")を満たす相手を選んでPARTNER()にする事で、特定の相手に話しかけることもできる
+CASE "お誘いする"
+	;特定の相手に話しかける場合はEVENT_TABLEに対話相手の名前を / 区切りで並べて ; を消す
+	;例１）フェリシエルor濡烏の君orツェツィーリアから一人選ぶ場合
+	;今のところ比較的コミュが取りやすそうな同級生or１年生orおやつをくれるフェリさんだけ。
+	;話しかけると迷惑がられるor話題が噛み合わなさそうな人には自分からは絡まない
+	EVENT_TABLE = フェリシエル/あんず/ハナ/シキ/さくら/アイリ
+	;例２）部員全てから一人選ぶ場合
+	;EVENT_TABLE = 全員
+
+	IF FIND_TaiTa(EVENT_TABLE)
+		;話し相手をパートナーにする
+		CALL SET_PARTNER, FIND_TaiTa(EVENT_TABLE)
+		CALL EMOTION_PLUS, "交流中", TARGET, PARTNER()
+	ENDIF
+		IF NO:PARTNER() == 1 && RAND:2
+			IF COND("手作りおやつ",PARTNER() )
+				PRINTFORMW 「%CNAME("パートナー")%！　今日のおやつ%TEXTR("、/も")%%TEXTR("すっごく/とっても")%おいしかった%TEXTR("よ！/ー！/よ！　作ってくれてありがとー！")%」
+			ELSEIF COND("相性○", PARTNER() )
+				PRINTFORMW 「%CNAME("パートナー")%！　%TEXTR("何か手伝えることある？/お掃除手伝おっか？/今遊べる？")%」
+			ENDIF
+		ELSEIF NO:PARTNER() != 1 && COND("相性○", PARTNER() )
+			PRINTFORMW 「%TEXTR("ねぇ、/へい、/＿")%%CNAME("パートナー")%！　%TEXTR("ゲームしよ！/遊ぼうぜ！/今日、暇ならカラオケ行かない？/対戦しよ！/今思いついたんだけどさー……/お菓子食べる？/何してんの？/見て見て。この動画なんだけどさー")%」
+		ENDIF
+;話しかけられる側のセリフ。括弧は『』を使うのが望ましい
+CASE "誘われた"
+
+
+ENDSELECT

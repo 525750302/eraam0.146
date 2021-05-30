@@ -1,0 +1,71 @@
+﻿;-------------------------------------------------
+;部員同士での交流。自分はTARGETとして呼ばれ、話相手の部員はPARTNER()として呼ばれる
+;話相手への呼びかけはCNAME("パートナー")で出来る
+;TFLAG:台詞スキップ = 1で話している相手のセリフのスキップ、TFLAG:地の文スキップ = 1で続く地の文のスキップをする事が出来る
+;-------------------------------------------------
+@KOJO_COMM_K48, ARGS
+#DIM MEMO_LINECOUNT
+;対話相手にしたいキャラの名前を/区切りでこれに突っ込んでFIND_TaiTa(EVENT_TABLE)とするとそのうち一人が選ばれる
+#DIMS EVENT_TABLE
+
+EVENT_TABLE = 
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+;話しかける側のセリフ。COND("対話可能")を満たす相手を選んでPARTNER()にする事で、特定の相手に話しかけることもできる
+CASE "お誘いする"
+	;特定の相手に話しかける場合はEVENT_TABLEに対話相手の呼び名(CALLNAME)を / 区切りで並べて ; を消す
+	;例１）フェリシエルor濡烏の君orあんずから一人選ぶ場合
+	EVENT_TABLE = 真/灯
+	;例２）部員全てから一人選ぶ場合
+	;EVENT_TABLE = 全員
+
+	IF FIND_TaiTa(EVENT_TABLE)
+		;話し相手をパートナーにする
+		CALL SET_PARTNER, FIND_TaiTa(EVENT_TABLE)
+		CALL EMOTION_PLUS, "交流中", TARGET, PARTNER()
+	ENDIF
+
+	IF NO:PARTNER() == 34
+		PRINTFORMW 「お姉ちゃん、ちょっと教えてほしいことがあるんだけど」
+		PRINTFORMW 『ふぇっ？ ……あ、う、うん！ いいよ！ どこどこ？』
+		PRINTFORMW 「これ」
+		PRINTFORMW 『……あ、ゲームか……』
+		PRINTFORMW 「わかるでしょ？」
+		PRINTFORMW 『うん、まあ……わかるよ……結構遊んだし……』
+	ELSEIF NO:PARTNER() == 35
+		PRINTFORMW 「お兄ちゃん、勉強教えて」
+		PRINTFORMW 『ん、いいぞ。どこだ』
+		IF RAND:4 == 0
+			PRINTFORMW 「古典のね、これなんだけど……」
+			PRINTFORMW 『わがせこを……あぁ、これね。るーるーるー』
+			PRINTFORMW 「るーるーるー？」
+			PRINTFORMW 『いや、あいつが見てたアニメでなんかそう言ってた』
+		ELSEIF RAND:3 == 0
+			PRINTFORMW 「これ。因数分解」
+			PRINTFORMW 『あれ、もう因数分解やってんの？ はえーなーここの学校』
+			PRINTFORMW 『……そういやあいつ、自然のままにしておけよとかなんとか言ってたっけなぁ。くっく……』
+			PRINTFORMW 「アニメのはなし？」
+			PRINTFORMW 『いやぁ、ゲームだったかなー』
+		ELSEIF RAND:2
+			PRINTFORMW 「英語の定冠詞と、前置詞」
+			PRINTFORMW 『あぁ英語ね、英語……くっく』
+			PRINTFORMW 「また思い出し笑い？」
+			PRINTFORMW 『いやだって昔のあいつ、自信満々にザエンドって言っててさぁ……』
+			PRINTFORMW 「それってネットスラングじゃないの？」
+			PRINTFORMW 『違う違う、それが出てくるよりもっと前なんだよ。ははは』
+		ELSE
+			PRINTFORMW 「社会。一番苦手」
+			PRINTFORMW 『あー、俺も苦手だわ。興味ねえもん』
+			PRINTFORMW 『まあロンドンがフランスにあるみたいな恥ずかしい間違いはしねーけど』
+			PRINTFORMW 「え、そんなの間違う？」
+			PRINTFORMW 『間違ってたよ、あいつ』
+			PRINTFORMW 「あぁ、そうなんだ……」
+		ENDIF
+	ENDIF
+
+;話しかけられる側のセリフ。括弧は『』を使うのが望ましい
+CASE "誘われた"
+
+
+ENDSELECT

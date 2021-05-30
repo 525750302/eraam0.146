@@ -1,0 +1,415 @@
+;-------------------------------------------------
+;ここに記述する事で各コマンドの選択肢を増やすことができる
+;-------------------------------------------------
+;もてなすコマンドの選択肢を追加
+@DAILY2_K14_ADDSELECT
+;吸血イベント
+STR:選択肢 += "血を分ける/"
+
+;もてなすコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY2_K14_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "血を分ける"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に見えるように襟元を緩めた。
+	PRINTL 
+	
+	;本日吸血済み
+	IF CFLAG:シキ吸血フラグ == 1
+		IF CFLAG:シキ吸血量 < 100
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「今日はもう良いっつーの！」
+			CASE 1
+				PRINTFORML 「ごくっ・・・いや、なんでもない」
+			CASEELSE
+				PRINTFORML 「いや、大丈夫・・・大丈夫だ」
+			ENDSELECT
+		ELSEIF CFLAG:シキ吸血量 < 300
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「今日はもう大丈夫だから・・・」
+			CASE 1
+				PRINTFORML 「ごくっ・・・おい、節度って知ってるか？」
+			CASEELSE
+				PRINTFORML 「いや、そんなには飲まん・・・！」
+			ENDSELECT
+		ELSEIF TALENT:恋慕
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「今日はもう飲んだだろ！　あんま誘惑すんじゃねえ！」
+			CASE 1
+				PRINTFORML 「ふー・・・あんまり誘惑してくれるなよ？」
+			CASEELSE
+				PRINTFORML 「ん～なんだ？　また吸って欲しいのか？」
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「いや、そんなには飲まねーよ」
+			CASE 1
+				PRINTFORML 「ふー・・・いや、あんま飲み過ぎると人間離れしちまいそうだしな」
+			CASEELSE
+				PRINTFORML 「今日はもう飲んだから大丈夫だ」
+			ENDSELECT
+		ENDIF
+		PRINTFORMW 今日はもう血は充分なようだ。
+
+
+	;吸血を断った日
+	ELSEIF CFLAG:シキ吸血フラグ == 2
+		;吸血をした事がない
+		IF CFLAG:シキ吸血量 == 0
+			PRINTFORML 「い、いや……だから別に良いって！」
+			PRINTFORMW シキは誘惑を振り払うように大きく手を振って断った。
+			PRINTL 
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋を見つめているが、まだ吸血衝動の自制が利く様だ。
+
+		;レアパターン・断ったけど血を飲む
+		ELSEIF RAND:64 == 0 && BASE:MASTER:魂 >= 20
+			PRINTFORML 「・・・そんなに吸わせたいのか？」
+			PRINTFORMW %CALLNAME:TARGET%は観念したようにため息を吐いた。
+			PRINTL
+			;恋慕
+			IF TALENT:恋慕
+				PRINTFORML 「・・・ん」
+				PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%に顔を近づけるとそのまま%CALLNAME:MASTER%にキスをした。
+				PRINTFORMW チクリとした痛みが走る。どうやら唇を少し傷つけられたようだ。
+				PRINTL
+				PRINTFORMW 「んちゅ・・・ふー・・・ごちそうさん！」 
+				PRINTL
+				PRINTFORML 　%CALLNAME:MASTER%の魂-0.01
+				PRINTFORMW 　%CALLNAME:TARGET%の魂+0.01
+
+				CFLAG:シキ吸血フラグ = 1
+				CFLAG:シキ吸血量 += 1
+				BASE:MASTER:魂 -= 1
+				BASE:魂 += 1
+			ELSE
+				PRINTFORML 「・・・じゃあ、ちょっともらうぞ」
+				PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%の手を取ると手の端に噛みついた。
+				PRINTFORMW チクリとした痛みが走り、%CALLNAME:TARGET%が%CALLNAME:MASTER%の手から血を吸い始めた。
+				PRINTL
+				PRINTFORML 　%CALLNAME:MASTER%の魂-0.01
+				PRINTFORMW 　%CALLNAME:TARGET%の魂+0.01
+
+				CFLAG:シキ吸血フラグ = 1
+				CFLAG:シキ吸血量 += 1
+				BASE:MASTER:魂 -= 1
+				BASE:魂 += 1
+			ENDIF
+		
+		ELSEIF CFLAG:シキ吸血量 < 100
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「だ、大丈夫だっつーの！」
+			CASE 1
+				PRINTFORML 「ごくっ・・・いや、なんでもない」
+			CASEELSE
+				PRINTFORML 「いや、大丈夫・・・大丈夫だ」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋を見つめているが、まだ吸血衝動の自制が利く様だ。
+		ELSEIF CFLAG:シキ吸血量 < 300
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「その、大丈夫だから・・・」
+			CASE 1
+				PRINTFORML 「ごくっ・・・おい、節度って知ってるか？」
+			CASEELSE
+				PRINTFORML 「いや、今は飲まん・・・！」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋を見つめているが、まだ吸血衝動の自制が利く様だ。
+		ELSEIF TALENT:恋慕
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「いや、今は良いって・・・」
+			CASE 1
+				PRINTFORML 「ん～・・・あんまり誘惑してくれるなよ？」
+			CASEELSE
+				PRINTFORML 「今はそんな必要な感じしねぇ」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋を見つめているが、まだ吸血衝動の自制が利く様だ。
+		ELSE
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「いや、大丈夫だから」
+			CASE 1
+				PRINTFORML 「んー・・・いや、あんま飲み過ぎると人間離れしちまいそうだしな」
+			CASEELSE
+				PRINTFORML 「今は大丈夫だから」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋を見つめているが、まだ吸血衝動の自制が利く様だ。
+		ENDIF
+
+
+	;初めて
+	ELSEIF CFLAG:シキ吸血量 == 0
+		PRINTFORML 「・・・な、なんだよ」
+		PRINTFORML %CALLNAME:TARGET%は戸惑いながらも%CALLNAME:MASTER%の首筋を見つめ、喉をごくりと鳴らした。
+		PRINTFORMW %CALLNAME:MASTER%が許可を出すと%CALLNAME:TARGET%は恐る恐る顔を近づける。
+		PRINTL
+
+		;魂が1.00以上ある
+		IF BASE:MASTER:魂 >= 100
+			PRINTFORML 「はむっ・・・」
+			PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋に牙を立てた。
+			PRINTFORMW チクリとした痛みを感じると、%CALLNAME:MASTER%は次に何かを奪われる感覚に陥った。
+			PRINTL
+			PRINTFORML 「ぷはっ・・・！！　ん、ありがとう」
+			PRINTFORML しかし次の瞬間には%CALLNAME:TARGET%は首筋から口を離してしまった。
+			PRINTFORMW あれでは一口程も血を吸えてないように思えた。
+			PRINTL
+			PRINTFORML 　%CALLNAME:MASTER%の魂-0.01
+			PRINTFORMW 　%CALLNAME:TARGET%の魂+0.01
+
+			CFLAG:シキ吸血フラグ = 1
+			CFLAG:シキ吸血量 += 1
+			BASE:MASTER:魂 -= 1
+			BASE:魂 += 1
+
+		;魂が足りない
+		ELSE
+			PRINTFORML 「・・・や、やっぱ良い！　大丈夫だ！」
+			PRINTFORML %CALLNAME:MASTER%の首筋に%CALLNAME:TARGET%の舌先が少し触れるがすぐに離れてしまった。
+			PRINTFORMW どうやら直前で怖気づいてしまったようだ。
+			CFLAG:シキ吸血フラグ = 2
+		ENDIF
+	
+	;吸血慣れてない
+	ELSEIF CFLAG:シキ吸血量 <= 30
+		;お断り
+		IF BASE:MASTER:魂 < 100 || BASE:欲求不満 < 50
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「い、いや、結構だ！」
+			CASE 1
+				PRINTFORML 「の、飲めってか？　・・・む、無理だ！」
+			CASEELSE
+				PRINTFORML 「だ、大丈夫だから・・・」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋を見つめているが、まだ吸血衝動の自制が利く様だ。
+			CFLAG:シキ吸血フラグ = 2
+
+		;我慢できない
+		ELSEIF BASE:欲求不満 >= 80
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「%TEXTR("う/あ/ん")%・・・%TEXTR("うあ/んあ/ああ")%・・・」
+			CASE 1
+				PRINTFORML 「が、ガマンできなっ・・・」
+			CASEELSE
+				PRINTFORML 「・・・」
+			ENDSELECT
+			PRINTFORML %CALLNAME:TARGET%はどこか虚ろな表情のまま%CALLNAME:MASTER%の肩に噛みついた。
+			PRINTFORMW すると%CALLNAME:TARGET%はゴクゴクと喉を鳴らすほど血を吸い始めた。
+			PRINTL
+			PRINTFORML 　%CALLNAME:MASTER%の魂-0.35
+			PRINTFORMW 　%CALLNAME:TARGET%の魂+0.35
+			CFLAG:シキ吸血フラグ = 1
+			CFLAG:シキ吸血量 += 35
+			BASE:MASTER:魂 -= 35
+			BASE:魂 += 35
+			CALL CALC, "欲求不満解消", TARGET, 25
+			CALL SETFLAG, "調教外潤滑追加", 1000, TARGET
+
+		;飲む
+		ELSE
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「じゃ、じゃあちょっとだけ・・・」
+			CASE 1
+				PRINTFORML 「か、渇きが治まらんのだ・・・」
+			CASEELSE
+				PRINTFORML 「すまん・・・いただくぞ」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%は恐る恐る%CALLNAME:MASTER%の首筋に噛みついた。
+			PRINTL
+			PRINTFORML 　%CALLNAME:MASTER%の魂-0.02
+			PRINTFORMW 　%CALLNAME:TARGET%の魂+0.02
+			CFLAG:シキ吸血フラグ = 1
+			CFLAG:シキ吸血量 += 2
+			BASE:MASTER:魂 -= 2
+			BASE:魂 += 2
+			CALL CALC, "欲求不満解消", TARGET, 5
+		ENDIF
+	
+	;それなりに慣れてくる
+	ELSEIF CFLAG:シキ吸血量 <= 100
+		;お断り
+		IF BASE:MASTER:魂 < 100 || BASE:欲求不満 < 40
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「いや、大丈夫だ・・・多分」
+			CASE 1
+				PRINTFORML 「今日はそんなに渇いてないから平気だ」
+			CASEELSE
+				PRINTFORML 「んー・・・今は遠慮しておくぜ」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋を見つめているが、まだ吸血衝動の自制が利く様だ。
+			CFLAG:シキ吸血フラグ = 2
+
+		;我慢できない
+		ELSEIF BASE:欲求不満 >= 85
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「%TEXTR("う/あ/ん")%・・・%TEXTR("うあ/んあ/ああ")%・・・」
+			CASE 1
+				PRINTFORML 「%TEXTR("ぐっ/んっ")%・・・か、渇きが・・・っ」
+			CASEELSE
+				PRINTFORML 「・・・%TEXTR("すまん/すまねぇ")%」
+			ENDSELECT
+			PRINTFORML %CALLNAME:TARGET%は%TEXTR("肉食獣のような/飢えた獣のような/サディスティックな")%表情で%CALLNAME:MASTER%の肩に噛みついた。
+			PRINTFORMW %CALLNAME:TARGET%はゴクゴクと喉を鳴らすほど血を吸い始めた。
+			PRINTL
+			PRINTFORML 　%CALLNAME:MASTER%の魂-0.30
+			PRINTFORMW 　%CALLNAME:TARGET%の魂+0.30
+			CFLAG:シキ吸血フラグ = 1
+			CFLAG:シキ吸血量 += 30
+			BASE:MASTER:魂 -= 30
+			BASE:魂 += 30
+			CALL CALC, "欲求不満解消", TARGET, 25
+			CALL SETFLAG, "調教外潤滑追加", 1000, TARGET
+
+		;飲む
+		ELSE
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「すまん、%TEXTR("少し貰うぞ/喉が渇くんだ")%」
+			CASE 1
+				PRINTFORML 「じゃあ・・・%TEXTR("少し/ちょっと")%だけ・・・」
+			CASEELSE
+				PRINTFORML 「・・・あ、ありがとう」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%はそっと%CALLNAME:MASTER%の首筋に噛みついた。
+			PRINTL
+			PRINTFORML 　%CALLNAME:MASTER%の魂-0.03
+			PRINTFORMW 　%CALLNAME:TARGET%の魂+0.03
+			CFLAG:シキ吸血フラグ = 1
+			CFLAG:シキ吸血量 += 3
+			BASE:MASTER:魂 -= 3
+			BASE:魂 += 3
+			CALL CALC, "欲求不満解消", TARGET, 5
+		ENDIF
+	
+	;吸血日常化
+	ELSEIF CFLAG:シキ吸血量 <= 300
+		;お断り
+		IF BASE:MASTER:魂 < 100 || BASE:欲求不満 < 30
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「%TEXTR("んー/あー")%・・・今日は%TEXTR("平気だな/大丈夫だ")%」
+			CASE 1
+				PRINTFORML 「いや、今日はそんなに渇いてないな」
+			CASEELSE
+				PRINTFORML 「%TEXTR("うーん/あー")%、今は遠慮しておくよ」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋を%TEXTR("チラと/少し")%見るが、まだ吸血衝動の自制が利く様だ。
+			CFLAG:シキ吸血フラグ = 2
+
+		;我慢できない
+		ELSEIF BASE:欲求不満 >= 90
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「%TEXTR("うが/ああ/んあ")%・・・%TEXTR("スマン/すまねぇ")%」
+			CASE 1
+				PRINTFORML 「%TEXTR("ぐっ/んっ")%・・・スマン、渇いてっ」
+			CASEELSE
+				PRINTFORML 「・・・%TEXTR("すまん/すまねぇ/ありがとう")%」
+			ENDSELECT
+			PRINTFORML %CALLNAME:TARGET%は%TEXTR("肉食獣のような/飢えた獣のような/サディスティックな")%表情で%CALLNAME:MASTER%の肩に噛みついた。
+			PRINTFORMW %CALLNAME:TARGET%はゴクゴクと喉を鳴らすほど血を吸い始めた。
+			PRINTL
+			PRINTFORML 　%CALLNAME:MASTER%の魂-0.25
+			PRINTFORMW 　%CALLNAME:TARGET%の魂+0.25
+			CFLAG:シキ吸血フラグ = 1
+			CFLAG:シキ吸血量 += 25
+			BASE:MASTER:魂 -= 25
+			BASE:魂 += 25
+			CALL CALC, "欲求不満解消", TARGET, 20
+			CALL SETFLAG, "調教外潤滑追加", 1000, TARGET
+
+		;飲む
+		ELSE
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「%TEXTR("んー/うーん/あー")%・・・%TEXTR("じゃあ貰おっか/失礼するぜ")%」
+			CASE 1
+				PRINTFORML 「%TEXTR("まあ/う～ん")%、渇く前に%TEXTR("飲んでおくか/吸わせて貰うぞ")%」
+			CASEELSE
+				PRINTFORML 「悪いな・・・%TEXTR("いつもいつも/感謝はしてるんだぜ？")%」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋に噛みついた。
+			PRINTL
+			PRINTFORML 　%CALLNAME:MASTER%の魂-0.04
+			PRINTFORMW 　%CALLNAME:TARGET%の魂+0.04
+			CFLAG:シキ吸血フラグ = 1
+			CFLAG:シキ吸血量 += 4
+			BASE:MASTER:魂 -= 4
+			BASE:魂 += 4
+			CALL CALC, "欲求不満解消", TARGET, 5
+		ENDIF
+	
+	;恋慕・相思相愛
+	;ELSEIF TALENT:恋慕
+
+
+	;吸血に遠慮がなくなる
+	ELSE
+		;お断り
+		IF BASE:MASTER:魂 < 100 || BASE:欲求不満 < 40
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「今日は%TEXTR("平気だな/大丈夫だ")%」
+			CASE 1
+				PRINTFORML 「いや、今日はそんなに渇いてない%TEXTR("な/ぞ")%」
+			CASEELSE
+				PRINTFORML 「%TEXTR("うーん/あー")%、今は遠慮しておくよ」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の首筋を%TEXTR("チラと/少し")%見るが、まだ吸血衝動の自制が利く様だ。
+			CFLAG:シキ吸血フラグ = 2
+
+		;我慢できない
+		ELSEIF BASE:欲求不満 >= 95
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「%TEXTR("スマン/すまねぇ")%、渇きがヤベェ・・・」
+			CASE 1
+				PRINTFORML 「%TEXTR("んぐっ/ごくり")%・・・%TEXTR("スマン/すまねぇ")%、%TEXTR("喉が/渇きが/限界っぽい")%・・・」
+			CASEELSE
+				PRINTFORML 「・・・%TEXTR("すまん/すまねぇ/ありがとう")%」
+			ENDSELECT
+			PRINTFORML %CALLNAME:TARGET%は%TEXTR("肉食獣のような/飢えた獣のような/サディスティックな")%表情で%CALLNAME:MASTER%の肩に噛みついた。
+			PRINTFORMW %CALLNAME:TARGET%はゴクゴクと喉を鳴らすほど血を吸い始めた。
+			PRINTL
+			PRINTFORML 　%CALLNAME:MASTER%の魂-0.20
+			PRINTFORMW 　%CALLNAME:TARGET%の魂+0.20
+			CFLAG:シキ吸血フラグ = 1
+			CFLAG:シキ吸血量 += 20
+			BASE:MASTER:魂 -= 20
+			BASE:魂 += 20
+			CALL CALC, "欲求不満解消", TARGET, 20
+			CALL SETFLAG, "調教外潤滑追加", 1000, TARGET
+
+		;飲む
+		ELSE
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「そうだな、今のうちに%TEXTR("吸って/補給して/飲んで")%おくか」
+			CASE 1
+				PRINTFORML 「%TEXTR("スマン/すまねぇ")%、渇く前に%TEXTR("飲ませてくれ/吸わせて貰うぞ")%」
+			CASEELSE
+				PRINTFORML 「悪いな、%TEXTR("いつも/いつもいつも/ありがとう")%」
+			ENDSELECT
+			PRINTFORMW %CALLNAME:TARGET%はいつもの様に%CALLNAME:MASTER%の首筋に噛みついた。
+			PRINTL
+			PRINTFORML 　%CALLNAME:MASTER%の魂-0.05
+			PRINTFORMW 　%CALLNAME:TARGET%の魂+0.05
+			CFLAG:シキ吸血フラグ = 1
+			CFLAG:シキ吸血量 += 5
+			BASE:MASTER:魂 -= 5
+			BASE:魂 += 5
+			CALL CALC, "欲求不満解消", TARGET, 5
+		ENDIF
+
+	ENDIF
+
+ENDSELECT

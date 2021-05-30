@@ -1,0 +1,39 @@
+﻿;-------------------------------------------------
+;ここに記述する事で各コマンドの選択肢を増やすことができる
+;-------------------------------------------------
+;お願い・取引での選択肢を追加。番号は60～89を使ってよい
+@WISH_K15_ADDSELECT
+IF CEVENT("槞彁：機械翻訳OFF", MASTER)
+	STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("機械翻訳ＯＮ", 16)% … 槞彁の台詞の後に機械翻訳が流れるようになります/
+ELSE
+	STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("機械翻訳ＯＦＦ", 16)% … 槞彁の台詞の後に機械翻訳が流れないようになります/
+ENDIF
+
+SIF CEVENT("槞彁：Demsolaviya20XX呼び出し可", MASTER)
+	STR:選択肢 = %STR:選択肢% [61] %TEXT_LJ(@"%NAME:TARGET%の母国へ行く", 16)% … ミニゲーム：Демославия20XXを開始します/
+;IF TALENT:恋慕
+;	STR:選択肢 = %STR:選択肢% [62] %TEXT_LJ("資金援助を行う", 16)% … %NAME:TARGET%にお金を渡します/
+;	STR:選択肢 = %STR:選択肢% [63] %TEXT_LJ("魂を提供する", 16)% … %NAME:TARGET%に魂を１渡します/
+;ENDIF
+
+;STR:選択肢 = %STR:選択肢% [64] %TEXT_LJ("カツアゲする", 16)% … %NAME:TARGET%からカツアゲしてお金を貰います/
+
+
+;お願い・取引で増やした選択肢の地の文と台詞
+@KOJO_WISH_K15_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "機械翻訳ＯＮ"
+	CALL DEL_CEVENT, "槞彁：機械翻訳OFF", MASTER
+	CALL PRINT_STRW, "機械翻訳を_黄色_ＯＮ_にしました。"
+CASE "機械翻訳ＯＦＦ"
+	CALL SET_CEVENT, "槞彁：機械翻訳OFF", MASTER
+	CALL PRINT_STRW, "機械翻訳を_青_ＯＦＦ_にしました。"
+CASE @"%NAME:TARGET%の母国へ行く"
+	IF CEVENT("ミニゲーム：初回イベ済")
+		CALL CALL_LIB("ミニゲーム開始：通常")
+	ELSE
+		CALL CALL_LIB("ミニゲーム開始：初")
+		CALL SET_CEVENT("ミニゲーム：初回イベ済")
+	ENDIF
+	CALL Demoslaviya20XX_Start
+ENDSELECT

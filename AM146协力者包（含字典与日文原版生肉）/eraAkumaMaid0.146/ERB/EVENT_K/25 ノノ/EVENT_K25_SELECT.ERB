@@ -1,0 +1,368 @@
+﻿@WISH_K25_ADDSELECT
+;ノノくんが男装したり、女装に戻したりできるようになるお願い
+;しかし男の男装とは・・・？
+IF (MARK:屈服刻印 >= 1 || ABL:信頼 >= 2) && CFLAG:好感度 >= 100
+	IF CEVENT("ノノ：男装")
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("制服を戻して", 16)% … 女性用の制服に戻してもらいます
+	ELSE
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("制服を男性用に", 16)% … 男性用の制服で登校してもらいます
+	ENDIF
+	STR:選択肢 = %STR:選択肢%（魂不要）/
+	;シュトリーちゃんの同名のものを丸パク……リスペクトして作ったお願い
+	;男性器と女性器の呼称を変更できるようになります
+	STR:選択肢 = %STR:選択肢% [61] %TEXT_LJ("男性器をあだ名で", 16)% … 男性器の呼称を変えてもらいます（魂不要）/
+	STR:選択肢 = %STR:選択肢% [62] %TEXT_LJ("女性器をあだ名で", 16)% … 女性器の呼称を変えてもらいます（魂不要）/
+ENDIF
+
+IF CEVENT("ノノ：妊娠可")
+	IF TALENT:妊娠可能
+		STR:選択肢 = %STR:選択肢% [63] %TEXT_LJ("妊娠不可になって", 16)% … 妊娠できないように戻ってもらいます
+	ELSE
+		STR:選択肢 = %STR:選択肢% [63] %TEXT_LJ("妊娠可能になって", 16)% … 妊娠できるようになってもらいます
+	ENDIF
+	STR:選択肢 = %STR:選択肢%（魂不要）/
+	;あなたが妊娠できない状態のとき、魂を消費して妊娠可能をつけることができるようになるお願い
+	;妊娠中or受精中は文面を分岐させたいので、お願い自体はできるようにする（効果はない）
+	;妊娠してるのが分かってなければ、この場で妊娠発覚扱いにできるようにしたい
+	;灯くんのＴＳイベントを参考にさせていただきました
+	IF COND("本来は妊娠不可能", MASTER)
+		IF TALENT:MASTER:妊娠可能
+			IF BASE:MASTER:魂 > 100 || BASE:魂 > 100
+				STR:選択肢 = %STR:選択肢% [64] %TEXT_LJ("妊娠不可にして", 16)% … 妊娠できないように戻してもらいます/
+			ELSE
+				STR:選択肢 = %STR:選択肢%灰色/ [64] %TEXT_LJ("妊娠不可にして", 16)% … %CALLNAME:MASTER%か%CALLNAME:TARGET%の魂が1.01以上必要です/
+			ENDIF  
+		ELSE
+			;文章の最後には半角スペース入ってないよ！
+			IF BASE:MASTER:魂 > 100 || BASE:魂 > 100
+				STR:選択肢 = %STR:選択肢% [64] %TEXT_LJ("妊娠可能にして", 16)% …
+				;文面を分岐させてみたいのでここで変える
+				;あなたは人形になれないので無駄分岐だが、雰囲気付けのため加える
+				IF COND("種族：人形", MASTER)
+					STR:選択肢 = %STR:選択肢% 人形の
+				ELSEIF TALENT:MASTER:未成熟
+					STR:選択肢 = %STR:選択肢% 未成熟な
+				ELSEIF TALENT:MASTER:オトコ
+					STR:選択肢 = %STR:選択肢% 男の
+				ENDIF
+				STR:選択肢 = %STR:選択肢%体でも妊娠できるようにしてもらいます/
+			ELSE
+				STR:選択肢 = %STR:選択肢%灰色/ [64] %TEXT_LJ("妊娠可能にして", 16)% … %CALLNAME:MASTER%か%CALLNAME:TARGET%の魂が1.01以上必要です/
+			ENDIF
+		ENDIF
+	ENDIF
+ENDIF
+
+IF CEVENT("男の娘講座") && TALENT:MASTER:オトコ
+	IF TALENT:MASTER:男の娘
+		STR:選択肢 = %STR:選択肢% [65] %TEXT_LJ("オトコに戻して", 16)% … 男の娘から普通のオトコに戻してもらいます（魂不要）/
+	ELSE
+		STR:選択肢 = %STR:選択肢% [65] %TEXT_LJ("男の娘にして", 16)% … %CALLNAME:TARGET%に男の娘に見えるようにしてもらいます（魂不要）/
+	ENDIF
+ENDIF
+
+;ポリネシアンセックスを作ってみたいという希望だけをここに書いておく
+;できるだけゲーム的にもエッチかつフラストレーションのたまらないものにしたい
+;SIF TALENT:相思相愛 && CEVENT("Ｐ・セックス") == 0
+;	STR:選択肢 = %STR:選択肢% [64] %TEXT_LJ("提案をしてみる", 16)% … %CALLNAME:TARGET%にポリネシアン・セックスを提案します（魂不要）/
+
+@KOJO_WISH_K25_ADDSELECT,ARGS
+SELECTCASE ARGS
+CASE "制服を戻して"
+	PRINTFORMW %CALLNAME:MASTER%は明日から女性用の制服で登校してもらえるよう%CALLNAME:TARGET%にお願いした
+	PRINTL
+	PRINTFORMW 「今までと同じほうがいいですか？　分かりました、次から戻すようにしますね」
+	PRINTL 
+	PRINTFORMW %CALLNAME:TARGET%は明日から女性用の制服を着て登校するようになりました
+	CALL DEL_CEVENT, "ノノ：男装"
+CASE "制服を男性用に"
+	PRINTFORMW %CALLNAME:MASTER%は明日から男性用の制服で登校してもらえるよう%CALLNAME:TARGET%にお願いした
+	PRINTL 
+	PRINTFORMW 「そうですね……いつもとは違う格好だと新鮮かもしませんね。いいですよ」
+	PRINTL
+	PRINTFORMW %CALLNAME:TARGET%は明日から男性用の制服を着て登校するようになりました
+	CALL SET_CEVENT, "ノノ：男装"
+CASE "男性器をあだ名で", "女性器をあだ名で"
+	PRINTFORMW %CALLNAME:MASTER%は\@ARGS == "男性器をあだ名で" ? %TEXTR("男性器/ペニス")% # %TEXTR("女性器/ヴァギナ")%\@の呼称を変えてもらえるよう%CALLNAME:TARGET%にお願いした
+	PRINTL 
+	IF YOKUBO()
+		CALL PRINT_STRW, @"「フフッ_H_%CNAME("二人称")%ったら、エッチなこと考えるんですね_H_」"
+		PRINTFORMW 「それで、どう呼んでほしいんですか？」
+	ELSE
+		PRINTFORMW 「え、い、言い方をですか……？」
+		PRINTFORMW 「わ、わかりました。……どう呼べばいいでしょうか？	」
+	ENDIF
+	PRINTL
+	IF ARGS == "男性器をあだ名で"
+		CALL PRINT_SELECT, "ちんちん/おちんちん/おちんぽ/それ以外", "やっぱりやめる"
+		SELECTCASE RESULT
+		CASE 0
+			CALL SET_CEVENT, "男性器呼：ちんちん_ちんちん"
+		CASE 1
+			CALL SET_CEVENT, "男性器呼：おちんちん_おちんちん"
+		CASE 2
+			CALL SET_CEVENT, "男性器呼：おちんぽ_おちんぽ"
+		CASE 3
+			CALL GENITALNAME_CONVERT, "男性器"
+		CASE 100
+			PRINTFORMW 「そのままにするんですね」
+			RETURN 1
+		ENDSELECT
+		PRINTFORMW 「これから%CNAME("男性器")%って呼べばいいんです\@YOKUBO() ? ね、わかりました # か……？\@」
+	ELSE
+		CALL PRINT_SELECT, "まんこ/おまんこ/下のお口/それ以外", "やっぱりやめる"
+		SELECTCASE RESULT
+		CASE 0
+			CALL SET_CEVENT, "女性器呼：まんこ_まんこ"
+		CASE 1
+			CALL SET_CEVENT, "女性器呼：おまんこ_おまんこ"
+		CASE 2
+			CALL SET_CEVENT, "女性器呼：下のお口_したのおくち"
+		CASE 3
+			CALL GENITALNAME_CONVERT, "女性器"
+		CASE 100
+			PRINTFORMW 「やっぱり今のままにするんですね」
+			RETURN 1
+		ENDSELECT
+		PRINTFORMW 「これから%CNAME("女性器")%って呼べばいいんです\@YOKUBO() ? ね、わかりました # か……？\@」
+	ENDIF
+CASE "妊娠不可になって"
+	PRINTFORMW %CALLNAME:MASTER%は妊娠できる状態から戻ってほしいと%CALLNAME:TARGET%にお願いした
+	PRINTL 
+	IF COND("妊娠中") || COND("受精確認")
+		PRINTFORMW 「ごめんなさい。今はできないんです」
+		PRINTFORMW 「また後でお願いします」
+	ELSE
+		PRINTFORMW 「分かりました、では少し待ってくださいね……」
+		TALENT:妊娠可能 = 0
+		PRINTL 
+		PRINTFORMW 「……お待たせしました。元に戻りましたよ」
+		PRINTFORMW %CALLNAME:TARGET%は元の体に戻りました
+	ENDIF
+CASE "妊娠可能になって"
+	PRINTFORMW %CALLNAME:MASTER%は妊娠できる状態になってほしいと%CALLNAME:TARGET%にお願いした
+	PRINTL 
+	PRINTFORMW 「分かりました、では少し待ってくださいね……」
+	TALENT:妊娠可能 = 1
+	PRINTL 
+	PRINTFORMW 「……お待たせしました。妊娠できるようになりましたよ」
+	PRINTFORMW %CALLNAME:TARGET%は妊娠できるようになりました
+CASE "妊娠不可にして"
+	PRINTFORMW %CALLNAME:MASTER%は妊娠できる状態から戻してほしいと%CALLNAME:TARGET%にお願いした
+	PRINTL
+	PRINTFORMW 「また妊娠できないようにしてほしいんですね？」
+	IF COND("妊娠中", MASTER) || COND("受精確認", MASTER)
+		PRINTFORM 「分かりました……といいたい所ですが
+		IF COND("妊娠後期")
+			PRINTFORMW もう少しで産まれそうじゃないですか」
+		ELSEIF COND("妊娠中期")
+			PRINTFORMW もうお腹も大分大きくなってきてるじゃないですか」
+		ELSEIF COND("妊娠初期")
+			PRINTFORMW まだお腹は大きくなってませんが、妊娠してるじゃないですか」
+		ELSEIF COND("受精確認", MASTER)
+			PRINTFORMW 「……あれ？　うまく術が効いてくれないみたいですね」
+		ENDIF
+		;生理は何か起きてない扱いなの？　と突っ込んではいけない
+		IF COND("妊娠中：妊娠発覚済み")
+			PRINTFORMW 「この術は胎内で何かが起きていると効果を発揮しないんです」
+			PRINTFORMW 「ですから、子どもを産むまでは待っていてください」
+		ELSE
+			PRINTFORMW 「……おそらく、しばらくは効いてくれなさそうですね」
+			PRINTFORMW 「しばらく待ってから、もう一度お願いします」
+		ENDIF
+	ELSE
+		PRINTFORMW 「分かりました。では少し待ってくださいね……」
+		IF BASE:MASTER:魂 <= 100
+			PRINTFORMW 「……おや？　魂が足りないみたいですね」
+			PRINTFORMW 「仕方ありません。実は%CNAME("二人称")%の魂を貯めていたので、それを使いましょう」
+			CALL PRINT_STRW, @"「……後で、たっぷりお返ししてくださいね_H_」"
+			CALL KOJO_WISH_K25_USESOUL, ARGS, TARGET
+		ELSE
+			CALL KOJO_WISH_K25_USESOUL, ARGS
+		ENDIF
+	ENDIF
+CASE "妊娠可能にして"
+	PRINTFORM %CALLNAME:MASTER%は
+	IF COND("種族：人形", MASTER)
+		PRINTFORM %TEXTR("硬質な/冷たい/人工的な")%人形の
+	ELSEIF TALENT:MASTER:オトコ
+		IF TALENT:MASTER:男の娘
+			PRINTFORM 女性と間違われがちだが、実際は男である
+		ELSE
+			PRINTFORM 男の
+		ENDIF
+	ELSEIF TALENT:MASTER:未成熟
+		PRINTFORM 未だに子どものような
+	ENDIF
+	PRINTFORMW 身体でも妊娠できるようにしてほしいと%CALLNAME:TARGET%にお願いした
+	PRINTL 
+	IF CEVENT("ノノ：妊娠可能了承") == 0
+		;場所がおかしいが、やめておくを押すと戻される都合上こちらに書いておく
+		CALL SET_CEVENT, "ノノ：妊娠可能了承"
+
+		PRINTFORMW 「……すること自体は問題ないんですが、その場合、%CNAME("二人称")%の魂が必要になりますが、大丈夫ですか？」
+		PRINTFORMW 「というのも、この術は体を組み替える以上、どうしてもそれに耐えられるだけの強さが必要になります」
+		PRINTFORMW 「%CNAME("一人称")%はハーフとは言え堕天使なので問題はないのですが、どれだけ%CNAME("二人称")%が特別と言っても体は人間です」
+		PRINTFORMW 「なので、魂をいただいて一時的に体を耐えられるようにしなければなりません」
+		PRINTFORMW 「……まあ、%CNAME("二人称")%であれば特に問題はありませんが……」
+		PRINTFORMW 「話を戻しまして……それで、どうしますか？」
+		CALL PRINT_SELECT, "術を受ける/やめておく"
+
+		IF RESULT == 1
+			PRINTFORMW 「……やめておきますか。分かりました」
+			PRINTFORMW 「やっぱり術を受けたくなったという時は、また声をかけてください」
+			RETURN 0
+		ENDIF
+	ENDIF
+	PRINTFORMW 「……分かりました。それでは少し待ってください……」
+	IF BASE:MASTER:魂 <= 100
+		PRINTFORMW 「……おや？ 魂が足りないみたいですね」
+		IF BASE:魂 > 100
+			PRINTFORMW 「仕方ありません。実は%CNAME("二人称")%の魂を貯めていたので、それを使いましょう」
+			CALL PRINT_STRW, @"「……後で、たっぷりお返ししてくださいね_H_」"
+			CALL KOJO_WISH_K25_USESOUL, ARGS, TARGET
+		ELSE
+			PRINTFORMW 「これだと危険なので、また次の日にお願いします」
+		ENDIF
+	ELSE
+		CALL KOJO_WISH_K25_USESOUL, ARGS
+	ENDIF
+CASE "オトコに戻して"
+	PRINTFORMW 「分かりました。それではじっとしてくださいね……」
+	SIF CFLAG:年齢一時保管 != 0
+		TALENT:MASTER:外見年齢 = CFLAG:年齢一時保管
+	TALENT:MASTER:男の娘 = 0
+	CFLAG:年齢一時保管 = 0
+	PRINTFORMW 「……お待たせしました。もう大丈夫ですよ」
+CASE "男の娘にして"
+	PRINTFORMW 「分かりました。ではちょっと待ってくださいね……」
+	PRINTFORMW 「……ええと、この部分にこれをして……」
+	IF TALENT:MASTER:外見年齢 > 2
+		PRINTFORMW 「最後にこの魔術を使えば……」
+		CFLAG:年齢一時保管 = TALENT:MASTER:外見年齢
+		TALENT:MASTER:外見年齢 = 1
+	ENDIF
+	TALENT:MASTER:男の娘 = 1
+ENDSELECT
+
+;魂を使うタイプのお願いの時に通すプログラム
+;複数書き始めると一所に纏めたほうが都合がよさそうなのでする
+@KOJO_WISH_K25_USESOUL, ARGS, ARG
+
+;ARGに記載がない場合は、＝あなたの魂を使うものとする
+SIF ARG == 0
+	ARG = MASTER
+
+BASE:ARG:魂 -= 100
+
+;ノノくんが魂を使う可能性がある都合上、魂が貯まるかどうかは別個に記述する（めちゃくちゃめんどくさいけど）
+SELECTCASE ARGS
+CASE "妊娠不可にして"
+	SIF ARG != TARGET
+		BASE:TARGET:魂 += 100
+	PRINTFORMW 「……はい、終わりました」
+	TALENT:MASTER:妊娠可能 = 0
+	PRINTL 
+	PRINTFORMW %CALLNAME:MASTER%は魂を使って妊娠しない体に戻りました
+CASE "妊娠可能にして"
+	SIF ARG != TARGET
+		BASE:TARGET:魂 += 100
+	PRINTFORMW 「……はい、終わりました」
+	TALENT:MASTER:妊娠可能 = 1
+	PRINTL 
+	PRINTFORMW %CALLNAME:MASTER%は魂を使って妊娠できる体に変化しました
+ENDSELECT
+PRINTL 
+PRINTFORMW 魂-1.00（%CALLNAME:ARG%）
+
+;-------------------------------------------------
+;トークコマンドの選択肢を追加
+;マリーさんの作者さん＋千紗ちゃんの作者さんのアドバイスで加筆することにしました
+;知識が増えれば対応する内容もちょっと変わるかもしれない
+@DAILY1_K25_ADDSELECT
+SIF DAILYCOMNAME(1) == "トーク"
+	STR:選択肢 += "美術について聞く/"
+
+;もてなすコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY1_K25_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "美術について聞く"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に%ARGS%事にした。
+	PRINTL 
+	PRINTFORMW 「え？ %CNAME("一人称")%に美術について教えてほしいんですか？」
+	IF CEVENT("美術初めて") == 0
+		PRINTFORMW 「いいですけど、どれを……え？ 現代芸術？」
+		PRINTFORMW 「なるほど、この前の美術の講義で現代芸術についてやっていて……」
+		PRINTFORMW 「まあ、親戚がオークションで手に入れたのを譲ってくれることもあるので、多少は知ってますが……」
+		CALL SET_CEVENT, "美術初めて"
+	ENDIF
+	CALL QUESTION_ART
+	PRINTL 
+ENDSELECT
+
+;-------------------------------------------------
+;もてなすコマンドの選択肢を追加
+@DAILY2_K25_ADDSELECT
+SIF CEVENT("ほっぺふにふに") && GETBIT(CFLAG:一日フラグ, 0) == 0
+	STR:選択肢 += "頬をつんつんする/"
+
+;もてなすコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY2_K25_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "頬をつんつんする"
+	SELECTCASE CFLAG:つんつん回数
+	CASE IS >= 50
+		IF RAND:2
+			PRINTFORMW 「も、もう～～～」
+		ELSE
+			PRINTFORMW 「は、恥ずかしいです！　恥ずかしいからっ！」
+		ENDIF
+	CASE IS >= 25
+		PRINTFORMW 「や、やめてくださいってば！」
+	CASEELSE
+		PRINTFORMW 「や、やめてください！」
+	ENDSELECT
+	PRINTL 
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の頬をつんつんと突いた……。
+	SIF CFLAG:つんつん回数 <= 999
+		CFLAG:つんつん回数++
+	INVERTBIT CFLAG:一日フラグ, 0
+ENDSELECT
+
+;-------------------------------------------------
+;デート行き先の選択肢を追加。
+@DATE_K25_ADDSELECT
+;ここで増やした選択肢を選ぶと、それがSAVESTR:デート に代入される仕組みです
+STR:選択肢 += "写真展/"
+
+
+;増やした行先での地の文と台詞。起きうるイベントのフラグもここで決める
+@KOJO_DATE_K25_ADDSELECT
+SELECTCASE SAVESTR:デート
+CASE "写真展"
+	PRINTFORMW 「そういえば、近所の%TEXTR("美術館/ギャラリー")%で写真展をやってるらしいんです」
+	PRINTFORMW 「よければ、一緒に行きませんか？」
+	PRINTFORML 
+	;地の文
+	PRINTFORMW %CALLNAME:TARGET%と%CALLNAME:MASTER%は%TEXTR("新進気鋭の/ベテラン/中堅")%写真家の%SAVESTR:デート%に向かった
+	SELECTCASE RAND:3
+	CASE 2
+		PRINTFORMW ファッション誌用に撮られたと思わしきスレンダーなモデル達が、様々なポーズを取りながら部屋の中で静止している
+	CASE 1
+		PRINTFORMW エロティックなポーズを取った裸体の女性たちの写真が、所狭しと展示されている
+	CASEELSE
+		PRINTFORMW 様々な場所で撮られた風景写真の数々が、一定の間隔を置いて展示されている
+	ENDSELECT
+	;地の文を用意していない場合には汎用のものを使う
+	;CALL DAILY_MESSAGE, "デート本番"
+	PRINTL 
+	PRINTFORMW 「学園の掲示板に書いてあってたまたま知っていたんですけど、ここでは珍しい写真が展示されると聞いて、一度見たかったんですよね」
+	PRINTFORMW 集中した様子でじっくりと写真を眺めていた%CALLNAME:TARGET%が小声で語り始める
+	PRINTFORMW 「……ここにある写真、しっかりと見るとテクニック的にもしっかりしていて、人気があるのも分かります」
+	PRINTFORMW 「すごいなぁ……%CNAME("一人称")%もこんな写真をいつか撮ってみたいなぁ……」
+	PRINTFORMW %CALLNAME:TARGET%と%CALLNAME:MASTER%は二人で%SAVESTR:デート%を堪能した……
+	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+	FLAG:ムード += 30
+	;それぞれ可能なもののコメントアウトを外す
+	TFLAG:デート手つなぎ可能 = 1
+ENDSELECT

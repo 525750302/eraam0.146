@@ -1,0 +1,523 @@
+;-------------------------------------------------
+;キャラARGにコーディネートARGSを着せる
+;衣装を変えた場合は着替えたとみなす
+;-------------------------------------------------
+@SET_COORDINATE, ARGS, ARG
+#DIM LCOUNT
+;着せ替え前の衣装の記録
+#DIMS BEFORE_CLO
+#DIMS AFTER_CLO
+#DIM MEMO_TARGET
+
+MEMO_TARGET = TARGET
+
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+TARGET = ARG
+
+VARSET BEFORE_CLO
+VARSET AFTER_CLO
+
+STR:変更衣装 = %ARGS%
+
+;着ていた服を記憶する。一致するかを見るだけなので文字列コピーで良い
+CALL SETFLAG, "衣装の記録", TARGET
+
+;下着以外のフラグは消去
+CALL SETFLAG, "下着以外全脱ぎ", TARGET
+CALL SET_OTHER, ""
+
+;常につけているアクセサリがあるならそれをつける
+TRYCALLFORM CLOTHES_K{NO:TARGET}, "アクセサリ"
+
+BEFORE_CLO = %CSTR:パンツ%_%CSTR:ブラ%_%CSTR:服%_%CSTR:スカート%_%CSTR:ボディスーツ%_%CSTR:アウター%_%CSTR:靴下%_%CSTR:靴%_%CSTR:手袋%_%CSTR:アクセサリ%
+TFLAG:着替えた = 0
+CFLAG:ＣＩＰ発生済 = 0
+
+SELECTCASE ARGS
+;キャラ衣装
+CASE "制服", "体操服", "水着", "普段着", "部屋着", "外出着", "デート衣装", "朝駆け衣装", "夜這い衣装"
+	TRYCALLFORM CLOTHES_K{NO:TARGET}, ARGS
+	AFTER_CLO = %CSTR:パンツ%_%CSTR:ブラ%_%CSTR:服%_%CSTR:スカート%_%CSTR:ボディスーツ%_%CSTR:アウター%_%CSTR:靴下%_%CSTR:靴%_%CSTR:手袋%_%CSTR:アクセサリ%
+
+	;着替えが起きていない場合は適当なものを呼び出して着せる
+	IF BEFORE_CLO == AFTER_CLO && TFLAG:着替えた == 0
+		SELECTCASE ARGS
+		CASE "制服", "体操服", "水着", "部屋着"
+			TRYCALLFORM CLOTHES_K{NO:TARGET}, "普段着"
+		CASE "外出着"
+			IF COND("夜") || PLACE("自宅") || PLACE("野外") || PLACE("ラブホテル")
+				TRYCALLFORM CLOTHES_K{NO:TARGET}, "普段着"
+			ELSE
+				TRYCALLFORM CLOTHES_K{NO:TARGET}, "制服"
+			ENDIF
+		CASE "デート衣装"
+			TRYCALLFORM CLOTHES_K{NO:TARGET}, "普段着"
+		CASE "朝駆け衣装"
+			IF CFLAG:夜型
+				TRYCALLFORM CLOTHES_K{NO:TARGET}, "普段着"
+			ELSE
+				TRYCALLFORM CLOTHES_K{NO:TARGET}, "制服"
+				SIF BEFORE_CLO == AFTER_CLO && TFLAG:着替えた == 0
+					TRYCALLFORM CLOTHES_K{NO:TARGET}, "普段着"
+			ENDIF
+		CASE "夜這い衣装"
+			TRYCALLFORM CLOTHES_K{NO:TARGET}, "普段着"
+		ENDSELECT
+	ENDIF
+;イベントデーの特別な衣装
+CASE "お正月", "猫の日", "メイドの日", "ビキニの日", "七夕", "バニーの日", "ハロウィン", "クリスマス"
+	TRYCALLFORM CLOTHES_K{NO:TARGET}, ARGS
+	AFTER_CLO = %CSTR:パンツ%_%CSTR:ブラ%_%CSTR:服%_%CSTR:スカート%_%CSTR:ボディスーツ%_%CSTR:アウター%_%CSTR:靴下%_%CSTR:靴%_%CSTR:手袋%_%CSTR:アクセサリ%
+		;着替えが起きていない場合は適当なものを呼び出して着せる
+	IF BEFORE_CLO == AFTER_CLO && TFLAG:着替えた == 0
+		SELECTCASE ARGS
+		CASE "メイドの日"
+			IF TALENT:オトコ && COND("男の娘") == 0
+				CALL SETFLAG, "衣装記録からの復元", TARGET
+			ELSE
+				CALL SET_COSTUME, "メイド服"
+			ENDIF
+		CASE "ビキニの日"
+			IF TALENT:オトコ && COND("男の娘") == 0
+				CALL SETFLAG, "衣装記録からの復元", TARGET
+			ELSE
+				CALL SET_COSTUME, "ビキニ"
+			ENDIF
+		CASE "バニーの日"
+			IF TALENT:オトコ && COND("男の娘") == 0
+				CALL SETFLAG, "衣装記録からの復元", TARGET
+			ELSE
+				IF (TALENT:魅力 || TALENT:目立ちたがり || ABL:露出癖 >= 7) && RAND:2
+					CALL SET_COSTUME, "生足バニー"
+				ELSE
+					CALL SET_COSTUME, "バニースーツ"
+				ENDIF
+
+				;変化を付ける事も
+				SIF TALENT:小悪魔 || TALENT:好色
+					CSTR:ボディスーツ += "ファスナー/"
+			ENDIF
+		CASE "お正月"
+			IF TALENT:オトコ
+				CALL SETFLAG, "衣装記録からの復元", TARGET
+			ELSE
+				CALL SET_COSTUME, "振袖"
+			ENDIF
+		CASE "七夕"
+			IF TALENT:オトコ
+				CALL SETFLAG, "衣装記録からの復元", TARGET
+			ELSE
+				CALL SET_COSTUME, "浴衣"
+			ENDIF
+		CASEELSE
+			SIF BEFORE_CLO == AFTER_CLO && TFLAG:着替えた == 0
+				CALL SETFLAG, "衣装記録からの復元", TARGET
+		ENDSELECT
+	ENDIF
+;それ以外はコスチュームARGSを着せる
+CASEELSE
+	CALL SET_COSTUME, ARGS, TARGET
+ENDSELECT
+
+;共通属性を着けて、EQUIPを見る
+CALL CHECK_ALLCLOFLAG, TARGET
+
+;着替えた後の衣装
+AFTER_CLO = %CSTR:パンツ%_%CSTR:ブラ%_%CSTR:服%_%CSTR:スカート%_%CSTR:ボディスーツ%_%CSTR:アウター%_%CSTR:靴下%_%CSTR:靴%_%CSTR:手袋%_%CSTR:アクセサリ%
+
+;着替えた場合はフラグON
+IF STR:衣装記録 != AFTER_CLO
+	CALL SETFLAG, "着替えをした"
+
+	;水着などに着替えた場合はそれまでの下着をしまう
+	IF CHECK_CLO("水着姿") || EQUIP:ボディスーツ
+		CALL SETFLAG, "下着をしまう"
+	ELSE
+		;しまった下着があるなら身に着ける
+		CALL SETFLAG, "しまった下着を身に着ける"
+	ENDIF
+ENDIF
+
+;パンツの着用禁止
+SIF CHECK_CLO("水着姿") == 0 && COND("身嗜み：ノーパン")
+	CALL SET_PANTIES, ""
+
+;パンスト指定してる？
+SIF CHECK_OUTER("パンスト")
+	CALL SETFLAG, "パンスト着替えのお願い", TARGET
+
+SIF CFLAG:電源ボックス && CHECK_CLO("電源ボックス保持可能") == 0
+	CFLAG:電源ボックス = 0
+
+TARGET = MEMO_TARGET
+
+;-------------------------------------------------
+;キャラARGにコスチュームARGSを着せる。ARGSは/で区切って追加属性をくっつける事も出来る
+;例）CALL SET_COSTUME, "セーラー服/白" とすると、セーラー服に対応したCSTRに本来の文字列に加えて 白/ が追加される
+;（色を変更する場合には、元からあったものを上書きするので複数の色を持つ衣装になる心配はしなくてよい）
+;主にコスチュームの色を変更したい時に使うと良い
+;-------------------------------------------------
+@SET_COSTUME, ARGS, ARG
+#DIMS MEMO_COS
+#DIMS SWIM_SELECTED
+;追加で記述された属性を一時的に保管する
+#DIMS STR_ADD
+
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+
+STR_ADD = %EXTSTR(ARGS, "/")%
+ARGS = %EXTSTR(ARGS, "", "/")%
+
+
+SELECTCASE ARGS
+CASE "女教師"
+	CALL SET_SHIRT, @"ブラウス/女教師/%STR_ADD%", ARG
+	CALL SET_SKIRT, "タイトスカート", ARG
+	CALL SET_OUTER, "オープンパンスト", ARG
+	CALL SET_SHOES, "パンプス", ARG
+CASE "和服"
+	CALL SET_SHIRT, @"和服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "足袋", ARG
+	CALL SET_SHOES, "草履", ARG
+CASE "メイド服"
+	CALL SET_SHIRT, @"メイド服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ガーターニーソ", ARG
+	CALL SET_SHOES, "ローファー", ARG
+	CALL SET_OTHER, "チョーカー/ヘッドドレス", ARG
+CASE "フレンチメイド"
+	CALL SET_SHIRT, @"フレンチメイド/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ガーターニーソ", ARG
+	CALL SET_SHOES, "ローファー", ARG
+	CALL SET_OTHER, "チョーカー/ヘッドドレス", ARG
+CASE "エプロン"
+	CALL SET_SHIRT, @"エプロン/%STR_ADD%", ARG
+CASE "シスター"
+	CALL SET_SHIRT, @"修道服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ガーターストッキング", ARG
+	CALL SET_SHOES, "ショートブーツ", ARG
+	CALL SET_OTHER, "シスターベール", ARG
+CASE "ナース"
+	CALL SET_SHIRT, @"ナース服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ストッキング", ARG
+	CALL SET_SHOES, "サンダル", ARG
+	CALL SET_OTHER, "ナースキャップ", ARG
+CASE "チャイナドレス"
+	CALL SET_SHIRT, @"チャイナドレス/%STR_ADD%", ARG
+	CALL SET_SHOES, "ハイヒール", ARG
+CASE "巫女"
+	CALL SET_SHIRT, @"巫女服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "足袋", ARG
+	CALL SET_SHOES, "草履", ARG
+CASE "ウェディングドレス"
+	CALL SET_SHIRT, @"ウェディングドレス/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ガーターストッキング", ARG
+	CALL SET_GLOVE, "シルクグローブ", ARG
+	CALL SET_SHOES, "パンプス", ARG
+	CALL SET_OTHER, "ティアラ/ウェディングベール", ARG
+
+CASE "チアユニフォーム"
+	CALL SET_SHIRT, @"チアユニフォーム/%STR_ADD%", ARG
+	CALL SET_SOCKS, "フリルニーソ", ARG
+	CALL SET_SHOES, "スニーカー", ARG
+CASE "ボンデージ"
+	CALL SET_BODYS, @"ボンデージ/%STR_ADD%", ARG
+	CALL SET_GLOVE, "レザースリーブ", ARG
+	CALL SET_SHOES, "ブーツ", ARG
+CASE "バニースーツ"
+	CALL SET_BODYS, @"バニースーツ/%STR_ADD%", ARG
+	CALL SET_SOCKS, "網ストッキング", ARG
+	CALL SET_SHOES, "ハイヒール", ARG
+	CALL SET_OTHER, "蝶ネクタイ/うさ耳", ARG
+CASE "生足バニー"
+	CALL SET_BODYS, @"バニースーツ/%STR_ADD%", ARG
+	CALL SET_SHOES, "ハイヒール", ARG
+	CALL SET_OTHER, "蝶ネクタイ/うさ耳", ARG
+CASE "ネコランジェリー"
+	CALL SET_PANTIES, @"肉球プリントパンツ/%STR_ADD%", ARG
+	CALL SET_BRA, "猫型ブラ", ARG
+	SIF TALENT:ARG:動物耳 == 0
+		CALL SET_OTHER, "ネコ耳", ARG
+CASE "浴衣"
+	CALL SET_SHIRT, @"浴衣/%STR_ADD%", ARG
+	CALL SET_SHOES, "下駄", ARG
+CASE "振袖"
+	CALL SET_SHIRT, @"振袖/%STR_ADD%", ARG
+	CALL SET_SOCKS, "足袋", ARG
+	CALL SET_SHOES, "草履", ARG
+	CALL SET_OTHER, "かんざし", ARG
+	;ブラは普通しない
+	CALL SET_BRA, "", ARG
+	;下着は…
+	SIF TALENT:ARG:清楚 || TALENT:ARG:気品 || (RAND:10 == 0 && ABL:ARG:露出癖 >= 5)
+		CALL SET_PANTIES, "", ARG
+
+CASE "セーラー服"
+	CALL SET_SHIRT, @"セーラー服/学生服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ハイソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+CASE "ミニスカセーラー服"
+	CALL SET_SHIRT, @"ミニスカセーラー/学生服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ハイソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+CASE "ミニマムセーラー服"
+	CALL SET_SHIRT, @"ミニマムセーラー/学生服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ニーソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+CASE "ノースリーブセーラー服"
+	CALL SET_SHIRT, @"ノースリーブセーラー/学生服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ハイソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+
+CASE "ブレザー"
+	CALL SET_SHIRT, @"ブレザー/学生服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ハイソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+	CALL SET_OTHER, "リボンタイ", ARG
+CASE "ミニスカブレザー"
+	CALL SET_SHIRT, @"ミニスカブレザー/学生服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ハイソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+	CALL SET_OTHER, "リボンタイ", ARG
+
+CASE "ベスト"
+	CALL SET_SHIRT, @"ベスト/学生服/%STR_ADD%", ARG
+	CALL SET_SKIRT, "プリーツスカート"
+	CALL SET_SOCKS, "ハイソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+CASE "ミニスカベスト"
+	CALL SET_SHIRT, @"ベスト/学生服/%STR_ADD%", ARG
+	CALL SET_SKIRT, "プリーツミニスカート"
+	CALL SET_SOCKS, "ハイソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+
+CASE "カーディガン"
+	CALL SET_SHIRT, @"カーディガン/学生服/%STR_ADD%", ARG
+	CALL SET_SKIRT, "プリーツスカート"
+	CALL SET_SOCKS, "ハイソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+CASE "ミニスカカーディガン"
+	CALL SET_SHIRT, @"カーディガン/学生服/%STR_ADD%", ARG
+	CALL SET_SKIRT, "プリーツミニスカート"
+	CALL SET_SOCKS, "ハイソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+
+CASE "アメスク"
+	CALL SET_SHIRT, @"アメスク/学生服/%STR_ADD%", ARG
+	CALL SET_SOCKS, "ニーソックス", ARG
+	CALL SET_SHOES, "ローファー", ARG
+	CALL SET_OTHER, "ネクタイ", ARG
+CASE "リボンタイブラウス"
+	CALL SET_SHIRT, @"ブラウス/%STR_ADD%", ARG
+	CALL SET_SKIRT, "タイトスカート", ARG
+	CALL SET_SOCKS, "ガーターストッキング", ARG
+	CALL SET_SHOES, "ハイヒール", ARG
+	CALL SET_OTHER, "リボンタイ", ARG
+
+CASE "学ラン"
+	CALL SET_SHIRT, @"学ラン/学生服/%STR_ADD%", ARG
+	CALL SET_OUTER, "ズボン", ARG
+	CALL SET_SOCKS, "靴下", ARG
+	CALL SET_SHOES, "スニーカー", ARG
+CASE "男子ブレザー"
+	CALL SET_SHIRT, @"男子ブレザー/学生服/%STR_ADD%", ARG
+	CALL SET_OUTER, "ズボン", ARG
+	CALL SET_SOCKS, "靴下", ARG
+	CALL SET_SHOES, "スニーカー", ARG
+
+CASE "体操服ブルマ"
+	CALL SET_SHIRT, @"体操服/%STR_ADD%", ARG
+	CALL SET_OUTER, "ブルマ", ARG
+	CALL SET_SOCKS, "ソックス", ARG
+	CALL SET_SHOES, "スニーカー", ARG
+CASE "体操服ハイレグブルマ"
+	CALL SET_SHIRT, @"体操服/%STR_ADD%", ARG
+	CALL SET_PANTIES, "ハイレグブルマ", ARG
+	CALL SET_SOCKS, "ソックス", ARG
+	CALL SET_SHOES, "スニーカー", ARG
+CASE "体操服ハーフパンツ"
+	CALL SET_SHIRT, @"体操服/%STR_ADD%", ARG
+	CALL SET_OUTER, "ハーフパンツ", ARG
+	CALL SET_SOCKS, "ソックス", ARG
+	CALL SET_SHOES, "スニーカー", ARG
+CASE "体操服スパッツ"
+	CALL SET_SHIRT, @"体操服/%STR_ADD%", ARG
+	CALL SET_OUTER, "スパッツ", ARG
+	CALL SET_SOCKS, "ソックス", ARG
+	CALL SET_SHOES, "スニーカー", ARG
+CASE "体操服ジャージ"
+	CALL SET_SHIRT, @"体操服/%STR_ADD%", ARG
+	CALL SET_OUTER, "ジャージズボン", ARG
+	CALL SET_SOCKS, "ソックス", ARG
+	CALL SET_SHOES, "スニーカー", ARG
+CASE "上下ジャージ"
+	CALL SET_SHIRT, @"ジャージ/%STR_ADD%", ARG
+	CALL SET_OUTER, "ジャージズボン", ARG
+	CALL SET_SOCKS, "ソックス", ARG
+	CALL SET_SHOES, "スニーカー", ARG
+CASE "Ｔシャツジャージ"
+	CALL SET_SHIRT, @"Ｔシャツ/%STR_ADD%", ARG
+	CALL SET_OUTER, "ジャージズボン", ARG
+	CALL SET_SOCKS, "ソックス", ARG
+	CALL SET_SHOES, "スニーカー", ARG
+
+CASE "ビキニ"
+	CALL SET_PANTIES, @"ビキニ/%STR_ADD%", ARG
+	CALL SET_BRA, "ビキニブラ", ARG
+	CALL SET_SHOES, "サンダル", ARG
+CASE "マイクロビキニ"
+	CALL SET_PANTIES, @"マイクロビキニ/%STR_ADD%", ARG
+	CALL SET_BRA, "マイクロビキニブラ", ARG
+	CALL SET_SHOES, "サンダル", ARG
+CASE "ティアドロップビキニ", "ティアドロップ"
+	CALL SET_PANTIES, @"ティアドロップビキニ/%STR_ADD%", ARG
+	CALL SET_BRA, "マイクロビキニブラ", ARG
+	CALL SET_SHOES, "サンダル", ARG
+CASE "スク水"
+	CALL SET_BODYS, @"スク水/%STR_ADD%", ARG
+CASE "競泳水着"
+	CALL SET_BODYS, @"競泳水着/%STR_ADD%", ARG
+CASE "白ビキニ"
+	CALL SET_PANTIES, @"白いビキニ/%STR_ADD%", ARG
+	CALL SET_BRA, "白いビキニブラ", ARG
+	CALL SET_SHOES, "サンダル", ARG
+CASE "黒ビキニ"
+	CALL SET_PANTIES, @"黒いビキニ/%STR_ADD%", ARG
+	CALL SET_BRA, "黒いビキニブラ", ARG
+	CALL SET_SHOES, "サンダル", ARG
+
+CASE "サーフパンツ"
+	CALL SET_PANTIES, @"サーフパンツ/%STR_ADD%", ARG
+	CALL SET_BRA, "", ARG
+	CALL SET_SHOES, "サンダル", ARG
+
+CASE @"%CALLNAME:MASTER%のＹシャツ"
+	CALL SET_SHIRT, @"%CALLNAME:MASTER%のＹシャツ/%STR_ADD%", ARG
+
+
+;これは今年の水着を用意してあるのが前提
+CASE "今年の水着"
+	SWIM_SELECTED = %CSTR:ARG:今年の水着%
+	SIF COND("デート中", ARG)
+		SWIM_SELECTED = %STR:選んだ水着%
+
+	SELECTCASE SWIM(SWIM_SELECTED, "種類")
+	;パンツのみ
+	CASE "メンズビキニ", "サーフパンツ"
+		CALL SET_PANTIES, SWIM(SWIM_SELECTED, "種類"), ARG
+		CALL SET_BRA, "", ARG
+	;ワンピース
+	CASE "競泳水着", "スク水", "ハイレグワンピ", "ワンピース水着", "スリングショット"
+		CALL SET_BODYS, SWIM(SWIM_SELECTED, "種類"), ARG
+	;あとはセパレート
+	CASE "ビキニ"
+		CALL SET_PANTIES, "ビキニ", ARG
+		CALL SET_BRA, "ビキニブラ", ARG
+	CASE "マイクロビキニ"
+		CALL SET_PANTIES, "マイクロビキニ", ARG
+		CALL SET_BRA, "マイクロビキニブラ", ARG
+	CASE "ティアドロップビキニ", "ティアドロップ"
+		CALL SET_PANTIES, "ティアドロップビキニ", ARG
+		CALL SET_BRA, "マイクロビキニブラ", ARG
+	ENDSELECT
+	CALL EQ_CLOCOLOR, ARG, SWIM(SWIM_SELECTED, "色")
+	CALL SET_SHOES, "サンダル", ARG
+
+	SELECTCASE SWIM(SWIM_SELECTED, "ボトム")
+	CASE ""
+	CASE "ショートパンツ"
+		CALL SET_OUTER, SWIM(SWIM_SELECTED, "ボトム"), ARG
+	;あとはスカート
+	CASEELSE
+		CALL SET_SKIRT, SWIM(SWIM_SELECTED, "ボトム"), ARG
+	ENDSELECT
+ENDSELECT
+
+
+;-------------------------------------------------
+;ARG番のコーディネートの名称。着せ替えなどで表を作る際に使う
+;-------------------------------------------------
+@NAME_COORDINATE(ARG)
+#FUNCTIONS
+VARSET LOCALS
+
+SELECTCASE ARG
+;0～19 コスプレ
+CASE 0
+	LOCALS = 女教師
+CASE 1
+	LOCALS = 和服
+CASE 2
+	LOCALS = メイド服
+CASE 3
+	LOCALS = ナース
+CASE 4
+	LOCALS = チャイナドレス
+CASE 5
+	LOCALS = 巫女
+CASE 6
+	LOCALS = ウェディングドレス
+CASE 7
+	LOCALS = チアユニフォーム
+CASE 8
+	LOCALS = ボンデージ
+CASE 9
+	LOCALS = バニースーツ
+CASE 10
+	LOCALS = ネコランジェリー
+CASE 11
+	LOCALS = マイクロビキニ
+CASE 12
+	LOCALS = 振袖
+CASE 13
+	LOCALS = 浴衣
+CASE 14
+	LOCALS = ティアドロップビキニ
+
+;20～39 制服
+CASE 20
+	LOCALS = セーラー服
+CASE 21
+	LOCALS = ミニスカセーラー服
+CASE 22
+	LOCALS = ミニマムセーラー服
+
+CASE 25
+	LOCALS = ブレザー
+CASE 26
+	LOCALS = ミニスカブレザー
+
+CASE 30
+	LOCALS = アメスク
+
+CASE 35
+	LOCALS = リボンタイブラウス
+
+CASE 38
+	LOCALS = 学ラン
+CASE 39
+	LOCALS = 男子ブレザー
+
+;40～59 体操服
+CASE 40
+	LOCALS = 体操服ブルマ
+CASE 41
+	LOCALS = 体操服ハーフパンツ
+CASE 42
+	LOCALS = 体操服スパッツ
+CASE 43
+	LOCALS = 体操服ジャージ
+
+;60～79 水着
+CASE 60
+	LOCALS = スク水
+CASE 61
+	LOCALS = 競泳水着
+CASE 62
+	LOCALS = 白ビキニ
+CASE 63
+	LOCALS = 黒ビキニ
+ENDSELECT
+RETURNF LOCALS
+

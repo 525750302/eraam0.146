@@ -1,0 +1,80 @@
+﻿;-------------------------------------------------
+;部員同士での交流。自分はTARGETとして呼ばれ、話相手の部員はPARTNER()として呼ばれる
+;話相手への呼びかけはCNAME("パートナー")で出来る
+;TFLAG:台詞スキップ = 1で話している相手のセリフのスキップ、TFLAG:地の文スキップ = 1で続く地の文のスキップをする事が出来る
+;-------------------------------------------------
+@KOJO_COMM_K1, ARGS
+#DIM MEMO_LINECOUNT
+;対話相手にしたいキャラの名前を/区切りでこれに突っ込んでFIND_TaiTa(EVENT_TABLE)とするとそのうち一人が選ばれる
+#DIMS EVENT_TABLE
+
+EVENT_TABLE = 
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+;話しかける側のセリフ。COND("対話可能")を満たす相手を選んでPARTNER()にする事で、特定の相手に話しかけることもできる
+CASE "お誘いする"
+	;特定の相手に話しかける場合はEVENT_TABLEに対話相手の名前を / 区切りで並べて ; を消す
+	;例１）フェリシエルor濡烏の君orツェツィーリアから一人選ぶ場合
+	;EVENT_TABLE = フェリシエル/濡烏の君/ツェツィーリア
+	;例２）部員全てから一人選ぶ場合
+	;EVENT_TABLE = 全員
+
+	IF FIND_TaiTa(EVENT_TABLE)
+		;話し相手をパートナーにする
+		CALL SET_PARTNER, FIND_TaiTa(EVENT_TABLE)
+		CALL EMOTION_PLUS, "交流中", TARGET, PARTNER()
+	ENDIF
+
+	IF COND("相性◎", PARTNER()) || COND("相性☆", PARTNER()) || COND("相性○", PARTNER())
+		SELECTCASE TEXTS("季節")
+		CASE "春"
+
+		CASE "初夏"
+			IF COND("今年の水着選択済") == 0
+				PRINTFORML 「暑くなってきましたね～……%CNAME("パートナー")%はもう、今年の水着とか買いました？」
+				PRINTFORMW 「まだでしたら今度、私と一緒に見に行きませんか」
+			ELSE
+				PRINTFORML 「そうだ、%CNAME("パートナー")%。今日って講義終わった後に予定が入ってたりしますか？」
+				PRINTFORMW 「もしよかったらですけど、一緒にお買い物に行きませんか……ちょっと、夏物を見たいなって♪」
+			ENDIF
+		CASE "夏", "初秋"
+
+		CASE "秋"
+
+		CASE "晩秋"
+		CASE "冬"
+
+		ENDSELECT
+	ELSE
+		SELECTCASE CSTR:PARTNER():学年
+		;同級生以下
+		CASE "初等部", "中等部", "１年生", "２年生"
+			PRINTFORML 「ねぇねぇ、%CNAME("パートナー")%。よかったら少し、私とおしゃべりしませんか？」
+			;入部して結構経っている
+			IF DAY - CFLAG:PARTNER():加入日 >= 7
+				PRINTFORMW 「%CNAME("主人")%抜きで一緒に話したことってあんまりなかったですし♪」
+			ELSE
+				PRINTFORMW 「%CNAME("主人")%の事……色々と教えてあげますよ♪」
+			ENDIF
+		;年上と学生以外
+		CASEELSE
+			IF RAND:2
+				PRINTFORML 「%CNAME("パートナー")%、今お話して大丈夫ですか？」
+				;入部して結構経っている
+				IF DAY - CFLAG:PARTNER():加入日 >= 7
+			;		PRINTFORMW 「%CNAME("主人")%抜きで一緒に話したことって、あんまりなかったですし」
+				ELSE
+			;		PRINTFORMW 「%CNAME("主人")%の事とか……色々と教えてさしあげますよ」
+				ENDIF
+			ELSE
+				PRINTFORML 「%CNAME("パートナー")%、今お時間大丈夫ですか？」
+				PRINTFORMW 「お暇ならで良いんですけど……一緒にお茶でもいかがでしょう」
+			ENDIF
+		ENDSELECT
+	ENDIF
+;話しかけられる側のセリフ。括弧は『』を使うのが望ましい
+CASE "誘われた"
+
+
+ENDSELECT

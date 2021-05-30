@@ -1,0 +1,301 @@
+;-------------------------------------------------
+;ここに記述する事で各コマンドの選択肢を増やすことができる
+;22はキャラ番号に置換してください
+;-------------------------------------------------
+;お願い・取引での選択肢を追加。番号は60～89を使ってよい
+@WISH_K22_ADDSELECT
+IF CEVENT("新しい服")
+	IF CEVENT("アメスク化：リューナ")
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("アメスク着用を止めて", 16)% … %CALLNAME:TARGET%にアメスク着用を止めてもらいます/
+	ELSE
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("アメスクを着て", 16)% … %CALLNAME:TARGET%にアメスクを着て部活に着てもらいます/
+	ENDIF
+ENDIF
+;STR:選択肢 = %STR:選択肢% [61] %TEXT_LJ("追加選択肢その２", 16)% … %CALLNAME:TARGET%にＢＢＢしてもらいます/
+
+;お願い・取引で増やした選択肢の地の文と台詞
+@KOJO_WISH_K22_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "アメスク着用を止めて"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に%ARGS%もらうことにした。
+	PRINTL 
+	PRINTFORML 「えぇ～？止めちゃって良いの？」
+	PRINTFORMW 「了解、次からはいつもの恰好してくるね」
+	PRINTL 
+	PRINTFORMW %CALLNAME:TARGET%のアメスク着用を止めさせました。
+	CALL DEL_CEVENT, "アメスク化：リューナ"
+CASE "アメスクを着用して"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に%ARGS%もらうことにした。
+	PRINTL 
+	PRINTFORML 「ん、次からアメスクで来て欲しいんだ？」
+	PRINTFORMW 「了解、次から着てくるね」
+	PRINTL 
+	PRINTFORMW %CALLNAME:TARGET%がアメスクを着てくるようになりました。
+	CALL SET_CEVENT, "アメスク化：リューナ"
+	;フラグを弄る場合はそれもここで行う
+CASE "追加選択肢その２"
+	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+	PRINTL 
+	PRINTFORMW 「台詞」
+	PRINTL 
+	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+	;フラグを弄る場合はそれもここで行う
+ENDSELECT
+
+;-------------------------------------------------
+;トークコマンドの選択肢を追加
+@DAILY1_K22_ADDSELECT
+;STR:選択肢 += "追加選択肢その１/"
+;STR:選択肢 += "追加選択肢その２/"
+
+;トークコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY1_K22_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "追加選択肢その１"
+	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+	PRINTL 
+	PRINTFORMW 「台詞」
+	PRINTL 
+	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+CASE "追加選択肢その２"
+	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+	PRINTL 
+	PRINTFORMW 「台詞」
+	PRINTL 
+	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+ENDSELECT
+
+;-------------------------------------------------
+;もてなすコマンドの選択肢を追加
+@DAILY2_K22_ADDSELECT
+SIF ABL:信頼 >= 3 && COND("昼") && CEVENT("農作業済み") == 0
+	STR:選択肢 += "畑仕事を手伝う/"
+SIF ABL:信頼 >= 3 && PLACE("自宅") && CEVENT("家事手伝い済み") == 0
+	STR:選択肢 += "家事を手伝う/"
+
+;もてなすコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY2_K22_ADDSELECT, ARGS
+
+#DIM CHOICE
+#DIMS CHOICES
+
+SELECTCASE ARGS
+CASE "畑仕事を手伝う"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%%TEXTR("に誘われ畑を見に行った/の畑仕事を手伝った/の農作業に付き合った")%。
+	IF CFLAG:ムラムラ || COND("発情期")
+		CALL SIMULATE_TRAIN_FIRST
+		LOCALS = %TEXTR("キュウリ/ゴーヤ/ナス/ズッキーニ")%
+		IF RAND:2 && PENIS(MASTER)
+			PRINTFORML 
+			PRINTFORMW …はずだった。
+			IF RAND:2 && COND("夏")
+				CALL PRINT_STRW, @"「%TEXTR(@"ごめっっっ_H_　ごめんなひゃっ_H_　サボって野菜でオナっててごめんにゃひゃいィっっ_H_/や、やっぱりっ、野菜もイイけどっ_H_　ひぁあぁっ_H_　生チンポのが気持ち良いぃッ_H_")%」_"
+				PRINTFORML %TEXTR(@"%CALLNAME:MASTER%に作業を押し付け/トイレに行ったフリをして")%収穫したばかりの%LOCALS%を使い物陰で自慰にふけっていた%CALLNAME:TARGET%を見つけた%CALLNAME:MASTER%は、
+				PRINTFORM %TEXTR(@"いつもこういう事しているのか問い詰めながら/%LOCALS%とペニス、どっちが良いか聞きながら/しどろもどろの言い訳を無視しながら/白く泡立った愛液まみれの%LOCALS%を舐めさせながら")%
+				IF RAND:2
+					PRINTFORM 対面立位で
+					CALL SIMULATE_TRAIN_COM, 63, 3
+				ELSE
+					PRINTFORM 背面立位で
+					CALL SIMULATE_TRAIN_COM, 64, 3
+				ENDIF
+				PRINTFORMW %TEXTR("激しく/何度も/ひたすら/")%%CALLNAME:TARGET%%TEXTR(@"を犯した/の子宮を突き上げた/に獣欲と鬱憤をぶつけた")%…。
+				PRINTFORMW 容赦無い%TEXTR("汗だくファック/レイプまがいの行為")%に%CALLNAME:TARGET%は%TEXTR("半泣きになって呂律の回らない口で許しを請い/媚びるような甘い声でヨガリ/脚と腰をかくかくと痙攣させ")%ながら膣内をきゅうっと締める。
+				PRINTFORMW 興奮しきった%CALLNAME:MASTER%は%CALLNAME:TARGET%%TEXTR("の痴態に満足するまで/にサボりの代償を教えこむように/の反応が薄くなるまで/が完全に立てなくなるまで")%%TEXTR("膣内への種蒔き/子種の植え付け")%を行った…。
+			ELSE
+				CALL PRINT_STRW, @"「%TEXTR(@"イイッ、イイよぉ_H_　もっとっ_H_　もっとぱこぱこしてぇ_H_/あひィンっ_H_　今のっ、今のすきっ_H_　土耕すよりもぉ、こうやってマンコ耕してもらう方が好きなのぉ_H_/そっ、そうだよねっ_H_　ム、ムラムラしてたら農作業なんて出来ないもんっ_H_　だからしかたないのォオっ_H_")%」_"
+				PRINTFORML %TEXTR("どこかわざとらしく/まるで誘うように")%尻を揺らしたり身体を寄せ、汗とオンナの匂いを%TEXTR("振り撒く/漂わせている")%%CALLNAME:TARGET%に%CALLNAME:MASTER%は我慢ならず、
+				PRINTFORM %TEXTR("ケダモノのように襲い掛かる/作業を放り出す")%と
+				IF RAND:2
+					PRINTFORM %TEXTR("前戯もそこそこに/乱雑に")%唇を奪いながら%TEXTR("足を抱え上げ/強く抱き寄せ")%、対面立位で
+					CALL SIMULATE_TRAIN_COM, 63, 5
+				ELSE
+					PRINTFORM 近くの%TEXTR("木/壁")%に%TEXTR("手を突かせ/身体を押し付け")%、%TEXTR("腰をガッチリと掴み/肘を掴み上体を起こさせつつ/尻尾を抱えつつ")%背面立位で
+					CALL SIMULATE_TRAIN_COM, 64, 5
+				ENDIF
+				PRINTFORMW %TEXTR("激しく/何度も/ひたすら/")%%CALLNAME:TARGET%%TEXTR(@"とまぐわった/を犯した/の子宮を突き上げた/に獣欲と鬱憤をぶつけた")%…。
+				PRINTFORMW %CALLNAME:TARGET%も最初からその気だったのか、%CALLNAME:MASTER%の動きに合わせて腰をくねらせ、膣をリズミカルに締め上げては髪を振り乱し本校舎にも聞こえそうな声でヨガり狂う。
+				PRINTFORMW お互い夢中になり、時間と体力の許すまま%TEXTR("野外での開放的なセックス/青姦交尾")%と%TEXTR("膣内への種蒔き/子種の植え付け")%を楽しんだ…。
+			ENDIF
+		ELSE
+			CALL PRINT_STRW, @"「%TEXTR(@"…ちょ、ちょっと休んでくるね…/ご、ゴメン……ちょっとトイレ……/はぁ………/ねぇ、こっちの作業、任せて良い？…何か調子悪くってさぁ…")%_H_」_"
+			IF RAND:2 && COND("夏")
+				CALL PRINT_STRW, @"（%TEXTR(@"うぅっ、また我慢出来なくなってきちゃった…/これで中擦ったら絶ッ対気持ち良いだろうなぁ…/早くっ_H_　早くこれでオナニーしたいっ")%_H_）_"
+				PRINTFORMW %TEXTR("頬を上気させた/どこか上の空な")%%CALLNAME:TARGET%が%LOCALS%を持って頻繁に%TEXTR("作業から離れる/トイレに行きたがる")%せいで思うように進まなかった…。
+				CALL SIMULATE_TRAIN_COM, 3, 5
+			ELSE
+				PRINTFORMW %TEXTR("頬を上気させた/どこか上の空な")%%CALLNAME:TARGET%が頻繁に%TEXTR("休憩する/作業から離れる/トイレに行きたがる")%せいで思うように進まなかった…。
+				CALL SIMULATE_TRAIN_COM, 3, 5
+			ENDIF
+		ENDIF
+		;経験や珠などの獲得量計算
+		CALL SIMULATE_TRAIN_CALC
+		;結果発表
+		CALL SIMULATE_TRAIN_SHOW
+		
+		CALL CALC, "欲求不満解消", TARGET, 5
+	ELSE
+		IF RAND:2
+			PRINTFORMW %TEXTR("こう、もっと腰を…そうそう、上手上手♪/ふぅ、ちょっと休憩しよっか…これで好きな飲み物買ってきて良いよ/えーっと…石灰と肥料は…こんぐらいで…/いやぁ～、やっぱり人手があると捗るね/えっと、こっからここまでやったら終わりで良いかな/身体も動かせて食費も浮くからね、みんな畑仕事すべきだよ")%
+		ELSE
+			SELECTCASE TEXTS("季節")
+				CASE "冬"
+					PRINTFORMW %TEXTR("ゴボウは春先でも採れるけど、やっぱ冬採れのが好きかな～/白菜、ほうれん草、春菊…どれもたっぷり出来たし、今度部のみんなと鍋でもやる？/鍋の具といい薬味といい、長ネギはいくらあっても困らないね/アッハハハ…見てよこの大根、変な形してるよ")%
+				CASE "秋"
+					PRINTFORMW %TEXTR("うーん、キノコも作れれば最高なんだけどなぁ…/このニンジン、洗えば生でも食べられるけど…食べる？/カボチャは冬まで貯蔵すると美味しくなるけど…ちょっと多めだし少し収穫しちゃおっか/サツマイモも豊作豊作！少しだけ焼いて食べちゃう？/ジャガイモたくさん採れちゃったよ…芽が出る前に食べなきゃね")%
+				CASE "夏"
+					PRINTFORMW %TEXTR("紫蘇が思った以上に育っちゃったね…そうめんの薬味だけじゃ使いきれないかも…/ズッキーニとゴーヤ…結構おっきく出来たね。これは食いでがあるよ/枝豆もそら豆もこんなに採れたし、今夜はビールかな～♪/そっちのトマト、洗って食べていいよ。採れたてが一番美味しいもんね/獅子唐もナスも良い感じだねぇ、天ぷらと揚げびたしにピッタリだよ")%
+				CASE "春"
+					PRINTFORMW %TEXTR("えっと、そっちにはトマトとナスの苗…こっちはピーマンとキュウリ…/ほら、デカいキャベツっしょ？浅漬けにしよっかな～、それともキャベツケーキ？/や～っとアスパラが収穫出来るよ～、植えてから収穫まで３年だよ３年/新玉ねぎ、サラダでもかき揚げでもいけちゃうね")%
+			ENDSELECT
+		ENDIF
+	ENDIF
+	CALL SET_CEVENT, "農作業済み"
+CASE "家事を手伝う"
+	PRINTFORMW 何を手伝おう？
+	PRINTFORML [0] 掃除
+	PRINTFORML [1] 洗濯
+	IF COND("夜")
+		PRINTFORML [2] 料理
+		CALL INPUT_SELECT, 3
+	ELSE
+		CALL INPUT_SELECT, 2
+	ENDIF
+	CHOICE = RESULT
+
+	SELECTCASE CHOICE
+	CASE 0
+		PRINTFORMW 「%TEXTR("おっ、/ん？/えっ？")%掃除手伝ってくれるの？%TEXTR("ありがとー！/嬉しいなぁ♪/助かるよ～")%」
+		PRINTFORM 「%TEXTR("それじゃ/えーっと今日は…")%、
+		IF RAND:3 == 0
+			PRINTFORMW 雑巾で窓と床拭きね」
+			PRINTFORMW 「雑巾で拭いたら%CNAME("一人称")%が乾拭きしてくから…逆が良かった？」
+		ELSEIF RAND:2
+			PRINTFORMW キッチンシンクの水垢落としね」
+			PRINTFORMW 「と言ってもクエン酸スプレーを吹き付けてから拭くだけだから、簡単でしょ？」
+		ELSE
+			PRINTFORMW お風呂掃除頼んじゃおうかな」
+			PRINTFORMW 「程良く身体を動かすから良い運動になると思うよ」
+		ENDIF
+	CASE 1
+		PRINTFORMW 「%TEXTR("おっ、/ん？/えっ？")%洗濯手伝ってくれるの？%TEXTR("ありがとー！/嬉しいなぁ♪/助かるよ～")%」
+		IF COND("昼")
+			IF RAND:3 == 0
+				PRINTFORMW 「今日も良い天気！というわけで洗ったばっかのこの山、よろしくね！」
+				PRINTFORMW 「それじゃ%CNAME("一人称")%はサボっ…休憩してるから…ダメ？」
+			ELSEIF RAND:2
+				PRINTFORMW 「よーし、たまには布団も干さなきゃ」
+				PRINTFORMW 「いつもあんなことやこんなことして濡らしてたらすぐにダメになっちゃうもんね」
+			ELSE
+				PRINTFORMW さっさと洗濯物を干していた%CALLNAME:TARGET%だったが、ふと動きが止まったかと思うと%CALLNAME:MASTER%のパンツを前に固まっていた…。
+				PRINTFORMW 「……………はっ、な、何も変なやましいこと考えてないからね？！」
+			ENDIF
+		ELSE
+			IF RAND:3 == 0
+				PRINTFORMW 「…さっきからパンツばっかり選んで畳んでない？気のせい？」
+				PRINTFORMW %CALLNAME:TARGET%に訝し気な目を向けられながら洗濯物を畳んでいった…。
+			ELSEIF RAND:2
+				PRINTFORMW 「Ｔシャツの畳み方？肩と脇腹の辺りをつまんで…んでこうやって…」
+				PRINTFORMW 「ふふ、要練習だね」
+			ELSE
+				PRINTFORMW さっさと洗濯物を畳んでいた%CALLNAME:TARGET%だったが、ふと動きが止まったかと思うと%CALLNAME:MASTER%のパンツを前に固まっていた…。
+				PRINTFORMW 「………ゴクッ………はっ、な、何も変なやましいこと考えてないからね？！」
+			ENDIF
+		ENDIF
+	CASE 2
+		PRINTFORMW 「%TEXTR("おっ、/ん？/えっ？")%夕飯手伝ってくれるの？%TEXTR("ありがとー！/嬉しいなぁ♪/助かるよ～")%」
+		PRINTFORM 「今日の夕飯はね…
+		IF RAND:2 && COND("冬")
+			PRINTFORM 寒いから
+			IF RAND:5 == 0
+				PRINTFORMW キムチ鍋！」
+				PRINTFORMW 「インスタントラーメンを入れて…え？これ〆じゃないよ？あれ？」
+			ELSEIF RAND:4 == 0
+				PRINTFORMW 湯豆腐！」
+				PRINTFORMW 「大根おろして欲しいんだけど…間違って手までおろさないでね」
+			ELSEIF RAND:3 == 0
+				PRINTFORMW 常夜鍋！」
+				PRINTFORMW 「%CNAME("二人称")%がスライスしてくれた生姜とニンニクが効いてるからぽっかぽかだよ！」
+			ELSEIF RAND:2
+				PRINTFORMW カレー鍋！」
+				PRINTFORMW 「〆はうどんかチーズリゾットが選べるから、楽しみにしててね」
+			ELSE
+				PRINTFORMW 水炊き！」
+				PRINTFORMW 「というわけで食べたい分だけ野菜と鶏肉切ってね、%CNAME("一人称")%は肉団子作ってるから」
+			ENDIF
+		ELSEIF RAND:2 && COND("夏")
+			PRINTFORM 暑くて野菜たくさんあるから
+			IF RAND:3 == 0
+				PRINTFORMW ナスとピーマンの素揚げ＆そうめん！」
+				PRINTFORMW 「冷たいつけ汁に素揚げはピッタリ！それにそうめんだけだと栄養が足りないからね」
+			ELSEIF RAND:2
+				PRINTFORMW 野菜カレー！」
+				PRINTFORMW 「半分ぐらいは%CNAME("一人称")%の作った野菜なんだ！どうだーすごいだろー♪」
+			ELSE
+				PRINTFORMW ゴーヤーチャンプルー！」
+				PRINTFORMW 「炒めると意外と苦みって飛ぶんだよね…味見してみてよ」
+			ENDIF
+		ELSE
+			IF RAND:4 == 0
+				PRINTFORMW ビーフン！」
+				PRINTFORMW 「%CNAME("二人称")%がひたすら野菜を切って%CNAME("一人称")%が炒める！完璧！」
+			ELSEIF RAND:3 == 0
+				PRINTFORMW 焼きそば！」
+				PRINTFORMW 「ソースでも塩でもイケるから好きなヤツ選んでね！」
+			ELSEIF RAND:2
+				PRINTFORMW お好み焼き！」
+				PRINTFORMW 「よーし、ホットプレート出してホットプレート！」
+			ELSE
+				PRINTFORMW ジャーマンポテト！」
+				PRINTFORMW 「一緒にガーリックトーストも焼くから、フランスパンにニンニク塗っといてね」
+			ENDIF
+		ENDIF
+	ENDSELECT
+	PRINTFORML 
+	PRINTFORML …%CALLNAME:TARGET%の家事を手伝ったことで好感度が上がった
+	CFLAG:好感度 += 15
+	PRINTFORMW 好感度+15
+	CALL SET_CEVENT, "家事手伝い済み"
+ENDSELECT
+
+;-------------------------------------------------
+;デート行き先の選択肢を追加。
+@DATE_K22_ADDSELECT
+;ここで増やした選択肢を選ぶと、それがSAVESTR:デート に代入される仕組みです
+;STR:選択肢 += "追加選択肢その１/"
+;STR:選択肢 += "追加選択肢その２/"
+
+;増やした行先での地の文と台詞。起きうるイベントのフラグもここで決める
+@KOJO_DATE_K22_ADDSELECT
+SELECTCASE SAVESTR:デート
+CASE "追加選択肢その１"
+	PRINTFORMW 「台詞」
+	;地の文
+	PRINTFORMW %SAVESTR:デート%での%CALLNAME:TARGET%の反応
+	;地の文を用意していない場合には汎用のものを使う
+	;CALL DAILY_MESSAGE, "デート本番"
+	PRINTL 
+	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+	FLAG:ムード += 30
+	;それぞれ可能なもののコメントアウトを外す
+	;TFLAG:デートエロ可能 = 1
+	;TFLAG:デート手つなぎ可能 = 1
+	;TFLAG:下着チラ見え可能 = 1
+	;TFLAG:水着デート = 1
+CASE "追加選択肢その２"
+	PRINTFORMW 「台詞」
+	;地の文
+	PRINTFORMW %SAVESTR:デート%での%CALLNAME:TARGET%の反応
+	;地の文を用意していない場合には汎用のものを使う
+	;CALL DAILY_MESSAGE, "デート本番"
+	PRINTL 
+	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+	FLAG:ムード += 30
+	;それぞれ可能なもののコメントアウトを外す
+	;TFLAG:デートエロ可能 = 1
+	;TFLAG:デート手つなぎ可能 = 1
+	;TFLAG:下着チラ見え可能 = 1
+	;TFLAG:水着デート = 1
+ENDSELECT
+
+

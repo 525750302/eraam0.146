@@ -1,0 +1,1579 @@
+﻿;コンフィグの呼出と素質の自動調整
+;ARGSに"キャラメイク関連"or "システム＆イベント全般"が入っているとそれだけを呼び出す
+@SET_CONFIGURE, ARGS
+#DIM LCOUNT
+#DIM MEMO_FLAG, 10
+#DIM MEMO_GOUI
+#DIMS PRINT_CONFIGTEXT
+
+REDRAW 0
+MEMO_FLAG:0 = FLAG:陰毛
+MEMO_FLAG:1 = FLAG:巨乳補正
+MEMO_FLAG:2 = CONFIG("ＶＡ拡張の手動ＬＶＵＰ")
+MEMO_FLAG:3 = CONFIG("危険日生セックスの合意")
+MEMO_FLAG:4 = CONFIG("胎内精子で妊娠")
+
+SELECTCASE ARGS
+CASE "キャラメイク関連"
+	CALL SETCONFIG, "キャラメイク関連"
+CASE "システム＆イベント全般"
+	CALL SETCONFIG, "システム＆イベント全般"
+CASEELSE
+	CALL SET_CONFIGURE_MAIN
+ENDSELECT
+
+;陰毛の状態を変更した時
+IF FLAG:陰毛 && FLAG:陰毛 != MEMO_FLAG:0
+	FOR LCOUNT, 1, CHARANUM
+		CALL SETFLAG, "陰毛と腋毛", LCOUNT
+	NEXT
+ENDIF
+;巨乳のカップの定義を変化した時
+IF FLAG:巨乳補正 != MEMO_FLAG:1
+	CALL SETFLAG, "バスト測りなおし"
+	FOR LCOUNT, 1, CHARANUM
+		CALL SET_3SIZE, LCOUNT
+	NEXT
+ENDIF
+;ＶＡ拡張の自動ＬＶＵＰに戻したなら早速ＬＶＵＰ
+IF CONFIG("ＶＡ拡張の手動ＬＶＵＰ") == 0 && MEMO_FLAG:2
+	FOR LCOUNT, 1, CHARANUM
+		ABL:LCOUNT:Ｖ拡張 = CALCF("Ｖ拡張の上限", LCOUNT)
+		ABL:LCOUNT:Ａ拡張 = CALCF("Ａ拡張の上限", LCOUNT)
+	NEXT
+ENDIF
+;危険日生セックスの合意条件を変更した場合
+IF CONFIG("危険日生セックスの合意") != MEMO_FLAG:3
+	;これがONだと合意の文が出てしまうので一時的にOFF
+	FLAG:VER_UPチェック = 0
+	PRINT_CONFIGTEXT = 
+	FOR LCOUNT, 2, CHARANUM
+		MEMO_GOUI = COND("合意：危険日生セックス", LCOUNT)
+		CALL DEL_GOUI, "危険日生セックス", LCOUNT
+		CALL SETFLAG, "合意", LCOUNT
+		SIF COND("合意：危険日生セックス", LCOUNT) != MEMO_GOUI
+			PRINT_CONFIGTEXT += @"%CALLNAME:LCOUNT%と"
+	NEXT
+	IF PRINT_CONFIGTEXT != ""
+		PRINT_CONFIGTEXT = %SUBSTRING(PRINT_CONFIGTEXT, 0, STRLENS(PRINT_CONFIGTEXT) - 2)%
+		IF CONFIG("危険日生セックスの合意")
+			CALL PRINT_STRW, @"%CALLNAME:MASTER%は%PRINT_CONFIGTEXT%から_イエロー_[危険日生セックス]_の合意を得た。"
+		ELSE
+			CALL PRINT_STRW, @"%CALLNAME:MASTER%は%PRINT_CONFIGTEXT%から_イエロー_[危険日生セックス]_の合意を失った。"
+		ENDIF
+	ENDIF
+	FLAG:VER_UPチェック = 1
+ENDIF
+;胎内精子で妊娠が無効になったら胎内精子をゼロに
+IF CONFIG("胎内精子で妊娠") == 0 && MEMO_FLAG:4
+	FOR LCOUNT, 1, CHARANUM
+		BASE:LCOUNT:胎内精液量 += BASE:LCOUNT:胎内精子量
+		BASE:LCOUNT:胎内精子量 = 0
+		SIF BASE:LCOUNT:胎児 == 0 && BASE:LCOUNT:受精 == 0
+			BASE:LCOUNT:精液の優勢 = 0
+	NEXT
+;胎内精子で妊娠が有効になった際に危険日生セックス合意無しかつ避妊中でなく絆創膏を装備していた場合に胎内精子をゼロに
+ELSEIF CONFIG("胎内精子で妊娠") && MEMO_FLAG:4 == 0
+	FOR LCOUNT, 1, CHARANUM
+		IF CFLAG:LCOUNT:絆創膏装着 && COND("合意：危険日生セックス", LCOUNT) == 0 && COND("避妊不要", LCOUNT) == 0 && BASE:LCOUNT:胎児 == 0 && BASE:LCOUNT:受精 == 0
+			BASE:LCOUNT:胎内精液量 += BASE:LCOUNT:胎内精子量
+			BASE:LCOUNT:胎内精子量 = 0
+			BASE:LCOUNT:精液の優勢 = 0
+		ENDIF
+	NEXT
+ENDIF
+
+REDRAW 1
+
+
+@SET_CONFIGURE_MAIN
+#DIM MEMO_LINECOUNT
+
+MEMO_LINECOUNT = LINECOUNT
+
+PRINTL 
+PRINTFORML 現在の設定は以下のようになっています。変更したい内容を選択してください
+PRINTL 
+PRINTFORML  [ 0] キャラメイクに関わる設定
+PRINTFORML  [ 1] システムやイベント周りの設定
+PRINTFORML  [ 2] 着せ替えの設定
+CALL PRINT_STRL, @" [ 3] 顔グラのON/OFF　現在：_黄色_\@ CONFIG("顔グラＯＦＦ") ? OFF # ON \@"
+
+IF CONFIG("顔グラＯＦＦ")
+	;CALL PRINT_STRL, "灰色_ [×] 顔グラのサイズ変更"
+	CALL PRINT_STRL, "灰色_ [×] 顔グラのアニメーションのON/OFF"
+	CALL PRINT_STRL, "灰色_ [×] 部屋で表示される顔グラの一番左に%CALLNAME:MASTER%を表示する"
+ELSE
+	;CALL PRINT_STRL, @" [ 4] 顔グラのサイズ変更　現在：_黄色_\@ CONFIG("顔グラサイズ") ? 175*175 # 150*150 \@"
+	CALL PRINT_STRL, @" [ 4] 顔グラのアニメーションのON/OFF　現在：_黄色_\@ CONFIG("顔グラアニメＯＦＦ") ? OFF # ON \@"
+	CALL PRINT_STRL, @" [ 5] 部屋で表示される顔グラの一番左に%CALLNAME:MASTER%を表示する　現在：_黄色_\@ CONFIG("MASTER顔グラ") ? 〇 # × \@"
+ENDIF
+CALL PRINT_STRL, @" [ 6] パンツ画像などのカットインのON/OFF　現在：_黄色_\@ CONFIG("カットインＯＦＦ") ? OFF # ON \@"
+PRINTFORML  [10] コンフィグのセーブ
+;グローバル変数の読み込み
+LOADGLOBAL
+SIF GLOBAL:コンフィグ保存の日時 > 0
+	PRINTFORML  [20] コンフィグのロード（記録日:{GLOBAL:コンフィグ保存の日時/10000}年{(GLOBAL:コンフィグ保存の日時%10000)/100}月{GLOBAL:コンフィグ保存の日時%100}日）
+
+SIF CHARANUM <= 3
+	SETCOLOR DEF_COLOR("灰色")
+PRINTFORML  [40] 並び替え
+RESETCOLOR
+
+SIF CONFIG("顔グラＯＦＦ")
+	SETCOLOR DEF_COLOR("灰色")
+PRINTFORML  [50] 顔グラシミュレーター
+IF TARGET > MASTER
+	IF CFLAG:顔グラ == 0
+		PRINTFORML  [51] [%CSTR:肩書%]%NAME:TARGET%の顔グラを設定して表示されるようにする
+	ELSE
+		PRINTFORML  [51] [%CSTR:肩書%]%NAME:TARGET%の顔グラを変更する
+	ENDIF
+	SIF MARK:淫紋 && CEVENTS("淫紋") == ""
+		PRINTFORML  [52] [%CSTR:肩書%]%NAME:TARGET%の淫紋タイプを設定する(注意！一度だけです！！)
+ENDIF
+PRINTFORML  [55] %NAME:MASTER%の顔グラを\@ CFLAG:MASTER:顔グラ ? 変更 # 設定 \@する
+RESETCOLOR
+SIF CONFIG("カットインＯＮ")
+	PRINTFORML  [60] パンツ画像シミュレーター
+PRINTFORML  [61] 淫紋画像シミュレーター
+
+PRINTFORML [100] もどる
+
+$INPUT_LOOP
+INPUT
+
+IF RESULT == 100
+	RETURN 0
+ELSEIF RESULT == 0
+	CALL SETCONFIG, "キャラメイク関連"
+ELSEIF RESULT == 1
+	CALL SETCONFIG, "システム＆イベント全般"
+ELSEIF RESULT == 2
+	CALL SETCONFIG, "着せ替え設定"
+ELSEIF RESULT == 3
+	CALL SETCONFIG, "顔グラ"
+;ELSEIF RESULT ==  && CONFIG("顔グラＯＮ")
+;	IF FLAG:顔グラサイズ == 0
+;		FLAG:顔グラサイズ = 175
+;	ELSE
+;		FLAG:顔グラサイズ = 0
+;	ENDIF
+ELSEIF RESULT == 4 && CONFIG("顔グラＯＮ")
+	INVERTBIT FLAG:顔グラアニメ, 0
+ELSEIF RESULT == 5 && CONFIG("顔グラＯＮ")
+	INVERTBIT FLAG:MASTER顔グラ, 0
+ELSEIF RESULT == 6
+	INVERTBIT FLAG:カットイン, 0
+ELSEIF RESULT == 10
+	CALL SAVE_CONFIGURE
+ELSEIF RESULT == 20 && GLOBAL:コンフィグ保存の日時 > 0
+	CALL LOAD_CONFIGURE
+ELSEIF RESULT == 40
+	IF CHARANUM <= 3
+		PRINTFORMW 並び替えるほどキャラがいません
+	ELSE
+		CALL CHARA_SORT
+	ENDIF
+ELSEIF RESULT == 50
+	IF CONFIG("顔グラＯＦＦ")
+		PRINTFORMW 顔グラの設定がOFFになっています。
+	ELSE
+		CALL SIMULATE_MAIDFACE
+	ENDIF
+ELSEIF RESULT == 51 && TARGET > MASTER
+	IF CONFIG("顔グラＯＦＦ")
+		PRINTFORMW 顔グラの設定がOFFになっています。
+	;ELSEIF CFLAG:顔グラ
+	;	PRINTFORMW [%CSTR:肩書%]%NAME:TARGET%の顔グラは既に設定済みです。
+	ELSE
+		CALL SIMULATE_MAIDFACE, TARGET
+	ENDIF
+ELSEIF RESULT == 52 && TARGET > MASTER && MARK:淫紋 && CEVENTS("淫紋") == ""
+	PRINTFORML ※現状の段階は{MARK:淫紋}LVですが、それ以外を選ぶことで画数を増やした場合の形の確認が出来ます※
+	CALL SIMULATE_INMON, TARGET
+	PRINTFORMW %CALLNAME:TARGET%の淫紋を%CONDS("淫紋の種類")%タイプにしました
+ELSEIF RESULT == 55 && CONFIG("顔グラＯＮ")
+		CALL SIMULATE_MAIDFACE, MASTER
+ELSEIF RESULT == 60
+	SIF CONFIG("カットインＯＮ")
+		CALL SIMULATE_CUTIN
+ELSEIF RESULT == 61
+	CALL SIMULATE_INMON
+ELSE
+	GOTO INPUT_LOOP
+ENDIF
+
+CLEARLINE LINECOUNT - MEMO_LINECOUNT
+RESTART
+
+@CONFIG(ARGS)
+#FUNCTION
+SELECTCASE ARGS
+CASE "カットインＯＮ"
+	SIF FLAG:カットイン == 0
+		RETURNF 1
+CASE "カットインＯＦＦ"
+	SIF FLAG:カットイン
+		RETURNF 1
+CASE "顔グラＯＮ"
+	SIF FLAG:顔グラ
+		RETURNF 1
+CASE "顔グラＯＦＦ"
+	SIF FLAG:顔グラ == 0
+		RETURNF 1
+CASE "顔グラアニメＯＮ"
+	SIF FLAG:顔グラアニメ
+		RETURNF 1
+CASE "顔グラアニメＯＦＦ"
+	SIF FLAG:顔グラアニメ == 0
+		RETURNF 1
+CASE "顔グラアニメ動作中"
+	SIF FLAG:自動進行停止
+		RETURNF 0
+	SIF FLAG:顔グラ == 0
+		RETURNF 0
+	SIF ANIME_CHARA:0 == 0
+		RETURNF 0
+	SIF FLAG:顔グラアニメ
+		RETURNF 1
+CASE "顔グラサイズ"
+	RETURNF FLAG:顔グラサイズ
+CASE "MASTER顔グラ"
+	RETURNF FLAG:MASTER顔グラ
+CASE "オートちょっかい"
+	RETURNF FLAG:オートちょっかい
+CASE "オートちょっかいＯＮ"
+	SIF FLAG:オートちょっかい != 999
+		RETURNF 1
+CASE "オートちょっかいＯＦＦ"
+	SIF FLAG:オートちょっかい == 999
+		RETURNF 1
+CASE "オートちょっかい動作中"
+	SIF FLAG:自動進行停止
+		RETURNF 0
+	SIF TARGET <= 1
+		RETURNF 0
+	SIF CFLAG:睡眠 || CFLAG:寝起き
+		RETURNF 0
+	SIF FLAG:オートちょっかい != 999
+		RETURNF 1
+
+CASE "能力表示で３サイズ閲覧"
+	RETURNF GETBIT(FLAG:能力画面, 0)
+CASE "能力表示でABLUP"
+	RETURNF GETBIT(FLAG:能力画面, 1)
+CASE "パートナー変更でアナライズ"
+	RETURNF GETBIT(FLAG:対象変更画面, 0)
+CASE "助手への指示"
+	RETURNF GETBIT(FLAG:助手画面, 0)
+
+CASE "着せ替え設定"
+	RETURNF FLAG:着せ替え
+CASE "服はお気に入りから選択"
+	RETURNF GETBIT(FLAG:着せ替え, 0)
+CASE "自動脱衣の禁止"
+	RETURNF GETBIT(FLAG:着せ替え, 1)
+CASE "自宅では靴を脱ぐ"
+	RETURNF GETBIT(FLAG:着せ替え, 2)
+CASE "ブラを合わせる"
+	RETURNF GETBIT(FLAG:着せ替え, 3)
+CASE "メイドキャップ"
+	RETURNF GETBIT(FLAG:着せ替え, 4)
+
+CASE "コーディネート：一覧"
+	SIF FLAG:着せ替え画面 == 0
+		RETURNF 1
+CASE "コーディネート：キャラ衣装"
+	RETURNF GETBIT(FLAG:着せ替え画面, 0)
+CASE "コーディネート：コスプレ"
+	RETURNF GETBIT(FLAG:着せ替え画面, 1)
+CASE "コーディネート：制服"
+	RETURNF GETBIT(FLAG:着せ替え画面, 2)
+CASE "コーディネート：体操服"
+	RETURNF GETBIT(FLAG:着せ替え画面, 3)
+CASE "コーディネート：水着"
+	RETURNF GETBIT(FLAG:着せ替え画面, 4)
+
+CASE "陰毛と腋毛", "陰毛"
+	RETURNF FLAG:陰毛
+CASE "腋毛"
+	RETURNF GETBIT(FLAG:陰毛, 10)
+CASE "素質の固定と除外"
+	RETURNF FLAG:素質の固定と除外
+;デフォはOFF
+CASE "性器年齢"
+	RETURNF FLAG:性器年齢
+CASE "使い込まれ素質の自動獲得"
+	RETURNF FLAG:使い込まれ素質の自動獲得
+
+;調教フィルタ関連
+CASE "Ｖ調教フィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 0)
+CASE "Ａ調教フィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 1)
+CASE "尿道調教フィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 2)
+CASE "逆挿入フィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 3)
+CASE "準備不足フィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 4)
+CASE "道具調教フィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 5)
+CASE "ハード調教フィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 6)
+CASE "消耗品フィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 7)
+CASE "実行判定フィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 8)
+CASE "極厚ゴム"
+	RETURNF GETBIT(FLAG:調教フィルタ, 9)
+CASE "立位"
+	SIF TEQUIP:押し倒し
+		RETURNF 0
+	RETURNF GETBIT(FLAG:調教フィルタ, 10)
+
+CASE "靴脱ぎフィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 15)
+CASE "下脱ぎフィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 16)
+;これはデフォでON状態
+CASE "豊穣フィルタ"
+	SIF GETBIT(FLAG:調教フィルタ, 17) == 0
+		RETURNF 1
+
+CASE "コマンドフィルタ"
+	RETURNF GETBIT(FLAG:調教フィルタ, 20)
+
+CASE "コマンドフィルタ：全コマンド表示"
+	SIF CONFIG("コマンドフィルタ") == 0
+		RETURNF 0
+	RETURNF GETBIT(FLAG:調教フィルタ, 30)
+
+
+
+CASE "妊娠設定：受精確率表示ＯＦＦ"
+	RETURNF GETBIT(FLAG:妊娠設定, 0)
+
+CASE "恍惚状態"
+	RETURNF FLAG:恍惚状態
+CASE "恍惚耐性"
+	RETURNF FLAG:恍惚耐性
+
+CASE "自動挿入解除"
+	RETURNF FLAG:自動挿入解除
+CASE "自動挿入解除OFF"
+	SIF FLAG:自動挿入解除 == 1
+		RETURNF 1
+CASE "自動挿入解除選択肢"
+	SIF FLAG:自動挿入解除 == 2
+		RETURNF 1
+
+CASE "夏の運動で蒸れ蒸れ"
+	RETURNF FLAG:夏の運動で蒸れ蒸れ
+CASE "包茎ペニスの呼び方"
+	RETURNF FLAG:包茎ペニスの呼び方
+CASE "９９９インデント"
+	RETURNF FLAG:９９９インデント
+CASE "９９９インデント：左寄せ"
+	SIF FLAG:９９９インデント == 0
+		RETURNF 1
+CASE "９９９インデント：中央"
+	SIF FLAG:９９９インデント == 1
+		RETURNF 1
+CASE "９９９インデント：右寄せ"
+	SIF FLAG:９９９インデント == 2
+		RETURNF 1
+CASE "９９９インデント補正"
+	SELECTCASE FLAG:９９９インデント
+	CASE 0
+		RETURNF 0
+	CASE 1
+		RETURNF NUM("折り返し文字数") - 60
+	CASE 2
+		RETURNF NUM("折り返し文字数") - 30
+	ENDSELECT
+
+CASE "性の乱れ"
+	RETURNF FLAG:性の乱れ
+CASE "部員間Ｈ"
+	SIF FLAG:性の乱れ >= 1
+		RETURNF 1
+CASE "モブＨ"
+	SIF FLAG:性の乱れ >= 2
+		RETURNF 1
+
+CASE "危険日生セックスの合意"
+	RETURNF FLAG:危険日生セックスの合意
+
+CASE "胎内精子で妊娠"
+	RETURNF FLAG:胎内精子で妊娠
+
+CASE "巨乳補正"
+	SELECTCASE FLAG:巨乳補正
+	CASE 2
+		RETURNF 5
+	CASE 1
+		RETURNF 3
+	CASEELSE
+		RETURNF 0
+	ENDSELECT
+CASE "巨乳補正：カップ"
+	RETURNF FLAG:巨乳補正
+CASE "巨乳補正：Ｆ"
+	SIF FLAG:巨乳補正 == 0
+		RETURNF 1
+CASE "巨乳補正：Ｇ"
+	SIF FLAG:巨乳補正 == 1
+		RETURNF 1
+CASE "巨乳補正：Ｈ"
+	SIF FLAG:巨乳補正 == 2
+		RETURNF 1
+
+CASE "恋慕と淫乱の任意獲得"
+	RETURNF GETBIT(FLAG:手動取得, 0)
+CASE "ＶＡ拡張の手動ＬＶＵＰ"
+	RETURNF GETBIT(FLAG:手動取得, 1)
+
+CASE "ニプルファック"
+	RETURNF FLAG:ニプルファック
+CASE "精液浣腸"
+	RETURNF FLAG:精液浣腸
+
+CASE "匂いの表記変更"
+	RETURNF FLAG:匂い
+CASE "セクハラ禁止"
+	RETURNF FLAG:セクハラ禁止
+CASE "セクハラ許可"
+	SIF FLAG:セクハラ禁止 == 0
+		RETURNF 1
+CASE "制限時間"
+	RETURNF FLAG:制限時間
+CASE "射精箇所の自動選択"
+	RETURNF FLAG:射精箇所の自動選択
+CASE "髪型詳細"
+	RETURNF FLAG:髪型詳細
+CASE "Ｖ射精の自動選択"
+	RETURNF GETBIT(FLAG:射精箇所の自動選択, 3)
+CASE "Ａ射精の自動選択"
+	RETURNF GETBIT(FLAG:射精箇所の自動選択, 4)
+CASE "尿道射精の自動選択"
+	RETURNF GETBIT(FLAG:射精箇所の自動選択, 19)
+CASE "Ｂ射精の自動選択"
+	RETURNF GETBIT(FLAG:射精箇所の自動選択, 18)
+CASE "口射精の自動選択"
+	RETURNF GETBIT(FLAG:射精箇所の自動選択, 1)
+CASE "手射精の自動選択"
+	RETURNF GETBIT(FLAG:射精箇所の自動選択, 2)
+CASE "胸射精の自動選択"
+	RETURNF GETBIT(FLAG:射精箇所の自動選択, 5)
+CASE "脚射精の自動選択"
+	RETURNF GETBIT(FLAG:射精箇所の自動選択, 6)
+CASE "自慰射精の自動選択"
+	RETURNF GETBIT(FLAG:射精箇所の自動選択, 20)
+CASE "その他射精の自動選択"
+	RETURNF GETBIT(FLAG:射精箇所の自動選択, 0)
+CASE "全射精箇所の自動選択"
+	SIF FLAG:射精箇所の自動選択 == 1p0 + 1p1 + 1p2 + 1p3 + 1p4 + 1p5 + 1p6 + 1p18 + 1p19 + 1p20
+		RETURNF 1
+
+CASE "乳首の詳細設定"
+	RETURNF FLAG:乳首
+CASE "乳首肥大"
+	RETURNF GETBIT(FLAG:乳首, 0)
+CASE "陥没乳首"
+	RETURNF GETBIT(FLAG:乳首, 1)
+CASE "巨乳輪"
+	RETURNF GETBIT(FLAG:乳首, 2)
+
+CASE "陰核の詳細設定"
+	RETURNF FLAG:陰核
+CASE "陰核肥大"
+	RETURNF GETBIT(FLAG:陰核, 0)
+CASE "陰核包茎"
+	RETURNF GETBIT(FLAG:陰核, 1)
+
+;以下は項目ONOFFボタン。キャラメイク中は例外的に全部表示させる
+CASE "項目：搾精ランキング"
+	RETURNF GETBIT(FLAG:項目OFF, 0)
+CASE "項目：助手のお仕事指示"
+	RETURNF GETBIT(FLAG:項目OFF, 1)
+CASE "項目：キャラ紹介"
+	RETURNF GETBIT(FLAG:項目OFF, 2)
+CASE "項目：身嗜み"
+	RETURNF GETBIT(FLAG:項目OFF, 3)
+CASE "項目：服装詳細"
+	RETURNF GETBIT(FLAG:項目OFF, 4)
+CASE "項目：合意"
+	RETURNF GETBIT(FLAG:項目OFF, 5)
+CASE "項目：性癖・弱点"
+	RETURNF GETBIT(FLAG:項目OFF, 6)
+CASE "項目：自室の状態"
+	RETURNF GETBIT(FLAG:項目OFF, 7)
+CASE "項目：属性と外見"
+	RETURNF GETBIT(FLAG:項目OFF, 8)
+CASE "項目：宝珠"
+	RETURNF GETBIT(FLAG:項目OFF, 9)
+CASE "項目：経験"
+	RETURNF GETBIT(FLAG:項目OFF, 10)
+CASE "項目：パンツコレクション"
+	RETURNF GETBIT(FLAG:項目OFF, 11)
+CASE "項目：能力"
+	RETURNF GETBIT(FLAG:項目OFF, 12)
+CASE "項目：刻印"
+	RETURNF GETBIT(FLAG:項目OFF, 13)
+CASE "項目：素質"
+	RETURNF GETBIT(FLAG:項目OFF, 14)
+CASE "項目：家族構成"
+	RETURNF GETBIT(FLAG:項目OFF, 15)
+CASE "項目：相性"
+	RETURNF GETBIT(FLAG:項目OFF, 16)
+CASE "項目：性処理"
+	RETURNF GETBIT(FLAG:項目OFF, 17)
+CASE "項目：射精ランキング"
+	RETURNF GETBIT(FLAG:項目OFF, 18)
+CASE "項目：所持アイテム一覧"
+	RETURNF GETBIT(FLAG:項目OFF, 19)
+CASE "項目：特記事項"
+	RETURNF GETBIT(FLAG:項目OFF, 20)
+CASE "項目：特別経験詳細"
+	RETURNF GETBIT(FLAG:項目OFF, 21)
+CASE "項目：特別経験"
+	RETURNF GETBIT(FLAG:項目OFF, 22)
+CASE "項目：普段の格好"
+	RETURNF GETBIT(FLAG:項目OFF, 23)
+CASE "項目：出産の記録"
+	RETURNF GETBIT(FLAG:項目OFF, 24)
+
+ENDSELECT
+RETURNF 0
+
+@SETCONFIG, ARGS
+#DIM LCOUNT
+;MEMO_LINECOUNT:1は"キャラメイク関連"、"システム＆イベント全般"、"主人の好み"、"着せ替え設定"でのみ使用
+#DIM MEMO_LINECOUNT, 2
+#DIM NEXT_LINE
+#DIM CHOICE
+#DIM MEMO, 10
+#DIMS MEMOS, 10
+;ここは基本的に常にREDRAW 0
+REDRAW 0
+
+MEMO_LINECOUNT = LINECOUNT
+PRINTL 
+SELECTCASE ARGS
+CASE "キャラメイク関連"
+	MEMO_LINECOUNT:1 = LINECOUNT - 1
+
+	PRINTFORM  [ 0] \@ CONFIG("巨乳補正") ? ○ # －\@ 巨乳の上限の設定：
+	SETCOLOR DEF_COLOR("暗黄色")
+	IF CONFIG("巨乳補正：Ｈ")
+		PRINTL Ｈ
+	ELSEIF CONFIG("巨乳補正：Ｇ")
+		PRINTL Ｇ
+	ELSE
+		PRINTL Ｆ
+	ENDIF
+	RESETCOLOR
+	PRINTFORM  [ 1] \@ CONFIG("乳首の詳細設定") ? ○ # －\@ 乳首の詳細設定
+	IF CONFIG("乳首の詳細設定")
+		PRINTFORM ：
+		SETCOLOR DEF_COLOR("暗黄色")
+		PRINTFORM \@ CONFIG("乳首肥大") ? ○ # ×\@ 乳首肥大 
+		PRINTFORM \@ CONFIG("陥没乳首") ? ○ # ×\@ 陥没乳首 
+		PRINTFORM \@ CONFIG("巨乳輪") ? ○ # ×\@ 巨乳輪
+		RESETCOLOR
+	ENDIF
+	PRINTL 
+	PRINTFORM  [ 2] \@ CONFIG("陰核の詳細設定") ? ○ # －\@ 陰核の詳細設定
+	IF CONFIG("陰核の詳細設定")
+		PRINTFORM ：
+		SETCOLOR DEF_COLOR("暗黄色")
+		PRINTFORM \@ CONFIG("陰核肥大") ? ○ # ×\@ 陰核肥大 
+		PRINTFORM \@ CONFIG("陰核包茎") ? ○ # ×\@ 陰核包茎 
+		RESETCOLOR
+	ENDIF
+	PRINTL 
+	PRINTFORM  [ 3] \@ CONFIG("陰毛と腋毛") ? ○ # －\@ 陰毛と%TEXTS("腋")%毛の設定：
+	SETCOLOR DEF_COLOR("暗黄色")
+	IF CONFIG("陰毛と腋毛")
+		IF GETBIT(FLAG:陰毛, 4)
+			PRINT 誰も生えない
+		ELSEIF GETBIT(FLAG:陰毛, 3)
+			PRINT オトナだけ生える
+		ELSEIF GETBIT(FLAG:陰毛, 2)
+			PRINT お姉さんとオトナだけ生える
+		ELSEIF GETBIT(FLAG:陰毛, 1)
+			PRINT 子供以外は生える
+		ELSEIF GETBIT(FLAG:陰毛, 0)
+			PRINT みんな生える
+		ENDIF
+		PRINTFORML ＆%TEXTS("腋")%毛\@ CONFIG("腋毛") ? 有り # 無し \@
+	ELSE
+		PRINTL 表示しない
+	ENDIF
+	RESETCOLOR
+
+	PRINTFORM  [ 4] \@ CONFIG("性器年齢") ? ○ # －\@ 性器年齢の設定：
+	SETCOLOR DEF_COLOR("暗黄色")
+	IF CONFIG("性器年齢")
+		PRINTL あり
+	ELSE
+		PRINTL なし
+	ENDIF
+	RESETCOLOR
+
+	PRINTFORM  [ 5] \@ CONFIG("素質の固定と除外") ? ○ # －\@ 素質の固定と除外の設定：
+	SETCOLOR DEF_COLOR("暗黄色")
+	IF CONFIG("素質の固定と除外")
+		PRINTL 毎回初期化する
+	ELSE
+		PRINTL 記憶する
+	ENDIF
+	RESETCOLOR
+	CALL PRINT_STRL, @" [ 6] \@ CONFIG("顔グラＯＮ") ? ○ # －\@ 顔グラのON/OFF：_黄色_\@ CONFIG("顔グラＯＦＦ") ? OFF # ON \@\@ (CONFIG("顔グラＯＮ") && CONFIG("顔グラアニメＯＮ")) ? ＆アニメON # \@"
+
+	;グローバル変数の読み込み
+	LOADGLOBAL
+	IF GLOBAL > 0 && FLAG:VER_コンフィグ != GLOBAL
+		PRINTFORML  [ 7] コンフィグ設定（記録日:{GLOBAL/10000}年{(GLOBAL%10000)/100}月{GLOBAL%100}日）のロード
+		PRINTFORML [100] これでよい
+		CALL INPUT_SELECT, 8, 100
+	ELSE
+		PRINTFORML [100] これでよい
+		CALL INPUT_SELECT, 7, 100
+	ENDIF
+	SELECTCASE RESULT
+	CASE 100
+		RETURN 0
+	CASE 0
+		CALL SETCONFIG, "巨乳補正"
+	CASE 1
+		CALL SETCONFIG, "乳首の詳細設定"
+	CASE 2
+		CALL SETCONFIG, "陰核の詳細設定"
+	CASE 3
+		CALL SETCONFIG, "陰毛と腋毛"
+	CASE 4
+		CALL SETCONFIG, "性器年齢"
+	CASE 5
+		CALL SETCONFIG, "素質の固定と除外"
+	CASE 6
+		CALL SETCONFIG, "顔グラ"
+	CASE 7
+		CALL LOAD_CONFIGURE
+	ENDSELECT
+	ARGS = キャラメイク関連
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT:1
+	RESTART
+CASE "システム＆イベント全般"
+	MEMO_LINECOUNT:1 = LINECOUNT - 1
+
+	PRINTFORML  [ 0] \@ CONFIG("恋慕と淫乱の任意獲得") ? ○ # －\@ 恋慕・淫乱の任意獲得
+	PRINTFORML  [ 1] \@ CONFIG("ＶＡ拡張の手動ＬＶＵＰ") ? ○ # －\@ ＶＡ拡張ＬＶの変化は手動で行う
+	PRINTFORML  [ 2] \@ CONFIG("セクハラ禁止") ? ○ # －\@ 主人が選択肢無しでセクハラなどを働くことを禁止する
+	PRINTFORML  [ 3] \@ CONFIG("妊娠設定：受精確率表示ＯＦＦ") ? ○ # －\@ 中出しの際の受精確率表示のＯＦＦ
+	PRINTFORML  [ 4] \@ CONFIG("恍惚状態") ? ○ # －\@ 恍惚状態の時には相手の好きにさせる
+	PRINTFORML  [ 5] \@ CONFIG("制限時間") ? ○ # －\@ 押し倒された際などの選択に制限時間を設ける
+	PRINTFORM  [ 6] \@ CONFIG("匂いの表記変更") ? ○ # －\@ 「匂い」という単語の表記を変更する。現在は：
+	CALL PRINTL_COLORTEXT, TEXTS("匂い"), DEF_COLOR("黄色")
+	PRINTFORML  [ 7] \@ CONFIG("ニプルファック") ? ○ # －\@ ニプルファックができるようにする
+	PRINTFORML  [ 8] \@ CONFIG("精液浣腸") ? ○ # －\@ アナルにいっぱい中出しすると浣腸の様な効果が出るようにする
+	PRINTFORM  [ 9] \@ CONFIG("射精箇所の自動選択") ? ○ # －\@ 射精の際に、そのまま射精する選択肢を自動で選ぶ
+	IF CONFIG("射精箇所の自動選択")
+		PRINT :
+		SETCOLOR DEF_COLOR("黄色")
+		IF CONFIG("全射精箇所の自動選択")
+			PRINT ＡＬＬ
+		ELSE
+			SIF CONFIG("Ｖ射精の自動選択")
+				PRINT Ｖ
+			SIF CONFIG("Ａ射精の自動選択")
+				PRINT Ａ
+			SIF CONFIG("尿道射精の自動選択")
+				PRINT 尿道
+			SIF CONFIG("Ｂ射精の自動選択")
+				PRINT 乳内
+			SIF CONFIG("口射精の自動選択")
+				PRINT 口
+			SIF CONFIG("手射精の自動選択")
+				PRINT 手
+			SIF CONFIG("胸射精の自動選択")
+				PRINT 胸
+			SIF CONFIG("脚射精の自動選択")
+				PRINT 脚
+			SIF CONFIG("自慰射精の自動選択")
+				PRINT 自慰
+			SIF CONFIG("その他射精の自動選択")
+				PRINT その他
+		ENDIF
+		RESETCOLOR
+	ENDIF
+	PRINTL 
+	PRINTFORM  [10] \@ CONFIG("恍惚耐性") ? ○ # －\@ 恍惚になった際に
+	SELECTCASE CONFIG("恍惚耐性")
+	CASE 2
+		PRINTFORML 自動的に耐える
+	CASE 1
+		PRINTFORML 耐える選択肢を出す
+	CASEELSE
+		PRINTFORML 耐えたり選択肢を出したり
+	ENDSELECT
+	PRINTFORML  [11] \@ CONFIG("自動挿入解除") ? ○ # －\@ 射精した後に確率等で起きる自動挿入解除を\@ CONFIG("自動挿入解除選択肢") ? 選択肢方式にする # 止める \@
+	PRINTFORML  [12] \@ CONFIG("夏の運動で蒸れ蒸れ") ? ○ # －\@ 夏に身体を動かした後に限り、性器に恥垢が溜まるようにする
+	PRINTFORML  [13] \@ CONFIG("包茎ペニスの呼び方") ? ○ # －\@ 地の文で包茎ペニスの呼び方を変える
+	PRINTFORM  [14] \@ CONFIG("オートちょっかい") ? ○ # －\@ 時間経過で勝手に誰かがちょっかいかけてくるのを止めるor目安時間変更：
+	SELECTCASE CONFIG("オートちょっかい")
+	CASE 0
+		CALL PRINT_STRL, "黄色_20秒に一回"
+	CASE 1 TO 59
+		CALL PRINT_STRL, @"黄色_{CONFIG("オートちょっかい")}秒に一回"
+	CASE 60, 120, 180, 240, 300, 360, 420, 480, 540, 600
+		CALL PRINT_STR, @"黄色_{CONFIG("オートちょっかい")/60}分に一回"
+	CASE 60 TO 600
+		CALL PRINT_STRL, @"黄色_{CONFIG("オートちょっかい")/60}分{CONFIG("オートちょっかい")%60}秒に一回"
+	CASE 999
+		CALL PRINT_STRL, "黄色_停止中"
+	ENDSELECT
+	PRINTFORM  [15] \@ CONFIG("９９９インデント") ? ○ # －\@ "暇をつぶす"等の時間を進めるコマンドを選んだ後の選択肢の場所を変える：
+	IF CONFIG("９９９インデント：右寄せ")
+		CALL PRINT_STRL, "黄色_右寄せ"
+	ELSEIF CONFIG("９９９インデント：中央")
+		CALL PRINT_STRL, "黄色_中央"
+	ELSE
+		CALL PRINT_STRL, "黄色_左寄せ"
+	ENDIF
+	PRINTFORM  [16] \@ CONFIG("性の乱れ") ? ○ # －\@ [貞操観念]が無い＆[淫乱]＆欲求不満なら、%CALLNAME:MASTER%以外とＨする事を：
+	IF CONFIG("性の乱れ") == 0
+		CALL PRINT_STRL, "許さない"
+	ELSEIF CONFIG("モブＨ")
+		CALL PRINT_STRL, "黄色_誰相手でも許す"
+	ELSEIF CONFIG("部員間Ｈ")
+		CALL PRINT_STRL, "黄色_部員相手なら許す"
+	ENDIF
+	PRINTFORML  [17] \@ CONFIG("危険日生セックスの合意") ? ○ # －\@ [危険日生セックス]の合意を、恋慕＆淫乱ならば貰えるようにする
+	PRINTFORML  [18] \@ CONFIG("胎内精子で妊娠") ? ○ # －\@ 膣内射精で胎内に残留した精子で妊娠できるようにする
+	PRINTFORML  [19] \@ CONFIG("使い込まれ素質の自動獲得") ? ○ # －\@ [縦割れアナル]等の使い込まれ系素質を自動で獲得するようにする
+
+	PRINTFORML [100] これでよい
+	CALL INPUT_SELECT, 20, 100
+	SELECTCASE RESULT
+	CASE 100
+		RETURN 0
+	CASE 0
+		CALL SETCONFIG, "恋慕と淫乱の任意獲得"
+	CASE 1
+		CALL SETCONFIG, "ＶＡ拡張の手動ＬＶＵＰ"
+	CASE 2
+		CALL SETCONFIG, "セクハラ禁止"
+	CASE 3
+		CALL SETCONFIG, "妊娠設定：受精確率表示ＯＦＦ"
+	CASE 4
+		CALL SETCONFIG, "恍惚状態"
+	CASE 5
+		CALL SETCONFIG, "制限時間"
+	CASE 6
+		CALL SETCONFIG, "匂いの表記変更"
+	CASE 7
+		CALL SETCONFIG, "ニプルファック"
+	CASE 8
+		CALL SETCONFIG, "精液浣腸"
+	CASE 9
+		CALL SETCONFIG, "射精箇所の自動選択"
+	CASE 10
+		CALL SETCONFIG, "恍惚耐性"
+	CASE 11
+		CALL SETCONFIG, "自動挿入解除"
+	CASE 12
+		CALL SETCONFIG, "夏の運動で蒸れ蒸れ"
+	CASE 13
+		CALL SETCONFIG, "包茎ペニスの呼び方"
+	CASE 14
+		CALL SETCONFIG, "オートちょっかい"
+	CASE 15
+		CALL SETCONFIG, "９９９インデント"
+	CASE 16
+		CALL SETCONFIG, "性の乱れ"
+	CASE 17
+		CALL SETCONFIG, "危険日生セックスの合意"
+	CASE 18
+		CALL SETCONFIG, "胎内精子で妊娠"
+	CASE 19
+		CALL SETCONFIG, "使い込まれ素質の自動獲得"
+
+	;CASE 
+	;	CALL SETCONFIG, "髪型詳細"
+	ENDSELECT
+	ARGS = システム＆イベント全般
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT:1
+	RESTART
+
+CASE "着せ替え設定"
+	MEMO_LINECOUNT:1 = LINECOUNT - 1
+
+	PRINTFORML 変更したい内容を選択してください
+	PRINTL 
+	PRINTFORML  [ 0] \@ CONFIG("自動脱衣の禁止") ? ○ # － \@ 自動脱衣の禁止
+	PRINTFORML  [ 1] \@ CONFIG("自宅では靴を脱ぐ") ? ○ # － \@ 自宅に限り靴を脱ぐ
+	PRINTFORML  [ 2] \@ CONFIG("ブラを合わせる") ? ○ # － \@ パンツを選択した際にブラも自動で選ぶ
+	PRINTFORML  [ 3] \@ CONFIG("メイドキャップ") ? ○ # － \@ メイドさんの被り物をメイドキャップにする
+	PRINTL 
+
+	PRINTFORML [100] 戻る
+
+	CALL INPUT_SELECT, 4, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		RETURN 0
+	CASEELSE
+		INVERTBIT FLAG:着せ替え, RESULT+1
+	ENDSELECT
+
+	FOR LCOUNT, 1, CHARANUM
+		SIF CHECK_SHIRT("メイド服", LCOUNT) == 0
+			CONTINUE
+		IF CONFIG("メイドキャップ")
+			SIF CHECK_OTHER("ヘッドドレス", LCOUNT)
+				CALL SET_OTHER, "メイドキャップ", LCOUNT
+		ELSE
+			SIF CHECK_OTHER("メイドキャップ", LCOUNT)
+				CALL SET_OTHER, "ヘッドドレス", LCOUNT
+		ENDIF
+	NEXT
+
+	ARGS = 着せ替え設定
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT:1
+	RESTART
+CASE "主人の好み"
+	MEMO_LINECOUNT:1 = LINECOUNT - 1
+
+	PRINTFORML 変更したいものを選んでください
+	PRINTFORM  [ 0] 身嗜み … 
+	CALL PRINT_MIDASHINAMI_SHORT, MASTER
+	PRINTL 
+
+	PRINTFORM  [ 1] 　弱点 … 
+	IF CSTR:MASTER:弱点 == ""
+		PRINTFORM 無し
+	ELSEIF COND("全てに弱い", MASTER)
+		PRINT [全てに弱い] 
+	ELSE
+		VARSET LOCALS
+		SPLIT CSTR:MASTER:弱点, "/", LOCALS
+		FOR LCOUNT, 0, NUM("弱点")
+			SIF LOCALS:LCOUNT == ""
+				CONTINUE
+			PRINTFORM [%SUBSTRING(LOCALS:LCOUNT, 0, STRLENS(LOCALS:LCOUNT) - 6)%]
+		NEXT
+	ENDIF
+	PRINTL 
+
+	PRINTFORM  [ 2] 　性癖 … 
+	IF CSTR:MASTER:性癖 == ""
+		PRINTFORM 無し
+	ELSEIF STRCOUNTS(CSTR:MASTER:性癖, "/") >= 10
+		PRINTFORM いっぱい
+	ELSE
+		VARSET LOCALS
+		SPLIT CSTR:MASTER:性癖, "/", LOCALS
+		FOR LCOUNT, 0, NUM("属性")
+			SIF LOCALS:LCOUNT == ""
+				CONTINUE
+			PRINTFORM [%LOCALS:LCOUNT%]
+		NEXT
+	ENDIF
+	PRINTL 
+	IF CONFIG("顔グラＯＮ")
+		PRINTFORML  [ 3] 顔グラ … \@ COND("顔グラ表示中", MASTER) ? 表示中 # 無し \@
+		PRINTFORML [100] これでよい
+		CALL INPUT_SELECT, 4, 100
+	ELSE
+		PRINTFORML [100] これでよい
+		CALL INPUT_SELECT, 3, 100
+	ENDIF
+	SELECTCASE RESULT
+	CASE 100
+		RETURN 0
+	CASE 0
+		CALL SET_MIDASHINAMI, MASTER
+	CASE 1
+		CALL SETCONFIG, "弱点"
+	CASE 2
+		CALL SETCONFIG, "性癖"
+	CASE 3
+		CALL SIMULATE_MAIDFACE, MASTER
+		RETURN 1
+	ENDSELECT
+	ARGS = 主人の好み
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT:1
+	RESTART
+CASE "性癖"
+	PRINTL 性癖を設定します。以下から好きなだけ選んでください
+	SIF FLAG:オープニング
+		PRINTL あとで変更可能なので、決まらないならこれも後回しで構いません
+	CALL PRINT_STR, "他のキャラの□ 属性 □欄に選んだ性癖がある場合には_イエロー_この色_に変化してお知らせします_L_"
+	VARSET LOCALS
+	FOR LCOUNT, 0, NUM("属性")
+		MEMOS = %NAMES("属性", LCOUNT)%\/
+		PRINTFORMLC 　[{LCOUNT, 2}] \@ STRCOUNT(CSTR:MASTER:性癖, MEMOS) ? ○ # － \@ [%NAMES("属性", LCOUNT)%]
+
+		SIF LCOUNT%3 == 2
+			PRINTL 
+	NEXT
+	PRINTL 
+	PRINTL  [100] これでよい
+	CALL INPUT_SELECT, NUM("属性"), 100
+
+	CHOICE = RESULT
+
+	SELECTCASE CHOICE
+	CASE 100
+		REDRAW 1
+		RETURN 0
+	CASEELSE
+		MEMOS = %NAMES("属性", CHOICE)%\/
+		IF STRCOUNT(CSTR:MASTER:性癖, MEMOS)
+			VARSET LOCALS
+			SPLIT CSTR:MASTER:性癖, "/", LOCALS
+			CSTR:MASTER:性癖 = 
+			FOR LCOUNT, 0, NUM("属性")
+				SELECTCASE LOCALS:LCOUNT
+				CASE "", NAMES("属性", CHOICE)
+					CONTINUE
+				ENDSELECT
+				CSTR:MASTER:性癖 = %CSTR:MASTER:性癖%%LOCALS:LCOUNT%\/
+			NEXT
+		ELSE
+			CSTR:MASTER:性癖 = %CSTR:MASTER:性癖%%NAMES("属性", CHOICE)%\/
+		ENDIF
+
+	ENDSELECT
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+CASE "弱点"
+	PRINTL 弱点を設定します。以下から好きなだけ選んでください
+	SIF FLAG:オープニング
+		PRINTL あとで変更可能なので、決まらないなら後回しで構いません
+	VARSET LOCALS
+	FOR LCOUNT, 0, NUM("弱点")
+		PRINTFORMLC 　[{LCOUNT, 2}] \@ COND(NAMES("弱点", LCOUNT), MASTER) ? ○ # － \@ [%NAMES("弱点", LCOUNT)%]
+		SIF LCOUNT%3 == 2
+			PRINTL 
+	NEXT
+	PRINTL 
+	IF COND("全てに弱い", MASTER)
+		PRINTL   [99] 全てを解除する
+	ELSE
+		PRINTL   [99] 全てを選択する
+	ENDIF
+	PRINTL  [100] これでよい
+	CALL INPUT_SELECT, NUM("弱点"), 99, 100
+
+	CHOICE = RESULT
+
+	SELECTCASE CHOICE
+	CASE 100
+		REDRAW 1
+		RETURN 0
+	CASE 99
+		IF COND("全てに弱い", MASTER)
+			CSTR:MASTER:弱点 = 
+		ELSE
+			CSTR:MASTER:弱点 = 
+			FOR LCOUNT, 0, NUM("弱点")
+				CSTR:MASTER:弱点 = %CSTR:MASTER:弱点%%NAMES("弱点", LCOUNT)%\/
+			NEXT
+		ENDIF
+	CASEELSE
+		IF COND(NAMES("弱点", CHOICE), MASTER)
+			VARSET LOCALS
+			SPLIT CSTR:MASTER:弱点, "/", LOCALS
+			CSTR:MASTER:弱点 = 
+			FOR LCOUNT, 0, NUM("弱点")
+				SELECTCASE LOCALS:LCOUNT
+				CASE "", NAMES("弱点", CHOICE)
+					CONTINUE
+				ENDSELECT
+				CSTR:MASTER:弱点 = %CSTR:MASTER:弱点%%LOCALS:LCOUNT%\/
+			NEXT
+		ELSE
+			CSTR:MASTER:弱点 = %CSTR:MASTER:弱点%%NAMES("弱点", CHOICE)%\/
+		ENDIF
+	ENDSELECT
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+
+CASE "陰毛と腋毛"
+	PRINTFORML 陰毛と%TEXTS("腋")%毛の設定をします。生えるようになる外見年齢を指定してください
+	PRINTFORML ただし、%TEXTS("腋")%毛については陰毛が生えるキャラ限定とします
+	PRINTFORML （注：OFFにすると、全ての陰毛＆%TEXTS("腋")%毛フラグが初期化されます！）
+	PRINTL 
+	PRINTFORML  [ 0] \@ GETBIT(FLAG:陰毛, 0) ? ○ # － \@ みんな生える
+	PRINTFORML  [ 1] \@ GETBIT(FLAG:陰毛, 1) ? ○ # － \@ 子供：×　少女：○　お姉さん：○　オトナ：○
+	PRINTFORML  [ 2] \@ GETBIT(FLAG:陰毛, 2) ? ○ # － \@ 子供：×　少女：×　お姉さん：○　オトナ：○
+	PRINTFORML  [ 3] \@ GETBIT(FLAG:陰毛, 3) ? ○ # － \@ 子供：×　少女：×　お姉さん：×　オトナ：○
+	PRINTFORML  [ 4] \@ GETBIT(FLAG:陰毛, 4) ? ○ # － \@ 誰も生えない
+	PRINTFORML  [ 5] \@ FLAG:陰毛 == 0 ? ○ # － \@ 陰毛の設定自体をOFF(陰毛について言及しなくなります)
+	SIF FLAG:陰毛 == 0
+		SETCOLOR DEF_COLOR("灰色")
+	PRINTFORML  [10] \@ CONFIG("腋毛") ? ○ # － \@ %TEXTS("腋")%毛ＯＮ
+	RESETCOLOR
+	PRINTFORML [100] 戻る
+
+	CALL INPUT_SELECT, 6, 10, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		RETURN 0
+	CASE 5
+		LOCAL = 0
+		FOR LCOUNT, 1, CHARANUM
+			SIF BASE:LCOUNT:陰毛 == 0
+				CONTINUE
+			LOCAL = 1
+			BREAK
+		NEXT
+		IF LOCAL
+			PRINTFORML 陰毛と%TEXTS("腋")%毛の状態を本当に初期化してもよろしいですか？
+			PRINTFORML [ 0] はい
+			PRINTFORML [ 1] やっぱりやめる
+			CALL INPUT_SELECT, 2
+			SIF RESULT == 1
+				RESTART
+		ENDIF
+		PRINTFORMW 陰毛と%TEXTS("腋")%毛の設定をOFFにしました
+		FLAG:陰毛 = 0
+		CALL SETFLAG, "陰毛と腋毛の設定初期化"
+		RETURN 0
+	CASE 0 TO 4
+		CLEARBIT FLAG:陰毛, 0
+		CLEARBIT FLAG:陰毛, 1
+		CLEARBIT FLAG:陰毛, 2
+		CLEARBIT FLAG:陰毛, 3
+		CLEARBIT FLAG:陰毛, 4
+		SETBIT FLAG:陰毛, RESULT
+	CASE 10
+		SIF FLAG:陰毛
+			INVERTBIT FLAG:陰毛, 10
+	ENDSELECT
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+
+CASE "使い込まれ素質の自動獲得"
+	INVERTBIT FLAG:ARGS, 0
+	IF CONFIG(ARGS)
+		PRINTFORMW [縦割れアナル]等が経験などに応じて自動で獲得されるようになりました
+	ELSE
+		PRINTFORMW 手動で獲得する場合にはLVUP画面の[90] 経験値を使って素質を獲得する で行ってください
+	ENDIF
+
+CASE "性器年齢"
+	INVERTBIT FLAG:ARGS, 0
+	IF CONFIG(ARGS)
+		PRINTFORMW 外見年齢と性器年齢の値により[グロマン],[美マン],[色素沈着]などが設定されるようになりました
+	ELSE
+		PRINTFORMW 外性器について細かいことは言わないことにしました
+	ENDIF
+
+CASE "性の乱れ"
+	CALL PRINT_SELECT, @"自分からＨな事をするのは%CALLNAME:MASTER%とだけ(デフォ)\/仲の良い部員とはＨな事もしちゃう\/%CALLNAME:MASTER%が知らない相手ともこっそりＨな事しちゃう"
+	FLAG:性の乱れ = RESULT
+
+	SELECTCASE FLAG:性の乱れ
+	CASE 0
+		PRINTFORMW %CALLNAME:MASTER%以外とのＨは控えます。[彼氏持ち]や[人妻]はその限りではありません。
+	CASE 1
+		PRINTFORML 部員同士に限り、Ｈな事をする場合があるようにしました。
+		PRINTFORMW [彼氏持ち]や[人妻]はその限りではありません。
+	CASE 2
+		PRINTFORML %CALLNAME:MASTER%が知らない相手とも好き勝手にＨをする場合があるようにしました。
+		PRINTFORMW ただし本体側では、そのようなイベントはまだ用意していません。
+	ENDSELECT
+CASE "自動挿入解除"
+	PRINTFORML 中出し後に自動でペニスを引き抜くかどうかを選びます
+	CALL PRINT_SELECT, "自動で抜く(デフォ)/抜かない/本来引き抜くタイミングで選択肢を出す"
+	FLAG:自動挿入解除 = RESULT
+
+	SELECTCASE RESULT
+	CASE 0
+		PRINTFORMW 射精量などに応じて自動で挿入を解除します。
+	CASE 1
+		PRINTFORMW 挿入を自動解除しません。ただし、コンドームを着けている際は例外です。
+	CASE 2
+		PRINTFORMW 挿入解除が起きた際には選択肢を出します。ただし、コンドームを着けている際は例外です。
+	ENDSELECT
+
+CASE "顔グラ"
+	IF CONFIG("顔グラＯＦＦ")
+		PRINTFORML 注意！顔グラが付く事によりイメージが壊れたり色々するかもしれません！
+		PRINTFORML 本当に顔グラをＯＮにして良いですか？
+		CALL PRINT_SELECT, "はい/いいえ"
+		SIF RESULT
+			RETURN 0
+		PRINTFORMW 顔グラをＯＮにしました。CSVで髪を設定されているキャラに限り、顔グラが表示されます。
+		PRINTFORMW （表示されていないキャラについては、勧誘した際orコンフィグで設定する事が出来ます）
+	ENDIF
+	INVERTBIT FLAG:ARGS, 0
+
+	IF CONFIG("顔グラＯＮ") && CONFIG("顔グラアニメＯＦＦ")
+		PRINTL 
+		PRINTFORML 顔グラが瞬き（糸目のキャラはしません）や、眠い際にあくびなどをするようにしますか？
+		PRINTFORML (注意！動作が重くなる可能性が有ります！)
+		CALL PRINT_SELECT, "はい/いいえ"
+		SIF RESULT
+			RETURN 0
+		FLAG:顔グラアニメ = 1
+		PRINTFORMW 顔グラのアニメーションをＯＮにしました。
+	ENDIF
+CASE "危険日生セックスの合意"
+	INVERTBIT FLAG:ARGS, 0
+	IF CONFIG(ARGS)
+		PRINTFORMW 本来は[相思相愛]が必須ですが、[恋慕]かつ[淫乱]の場合にも合意が貰えるようになります。
+	ELSE
+		PRINTFORMW 危険日生セックスの合意は相思相愛でしかもらえません。
+	ENDIF
+CASE "包茎ペニスの呼び方"
+	INVERTBIT FLAG:ARGS, 0
+	IF CONFIG(ARGS)
+		PRINTFORMW 包茎相手は包茎ちんぽ等と表記する事が起きるようになります。
+	ELSE
+		PRINTFORMW 包茎でも過度に指摘はしない事にします。
+	ENDIF
+
+CASE "夏の運動で蒸れ蒸れ"
+	INVERTBIT FLAG:ARGS, 0
+	IF CONFIG(ARGS)
+		PRINTFORML 夏の体育後などに限り、恥垢が溜まるようになります。
+		PRINTFORMW 汗だく状態で現れた人相手は注意しましょう。
+	ELSE
+		PRINTFORMW いつも綺麗な状態です。
+	ENDIF
+
+CASE "オートちょっかい"
+	PRINTFORM 現在
+	SELECTCASE CONFIG("オートちょっかい")
+	CASE 0
+		CALL PRINT_STR, "のオートちょっかい頻度は_黄色_20秒に一回"
+	CASE 1 TO 59
+		CALL PRINT_STR, @"のオートちょっかい頻度は_黄色_{CONFIG("オートちょっかい")}秒に一回"
+	CASE 60, 120, 180, 240, 300, 360, 420, 480, 540, 600
+		CALL PRINT_STR, @"のオートちょっかい頻度は_黄色_{CONFIG("オートちょっかい")/60}分に一回"
+	CASE 60 TO 600
+		CALL PRINT_STR, @"のオートちょっかい頻度は_黄色_{CONFIG("オートちょっかい")/60}分{CONFIG("オートちょっかい")%60}秒に一回"
+	CASE 999
+		CALL PRINT_STR, "はオートちょっかいを_黄色_停止中"
+	ENDSELECT
+	PRINTFORML です。
+	PRINTFORML どうしますか？[5]～[600]を直接打ち込むことで、その秒数に設定する事も出来ます
+	PRINTFORML [  0] デフォルト(20秒ごと)に戻す
+	PRINTFORML [ 10] 10秒ごとにする
+	PRINTFORML [ 30] 30秒ごとにする
+	PRINTFORML [ 60] １分ごとにする
+	PRINTFORML [180] ３分ごとにする
+	PRINTFORML [999] 停止する
+
+	INPUT
+
+	SELECTCASE RESULT
+	CASE 0, 5 TO 600, 999
+	CASEELSE
+		CLEARLINE LINECOUNT - MEMO_LINECOUNT
+		RESTART
+	ENDSELECT
+
+	FLAG:オートちょっかい = RESULT
+
+	SELECTCASE FLAG:オートちょっかい
+	CASE 0
+		CALL PRINT_STRW, "デフォルト設定(_黄色_20秒ごと_)にしました。"
+	CASE 1 TO 59
+		CALL PRINT_STRW, @"オートちょっかい頻度を_黄色_{CONFIG("オートちょっかい")}秒ごと_にしました。"
+	CASE 60, 120, 180, 240, 300, 360, 420, 480, 540, 600
+		CALL PRINT_STRW, @"オートちょっかい頻度を_黄色_{CONFIG("オートちょっかい")/60}分ごと_にしました。"
+	CASE 1 TO 600
+		CALL PRINT_STRW, @"オートちょっかい頻度を_黄色_{CONFIG("オートちょっかい")/60}分{CONFIG("オートちょっかい")%60}秒ごと_にしました。"
+	CASE 999
+		CALL PRINT_STRW, @"オートちょっかいを_停止_しました。"
+	ENDSELECT
+	SIF FLAG:オートちょっかい != 999
+		PRINTFORMW 画面右下に出る[111]pause を選ぶことで一時的にオートちょっかいを停止させることもできます。
+CASE "９９９インデント"
+	PRINTFORML "暇をつぶす"等の何もせずに時間を進めるコマンドを選んだ後の選択肢の場所をどれにしますか？
+	PRINTFORML [0]左寄せ(デフォ)%BL(NUM("折り返し文字数") - 60 - 17)%[1]中央%BL(60 - 30 - 7)%[2]右寄せ
+	CALL INPUT_SELECT, 3
+
+	FLAG:９９９インデント = RESULT
+
+	SELECTCASE FLAG:９９９インデント
+	CASE 0
+		PRINTFORMW 左寄せ(デフォ)にしました
+	CASE 1
+		PRINTFORMW %BL(CONFIG("９９９インデント補正") )%中央表示にしました
+	CASE 2
+		PRINTFORMW %BL(CONFIG("９９９インデント補正") )%右寄せにしました
+	ENDSELECT
+
+CASE "恍惚状態"
+	PRINTL 　恍惚状態の時には相手の好きにさせますか？
+	PRINTL 　（具体的には、恍惚になってしまうと、コマンドを勝手に選ばれます）
+	PRINTL [0] はい
+	PRINTL [1] いいえ
+	CALL INPUT_SELECT, 2
+	IF RESULT == 0
+		PRINTW 搾られすぎに注意してください
+		FLAG:恍惚状態 = 1
+	ELSEIF RESULT == 1
+		FLAG:恍惚状態 = 0
+	ENDIF
+CASE "恍惚耐性"
+	PRINTFORML  [ 0] 恍惚感に身を任せます(デフォ)
+	PRINTFORML  [ 1] 精力を１払うことで意識を保つ選択肢を出す
+	PRINTFORML  [ 2] 選択肢無しで精力を１払って意識を保つ
+
+	CALL INPUT_SELECT, 3
+
+	FLAG:恍惚耐性 = RESULT
+CASE "巨乳補正"
+	PRINTFORML 巨乳の上限を設定します。詳細を設定してください。
+	PRINTFORML  [ 0] \@ CONFIG("巨乳補正：Ｆ") ? ○ # － \@ Ｅ～Ｆカップが巨乳
+	PRINTFORML  [ 1] \@ CONFIG("巨乳補正：Ｇ") ? ○ # － \@ Ｅ～Ｇカップが巨乳
+	PRINTFORML  [ 2] \@ CONFIG("巨乳補正：Ｈ") ? ○ # － \@ Ｅ～Ｈカップが巨乳
+	RESETCOLOR
+	PRINTFORML [100] 戻る
+
+	CALL INPUT_SELECT, 3, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		RETURN 0
+	CASE 0 TO 2
+		FLAG:巨乳補正 = RESULT
+	ENDSELECT
+
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+
+CASE "妊娠設定：受精確率表示ＯＦＦ"
+	INVERTBIT FLAG:妊娠設定, 0
+	IF CONFIG(ARGS)
+		PRINTFORMW 受精確率が分からないようにします
+	ELSE
+		PRINTFORMW 受精する確率を表示します
+	ENDIF
+CASE "恋慕と淫乱の任意獲得"
+	INVERTBIT FLAG:手動取得, 0
+	IF CONFIG(ARGS)
+		PRINTFORMW 条件を満たしている時に能力値アップ画面で獲得することとします
+	ELSE
+		PRINTFORMW 恋はいつでもハリケーン！
+	ENDIF
+CASE "ＶＡ拡張の手動ＬＶＵＰ"
+	INVERTBIT FLAG:手動取得, 1
+	IF CONFIG(ARGS)
+		PRINTFORMW 条件を満たしている時に能力値アップ画面で上昇させることとします
+	ELSE
+		PRINTFORMW 勝手に広がっていきます
+	ENDIF
+
+CASE "ニプルファック"
+	INVERTBIT FLAG:ニプルファック, 0
+	IF CONFIG(ARGS)
+		PRINTW おっぱいが巨乳以上の大きさの人が淫乳だと、ニプルファックが可能となります
+	ELSE
+		PRINTW 乳首には挿入可能な穴なんて開いていない。それが普通ですよね
+	ENDIF
+CASE "精液浣腸"
+	INVERTBIT FLAG:精液浣腸, 0
+	IF CONFIG(ARGS)
+		PRINTL 浣腸に比べると弱いですが、排泄物が溜まっている人に中出しして刺激したりし過ぎると…
+		PRINTW アナルセックス等の前にはお腹の中を綺麗にしておくべきかもしれません
+	ELSE
+		PRINTW 精液を中出しした時の排泄促進作用を無くしました
+	ENDIF
+CASE "制限時間"
+	INVERTBIT FLAG:制限時間, 0
+	IF CONFIG(ARGS)
+		PRINTW スリリングなのも良いですよね
+	ELSE
+		PRINTW これで押し倒されやすい日も安心です
+	ENDIF
+CASE "射精箇所の自動選択"
+	PRINTFORML 選択肢を出さずに、そのまま射精したいプレイを選択してください
+	PRINTL 
+	PRINTFORML  [ 0] \@ CONFIG("Ｖ射精の自動選択") ? ○ # － \@ Ｖインサート
+	PRINTFORML  [ 1] \@ CONFIG("Ａ射精の自動選択") ? ○ # － \@ Ａインサート
+	PRINTFORML  [ 2] \@ CONFIG("尿道射精の自動選択") ? ○ # － \@ 尿道インサート
+	PRINTFORML  [ 3] \@ CONFIG("Ｂ射精の自動選択") ? ○ # － \@ ニプルファック
+	PRINTFORML  [ 4] \@ CONFIG("口射精の自動選択") ? ○ # － \@ フェラチオなど相手のお口を使ったプレイ
+	PRINTFORML  [ 5] \@ CONFIG("手射精の自動選択") ? ○ # － \@ 手コキなど相手の手でして貰うプレイ
+	PRINTFORML  [ 6] \@ CONFIG("胸射精の自動選択") ? ○ # － \@ パイズリなど相手の胸を使ったプレイ
+	PRINTFORML  [ 7] \@ CONFIG("脚射精の自動選択") ? ○ # － \@ 足コキなど相手の脚を使ったプレイ
+	PRINTFORML  [ 8] \@ CONFIG("自慰射精の自動選択") ? ○ # － \@ 自分がオナニーした時
+	PRINTFORML  [ 9] \@ CONFIG("その他射精の自動選択") ? ○ # － \@ その他
+	PRINTFORML  [90] 全部ＯＮ
+	PRINTFORML  [91] 全部ＯＦＦ
+	PRINTFORML [100] 戻る
+
+	CALL INPUT_SELECT, 10, 90, 91, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		RETURN 0
+	CASE 90
+		FLAG:射精箇所の自動選択 = SETBITS(FLAG:射精箇所の自動選択, 0, 6)
+		FLAG:射精箇所の自動選択 = SETBITS(FLAG:射精箇所の自動選択, 18, 20)
+	CASE 91
+		FLAG:射精箇所の自動選択 = 0
+	;TCVAR:プレイ区分メインに対応させる
+	CASE 0
+		INVERTBIT FLAG:射精箇所の自動選択, 3
+	CASE 1
+		INVERTBIT FLAG:射精箇所の自動選択, 4
+	CASE 2
+		INVERTBIT FLAG:射精箇所の自動選択, 19
+	CASE 3
+		INVERTBIT FLAG:射精箇所の自動選択, 18
+	CASE 4
+		INVERTBIT FLAG:射精箇所の自動選択, 1
+	CASE 5
+		INVERTBIT FLAG:射精箇所の自動選択, 2
+	CASE 6
+		INVERTBIT FLAG:射精箇所の自動選択, 5
+	CASE 7
+		INVERTBIT FLAG:射精箇所の自動選択, 6
+	CASE 8
+		INVERTBIT FLAG:射精箇所の自動選択, 20
+	CASE 9
+		INVERTBIT FLAG:射精箇所の自動選択, 0
+	ENDSELECT
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+
+CASE "匂いの表記変更"
+	IF FLAG:匂い < 100
+		PRINTFORML 文章に登場する「匂い」という単語の表記の一部を、あなた好みに変更することができます
+		PRINTFORM 具体的には、
+		CALL PRINTL_COLORTEXT, "一般には良いとも不快とも断定しづらいがクセになるようなにおい", DEF_COLOR("黄色")
+		CALL PRINT_COLORTEXT, "……例えば、好きな相手の性臭や体臭です、", DEF_COLOR("黄色")
+		PRINTFORML の表記を選んでいただきます
+		PRINTFORML （ただし、髪の匂い、料理の匂いなどの一般に良い香りのものは「匂い」で固定、
+		PRINTFORMW 　頭皮の臭い、排泄物の臭いなどの一般に良くない香りの物は「臭い」で固定します）
+		PRINTFORML 
+	ENDIF
+	PRINTFORML それでは以下から選択してください
+	PRINTL 
+	PRINTFORML [ 0] 匂い
+	PRINTFORML [ 1] 臭い
+	PRINTFORML [ 2] におい
+	PRINTFORML [ 3] ニオイ
+
+	CALL INPUT_SELECT, 4
+
+	FLAG:匂い = RESULT
+
+	PRINTFORMW %TEXTS("匂い")%を選択しました。以下が例文です
+	PRINTL 
+	PRINTFORMW パンツ越しのアソコの%TEXTS("匂い")%……
+	PRINTFORMW じっとりと滲んだ汗の%TEXTS("匂い")%……
+	PRINTFORMW 火照った身体から漂うエッチな%TEXTS("匂い")%……
+	PRINTFORMW 膣口をきゅっと締めたり、ぽかぁと開いたりさせて胎内の%TEXTS("匂い")%を漂わせる……
+	PRINTFORMW 鼻先に突き付けられたペニスの%TEXTS("匂い")%……
+	PRINTFORMW 汗混じりの淫靡な%TEXTS("匂い")%……
+	PRINTFORMW 着古したあなたのシャツの%TEXTS("匂い")%……
+	PRINTL 
+	PRINTFORML ……%TEXTS("匂い")%でいいですか？
+	PRINTFORML [ 0] はい
+	PRINTFORML [ 1] 考え直す
+
+	CALL INPUT_SELECT, 2
+
+	IF RESULT == 0
+		PRINTFORMW それではお楽しみください
+	ELSE
+		FLAG:匂い = 100
+		RESTART
+	ENDIF
+CASE "セクハラ禁止"
+	INVERTBIT FLAG:セクハラ禁止, 0
+	IF CONFIG(ARGS)
+		PRINTFORML 選択肢無しでのセクハラを控えるようにしました…が漏れもあるのでご容赦を
+		PRINTFORMW （基本的には発生イベントの単純減少となります）
+	ELSE
+		PRINTFORMW %CALLNAME:MASTER%が選択肢無しで手癖の悪い事をするように戻します
+	ENDIF
+
+CASE "乳首の詳細設定"
+	CALL PRINT_STR, "乳首の詳細…具体的には、_黄色_乳首肥大_と_黄色_陥没乳首_と_黄色_巨乳輪_の存在をON/OFFします_L"
+	PRINTFORML ONにしたいものを〇に、OFFにしたいものを×にして下さい
+	PRINTL
+	PRINTFORML  [ 0] \@ CONFIG("乳首肥大") ? ○ # ×\@ 乳首肥大
+	PRINTFORML  [ 1] \@ CONFIG("陥没乳首") ? ○ # ×\@ 陥没乳首
+	PRINTFORML  [ 2] \@ CONFIG("巨乳輪") ? ○ # ×\@ 巨乳輪
+	PRINTFORML [100] これで良い
+
+	CALL INPUT_SELECT, 3, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		RETURN 0
+	CASE 0 TO 3
+		INVERTBIT FLAG:乳首, RESULT
+	ENDSELECT
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+
+CASE "陰核の詳細設定"
+	CALL PRINT_STR, "陰核の詳細…具体的には、_黄色_陰核肥大_と_黄色_陰核包茎_の存在をON/OFFします_L"
+	PRINTFORML ONにしたいものを〇に、OFFにしたいものを×にして下さい
+	PRINTL
+	PRINTFORML  [ 0] \@ CONFIG("陰核肥大") ? ○ # ×\@ 陰核肥大
+	PRINTFORML  [ 1] \@ CONFIG("陰核包茎") ? ○ # ×\@ 陰核包茎
+	PRINTFORML [100] これで良い
+
+	CALL INPUT_SELECT, 2, 100
+
+	SELECTCASE RESULT
+	CASE 100
+		RETURN 0
+	CASE 0 TO 2
+		INVERTBIT FLAG:陰核, RESULT
+	ENDSELECT
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+
+CASE "素質の固定と除外"
+	INVERTBIT FLAG:ARGS, 0
+
+CASE "胎内精子で妊娠"
+	INVERTBIT FLAG:ARGS, 0
+	IF CONFIG(ARGS)
+		PRINTL 胎内に残っている精子で妊娠するようになります。
+		PRINTW 意図しない妊娠には注意しましょう。
+	ELSE
+		PRINTW 胎内に精子が残っていても妊娠しません。
+	ENDIF
+
+ENDSELECT
+
+
+;ARGの名前自体を変更する。基本的にはキャラメイクの時のみ選択可能
+@NAME_CONVERT, ARG
+
+PRINTFORML %CALLNAME:ARG%の名前を変更します
+PRINTFORML 全角８文字(半角なら16文字)以内で入力してください
+PRINTFORML 何も入力しない場合は変更しません。
+CALL INPUTS_SELECT, 16
+
+PRINTL 
+SELECTCASE RESULTS
+CASE "", NAME:ARG
+	PRINTFORMW 変更しませんでした
+CASEELSE
+	NAME:ARG = %RESULTS%
+	SIF ARG != MASTER
+		CALLNAME:ARG = %NAME:ARG%
+	PRINTFORMW 名前を%RESULTS%に変更しました
+	
+	PRINTL 
+	PRINTFORML 続けて、この二人称のふりがなを決めます。
+	PRINTFORML （何も入力しない場合は%RESULTS%がふりがなとなります）
+	PRINTL 
+	PRINTFORML 全角20文字(半角なら40文字)以内で入力してください
+
+	CALL INPUTS_SELECT, 40
+
+	PRINTL 
+	IF RESULTS != ""
+		CSTR:ARG:ふりがな = %RESULTS%
+	ELSE
+		CSTR:ARG:ふりがな = %NAME:ARG%
+	ENDIF
+	PRINTFORMW 名前を%NAME:ARG%にそのふりがなを%CSTR:ARG:ふりがな%に変更しました
+ENDSELECT
+
+
+;ARGからの呼ばれ方を変更する
+@NAME_CONVERT_SP, ARG
+#DIMS MEMO_CNAME
+#DIMS MEMO_CNAME_KANA
+
+PRINTFORML %CALLNAME:ARG%が、%CALLNAME:MASTER%と話す際の二人称を変更します
+PRINTFORML 全角10文字(半角なら20文字)以内で入力してください
+PRINTFORML なお、自分の名前に様付けで呼ばせたい場合には"NAME_MASTER様"と入力してください
+PRINTFORML 何も入力しない場合は変更しません。
+CALL INPUTS_SELECT, 20
+
+PRINTL 
+SELECTCASE RESULTS
+CASE "", CEVENTS("二人称主人", ARG)
+	PRINTFORMW 変更しませんでした
+CASEELSE
+
+	MEMO_CNAME = 二人称主人：%RESULTS%
+	MEMO_CNAME_KANA = 二人称主人かな：%RESULTS%
+
+	;呼び名フラグリセット
+	CALL DEL_CEVENT_GROUP_EX, "二人称主人", ARG
+	CALL SET_CEVENT, MEMO_CNAME, ARG
+	PRINTFORMW %CALLNAME:MASTER%と話す際の二人称を%CNAMET(ARG, "二人称")%に変更しました
+	PRINTL 
+	PRINTFORML 続けて、この二人称のふりがなを決めます。
+	PRINTFORML （何も入力しない場合は%CNAMET(ARG, "二人称")%がふりがなとなります）
+	PRINTL 
+	PRINTFORML 全角20文字(半角なら40文字)以内で入力してください
+
+	CALL INPUTS_SELECT, 40
+
+	PRINTL 
+	SIF RESULTS != ""
+		MEMO_CNAME_KANA = 二人称主人かな：%RESULTS%
+
+	CALL SET_CEVENT, MEMO_CNAME_KANA, ARG
+
+	PRINTFORML %CALLNAME:MASTER%と話す際の二人称を%CNAMET(ARG, "二人称")%、
+	PRINTFORMW そのふりがなを%CNAMET(ARG, "二人称", "かな")%に変更しました
+ENDSELECT
+
+;ARGのあだ名を変更する
+@NICKNAME_CONVERT, ARG
+#DIM MEMO_LINECOUNT
+
+MEMO_LINECOUNT = LINECOUNT
+PRINTL 
+;すでにあだ名がある？
+IF NICKNAME:ARG != ""
+	PRINTFORML %CALLNAME:ARG%のあだ名（現在は%NICKNAME:ARG%）を変更します
+ELSE
+	PRINTFORML %CALLNAME:ARG%にあだ名をつけます
+ENDIF
+PRINTFORML 全角10文字(半角なら20文字)以内で入力してください
+
+IF NICKNAME:ARG != ""
+	PRINTFORML 何も入力しない場合は変更しません
+	CALL PRINT_STRL, "また、あだ名を無くしたい場合には_黄色_あだ名を無くす_と入力してください"
+ELSE
+	PRINTFORML 何も入力しない場合は、あだ名をつけるのをやめます
+ENDIF
+CALL INPUTS_SELECT, 20
+
+PRINTL 
+SELECTCASE RESULTS
+CASE ""
+	IF NICKNAME:ARG != ""
+		PRINTFORMW 変更しませんでした
+	ELSE
+		PRINTFORMW あだ名をつけるのをやめました
+	ENDIF
+CASE "あだ名を無くす"
+	IF NICKNAME:ARG != ""
+		NICKNAME:ARG = 
+		PRINTFORMW %CALLNAME:ARG%のあだ名を無くしました
+	ELSE
+		CLEARLINE LINECOUNT - MEMO_LINECOUNT
+		RESTART
+	ENDIF
+CASEELSE
+	NICKNAME:ARG = %RESULTS%
+	PRINTFORMW %CALLNAME:ARG%のあだ名を、%NICKNAME:ARG%にしました
+ENDSELECT

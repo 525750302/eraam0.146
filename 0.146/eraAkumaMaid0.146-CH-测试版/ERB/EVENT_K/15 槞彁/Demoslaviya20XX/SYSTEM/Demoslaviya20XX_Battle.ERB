@@ -1,0 +1,380 @@
+@Demoslaviya20XX_HitCalc(Y_TargetField,X_TargetField)
+	#DIM DYNAMIC Y_TargetField
+	#DIM DYNAMIC X_TargetField
+	
+	#DIM DYNAMIC TargetUnit
+	#DIMS DYNAMIC TargetField
+	#DIM DYNAMIC Dexterity
+
+	#DIM DYNAMIC HitRandomValue
+	#DIM DYNAMIC HitCount
+	#DIM DYNAMIC CriticalHitCount
+	#DIM DYNAMIC LCount
+
+	#DIM DYNAMIC BaseHitRate
+	#DIM DYNAMIC FieldHitRate
+	#DIM DYNAMIC ControlHitRate
+	
+	TargetField = %Demoslaviya20XX_MAP:Y_TargetField:X_TargetField:0%
+	TargetUnit = TOINT(Demoslaviya20XX_MAP:Y_TargetField:X_TargetField:1)
+
+	IF TOINT(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:3) <= 0
+		CALL Demoslaviya20XX_KOJO_イェニイェル("行動力無し")
+		RETURN 0
+	ENDIF
+
+	PRINTFORMW %Demoslaviya20XX_SelectWeapon%
+	IF Demoslaviya20XX_SelectWeapon == "Error" || Demoslaviya20XX_SelectWeapon == "" || Demoslaviya20XX_SelectWeapon == "None"
+		CALL Demoslaviya20XX_KOJO_イェニイェル("武器未選択")
+		RETURN 0
+	ENDIF
+
+	IF Demoslaviya20XX_AttackRangeMap:Y_TargetField:X_TargetField < 0
+		CALL Demoslaviya20XX_KOJO_イェニイェル("射程外警告")
+		RETURN 0
+	ENDIF
+
+	IF TOINT(Demoslaviya20XX_MAP:Y_TargetField:X_TargetField:1) <= 0
+		TRYCALLFORM Demoslaviya20XX_KOJO_%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:8%_敵の居ない場所へ攻撃
+		CALL Demoslaviya20XX_KOJO_イェニイェル("射撃地点的不在警告")
+		$AttackQuestion_TargetUnitNone
+			PRINTFORML [0] 命令が聞こえなかったのか？
+			PRINTFORML [1] ありがとう、訂正する
+			INPUT
+			IF RESULT == 0
+				;何もしないで通り抜けるわよ
+			ELSEIF RESULT == 1
+				RETURN 0
+			ELSE 
+				GOTO AttackQuestion_TargetUnitNone
+			ENDIF
+	ENDIF
+
+	IF Demoslaviya20XX_Unit:TOINT(Demoslaviya20XX_MAP:Y_TargetField:X_TargetField:1):0 == "味方"
+		CALL Demoslaviya20XX_KOJO_イェニイェル("同士討ち警告")
+		TRYCALLFORM Demoslaviya20XX_KOJO_%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:8%("同士討ち")
+		$AttackQuestion_TargetIsFriend
+			PRINTFORML [0] 構わん、撃て
+			PRINTFORML [1] ははっ、冗談だよ
+			INPUT
+			IF RESULT == 0
+				;何もしないで通り抜けるわよ
+			ELSEIF RESULT == 1
+				RETURN 0
+			ELSE 
+				GOTO AttackQuestion_TargetIsFriend
+			ENDIF
+	ENDIF
+
+
+
+	IF (TargetUnit > 0);指定座標にユニットが居るか確認
+		;#region 命中判定
+			
+			;#region 命中確率の計算
+				PRINTFORML 武器基礎命中率(%Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"命中率")%)
+				BaseHitRate = TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"命中率"))
+				
+				IF STRFIND(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1, "スキル"), "【飛行】") == -1;飛行ユニットは地形による遮蔽ボーナスは貰えないわよ！
+					PRINTFORML ×地形効果 %Demoslaviya20XX_GET_HEXDATA(TargetField,"タイル名")% ({(TOINT(Demoslaviya20XX_GET_HEXDATA(TargetField,"遮蔽率")))})
+					FieldHitRate = 100 - TOINT(Demoslaviya20XX_GET_HEXDATA(TargetField,"遮蔽率"))
+
+					PRINTFORML FieldHitRate = {FieldHitRate}
+				ENDIF
+
+				PRINTFORML ×ターゲット指揮統制率 ( 2 - %Demoslaviya20XX_Unit:TargetUnit:4%/%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1,"指揮統制率")%)
+				ControlHitRate = 200 - TOINT(Demoslaviya20XX_Unit:TargetUnit:4) * 100 / TOINT(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1,"指揮統制率"))
+
+				Dexterity = MathEX_Per(MathEX_Per(BaseHitRate , FieldHitRate), ControlHitRate)
+				
+
+				PRINTFORML ( %Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"命中率")% - {(100 - TOINT(Demoslaviya20XX_GET_HEXDATA(TargetField,"遮蔽率")))/100} ) × {(TOINT(Demoslaviya20XX_Unit:TargetUnit:4)/TOINT(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1,"指揮統制率")))} = 命中確率 {Dexterity}％
+
+				PRINTFORML 
+				PRINTFORMW %Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"射撃回数")%発 発射！
+				PRINTFORML 
+			;#endregion
+
+			;#region
+				FOR LCount, 0, TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"射撃回数"))
+					HitRandomValue = RAND:100 + 1
+					PRINTFORML 
+					IF Dexterity/10 >= HitRandomValue
+						PRINTFORMW {Dexterity} >= {HitRandomValue} ！！クリティカル！！ ダメージ二倍！！
+						CALL Demoslaviya20XX_DamageCalc(TargetUnit,1)
+						Demoslaviya20XX_Unit:TargetUnit:4 = %TOSTR(TOINT(Demoslaviya20XX_Unit:TargetUnit:4) - TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"制圧力")))%
+						
+					ELSEIF Dexterity >= HitRandomValue
+						PRINTFORMW {Dexterity} >= {HitRandomValue} 命中！
+						CALL Demoslaviya20XX_DamageCalc(TargetUnit,0)
+						Demoslaviya20XX_Unit:TargetUnit:4 = %TOSTR(TOINT(Demoslaviya20XX_Unit:TargetUnit:4) - TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"制圧力")))%
+						
+					ELSEIF HitRandomValue >= 95
+						PRINTFORMW {Dexterity} <= {HitRandomValue} ！！ファンブル！！ 不発弾だった！
+
+					ELSEIF Dexterity < HitRandomValue
+						PRINTFORMW {Dexterity} <= {HitRandomValue} 外れ！
+						Demoslaviya20XX_Unit:TargetUnit:4 = %TOSTR(TOINT(Demoslaviya20XX_Unit:TargetUnit:4) - TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"制圧力")))%
+					ENDIF
+					SIF TOINT(Demoslaviya20XX_Unit:TargetUnit:4) < 0
+						Demoslaviya20XX_Unit:TargetUnit:4 = 0
+				NEXT
+			;#endregion
+			;#region 撃破処理
+				IF TOINT(Demoslaviya20XX_Unit:TargetUnit:2) <= 0
+					PRINTFORMW 敵を撃破！
+					TRYCALLFORM Demoslavia20XX_KOJO_%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:8%("敵撃破")
+					;CALL Demoslaviya20XX_Unit_Del(TargetUnit)
+					Demoslaviya20XX_MAP:Y_TargetField:X_TargetField:1 = "-1"
+				ENDIF
+			;#endregion
+		;#endregion
+	ELSE
+		CALL Demoslaviya20XX_KOJO_イェニイェル("着弾地点敵不在")
+	ENDIF
+	;攻撃したら残行動力を0にする
+	Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:3 = 0
+	RETURN 1
+@Demoslaviya20XX_EnemyHitCalc(Y_TargetField,X_TargetField)
+	#DIM DYNAMIC Y_TargetField
+	#DIM DYNAMIC X_TargetField
+
+	#DIM DYNAMIC TargetUnit
+	#DIMS DYNAMIC TargetField
+	#DIM DYNAMIC Dexterity
+
+	#DIM DYNAMIC HitRandomValue
+	#DIM DYNAMIC HitCount
+	#DIM DYNAMIC CriticalHitCount
+	#DIM DYNAMIC LCount
+
+	#DIM DYNAMIC BaseHitRate
+	#DIM DYNAMIC FieldHitRate
+	#DIM DYNAMIC ControlHitRate
+
+	#DIM DYNAMIC DefaultControlPower
+	#DIM DYNAMIC NowControlPower
+
+
+	TargetField = %Demoslaviya20XX_MAP:Y_TargetField:X_TargetField:0%
+	TargetUnit = TOINT(Demoslaviya20XX_MAP:Y_TargetField:X_TargetField:1)
+	;#region 命中確率の計算
+		PRINTFORML 武器基礎命中率(%Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"命中率")%)
+		BaseHitRate = TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"命中率"))
+		PRINTFORML Debug BaseHitRate = {BaseHitRate}
+		
+		IF STRFIND(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1, "スキル"), "【飛行】") == -1;飛行ユニットは地形による遮蔽ボーナスは貰えないわよ！
+			PRINTFORML ×地形効果 %Demoslaviya20XX_GET_HEXDATA(TargetField,"タイル名")% ({(TOINT(Demoslaviya20XX_GET_HEXDATA(TargetField,"遮蔽率")))})
+			FieldHitRate = 100 - TOINT(Demoslaviya20XX_GET_HEXDATA(TargetField,"遮蔽率"))
+
+			PRINTFORML FieldHitRate = {FieldHitRate}
+		ENDIF
+		NowControlPower = TOINT(Demoslaviya20XX_Unit:TargetUnit:4)
+		DefaultControlPower = TOINT(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1,"指揮統制率"))
+
+		PRINTFORML ×ターゲット指揮統制率 ( 2 - {NowControlPower}/{DefaultControlPower})
+		IF DefaultControlPower == 0 || DefaultControlPower == 0;Defaultが0のパターンてありえなくない？
+			ControlHitRate = 200
+		ELSE
+			ControlHitRate = 200 - TOINT(Demoslaviya20XX_Unit:TargetUnit:4) * 100 / TOINT(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1,"指揮統制率"))
+		ENDIF
+
+		Dexterity = MathEX_Per(MathEX_Per(BaseHitRate , FieldHitRate), ControlHitRate)
+
+		PRINTFORML ( %Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"命中率")% - {(100 - TOINT(Demoslaviya20XX_GET_HEXDATA(TargetField,"遮蔽率")))/100} ) × {ControlHitRate} = 命中確率 {Dexterity}％
+
+		PRINTFORML 
+		PRINTFORMW %Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"射撃回数")%発 発射！
+		PRINTFORML 
+	;#endregion
+
+	;#region
+		FOR LCount, 0, TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"射撃回数"))
+			HitRandomValue = RAND:100 + 1
+			PRINTFORML 
+			IF Dexterity/10 >= HitRandomValue
+				PRINTFORMW {Dexterity} >= {HitRandomValue} ！！クリティカル！！ ダメージ二倍！！
+				CALL Demoslaviya20XX_DamageCalc(TargetUnit,1)
+				Demoslaviya20XX_Unit:TargetUnit:4 = %TOSTR(TOINT(Demoslaviya20XX_Unit:TargetUnit:4) - TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"制圧力")))%
+				
+			ELSEIF Dexterity >= HitRandomValue
+				PRINTFORMW {Dexterity} >= {HitRandomValue} 命中！
+				CALL Demoslaviya20XX_DamageCalc(TargetUnit,0)
+				Demoslaviya20XX_Unit:TargetUnit:4 = %TOSTR(TOINT(Demoslaviya20XX_Unit:TargetUnit:4) - TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"制圧力")))%
+				
+			ELSEIF HitRandomValue >= 95
+				PRINTFORMW {Dexterity} <= {HitRandomValue} ！！ファンブル！！ 不発弾だった！
+
+			ELSEIF Dexterity < HitRandomValue
+				PRINTFORMW {Dexterity} <= {HitRandomValue} 外れ！
+				Demoslaviya20XX_Unit:TargetUnit:4 = %TOSTR(TOINT(Demoslaviya20XX_Unit:TargetUnit:4) - TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"制圧力")))%
+			ENDIF
+			SIF TOINT(Demoslaviya20XX_Unit:TargetUnit:4) < 0
+				Demoslaviya20XX_Unit:TargetUnit:4 = 0
+		NEXT
+	;#endregion
+	;#region 撃破処理
+		IF TOINT(Demoslaviya20XX_Unit:TargetUnit:2) <= 0
+			PRINTFORMW 撃破されました！
+			TRYCALLFORM Demoslavia20XX_KOJO_%Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:8%("敵撃破")
+			;CALL Demoslaviya20XX_Unit_Del(TargetUnit)
+			Demoslaviya20XX_MAP:Y_TargetField:X_TargetField:1 = "-1"
+		ENDIF
+	;#endregion
+
+@Demoslaviya20XX_DamageCalc(TargetUnit,IsCritical)
+	#DIM DYNAMIC IsCritical
+	#DIM DYNAMIC TargetUnit
+	#DIM DYNAMIC Damage
+
+		IF IsCritical > 0
+			Damage = TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"威力")) * 2 - TOINT(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1,"装甲"))
+			PRINTFORML 威力( %Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"威力")% ) × クリティカルヒットボーナス( 2 ) - 装甲( %Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1,"装甲")% ) = {Damage}ダメージ
+		ELSE
+			Damage = TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"威力")) - TOINT(Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1,"装甲"))
+			PRINTFORML 威力(%Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"威力")%) - 装甲(%Demoslaviya20XX_GET_UNITDATA(Demoslaviya20XX_Unit:TargetUnit:1,"装甲")%) = {Damage}ダメージ
+		ENDIF
+
+		IF Damage > 0
+			IF TOINT(Demoslaviya20XX_Unit:TargetUnit:5) > 0
+				PRINTFORML !!Booooom!!
+				PRINTFORML era起爆！ダメージ無効化！
+				PRINTFORML 
+				PRINTFORML 
+				PRINTFORMW 残era %Demoslaviya20XX_Unit:TargetUnit:5% → {TOINT(Demoslaviya20XX_Unit:TargetUnit:5) - 1}
+				Demoslaviya20XX_Unit:TargetUnit:5 = %TOSTR(TOINT(Demoslaviya20XX_Unit:TargetUnit:5) - 1)%
+			ELSE
+				PRINTFORML %Demoslaviya20XX_Unit:TargetUnit:2% - {Damage} = {TOINT(Demoslaviya20XX_Unit:TargetUnit:2) - Damage}
+				Demoslaviya20XX_Unit:TargetUnit:2 = %TOSTR(TOINT(Demoslaviya20XX_Unit:TargetUnit:2) - Damage)%
+			ENDIF
+		ELSE
+			SIF Demoslaviya20XX_TarnMode == "Player"
+				CALL Demoslaviya20XX_KOJO_イェニイェル("0ダメージ")
+		ENDIF
+
+;ARGS = 武器種類名
+;ARG:0 = 計算中残射程量
+;ARG:1 = 現在計算中心点Y座標
+;ARG:2 = 現在計算中心点X座標
+@Demoslaviya20XX_AttackRangeCalc(WeaponName,AttackRange,Y_Before,X_Before)
+	#DIMS DYNAMIC WeaponName
+	#DIM DYNAMIC AttackRange
+	#DIM DYNAMIC X_Before
+	#DIM DYNAMIC Y_Before
+	#DIM DYNAMIC X_After
+	#DIM DYNAMIC Y_After
+
+	#DIM DYNAMIC LCount
+
+	;#region とりあえず遮蔽物判定抜きの攻撃可能範囲を設定する
+		;1時方向のへクスへ移動したときのコスト計算
+		IF X_Before+1 <= 199 && Y_Before-1 >= 0;MAPの右端でも上端でも無いことの確認
+			X_After = X_Before + 1
+			Y_After = Y_Before - 1
+			IF Demoslaviya20XX_AttackRangeMap:Y_After:X_After < AttackRange - 1
+				Demoslaviya20XX_AttackRangeMap:Y_After:X_After = AttackRange - 1
+				CALL Demoslaviya20XX_AttackRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRangeCalc(WeaponName,Demoslaviya20XX_AttackRangeMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_AttackRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRoute_DelLast
+			ENDIF
+		ENDIF
+		
+		;3時方向のへクスへ移動したときのコスト計算
+		IF X_Before+2 <= 199;MAPの右端では無いことの確認
+			X_After = X_Before + 2
+			Y_After = Y_Before 
+			IF Demoslaviya20XX_AttackRangeMap:Y_After:X_After < AttackRange - 1
+				Demoslaviya20XX_AttackRangeMap:Y_After:X_After = AttackRange - 1 
+				CALL Demoslaviya20XX_AttackRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRangeCalc(WeaponName,Demoslaviya20XX_AttackRangeMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_AttackRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;5時方向のへクスへ移動したときのコスト計算
+		IF X_Before+1 <= 199 && Y_Before+1 <= 200;MAPの右端でも下端でも無いことの確認
+			X_After = X_Before + 1
+			Y_After = Y_Before + 1
+			IF Demoslaviya20XX_AttackRangeMap:Y_After:X_After < AttackRange - 1
+				Demoslaviya20XX_AttackRangeMap:Y_After:X_After = AttackRange - 1
+				CALL Demoslaviya20XX_AttackRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRangeCalc(WeaponName,Demoslaviya20XX_AttackRangeMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_AttackRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;7時方向のへクスへ移動したときのコスト計算
+		IF X_Before-1 >= 0 && Y_Before+1 <= 200;MAPの左端でも下端でも無いことの確認
+			X_After = X_Before - 1
+			Y_After = Y_Before + 1
+			IF Demoslaviya20XX_AttackRangeMap:Y_After:X_After < AttackRange - 1
+				Demoslaviya20XX_AttackRangeMap:Y_After:X_After = AttackRange - 1
+				CALL Demoslaviya20XX_AttackRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRangeCalc(WeaponName,Demoslaviya20XX_AttackRangeMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_AttackRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;9時方向のへクスへ移動したときのコスト計算
+		IF X_Before-2 >= 0;MAPの左端では無いことの確認
+			X_After = X_Before - 2
+			Y_After = Y_Before 
+			IF Demoslaviya20XX_AttackRangeMap:Y_After:X_After < AttackRange - 1
+				Demoslaviya20XX_AttackRangeMap:Y_After:X_After = AttackRange - 1
+				CALL Demoslaviya20XX_AttackRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRangeCalc(WeaponName,Demoslaviya20XX_AttackRangeMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_AttackRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRoute_DelLast
+			ENDIF
+		ENDIF
+
+		;11時方向のへクスへ移動したときのコスト計算
+		IF X_Before-1 >= 0 && Y_Before-1 >= 0;MAPの左端でも上端でも無いことの確認
+			X_After = X_Before - 1
+			Y_After = Y_Before - 1
+			IF Demoslaviya20XX_AttackRangeMap:Y_After:X_After < AttackRange - 1
+				Demoslaviya20XX_AttackRangeMap:Y_After:X_After = AttackRange - 1
+				CALL Demoslaviya20XX_AttackRoute_Add(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRangeCalc(WeaponName,Demoslaviya20XX_AttackRangeMap:Y_After:X_After,Y_After,X_After)
+				CALL Demoslaviya20XX_AttackRoute_GetLast(Y_Before,X_Before)
+				CALL Demoslaviya20XX_AttackRoute_DelLast
+			ENDIF
+		ENDIF
+	;#endregion
+;WeaponName = 使用武器名
+;ARG:0 = Y座標
+;ARG:1 = X座標
+@Demoslaviya20XX_AttackRoute_Add(ARG:0,ARG:1)
+	#DIM DYNAMIC LCount
+	FOR LCount, 0, TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"射程"))
+		IF Demoslaviya20XX_AttackRoute:LCount:0 == -1 && Demoslaviya20XX_AttackRoute:LCount:1 == -1
+			Demoslaviya20XX_AttackRoute:LCount:0 = ARG:0
+			Demoslaviya20XX_AttackRoute:LCount:1 = ARG:1
+			BREAK
+		ENDIF
+	NEXT
+@Demoslaviya20XX_AttackRoute_GetLast(Return_Y,Return_X)
+	#DIM REF Return_Y
+	#DIM REF Return_X
+	#DIM LCount
+	FOR LCount, 0, TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"射程"))
+		IF Demoslaviya20XX_AttackRoute:LCount:0 == -1 && Demoslaviya20XX_AttackRoute:LCount:1 == -1 && LCount > 0
+			Return_Y = Demoslaviya20XX_AttackRoute:(LCount-1):0
+			Return_X = Demoslaviya20XX_AttackRoute:(LCount-1):1
+			BREAK
+		ENDIF
+	NEXT
+@Demoslaviya20XX_AttackRoute_DelLast
+	#DIM LCount
+	FOR LCount, 0, TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"射程"))
+		IF Demoslaviya20XX_AttackRoute:LCount:0 == -1 && Demoslaviya20XX_AttackRoute:LCount:1 == -1 && LCount > 0
+			Demoslaviya20XX_AttackRoute:(LCount-1):0 = -1
+			Demoslaviya20XX_AttackRoute:(LCount-1):1 = -1
+			BREAK
+		ENDIF
+	NEXT
+	

@@ -1,0 +1,823 @@
+;-------------------------------------------------
+;カウンター初期設定
+;恍惚確率			TFLAG:恍惚確率
+;弱点効果			TFLAG:恍惚確率の弱点補正
+;押し倒し確率		TFLAG:押し倒し確率
+;反撃せず			CFLAG:マグロ
+;-------------------------------------------------
+@SET_COUNTER_BASE
+#DIM LCOUNT
+
+;MASTER以外の精力限界値セット
+FOR LCOUNT, 2, CHARANUM
+	MAXBASE:LCOUNT:精力 = 3 + MAXBASE:LCOUNT:体力/300 + TALENT:LCOUNT:性豪*20
+
+	SELECTCASE ABL:LCOUNT:欲望
+	CASE IS <= 10
+		MAXBASE:LCOUNT:精力 += ABL:LCOUNT:欲望*3
+	CASEELSE
+		MAXBASE:LCOUNT:精力 += 30 + (ABL:LCOUNT:欲望 - 10)
+	ENDSELECT
+
+	SIF TALENT:LCOUNT:淫乱
+		MAXBASE:LCOUNT:精力 += 10
+	SIF MARK:LCOUNT:淫紋 >= 2
+		MAXBASE:LCOUNT:精力 += (MARK:LCOUNT:淫紋 - 1)*5
+NEXT
+
+;MASTERの精力限界値リセット
+MAXBASE:MASTER:精力 = 10 + TALENT:MASTER:性豪*20 + TALENT:MASTER:リザレクション*15/100
+
+;精力の回復処理
+FOR LCOUNT, 1, CHARANUM
+	SIF BASE:LCOUNT:精力 == 0 || BASE:LCOUNT:精力 > MAXBASE:LCOUNT:精力
+		BASE:LCOUNT:精力 = MAXBASE:LCOUNT:精力
+NEXT
+
+;あなた以外の魂は、集めた量なのでここでは設定しない
+MAXBASE:MASTER:魂 = 100 + TALENT:MASTER:リザレクション
+
+;設定直後は０なのでMAXBASEに合わせる
+SIF BASE:MASTER:魂 == 0
+	BASE:MASTER:魂 = MAXBASE:MASTER:魂
+
+
+@SET_COUNTER_ABL
+#DIM LCOUNT
+;ジャンルごとに何をやるかとその確率を決定
+CALL CALC_COUNTER_ABL, TARGET
+
+;同じコマンドを連続で行う確率は低くする
+FOR LCOUNT, 0, 11
+	SIF ABL:(LCOUNT + 70) && I:LCOUNT == PREVCOM
+		ABL:(LCOUNT + 70) = MAX(ABL:(LCOUNT + 70)/2, 1)
+NEXT
+;-------------------------------------------------
+;インサートしている時のフェラなど、不可能な行動はここで処理
+;-------------------------------------------------
+;インサートでイかされた後は、ご奉仕かキス率が高い
+IF ( (INSERT("Ｖインサート") || PREVCOM == 65 || PREVCOM == 66 || PREVCOM == 67) && PREVEX("Ｖ絶頂") ) || ( (INSERT("Ａインサート") || PREVCOM == 75) && PREVEX("Ａ絶頂") ) || ( (INSERT("尿道インサート") || PREVCOM == 88) && PREVEX("尿道絶頂") )
+	ABL:手 /= 4
+	ABL:口 *= 4
+	SIF I:2 != 104
+		ABL:胸 /= 4
+	ABL:足 /= 4
+	;サドっ気あるならお掃除強要
+	IF ABL:欲望 + ABL:サドっ気 >= ABL:奉仕精神 * 2 && RAND:2 == 0
+		ABL:顔面騎乗 *= 3
+	ELSE
+		ABL:顔面騎乗 /= 5
+	ENDIF
+	ABL:キス *= 2
+	ABL:お尻責め /= 5
+	ABL:レイプ /= 5
+	ABL:素股 /= 4
+	ABL:道具 = 0
+;インサートの後はインサートor挿入れたままできること
+ELSEIF INSERT("インサート") && ABL:騎乗位 + ABL:キス && RAND:4
+	ABL:手 = 0
+	ABL:口 = 0
+	SIF I:2 != 104
+		ABL:胸 = 0
+	ABL:足 = 0
+	ABL:顔面騎乗 = 0
+	ABL:お尻責め = 0
+	ABL:レイプ = 0
+	ABL:素股 = 0
+	ABL:道具 = 0
+;レイプの後は連続レイプor使った穴にお礼
+ELSEIF (PREVCOM == 120 || PREVCOM == 126) && ABL:レイプ && RAND:3
+	ABL:手 = 0
+	SIF TALENT:恋慕 == 0 && ABL:奉仕精神 < ABL:サドっ気
+		ABL:口 = 0
+	ABL:胸 = 0
+	ABL:足 = 0
+	ABL:顔面騎乗 = 0
+	ABL:騎乗位 = 0
+	ABL:キス = 0
+	SIF PREVCOM != 84 && ABL:奉仕精神 < ABL:サドっ気
+		ABL:お尻責め = 0
+	ABL:素股 = 0
+	ABL:道具 = 0
+;ペニスに奉仕した後は奉仕orインサート率が高い
+ELSEIF PENIS(PLAYER) && PREVCOM >= 90 && PREVCOM <= 119 && ABL:手 + ABL:口 + ABL:胸 + ABL:お尻責め + ABL:素股 && RAND:4
+	ABL:足 = 0
+	ABL:騎乗位 *= 2
+	ABL:キス = 0
+	ABL:レイプ = 0
+	ABL:道具 = 0
+;潤滑が少ない時には、顔面騎乗やフェラチオ率が高く、インサート率が低い
+ELSEIF MAX(PALAM:Ｖ潤, PALAM:Ａ潤, PALAM:PLAYER:Ｐ潤) < 500 && ABL:顔面騎乗
+	SIF I:1 == 91
+		ABL:口 *= 2
+	ABL:顔面騎乗 *= 2
+	ABL:騎乗位 /= 5
+	ABL:素股 /= 5
+ENDIF
+
+SELECTCOM = SET_COUNTERCOM(TARGET)
+
+CALL SETFLAG, "ワイルドスウィング", TARGET
+
+@SET_COUNTERCOM(ARG)
+#FUNCTION
+#DIM LCOUNT
+;確率の母体決定
+LOCAL = ABL:ARG:手+ABL:ARG:口+ABL:ARG:胸+ABL:ARG:足+ABL:ARG:顔面騎乗+ABL:ARG:騎乗位+ABL:ARG:キス+ABL:ARG:お尻責め+ABL:ARG:レイプ+ABL:ARG:素股+ABL:ARG:道具
+IF LOCAL == 0
+	IF ARG == TARGET
+		IF TALENT:オトコ
+			ABL:顔面騎乗 = 1
+			RETURNF 9
+		ELSE
+			ABL:顔面騎乗 = 1
+			RETURNF 1
+		ENDIF
+	ELSE
+		RETURNF -1
+	ENDIF
+ENDIF
+
+;PRINTFORML 確率母体 = {LOCAL}
+;FOR LCOUNT, 40, 51
+;	PRINTFORML %TEXT_RJ(ABLNAME:LCOUNT, 10)%率 ≒ {ABL:ARG:LCOUNT*100/LOCAL}％
+;NEXT
+
+LOCAL = 1 + RAND:LOCAL
+SELECTCASE LOCAL
+;手
+CASE IS <= ABL:ARG:手
+	RETURNF I:0
+;口
+CASE IS <= ABL:ARG:手+ABL:ARG:口
+	RETURNF I:1
+;胸
+CASE IS <= ABL:ARG:手+ABL:ARG:口+ABL:ARG:胸
+	RETURNF I:2
+;足
+CASE IS <= ABL:ARG:手+ABL:ARG:口+ABL:ARG:胸+ABL:ARG:足
+	RETURNF I:3
+;顔面騎乗
+CASE IS <= ABL:ARG:手+ABL:ARG:口+ABL:ARG:胸+ABL:ARG:足+ABL:ARG:顔面騎乗
+	RETURNF I:4
+;騎乗位
+CASE IS <= ABL:ARG:手+ABL:ARG:口+ABL:ARG:胸+ABL:ARG:足+ABL:ARG:顔面騎乗+ABL:ARG:騎乗位
+	RETURNF I:5
+;キス
+CASE IS <= ABL:ARG:手+ABL:ARG:口+ABL:ARG:胸+ABL:ARG:足+ABL:ARG:顔面騎乗+ABL:ARG:騎乗位+ABL:ARG:キス
+	RETURNF I:6
+;お尻
+CASE IS <= ABL:ARG:手+ABL:ARG:口+ABL:ARG:胸+ABL:ARG:足+ABL:ARG:顔面騎乗+ABL:ARG:騎乗位+ABL:ARG:キス+ABL:ARG:お尻責め
+	RETURNF I:7
+;レイプ
+CASE IS <= ABL:ARG:手+ABL:ARG:口+ABL:ARG:胸+ABL:ARG:足+ABL:ARG:顔面騎乗+ABL:ARG:騎乗位+ABL:ARG:キス+ABL:ARG:お尻責め+ABL:ARG:レイプ
+	RETURNF I:8
+;素股
+CASE IS <= ABL:ARG:手+ABL:ARG:口+ABL:ARG:胸+ABL:ARG:足+ABL:ARG:顔面騎乗+ABL:ARG:騎乗位+ABL:ARG:キス+ABL:ARG:お尻責め+ABL:ARG:レイプ+ABL:ARG:素股
+	RETURNF I:9
+CASEELSE
+	RETURNF I:10
+ENDSELECT
+
+
+@CALC_COUNTER_ABL, ARG
+#DIM LCOUNT
+#DIM MEMO_TARGET
+MEMO_TARGET = TARGET
+TARGET = ARG
+
+;奉仕系の種別では、対応する得意技能の意味が強め
+VARSET I
+
+SELECTCASE MIN(ABL:奉仕精神, 10)/2 - MIN(ABL:欲望, 10)/2 - TEQUIP:媚薬/100
+CASE IS > 0
+	LOCAL:1 = (MIN(ABL:奉仕精神, 10)/2 - MIN(ABL:欲望, 10)/2 - TEQUIP:媚薬/100)*2
+CASE IS < 0
+	LOCAL:2 = (TEQUIP:媚薬/100 + MIN(ABL:欲望, 10)/2 - MIN(ABL:奉仕精神, 10)/2)*2
+ENDSELECT
+
+;ABL:手,手
+IF COND("調教側")
+	CALL COUNTER_ABL, 0, 5, 7, 8, 141
+ELSE
+	CALL COUNTER_ABL, 0, 90, 97, 105
+ENDIF
+IF ABL:手
+	ABL:手 += TALENT:献身 + LOCAL:1 + ABL:指使い
+	SIF COND("手に弱い", PLAYER)
+		ABL:手 += 5
+ENDIF
+
+;ABL:口,口
+IF COND("調教側")
+	CALL COUNTER_ABL, 1, 1
+ELSE
+	CALL COUNTER_ABL, 1, 91, 98, 150
+ENDIF
+IF ABL:口
+	ABL:口 += TALENT:献身 + LOCAL:1 + ABL:舌使い
+	SIF COND("口に弱い", PLAYER)
+		ABL:口 += 5
+ENDIF
+
+;ABL:胸,胸
+IF COND("調教側")
+ELSE
+	CALL COUNTER_ABL, 2, 82, 92, 104
+ENDIF
+IF ABL:胸
+	ABL:胸 += TALENT:献身 + TALENT:巨乳*3 + LOCAL:1 + ABL:魔乳
+	SIF COND("胸に弱い", PLAYER)
+		ABL:胸 += 5
+ENDIF
+
+;ABL:足,足
+IF COND("調教側")
+ELSE
+	IF MAX(ABL:サドっ気, ABL:奉仕精神) + ABL:PLAYER:マゾっ気 >= 2
+		CALL COUNTER_ABL, 3, 95
+	ELSE
+		ABL:足 = 0
+	ENDIF
+ENDIF
+IF ABL:足
+	ABL:足 += TALENT:高慢 + LOCAL:1 + MIN(ABL:サドっ気, 5) + ABL:指使い
+	SIF COND("脚に弱い", PLAYER)
+		ABL:足 += 5
+ENDIF
+
+;ABL:顔面騎乗,顔面騎乗
+IF COND("調教側")
+	CALL COUNTER_ABL, 4, 98
+ELSE
+	;聖水イベントは前提条件が厳しくレアなので確率優遇
+	CALL COM_ABLE144
+	IF RESULT
+		CALL COUNTER_ABL, 4, 144
+	ELSEIF ABL:Ａ感覚 >= 3 || TALENT:オトコ
+		CALL COUNTER_ABL, 4, 1, 9, 144
+	ELSE
+		CALL COUNTER_ABL, 4, 1, 144
+	ENDIF
+ENDIF
+IF ABL:顔面騎乗
+	ABL:顔面騎乗 += TALENT:好色 + TALENT:淫乱 + LOCAL:2 + ABL:腰使い
+	SELECTCASE I:4
+	CASE 1
+		ABL:顔面騎乗 += TALENT:淫壷
+		SIF COND("♀に弱い", PLAYER)
+			ABL:顔面騎乗 += 5
+	CASE 9
+		ABL:顔面騎乗 += TALENT:尻穴狂い
+		SIF COND("アナルに弱い", PLAYER)
+			ABL:顔面騎乗 += 5
+	CASE 144
+		;比較的レアイベントなので確率高め
+		ABL:顔面騎乗 += ABL:サドっ気*10
+		SIF TALENT:倒錯的
+			ABL:顔面騎乗 += 50
+		SELECTCASE BASE:尿意
+		CASE IS >= 20000
+			ABL:顔面騎乗 += 100
+		CASE IS >= 15000
+			ABL:顔面騎乗 += 50
+		ENDSELECT
+	ENDSELECT
+ENDIF
+
+;ABL:騎乗位,騎乗位
+IF COND("調教側")
+ELSE
+	;基本はＶ騎乗位だが、Ａと尿道でも出来るかで分岐
+	IF CHECK("Ａインサート") && CHECK("尿道インサート")
+		;淫壷と尻穴狂いの有無で確率にすごい偏りが出る
+		IF TALENT:淫壷 && TALENT:尻穴狂い == 0 && TALENT:尿道狂い == 0 && RAND:10
+			CALL COUNTER_ABL, 5, 65, 66, 67, 68
+		ELSEIF TALENT:淫壷 == 0 && TALENT:尻穴狂い && TALENT:尿道狂い == 0 && RAND:10
+			CALL COUNTER_ABL, 5, 75
+		ELSEIF TALENT:淫壷 == 0 && TALENT:尻穴狂い == 0 && TALENT:尿道狂い && RAND:10
+			CALL COUNTER_ABL, 5, 88
+		ELSE
+			CALL COUNTER_ABL, 5, 65, 66, 67, 68, 75, 88
+		ENDIF
+	ELSEIF CHECK("尿道インサート")
+		;淫壷と尿道狂いの有無で確率にすごい偏りが出る
+		IF TALENT:淫壷 && TALENT:尿道狂い == 0 && RAND:10
+			CALL COUNTER_ABL, 5, 65, 66, 67, 68
+		ELSEIF TALENT:淫壷 == 0 && TALENT:尿道狂い && RAND:10
+			CALL COUNTER_ABL, 5, 88
+		ELSE
+			CALL COUNTER_ABL, 5, 65, 66, 67, 68, 88
+		ENDIF
+	ELSEIF CHECK("Ａインサート")
+		;淫壷と尻穴狂いの有無で確率にすごい偏りが出る
+		IF TALENT:淫壷 && TALENT:尻穴狂い == 0 && RAND:10
+			CALL COUNTER_ABL, 5, 65, 66, 67, 68
+		ELSEIF TALENT:淫壷 == 0 && TALENT:尻穴狂い && RAND:10
+			CALL COUNTER_ABL, 5, 75
+		ELSE
+			CALL COUNTER_ABL, 5, 65, 66, 67, 68, 75
+		ENDIF
+	ELSE
+		CALL COUNTER_ABL, 5, 65, 66, 67, 68
+	ENDIF
+ENDIF
+IF ABL:騎乗位
+	;アナル騎乗位や尿道騎乗位はしてこないかも
+	IF I:5 >= 70 && I:5 <= 79 && TALENT:尻穴狂い == 0 && ABL:Ａ感覚 < 5
+		CALL COM_ABLE65
+		IF RESULT
+			SIF COND("発情期") || EXP:Ａ性交経験 < MIN(50, EXP:Ｖ性交経験)
+				I:5 = 65
+		ENDIF
+	ELSEIF I:5 == 88 && TALENT:尿道狂い == 0
+		CALL COM_ABLE65
+		IF RESULT
+			SIF COND("発情期") || EXP:尿道性交経験 < MIN(50, EXP:Ｖ性交経験)
+				I:5 = 65
+		ENDIF
+	ENDIF
+
+	ABL:騎乗位 += TALENT:好色 + TALENT:淫乱 + LOCAL:2 + ABL:腰使い
+	SIF MARK:淫紋 && TALENT:オトコ == 0
+		ABL:騎乗位 += (MARK:淫紋 + 1)/2
+
+	SELECTCASE I:5
+	CASE 65 TO 69
+		SIF TARGET == ASSI
+			I:5 = 65
+		ABL:騎乗位 += MIN(ABL:Ｖ感覚, 10)/2 + TALENT:淫壷 + TALENT:Ｖ性向
+		SIF INSERT("Ｖインサート")
+			ABL:騎乗位 += 5
+		SIF COND("♀に弱い", PLAYER)
+			ABL:騎乗位 += 5
+	CASE 75
+		ABL:騎乗位 += MIN(ABL:Ａ感覚, 10)/2 + TALENT:尻穴狂い + TALENT:Ａ性向
+		SIF INSERT("Ａインサート")
+			ABL:騎乗位 += 5
+		SIF COND("アナルに弱い", PLAYER)
+			ABL:騎乗位 += 5
+	CASE 88
+		ABL:騎乗位 += MIN(ABL:尿道感覚, 10)/2 + TALENT:尿道狂い + TALENT:尿道性感
+		SIF INSERT("尿道インサート")
+			ABL:騎乗位 += 5
+	ENDSELECT
+ENDIF
+
+;ABL:キス,キス
+IF COND("調教側")
+	CALL COUNTER_ABL, 6, 6
+ELSE
+	CALL COUNTER_ABL, 6, 6
+ENDIF
+IF ABL:キス
+	ABL:キス += TALENT:恋慕 + TALENT:蕩唇 + LOCAL:2 + ABL:舌使い
+	SIF COND("キスに弱い", PLAYER)
+		ABL:キス += 5
+ENDIF
+
+;ABL:お尻責め,お尻責め
+IF COND("調教側")
+	CALL COUNTER_ABL, 7, 2, 142
+ELSE
+	CALL COUNTER_ABL, 7, 96
+ENDIF
+IF ABL:お尻責め && EXP:Ａ責め経験 >= 20 && EXP:Ａ舐め経験 >= 5 && MAX(MIN(ABL:サドっ気, 5), MIN(ABL:奉仕精神, 10)/2) + ABL:PLAYER:マゾっ気 >= 6
+	ABL:お尻責め += MIN(ABL:サドっ気, 5)/2 + MIN(ABL:PLAYER:マゾっ気, 5)/2 + LOCAL:1
+	;アナル調教知識
+	SIF GETBIT(TALENT:調教知識, 3)
+		ABL:お尻責め += 5
+ELSE
+	ABL:お尻責め = 0
+	I:7 = 0
+ENDIF
+
+;ABL:レイプ,TARGETのペニス使用or逆レイプ
+IF COND("調教側")
+	CALL COUNTER_ABL, 8, 60, 61, 64, 65, 71, 75, 83, 88, 140
+ELSE
+	CALL COUNTER_ABL, 8, 4, 120, 126
+ENDIF
+IF ABL:レイプ
+	ABL:レイプ += LOCAL:2 + ABL:腰使い
+	SIF PENIS(TARGET)
+		ABL:レイプ += MIN(ABL:欲望, 10)/2
+	;オトコ
+	SIF TALENT:オトコ
+		ABL:レイプ += 5
+ENDIF
+
+;ABL:素股,素股
+IF COND("調教側")
+ELSE
+	CALL COUNTER_ABL, 9, 80, 93, 94
+ENDIF
+SIF ABL:素股
+	ABL:素股 += TALENT:献身 + LOCAL:1 + ABL:腰使い/2
+
+;ABL:道具
+IF COND("調教側")
+ELSE
+	CALL COUNTER_ABL, 10
+ENDIF
+SIF ABL:道具
+	ABL:道具 += LOCAL:2
+
+TARGET = MEMO_TARGET
+
+
+@COUNTER_ABL, ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARG:5, ARG:6, ARG:7, ARG:8, ARG:9
+#DIM LCOUNT
+ABL:(70 + ARG) = 0
+LOCAL = 1
+FOR LCOUNT, 1, 10
+	TRYCALLFORM COM_ABLE{ARG:LCOUNT}
+	IF RESULT
+		ABL:(70 + ARG) += 1
+		SIF RAND:LOCAL == 0 || I:ARG == 0
+			I:ARG = ARG:LCOUNT
+		LOCAL += 1
+	ENDIF
+	SIF ARG:(LCOUNT + 1) == 0
+		BREAK
+NEXT
+
+;-------------------------------------------------
+;撃沈していないなら、恍惚チェック
+;-------------------------------------------------
+@COUNTER_SYS_2
+;-------------------------------------------------
+;恍惚状態からの復帰判定
+;-------------------------------------------------
+IF STATE("恍惚", PLAYER)
+	CALL COUNTER_REVIVAL
+	;恍惚から復帰（恍惚になったターンは復活しません）
+	SIF STATE("恍惚", PLAYER) == 0
+		CALL KOJO_COUNTER, "恍惚から復帰"
+ELSE
+	CALL COUNTER_FASCINATION
+ENDIF
+;-------------------------------------------------
+;撃沈判定
+;精力0時に助手は行動不可・主人は復活判定
+;-------------------------------------------------
+CALL COUNTER_DOWN
+
+RETURN 0
+
+
+;-------------------------------------------------
+;押し倒された時の判定と処理
+;ARGが基本の猶予時間で1.5～10秒の範囲
+;-------------------------------------------------
+@CHECK_OSHITAOSHI, ARG
+;ARG msの時間の猶予で押し倒しの選択肢表示＆TEQUIP:押し倒し等の処理を行う
+LOCAL = LIMIT(MULTIPLY(ARG, 100 - (ABL:欲望 + ABL:技巧 - ABL:PLAYER:技巧)*10), 1500, 10000)
+PRINTFORML  [0] 抵抗する！
+PRINTFORML  [1] 身を委ねる
+
+IF CONFIG("制限時間")
+	TINPUT LOCAL, 100, 1
+ELSE
+	CALL INPUT_SELECT, 2
+ENDIF
+
+IF RESULT
+	TEQUIP:押し倒し = 1
+	;インサート中なら騎乗位へ
+	SIF INSERT("インサート")
+		TEQUIP:体位 = CLEARBITS(TEQUIP:体位, 0, 9) + 1p5
+ENDIF
+
+@COUNTER_FASCINATION
+#DIM CHOICE
+;恍惚、押し倒し判定
+SIF TEQUIP:拘束 || TEQUIP:尿道ブジー || COND("３Ｐ")
+	RETURN 0
+SIF STATE("撃沈", PLAYER) || STATE("恍惚", PLAYER)
+	RETURN 0
+;立位中は無理
+SIF INSERT("立位")
+	RETURN 0
+
+SELECTCASE SELECTCOM
+CASE 280
+	RETURN 0
+ENDSELECT
+
+TFLAG:恍惚確率 = 0
+;恍惚確率を算出する
+IF TCVAR:PLAYER:絶頂度 || CALCF("弱点突かれ", SELECTCOM)
+	TFLAG:恍惚確率 = TCVAR:PLAYER:絶頂度*3 + (TALENT:謎の魅力 + TALENT:魅力)*2 - MIN(ABL:PLAYER:技巧, 10)
+
+	;弱点の処理
+	TFLAG:恍惚確率の弱点補正 = CALCF("弱点突かれ", SELECTCOM)*2 + CALCF("属性突かれ", TARGET)*2
+	;二人で押し倒し
+	IF TEQUIP:Ｗ押し倒し
+		TFLAG:恍惚確率 += TALENT:ASSI:謎の魅力 + TALENT:ASSI:魅力 + 2
+		TFLAG:恍惚確率の弱点補正 += CALCF("弱点突かれ", SELECTCOM:1) + CALCF("属性突かれ", ASSI)
+	ENDIF
+	TFLAG:恍惚確率 += TFLAG:恍惚確率の弱点補正
+
+	;酔い
+	SIF STATE("酔い", PLAYER)
+		TFLAG:恍惚確率 += 10
+
+	;弱点優遇措置
+	TFLAG:恍惚確率 = LIMIT(TFLAG:恍惚確率, TFLAG:恍惚確率の弱点補正, 100)
+	;5％未満なら切捨て
+	SIF TFLAG:恍惚確率 < 5
+		TFLAG:恍惚確率 = 0
+ENDIF
+
+;恍惚、押し倒し判定
+IF TFLAG:恍惚確率 > RAND:100
+	CALL BLANKLINE
+	PRINTFORML %CALLNAME:PLAYER%は恍惚となってしまった……
+	IF TEQUIP:PLAYER:理性主義
+		FONTSTYLE 1
+		PRINTFORMW パチン！
+		FONTSTYLE 0
+		PRINTFORMW と思いきや、%CALLNAME:(ASSI:1)%は大きな音を立てて理性を取り戻させた！
+	ELSE
+		CHOICE = 0
+		IF CONFIG("恍惚耐性") && BASE:PLAYER:精力 >= 2
+			IF CONFIG("恍惚耐性") == 2
+				CHOICE = 1
+			ELSE
+				CALL PRINT_SELECT, "恍惚感に身を任せる/抵抗する！（精力-１）"
+				CHOICE = RESULT
+			ENDIF
+		ENDIF
+		IF CHOICE
+			BASE:PLAYER:精力 -= 1
+			PRINTFORML 精力-１(%CALLNAME:PLAYER%)
+			PRINTFORMW %CALLNAME:PLAYER%は気力を振り絞って我を取り戻した！
+		ELSE
+			TEQUIP:押し倒し = 1
+			CALL ADD_STATE, PLAYER, "恍惚"
+			;手加減中なら、解除
+			IF TEQUIP:手加減
+				TEQUIP:手加減 = 0
+				PRINTFORML 主導権を%CALLNAME:TARGET%に奪われ、%CALLNAME:PLAYER%は手加減を続けることが出来ない…！
+			ENDIF
+			SIF CONFIG("恍惚耐性") == 0 || BASE:PLAYER:精力 < 2
+				FORCEWAIT
+			SIF COND("疲労") == 0
+				CALL KOJO_COUNTER, "恍惚"
+		ENDIF
+	ENDIF
+ENDIF
+
+;以下、押し倒し状態でないなら押し倒し判定
+SIF TEQUIP:押し倒し
+	RETURN 0
+;やってこない状態
+SIF TEQUIP:アイマスク || TEQUIP:浣腸 || TEQUIP:尿道ブジー || STATE("恍惚", PLAYER) || CFLAG:マグロ
+	RETURN 0
+;大怪我
+SIF TALENT:Ｖ損傷 || TALENT:Ａ損傷
+	RETURN 0
+;性癖の問題
+SIF COND("性別嫌悪")
+	RETURN 0
+;今日は生が無理な時
+SIF COND("女性主導生セックス") == 0 && COND("Ａ熟達") == 0
+	RETURN 0
+
+;体位によっては無理
+SELECTCASE CONDS("体位")
+CASE "正常位", "屈曲位", "後背位"
+	RETURN 0
+ENDSELECT
+
+TFLAG:押し倒し確率 = MIN(ABL:欲望*2, 20) + (BASE:欲求不満/5) + (ABL:サドっ気 - ABL:マゾっ気)*3 - COND("絶頂", PLAYER)*5 - NOWEX:絶頂数合計*20
+SIF TALENT:強気
+	TFLAG:押し倒し確率 += 15
+SIF TALENT:淫乱
+	TFLAG:押し倒し確率 += 10
+SIF TALENT:好色
+	TFLAG:押し倒し確率 += 5
+SIF STATE("酔い", TARGET)
+	TFLAG:押し倒し確率 += 30
+;イかされまくっても、押し倒してこなくなる
+SIF BASE:性欲 >= MAXBASE:性欲
+	TFLAG:押し倒し確率 -= 20
+
+;体力による補正(プラスマイナス補正はここまでで済ませる)
+TFLAG:押し倒し確率 = TFLAG:押し倒し確率*BASE:体力/MAXBASE:体力
+;欲情による補正
+SELECTCASE PALAM:欲情
+CASE IS < 500
+	TIMES TFLAG:押し倒し確率, 0.10
+CASE IS < 3000
+	TIMES TFLAG:押し倒し確率, 0.30
+CASE IS < 10000
+	TIMES TFLAG:押し倒し確率, 0.50
+CASE IS > 30000
+	TIMES TFLAG:押し倒し確率, 1.20
+ENDSELECT
+
+;押し倒し頻度補正
+SIF TCVAR:押し倒し頻度補正 > 0
+	TFLAG:押し倒し確率 /= TCVAR:押し倒し頻度補正
+
+;押し倒し確率が０以下の場合は当然押し倒さない
+TFLAG:押し倒し確率 = LIMIT(TFLAG:押し倒し確率, 0, 100)
+
+IF TFLAG:押し倒し確率 > RAND:100
+	;押し倒し頻度減少
+	TCVAR:押し倒し頻度補正 += 5 + RAND:6
+
+	PRINTFORML %CALLNAME:TARGET%は%CALLNAME:PLAYER%を押し倒してきた！
+
+	CALL CHECK_OSHITAOSHI, (100 - TFLAG:押し倒し確率 )*30
+
+	IF TEQUIP:押し倒し
+		IF RAND:2 && TALENT:オンナ && TALENT:恥薄い && (TALENT:強気 || ABL:サドっ気 + ABL:PLAYER:マゾっ気 >= 5) && COND("室内") && USE_V(TARGET)
+			CALL BLANKLINE
+			;PRINTFORML %CALLNAME:TARGET%は飛び上がって%CALLNAME:PLAYER%の顔を太ももで挟み込むと、股間を押し付けて視界を奪いながらベッドに押し倒してきた！
+			VARSET LOCAL
+			IF TEQUIP:シックスナイン == 0 && PENIS(PLAYER) && COND("指の使用")
+				CALL COM_ABLE99
+				LOCAL:1 = RESULT
+			ENDIF
+			IF INSERT("合体中") == 0 && PENIS(PLAYER) && COND("Ｖ熟達")
+				CALL COM_ABLE65
+				LOCAL:2 = RESULT
+			ENDIF
+
+			IF LOCAL:2 && RANDIF(2, LOCAL:1)
+				PRINTFORML %CALLNAME:TARGET%は%CALLNAME:PLAYER%にのしかかり、当然の様にペニスを自らの膣で咥え込んできた！
+
+				CALL SET_INSERT, TARGET, PLAYER, 65
+			ELSEIF LOCAL:1 && RAND:2
+				PRINTFORM %CALLNAME:TARGET%は仰向けになった%CALLNAME:PLAYER%のペニスを手で掴み、
+				IF RAND:2
+					PRINTFORML 顔を跨いで股間を鼻に擦りつけてきた！
+				ELSE
+					PRINTFORML お尻を顔に押し付けるようにして乗ってきた！
+				ENDIF
+				TEQUIP:シックスナイン = 90
+				TEQUIP:PLAYER:シックスナイン = 1
+				TEQUIP:顔面騎乗 = 1
+			ELSE
+				PRINTFORML %CALLNAME:TARGET%は仰向けに倒された%CALLNAME:PLAYER%の顔を膝立ちで跨ぎ、ゆっくりと腰を落として股間で鼻と口を塞いできた！
+				TEQUIP:顔面騎乗 = 1
+			ENDIF
+		ENDIF
+		CALL KOJO_COUNTER, "押し倒し"
+		PRINTFORMW %CALLNAME:PLAYER%は押し倒されてしまった……！
+		IF TEQUIP:手加減
+			TEQUIP:手加減 = 0
+			PRINTFORMW 主導権を%CALLNAME:TARGET%に奪われ、%CALLNAME:PLAYER%は手加減を続けることが出来ない…！
+		ENDIF
+		;ムード増加
+		FLAG:ムード += 5
+	ELSE
+		IF TALENT:恋慕 && PLAYER == MASTER
+			PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%を抱きとめて、自分に任せるようにと耳元で囁いた…
+			IF CFLAG:マグロ == 0 && MOOD_HEART() >= 3
+				PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%に身を委ねる事にしたようだ…
+				CFLAG:マグロ = 1
+			ENDIF
+		ELSE
+			IF RAND:2 == 0
+				PRINTFORMW しかし%CALLNAME:PLAYER%はやんわりと払いのけた！
+			ELSE
+				PRINTFORMW しかし%CALLNAME:PLAYER%は巧みに身をかわした！
+			ENDIF
+			;ムード減少
+			FLAG:ムード -= 5
+		ENDIF
+	ENDIF
+	CALL BLANKLINE
+ENDIF
+
+;基本的にはMASTERかASSIかPLAYER:1だけが対象
+@COUNTER_DOWN
+#DIM MEMO_LINECOUNT
+
+;助手はコマンドを実行できなくなる
+IF ASSI && STATE("撃沈", ASSI) == 0
+	IF (ASSIPLAY || (SELECTCOM >= 160 && SELECTCOM <= 169) || TEQUIP:Ｗ押し倒し || SELECTCOM:1 >= 0 || SELECTCOM:2 >= 0) && (BASE:ASSI:体力 < 500 || BASE:ASSI:精力 <= 0)
+		CALL ASSI_DOWN, ASSI
+		CALL KOJO_COUNTER, "助手が限界"
+	ENDIF
+ENDIF
+;主人
+IF BASE:MASTER:精力 <= 0 || BASE:MASTER:魂 <= 0
+	PRINTFORMW %CALLNAME:MASTER%はもう限界だ……
+	IF BASE:MASTER:魂 <= 0
+		CALL PRINT_STR, "紅_＜リザレクション！＞_W_"
+		PRINTFORMW %CALLNAME:MASTER%は最後の力を振り絞って復活した！
+		BASE:MASTER:魂 = 1
+	ENDIF
+	PRINTFORMW ★★★ベッドシーンを終了します★★★
+	CALL ADD_STATE, MASTER, "撃沈"
+	CALL BLANKLINE
+	MEMO_LINECOUNT = LINECOUNT
+
+	CALL KOJO_COUNTER, "強制終了"
+
+	SIF LINECOUNT == MEMO_LINECOUNT
+		CLEARLINE 1
+
+	BEGIN AFTERTRAIN
+ENDIF
+
+RETURN 0
+
+;助手の撃沈アナウンス。３Ｐなどだと助手以外でもここに来る
+@ASSI_DOWN, ARG
+SIF STATE("撃沈", ARG) || (BASE:ARG:体力 >= 500 && BASE:ARG:精力 > 0)
+	RETURN 0
+
+CALL BLANKLINE
+SIF ARG == ASSI
+	PRINTFORML ★%TEXTS("助手の名称")%撃沈★
+PRINTFORMW %CALLNAME:ARG%はもう体力の限界だ。
+PRINTFORMW これ以上%CALLNAME:ARG%を参加させるのは無理なようだ……
+CALL ADD_STATE, ARG, "撃沈"
+CALL SETFLAG, "撃沈", ARG
+;一部のアドバイザー能力に影響
+SIF ASSI == ASSI:1
+	CALL RESET_ABL_ADVISER
+
+
+
+@TARGET_DOWN
+;パートナーの体力が0以下？
+SIF BASE:体力 > 0 && BASE:精力 > 0
+	RETURN 0
+
+;現在パートナーがアドバイザー(開始時は助手の立場)の場合には助手撃沈として処理をする
+IF TARGET == ASSI:1 && CHECK_EXCHANGE("パートナー")
+	CALL SETFLAG, "対象交代"
+	CALL ASSI_DOWN, ASSI
+	CALL KOJO_COUNTER, "助手が限界"
+	RETURN 1
+ENDIF
+
+IF TEQUIP:押し倒し
+	PRINTFORMW %CALLNAME:TARGET%は激しい疲労で肩で息をしている…
+	PRINTFORMW 少々無理をしてしまったようだ…
+ELSE
+	PRINTFORMW %CALLNAME:TARGET%は激しい疲労で息も絶え絶えになっている…
+	PRINTFORMW 少々無理をさせ過ぎてしまったようだ…
+	IF BASE:体力 <= 0
+		;マゾっ気あり
+		IF ABL:マゾっ気 || ABL:欲望 >= 3 || COND("発情期")
+			PRINTFORMW しかし、%CALLNAME:TARGET%にはどこか歓喜の表情すら見てとれる…。
+		;それ以外で信頼Lvが1以上なら1下げる。押し倒しのときは除外
+		;ELSEIF ABL:信頼 > 0 && ABL:信頼 < 5 && COND("欲求不満") == 0
+		;	ABL:信頼 -= 1
+		;	PRINTFORML %CALLNAME:TARGET%の信頼が１下がった。
+		ENDIF
+	ENDIF
+ENDIF
+CALL ADD_STATE, TARGET, "撃沈"
+BASE:精力 = MAX(BASE:精力, 1)
+BASE:体力 = MAX(BASE:体力, 1)
+
+IF BASE:体力 <= 0
+	PRINTFORMW ★体力が限界に来ています、お楽しみの最中ですが終了します。★
+ELSE
+	PRINTFORMW ★精力が限界に来ています、お楽しみの最中ですが終了します。★
+ENDIF
+BEGIN AFTERTRAIN
+
+
+@COUNTER_REVIVAL
+;復帰判定
+SIF STATE("恍惚", PLAYER) == 0
+	RETURN 0
+;復帰確率を算出して代入(母乳を飲んでいると復帰率減少)
+LOCAL = 10 + ABL:PLAYER:技巧*4 - ABL:技巧*4 - EXP_GAIN("飲乳経験", PLAYER)*5
+SIF BASE:PLAYER:精力*2 >= MAXBASE:PLAYER:精力
+	LOCAL += 10
+SIF COND("絶頂", PLAYER) == 0
+	LOCAL += 5
+
+;１Ｔごとに復帰率が５％ＵＰ
+SELECTCASE TFLAG:恍惚ターン数
+CASE 0
+	LOCAL = 0
+CASEELSE
+	LOCAL += (TFLAG:恍惚ターン数 - 1)*5
+ENDSELECT
+;マイナスまたは100％を超えていたら修正
+LOCAL = LIMIT(LOCAL, 0, 100)
+
+IF LOCAL > RAND:100
+	PRINTFORML %CALLNAME:PLAYER%は正気に返った！
+	CALL REMOVE_STATE, PLAYER, "恍惚"
+	;自動で押し倒しから復帰するのはオミット
+	;IF LOCAL > RAND:100 && TEQUIP:Ｗ押し倒し == 0 && STATE("バインド", PLAYER) == 0
+	;	PRINTFORMW %CALLNAME:PLAYER%は押し倒され状態から復帰した！
+	;	TEQUIP:押し倒し = 0
+	;ENDIF
+ELSE
+	PRINTFORMW %CALLNAME:PLAYER%は恍惚としている……
+	TFLAG:恍惚ターン数 += 1
+ENDIF

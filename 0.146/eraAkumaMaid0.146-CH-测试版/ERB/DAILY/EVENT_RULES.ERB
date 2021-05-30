@@ -1,0 +1,423 @@
+;-------------------------------------------------
+;部活での標語を作ります。あまりに変なのをお出しすると冷ややかな目で見られる
+;FLAG:標語のbitで管理する。0標語の説明を見た, 1標語を掲示した
+;-------------------------------------------------
+@SET_RULES
+#DIM CHOICE
+#DIM MEMO_REDRAW
+#DIM IS_OFF_SEASON
+
+;ある程度の人数が必要
+SIF CHARANUM <= 3
+	RETURN 0
+
+SELECTCASE TEXTS("曜日")
+;土曜の夜は決めても実行する日が無い
+CASE "日"
+	RETURN 0
+CASE "月"
+CASEELSE
+	SIF SAVESTR:標語 != "" || GETBIT(FLAG:標語, 0)
+		RETURN 0
+ENDSELECT
+
+DRAWLINE
+;初めて設定する時
+IF GETBIT(FLAG:標語, 0) == 0
+	;フェリシエルが居るならアドバイス
+	IF FINDCHARA(NO, 1) > 0
+		PRINTFORM 「そうそう。%CNAMET(FINDCHARA(NO, 1), "二人称")%に一つ提案が有るのですが」
+		FORCEWAIT
+		PRINTFORMW フェリシエルは目を細めて、良い事を思いついた、といった表情で笑う。
+		PRINTFORMW 「変な事をさせるつもりだろうって？いえいえそんな、とんでもない……フフフ」
+		PRINTFORMW 「部室の壁かどこかに、%CNAMET(FINDCHARA(NO, 1), "二人称")%の望みなり提案なり心の俳句なりを、標語っぽく貼り出したら面白そうじゃないですか？」
+		PRINTFORMW 「きっと部活の皆の仲が良くなる助けになると、%CNAMET(FINDCHARA(NO, 1), "一人称")%は確信しております♪」
+		PRINTFORML ……どうしたものだろうか？(見送っても、毎週日曜の夜に何度でも再設定できます)
+		CALL PRINT_SELECT, "標語を用意してみる/やめておく"
+	ELSE
+		PRINTFORMW 部員が増えてきたので、部室に標語を貼り出すことが出来るようになりました。
+		PRINTL 
+		PRINTFORMW 週に一度、内容を定めて部室に現れる人に訴えかけることが出来ます。
+		CALL PRINT_STR, "当然のことながら、強制力は有りません……内容次第ですが、_黄色_信頼LV_や黄色_屈服刻印LV_などが低い人には無視されてしまうことでしょう。_W"
+		PRINTFORML ……どうしますか？(見送っても、毎週日曜の夜に何度でも再設定できます)
+		CALL PRINT_SELECT, "標語を用意してみる/やめておく"
+	ENDIF
+	;標語の説明を見たフラグON
+	SETBIT FLAG:標語, 0
+ELSE
+	PRINTFORM 日曜深夜の標語を決める時間がやってきた……
+	IF SAVESTR:標語 == ""
+		PRINTFORMW 現在は特に標語を定めていません。
+		PRINTFORML ……どうしますか？
+		CALL PRINT_SELECT, "標語を用意してみる/やめておく"
+	ELSE
+		;季節限定標語じゃないかい？
+		IS_OFF_SEASON = 0
+		;SELECTCASE SAVESTR:標語
+		;CASE "日焼け跡最高", "日焼けに注意"
+		;	SELECTCASE TEXTS("季節")
+		;	CASE "春", "夏"
+		;	CASEELSE
+		;		IS_OFF_SEASON = 1
+		;	ENDSELECT
+		;ENDSELECT
+
+		IF IS_OFF_SEASON
+			WAIT
+			PRINTFORMW 現在の標語は『%SAVESTR:標語%』ですが、これは季節外れなので止めます。
+			SAVESTR:標語 = 
+			PRINTFORML ……新たな標語を用意しますか？
+			CALL PRINT_SELECT, "そうする/やめておく"
+		ELSE
+			PRINTFORMW 現在の標語は『%SAVESTR:標語%』です。
+			PRINTFORML 変更しますか？
+			CALL PRINT_SELECT, "標語を変更する/変更しない/標語の掲示自体をやめる"
+		ENDIF
+	ENDIF
+ENDIF
+
+CHOICE = RESULT
+
+SELECTCASE CHOICE
+;変更or設定
+CASE 0
+	MEMO_REDRAW = CURRENTREDRAW()
+	REDRAW 0
+
+	CALL DEFINE_RULES
+
+	REDRAW MEMO_REDRAW
+CASE 1
+	IF SAVESTR:標語 == ""
+		PRINTFORMW 標語の用意を見送りました。
+	ELSE
+		PRINTFORMW 標語の変更を見送りました。
+	ENDIF
+CASE 2
+	PRINTFORMW 標語の掲示を一旦休止する事としました。
+	SAVESTR:標語 = 
+	;掲示フラグOFF
+	CLEARBIT FLAG:標語, 1
+ENDSELECT
+
+
+@DEFINE_RULES
+#DIM MEMO_LINECOUNT
+#DIMS EVENT_TABLE
+
+MEMO_LINECOUNT = LINECOUNT
+PRINTFORML どれにしますか？
+
+EVENT_TABLE = 
+EVENT_TABLE += "喉の渇きに注意/"
+EVENT_TABLE += "体操服はやっぱり×××/"
+EVENT_TABLE += "学生服は×××に限る/"
+EVENT_TABLE += "日焼け跡最高/日焼けに注意/"
+
+;IF TALENT:MASTER:オトコ
+;	EVENT_TABLE += "お兄ちゃんと呼んで欲しい/"
+;ELSE
+;	EVENT_TABLE += "お姉ちゃんと呼んで欲しい/"
+;ENDIF
+
+EVENT_TABLE += "やっぱやめる/"
+
+VARSET LOCALS
+SPLIT EVENT_TABLE, "/", LOCALS
+CALL PRINT_SELECT, EVENT_TABLE
+
+SELECTCASE LOCALS:RESULT
+CASE "やっぱやめる"
+	PRINTFORMW 標語の設定を見送りました。
+	RETURN 0
+CASE "体操服はやっぱり×××"
+	PRINTL 体操服はやっぱり？
+	EVENT_TABLE = ブルマ\/ハイレグブルマ\/ハーパン\/スパッツ\/ジャージ\/別の標語にする\/
+	VARSET LOCALS
+	SPLIT EVENT_TABLE, "/", LOCALS
+	CALL PRINT_SELECT, EVENT_TABLE
+
+	SELECTCASE LOCALS:RESULT
+	CASE "別の標語にする"
+		CLEARLINE LINECOUNT - MEMO_LINECOUNT
+		RESTART
+	CASEELSE
+		LOCALS:RESULT = 体操服はやっぱり%LOCALS:RESULT%
+	ENDSELECT
+CASE "学生服は×××に限る"
+	PRINTL どれに限る？
+	EVENT_TABLE = ミニスカ\/超ミニ\/アメスク\/別の標語にする\/
+	VARSET LOCALS
+	SPLIT EVENT_TABLE, "/", LOCALS
+	CALL PRINT_SELECT, EVENT_TABLE
+
+	SELECTCASE LOCALS:RESULT
+	CASE "別の標語にする"
+		CLEARLINE LINECOUNT - MEMO_LINECOUNT
+		RESTART
+	CASEELSE
+		LOCALS:RESULT = 学生服は%LOCALS:RESULT%に限る
+	ENDSELECT
+CASEELSE
+
+ENDSELECT
+
+SAVESTR:標語 = %LOCALS:RESULT%
+PRINTFORMW %CALLNAME:MASTER%は『%SAVESTR:標語%』を部活の標語とし、部員のアドレスに送りました。
+PRINTFORMW 賛同してくれる人からは、何らかの反応が有る事でしょう。
+
+;掲示フラグOFF
+CLEARBIT FLAG:標語, 1
+
+
+;主に月曜の朝に標語を貼りだす
+@POST_RULES
+SIF SAVESTR:標語 == ""
+	RETURN 0
+
+SELECTCASE TEXTS("曜日")
+CASE "日"
+	RETURN 0
+CASEELSE
+	;もう掲示済み
+	SIF GETBIT(FLAG:標語, 1)
+		RETURN 0
+ENDSELECT
+
+DRAWLINE
+PRINTFORML 朝一で部室に赴いた%CALLNAME:MASTER%は大きな紙に太字マジックで
+PRINTL 
+
+SELECTCASE SAVESTR:標語
+CASE "日焼け跡最高"
+	PRINTL 　　┏━━━┓
+	PRINTL 　　┃ 　日 ┃
+	PRINTL 　　┃ 最焼 ┃
+	PRINTL 　　┃ 高け ┃
+	PRINTL 　　┃ ！跡 ┃
+	PRINTL 　　┗━━━┛
+CASE "日焼けに注意"
+	PRINTL 　　┏━━━┓
+	PRINTL 　　┃ 　日 ┃
+	PRINTL 　　┃ 注焼 ┃
+	PRINTL 　　┃ 意け ┃
+	PRINTL 　　┃ ！に ┃
+	PRINTL 　　┗━━━┛
+CASE "喉の渇きに注意"
+	PRINTL 　　┏━━━━┓
+	PRINTL 　　┃ 注渇喉 ┃
+	PRINTL 　　┃ 意きの ┃
+	PRINTL 　　┃ ！に　 ┃
+	PRINTL 　　┗━━━━┛
+
+CASE "体操服はやっぱりブルマ"
+	PRINTL 　　┏━━━━┓
+	PRINTL 　　┃ ブや体 ┃
+	PRINTL 　　┃ ルっ操 ┃
+	PRINTL 　　┃ マぱ服 ┃
+	PRINTL 　　┃ ！りは ┃
+	PRINTL 　　┗━━━━┛
+CASE "体操服はやっぱりハイレグブルマ"
+	PRINTL 　　┏━━━━━┓
+	PRINTL 　　┃ ブハや体 ┃
+	PRINTL 　　┃ ルイっ操 ┃
+	PRINTL 　　┃ マレぱ服 ┃
+	PRINTL 　　┃ ！グりは ┃
+	PRINTL 　　┗━━━━━┛
+CASE "体操服はやっぱりハーパン"
+	PRINTL 　　┏━━━━┓
+	PRINTL 　　┃ ハや体 ┃
+	PRINTL 　　┃ ｜っ操 ┃
+	PRINTL 　　┃ パぱ服 ┃
+	PRINTL 　　┃ ンりは ┃
+	PRINTL 　　┗━━━━┛
+CASE "体操服はやっぱりスパッツ"
+	PRINTL 　　┏━━━━┓
+	PRINTL 　　┃ スや体 ┃
+	PRINTL 　　┃ パっ操 ┃
+	PRINTL 　　┃ ッぱ服 ┃
+	PRINTL 　　┃ ツりは ┃
+	PRINTL 　　┗━━━━┛
+CASE "体操服はやっぱりジャージ"
+	PRINTL 　　┏━━━━┓
+	PRINTL 　　┃ ジや体 ┃
+	PRINTL 　　┃ ャっ操 ┃
+	PRINTL 　　┃ ｜ぱ服 ┃
+	PRINTL 　　┃ ジりは ┃
+	PRINTL 　　┗━━━━┛
+
+CASE "学生服はミニスカに限る"
+	PRINTL 　　┏━━━━┓
+	PRINTL 　　┃ にミ学 ┃
+	PRINTL 　　┃ 限ニ生 ┃
+	PRINTL 　　┃ るス服 ┃
+	PRINTL 　　┃ ！カは ┃
+	PRINTL 　　┗━━━━┛
+CASE "学生服は超ミニに限る"
+	PRINTL 　　┏━━━━┓
+	PRINTL 　　┃ に超学 ┃
+	PRINTL 　　┃ 限ミ生 ┃
+	PRINTL 　　┃ るニ服 ┃
+	PRINTL 　　┃ ！　は ┃
+	PRINTL 　　┗━━━━┛
+CASE "学生服はアメスクに限る"
+	PRINTL 　　┏━━━━┓
+	PRINTL 　　┃ にア学 ┃
+	PRINTL 　　┃ 限メ生 ┃
+	PRINTL 　　┃ るス服 ┃
+	PRINTL 　　┃ ！クは ┃
+	PRINTL 　　┗━━━━┛
+
+;CASE "学生服はロングスカートに限る"
+;	PRINTL 　　┏━━━━┓
+;	PRINTL 　　┃ にロ学 ┃
+;	PRINTL 　　┃ 限ン生 ┃
+;	PRINTL 　　┃ るス服 ┃
+;	PRINTL 　　┃ ！カは ┃
+;	PRINTL 　　┗━━━━┛
+
+CASE "お兄ちゃんと呼んで欲しい"
+	PRINTL 　　┏━━━┓
+	PRINTL 　　┃ 呼お ┃
+	PRINTL 　　┃ ん兄 ┃
+	PRINTL 　　┃ でち ┃
+	PRINTL 　　┃ 欲ゃ ┃
+	PRINTL 　　┃ しん ┃
+	PRINTL 　　┃ いと ┃
+	PRINTL 　　┃ ！　 ┃
+	PRINTL 　　┗━━━┛
+CASE "お姉ちゃんと呼んで欲しい"
+	PRINTL 　　┏━━━┓
+	PRINTL 　　┃ 呼お ┃
+	PRINTL 　　┃ ん姉 ┃
+	PRINTL 　　┃ でち ┃
+	PRINTL 　　┃ 欲ゃ ┃
+	PRINTL 　　┃ しん ┃
+	PRINTL 　　┃ いと ┃
+	PRINTL 　　┃ ！　 ┃
+	PRINTL 　　┗━━━┛
+ENDSELECT
+
+PRINTL 
+SELECTCASE SAVESTR:標語
+CASE "喉の渇きに注意"
+	PRINTFORMW と書いて壁に貼り出し、ウォータージャグに麦茶を、備え付けの冷蔵庫にジュースを準備した。
+CASEELSE
+	PRINTFORMW と書いて壁に貼り出した。
+ENDSELECT
+DRAWLINE
+
+;掲示フラグON
+SETBIT FLAG:標語, 1
+
+;標語実践の値は衣服系は２になる
+@FOLLOW_RULES
+#DIM LCOUNT
+FOR LCOUNT, 1, CHARANUM
+	SELECTCASE SAVESTR:標語
+	CASE "喉の渇きに注意"
+		;これは全員ＯＫでいいだろう
+		CFLAG:LCOUNT:標語実践 = 1
+	CASE "日焼け跡最高", "日焼けに注意"
+		SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 == 0
+			CONTINUE
+		CFLAG:LCOUNT:標語実践 = 1
+	CASE "体操服はやっぱりブルマ"
+		SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 == 0
+			CONTINUE
+		SIF COND("ガチオトコ", LCOUNT) && CEVENT("女装", LCOUNT) == 0
+			CONTINUE
+		SIF ABL:LCOUNT:露出癖 + TALENT:LCOUNT:恥薄い <= 0
+			CONTINUE
+		IF CHECK_CLO("体操服姿", LCOUNT) && CHECK_OUTER("ブルマ", LCOUNT) == 0
+			CALL SET_OUTER, "ブルマ", LCOUNT
+			SIF CHECK_PANTIES("トランクス", LCOUNT)
+				CALL RAND_PANTU, LCOUNT
+			CFLAG:LCOUNT:標語実践 = 2
+		ENDIF
+	CASE "体操服はやっぱりハイレグブルマ"
+		SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 < 3
+			CONTINUE
+		SIF COND("ガチオトコ", LCOUNT) && CEVENT("女装", LCOUNT) == 0
+			CONTINUE
+		SIF ABL:LCOUNT:露出癖 < 5 && TALENT:LCOUNT:恥薄い == 0
+			CONTINUE
+		IF CHECK_CLO("体操服姿", LCOUNT) && CHECK_PANTIES("ハイレグブルマ", LCOUNT) == 0
+			CALL SET_OUTER, "", LCOUNT
+			CALL SET_PANTIES, "ハイレグブルマ", LCOUNT
+			CFLAG:LCOUNT:標語実践 = 2
+		ENDIF
+	CASE "体操服はやっぱりハーパン"
+		SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 == 0
+			CONTINUE
+		IF CHECK_CLO("体操服姿", LCOUNT) && CHECK_OUTER("ハーフパンツ", LCOUNT) == 0
+			CALL SET_OUTER, "ハーフパンツ", LCOUNT
+			CFLAG:LCOUNT:標語実践 = 2
+		ENDIF
+	CASE "体操服はやっぱりスパッツ"
+		SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 == 0
+			CONTINUE
+		SIF ABL:LCOUNT:露出癖 + TALENT:LCOUNT:恥薄い <= 0
+			CONTINUE
+		IF CHECK_CLO("体操服姿", LCOUNT) && CHECK_OUTER("スパッツ", LCOUNT) == 0
+			CALL SET_OUTER, "スパッツ", LCOUNT
+			CFLAG:LCOUNT:標語実践 = 2
+		ENDIF
+	CASE "体操服はやっぱりジャージ"
+		SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 == 0
+			CONTINUE
+		IF CHECK_CLO("体操服姿", LCOUNT) && CHECK_OUTER("ジャージ", LCOUNT) == 0
+			CALL SET_OUTER, "ジャージズボン", LCOUNT
+			CFLAG:LCOUNT:標語実践 = 2
+		ENDIF
+	CASE "学生服はミニスカに限る"
+		SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 == 0
+			CONTINUE
+		SIF ABL:LCOUNT:露出癖 < 3 && TALENT:LCOUNT:恥薄い == 0
+			CONTINUE
+		IF CHECK_SKIRT("スカート", LCOUNT) && CHECK_SKIRT("ミニ", LCOUNT) == 0
+			IF CHECK_SKIRT("プリーツ", LCOUNT)
+				CSTR:LCOUNT:スカート = プリーツミニスカート/
+			ELSEIF CHECK_SKIRT("チェック", LCOUNT)
+				CSTR:LCOUNT:スカート = チェックミニスカート/
+			ELSE
+				CSTR:LCOUNT:スカート = %EXTSTR(CSTR:LCOUNT:スカート, ,"スカート")%ミニ%EXTSTR(CSTR:LCOUNT:スカート,"スカート")%
+			ENDIF
+			SIF CHECK_PANTIES("トランクス", LCOUNT)
+				CALL RAND_PANTU, LCOUNT
+			CFLAG:LCOUNT:標語実践 = 2
+		ENDIF
+	CASE "学生服は超ミニに限る"
+		SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 < 3
+			CONTINUE
+		SIF ABL:LCOUNT:露出癖 < 5 && TALENT:LCOUNT:恥薄い == 0
+			CONTINUE
+		IF CHECK_SKIRT("スカート", LCOUNT) && CHECK_SKIRT("超ミニ", LCOUNT) == 0
+			IF CHECK_SKIRT("プリーツ", LCOUNT)
+				CSTR:LCOUNT:スカート = マイクロプリーツスカート/超ミニ/
+			ELSEIF CHECK_SKIRT("チェック", LCOUNT)
+				CSTR:LCOUNT:スカート = マイクロチェックスカート/超ミニ/
+			ELSEIF CHECK_SKIRT("ミニ", LCOUNT)
+				CSTR:LCOUNT:スカート = マイクロ%EXTSTR(CSTR:LCOUNT:スカート, ,"ミニ")%%EXTSTR(CSTR:LCOUNT:スカート,"ミニ")%超ミニ/
+			ELSE
+				CSTR:LCOUNT:スカート = マイクロ%CSTR:LCOUNT:スカート%超ミニ/
+			ENDIF
+			SIF CHECK_PANTIES("トランクス", LCOUNT)
+				CALL RAND_PANTU, LCOUNT
+			CFLAG:LCOUNT:標語実践 = 2
+		ENDIF
+	CASE "学生服はアメスクに限る"
+		SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 < 3
+			CONTINUE
+		SIF ABL:LCOUNT:露出癖 < 5 && TALENT:LCOUNT:恥薄い == 0
+			CONTINUE
+		IF CHECK_SHIRT("アメスク", LCOUNT) == 0
+			CALL SET_COORDINATE, "アメスク", LCOUNT
+			SIF CHECK_PANTIES("トランクス", LCOUNT)
+				CALL RAND_PANTU, LCOUNT
+			CFLAG:LCOUNT:標語実践 = 2
+		ENDIF
+	CASEELSE
+		BREAK
+	ENDSELECT
+NEXT

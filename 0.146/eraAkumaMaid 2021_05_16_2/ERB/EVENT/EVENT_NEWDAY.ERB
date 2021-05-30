@@ -1,0 +1,679 @@
+;-------------------------------------------------
+;朝に起こるイベント
+;Ｈイベントの条件を満たしていなくても添い寝は確実に発生する
+;基本的な流れとしては以下の順番で構成されている。
+;1 朝Ｈ地の文(導入)						CALL BEFORETEXT_NEWDAY
+;2 朝駆け台詞							CALL KOJO_GREETING, "朝駆け", ARG
+;3 経験変動一覧の表示					CALL SIMULATE_SHOW_NEWDAY
+;4 朝Ｈ地の文(事後)						CALL AFTERTEXT_NEWDAY
+;5 顔グラ(下の挨拶台詞直前に自動出力)	CALL EMOTION_PLUS, "甘い言葉", ARG
+;6 挨拶台詞
+;
+;～地の文とか色々消して自分の好きに書きたい！～
+;2の朝駆け台詞内で CALL SETFLAG, "地の文スキップ" とすると1～6を消したうえで表示しなく出来る
+;この場合は対応した1,3,4,5に対応した右側の関数を自分で設定しつつ自由にできる…が上級者向け
+;（詩燈寧子、青空鈴などで記述例が見られます）
+;-------------------------------------------------
+@EVENT_NEWDAY, ARGS
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIM MEMO_ABL
+#DIM MEMO_EXP
+
+;朝Ｈフラグのリセット
+CVARSET CSTR, GETNUM(CSTR, "朝駆け")
+;朝駆けの衣装にお着替え
+CALL SET_COORDINATE, "朝駆け衣装"
+
+;最初にサドっ気イベントの判定を行う(発生確率が低い)。内容は CSTR:朝駆け に入っている
+CALL BIND_AT_MORNING
+IF RESULT == 1 && ARGS == ""
+	;朝拘束発生フラグON
+	SETBIT FLAG:状況判定, 14
+	BEGIN TURNEND
+	RETURN 1
+ENDIF
+
+;朝イベントの決定。内容は CSTR:朝駆け に入っている
+CALL PLAY_AT_MORNING
+SIF ARGS != ""
+	CSTR:朝駆け = %ARGS%
+
+;基本回数は精力依存
+TFLAG:プレイ回数 = LIMIT(BASE:精力/20 + LIMIT(RAND:(BASE:精力/10 + 1), 1, BASE:精力/15), 1, 3)
+;イベントごとの初期設定
+SELECTCASE CSTR:朝駆け
+CASE "朝逆正常位"
+	TFLAG:プレイ回数 += MIN(3, ABL:欲望/3)
+	SELECTCOM = TNUM("正常位奉仕")
+CASE "朝クンニ"
+	TFLAG:プレイ回数 += MIN(3, ABL:奉仕精神/3)
+	SELECTCOM = TNUM("奉仕クンニ")
+CASE "朝足コキ"
+	TFLAG:プレイ回数 += MIN(3, ABL:サドっ気/3)
+	SELECTCOM = TNUM("足コキ")
+CASE "朝の新妻プレイ"
+	TFLAG:プレイ回数 += MIN(5, (ABL:奉仕精神 + ABL:露出癖)/5)
+	IF TALENT:オトコ
+		SELECTCOM = TNUM("アナル後背位")
+	ELSE
+		SELECTCOM = TNUM("後背位")
+	ENDIF
+CASE "朝パイズリ"
+	TFLAG:プレイ回数 += MIN(3, (ABL:奉仕精神 + ABL:精液中毒)/5)
+	SELECTCOM = TNUM("パイズリ")
+CASE "朝騎乗位"
+	TFLAG:プレイ回数 += MIN(3, (ABL:Ｖ感覚 + ABL:精液中毒)/3)
+	SELECTCOM = TNUM("騎乗位")
+CASE "朝Ａ騎乗位"
+	TFLAG:プレイ回数 += MIN(3, (ABL:Ａ感覚 + ABL:精液中毒)/3)
+	SELECTCOM = TNUM("アナル騎乗位")
+CASE "朝キス"
+	TFLAG:プレイ回数 = LIMIT(TFLAG:プレイ回数/2 + (ABL:信頼 + ABL:奉仕精神)/5, 1, 1 + TALENT:相思相愛 + TALENT:蕩唇)
+	SELECTCOM = TNUM("キスする")
+CASE "朝添い寝"
+	TFLAG:プレイ回数 = 0
+	SELECTCOM = -1
+CASE "朝フェラ"
+	TFLAG:プレイ回数 += MIN(3, (ABL:奉仕精神 + ABL:精液中毒)/3)
+	SELECTCOM = TNUM("フェラチオ")
+CASE "朝シックスナイン"
+	TFLAG:プレイ回数 += MIN(3, (ABL:奉仕精神 + ABL:精液中毒)/3)
+	SELECTCOM = TNUM("シックスナイン")
+ENDSELECT
+
+;複数プレイの場合はここ。CSTR:朝駆けはTARGETの方のみ先頭に"Ｗ"が付いている
+SELECTCASE CSTR:朝駆け
+CASE "Ｗ朝フェラ"
+	;パートナーに設定
+	CALL SET_PARTNER, FIND_COND("Ｗ朝フェラ可能", "相性○")
+	;TARGET:1は経験表示の二人目なので設定しておく
+	TARGET:1 = PARTNER()
+
+	CSTR:PARTNER():朝駆け = 朝フェラ
+	TFLAG:プレイ回数 += MIN(3, (ABL:奉仕精神 + ABL:精液中毒)/3) + MIN(3, (ABL:PARTNER():奉仕精神 + ABL:PARTNER():精液中毒)/3)
+	SELECTCOM = TNUM("フェラチオ")
+	;こっちもお着替え
+	CALL SET_COORDINATE, "朝駆け衣装", PARTNER()
+ENDSELECT
+
+MEMO_ABL = ABL:MASTER:技巧
+;寝ているので技巧は0扱いにする
+ABL:MASTER:技巧 = 0
+
+;前準備開始
+CALL SIMULATE_TRAIN_FIRST, 1 + (PARTNER() > 0)
+
+IF TFLAG:プレイ回数
+	IF PARTNER()
+		MEMO_EXP = EXP:PLAYER:射精経験
+		CALL SIMULATE_TRAIN_COM, SELECTCOM, MAX(1, TFLAG:プレイ回数*2/3)
+		;あなたが射精しない時にはボーナスゲーム発生
+		FOR LCOUNT, 0, 5
+			SIF EXP:PLAYER:射精経験 > MEMO_EXP
+				BREAK
+			CALL SIMULATE_TRAIN_COM, SELECTCOM, 1
+		NEXT
+
+		CALL SWAP_PARTNER_TARGET
+		MEMO_EXP = EXP:PLAYER:射精経験
+		CALL SIMULATE_TRAIN_COM, SELECTCOM, MAX(1, TFLAG:プレイ回数/2)
+		FOR LCOUNT, 0, 5
+			SIF EXP:PLAYER:射精経験 > MEMO_EXP
+				BREAK
+			CALL SIMULATE_TRAIN_COM, SELECTCOM, 1
+		NEXT
+		CALL SWAP_PARTNER_TARGET
+	ELSE
+		CALL SIMULATE_TRAIN_COM, SELECTCOM, TFLAG:プレイ回数
+	ENDIF
+ENDIF
+
+REDRAW 0
+DRAWLINE
+;地の文をスキップする場合の準備
+TFLAG:地の文スキップ = 0
+TFLAG:LINECOUNT_地の文 = LINECOUNT
+
+;1 朝Ｈ地の文(導入)。ここはスキップに備えてWAITを一切使ってない。
+CALL BEFORETEXT_NEWDAY
+
+;2 朝駆け台詞。ここでCALL SETFLAG, "地の文スキップ"すると3と4と5をすっ飛ばすので全部自分でCALLするか書く必要がある
+MEMO_LINECOUNT = LINECOUNT
+CALL KOJO_GREETING, "朝駆け", TARGET
+;地の文スキップされていないならデフォの流れ
+IF TFLAG:地の文スキップ == 0
+	;もしもKOJO_GREETING, "朝駆け"で台詞無し＆地の文スキップ無しならば、BEFORETEXT_NEWDAYでWAITを使ってないので一回WAITを噛ませる
+	SIF LINECOUNT == MEMO_LINECOUNT
+		WAIT
+
+	;3 経験変動一覧の表示
+	CALL SIMULATE_SHOW_NEWDAY
+	;4 朝Ｈ地の文(事後)
+	CALL AFTERTEXT_NEWDAY
+	;5&6 顔グラと挨拶台詞
+	;複数プレイの場合はここ
+	IF PARTNER()
+		;PARTNERはCSTR:朝駆け = 朝フェラ、TARGETはCSTR:朝駆け = Ｗ朝フェラ となっているため喋る内容が違うのがミソ
+		CALL SWAP_PARTNER_TARGET
+		CALL KOJO_GREETING, "挨拶する", TARGET
+		CALL SWAP_PARTNER_TARGET
+	ENDIF
+
+	CALL KOJO_GREETING, "挨拶する", TARGET
+ENDIF
+
+;技巧を元に戻す
+ABL:MASTER:技巧 = MEMO_ABL
+
+;欲求不満度の解消度の大きさで分ける
+SELECTCASE CSTR:朝駆け
+CASE "朝逆正常位", "朝の新妻プレイ", "朝騎乗位", "朝Ａ騎乗位"
+	CALL CALC, "欲求不満解消", TARGET, MIN(TFLAG:プレイ回数*25, 75)
+CASE "朝フェラ", "朝シックスナイン"
+	CALL CALC, "欲求不満解消", TARGET, MIN(TFLAG:プレイ回数*20, 50)
+CASE "朝クンニ", "朝足コキ", "朝パイズリ", "朝キス"
+	CALL CALC, "欲求不満解消", TARGET, MIN(TFLAG:プレイ回数*10, 50)
+CASE "Ｗ朝フェラ"
+	CALL CALC, "欲求不満解消", TARGET, MIN(TFLAG:プレイ回数*10, 50)
+	CALL CALC, "欲求不満解消", PARTNER(), MIN(TFLAG:プレイ回数*10, 50)
+ENDSELECT
+
+;-------------------------------------------------
+;経験変動一覧の表示
+;-------------------------------------------------
+@SIMULATE_SHOW_NEWDAY
+#DIM MEMO_LINECOUNT
+
+MEMO_LINECOUNT = LINECOUNT
+
+CALL SIMULATE_TRAIN_CALC
+CALL SIMULATE_TRAIN_SHOW
+
+SIF LINECOUNT > MEMO_LINECOUNT
+	WAIT
+
+;-------------------------------------------------
+;朝Ｈ地の文(導入)
+;-------------------------------------------------
+@BEFORETEXT_NEWDAY
+SELECTCASE CSTR:朝駆け
+CASE "朝逆正常位"
+	PRINTFORML %CALLNAME:MASTER%は下腹部\@ RAND:2 ? を襲う衝撃 # から広がる快感 \@に気がついて目を覚ました
+	PRINTFORML どうやら、%CALLNAME:TARGET%が寝ている%CALLNAME:MASTER%を犯して楽しんでいる最中のようだ…
+CASE "朝クンニ"
+	PRINTFORML 朝、目を覚ますと股間が生暖かい…
+	PRINTFORM もしや、と思い勢いよく布団をめくってみると、
+	IF ABL:欲望 >= 5 && RAND:3 == 0
+		PRINTFORM 上気した様子で
+	ELSEIF RAND:3 == 0
+		PRINTFORM 股間に顔を埋めて
+	ELSEIF RAND:2
+		PRINTFORM 股を押し開きながら
+	ELSE
+		PRINTFORM 脚の間に身体を割り込ませて
+	ENDIF
+	PRINTFORML アソコを舐めている%CALLNAME:TARGET%と目が合った
+CASE "朝足コキ"
+	PRINTFORML 朝、%CALLNAME:TARGET%\@ PENIS(MASTER) ? の足コキで # に足でアソコを責められて \@目を覚ました
+CASE "朝の新妻プレイ"
+	PRINTFORML 朝起きると、キッチンからいい匂いが漂ってきた
+	PRINTFORML そこに行くと%CALLNAME:TARGET%が裸エプロンで朝食を作っていた…
+	PRINTFORML ―――衝動的に後ろから襲い掛かった
+CASE "朝パイズリ"
+	PRINTFORML 朝、目が覚めると同時に下腹部に違和感があるのに気づいた
+	;貧乳の場合
+	IF TALENT:貧乳 || TALENT:オトコ
+		PRINTFORML 気づかれないように目をやると、%CALLNAME:TARGET%が胸にペニスを擦り付けていた
+		SIF EXP:パイズリ経験 < 50
+			PRINTFORML どうやらパイズリの練習をしているらしい……
+	;巨乳の場合
+	ELSEIF TALENT:巨乳
+		PRINTFORML 目をやると%CALLNAME:TARGET%が大きな胸でペニスを挟み、擦り上げている
+	;それ以外
+	ELSE
+		PRINTFORML 目をやると%CALLNAME:TARGET%が胸でペニスを擦り上げ、先端から溢れる液体を吸っている
+	ENDIF
+CASE "朝騎乗位"
+	PRINTFORML 朝起きると腰の辺りに重みを感じた
+	PRINTFORM 目をやると%CALLNAME:TARGET%が
+	IF SIZE("ペニス", PLAYER) >= 2 && RANDIF(1, TALENT:巨乳)
+		IF ABL:Ｖ拡張 >= SIZE("ペニス", PLAYER)
+			PRINTFORM 上に跨り、
+			IF STRCOUNTS(CONDS("体型"), "スリム", "スレンダー")
+				PRINTFORM スレンダーな身体で
+			ELSEIF TALENT:小柄
+				PRINTFORM 小さな体で
+			ENDIF
+		ENDIF
+		PRINTFORM %CALLNAME:MASTER%の
+		SELECTCASE SIZE("ペニス", PLAYER)
+		CASE IS >= 4
+			PRINTFORM 規格外の巨根
+		CASEELSE
+			PRINTFORM 巨根
+		ENDSELECT
+		PRINTFORM \@ABL:Ｖ拡張 >= SIZE("ペニス", PLAYER) ? を膣で根元まで収めて # に跨って \@
+	ELSE
+		PRINTFORM 上に跨って
+		IF TALENT:巨乳
+			IF RAND:3 == 0
+				PRINTFORM 、%TOFULL(CONDS("バストカップ") )%カップの%TALENT_NAME(GETNUM(TALENT, "巨乳"), TALENT:巨乳)%を揺らしながら
+			ELSEIF TALENT:巨乳 >= 2
+				IF RAND:2
+					PRINTFORM 、豊満な胸を派手に揺らしながら
+				ELSE
+					PRINTFORM 、重そうなおっぱいをユサユサと揺らしながら
+				ENDIF
+			ELSEIF RAND:2
+				PRINTFORM 、大きな胸を揺らしながら
+			ELSE
+				PRINTFORM 、胸を揉みしだきながら
+			ENDIF
+		ENDIF
+	ENDIF
+	PRINTFORML 喘いでいる……
+	IF TARGET == ASSI
+		IF RAND:2
+			PRINTFORML %CALLNAME:MASTER%が目を覚ましたことを確認すると、%CALLNAME:TARGET%は緩々と腰を動かし、嬌声を挿みながら今日のスケジュールを読み上げ始めた…
+		ELSE
+			PRINTFORML 寝起きで頭が胡乱な%CALLNAME:MASTER%は、%CALLNAME:TARGET%の腰を掴んで突き上げながら今日のスケジュールを喘ぎ声まじりで報告させた…
+		ENDIF
+	ENDIF
+CASE "朝Ａ騎乗位"
+	PRINTFORML 朝起きると腰の辺りに重みを感じた
+	PRINTFORM 目をやると%CALLNAME:TARGET%が
+	IF SIZE("ペニス", PLAYER) >= 2 && RANDIF(1, TALENT:巨乳)
+		IF ABL:Ａ拡張 >= SIZE("ペニス", PLAYER)
+			PRINTFORM 上に跨り、
+			IF STRCOUNTS(CONDS("体型"), "スリム", "スレンダー")
+				PRINTFORM スレンダーな身体で
+			ELSEIF TALENT:小柄
+				PRINTFORM 小さな体で
+			ENDIF
+		ENDIF
+		PRINTFORM %CALLNAME:MASTER%の
+		SELECTCASE SIZE("ペニス", PLAYER)
+		CASE IS >= 4
+			PRINTFORM 規格外の巨根
+		CASEELSE
+			PRINTFORM 巨根
+		ENDSELECT
+		PRINTFORM \@ABL:Ａ拡張 >= SIZE("ペニス", PLAYER) ? をアナルで根元まで収めて # に跨って \@
+	ELSE
+		PRINTFORM 上に跨って
+		IF TALENT:巨乳
+			IF RAND:3 == 0
+				PRINTFORM 、%TOFULL(CONDS("バストカップ") )%カップの%TALENT_NAME(GETNUM(TALENT, "巨乳"), TALENT:巨乳)%を揺らしながら
+			ELSEIF TALENT:巨乳 >= 2
+				IF RAND:2
+					PRINTFORM 、豊満な胸を派手に揺らしながら
+				ELSE
+					PRINTFORM 、重そうなおっぱいをユサユサと揺らしながら
+				ENDIF
+			ELSEIF RAND:2
+				PRINTFORM 、大きな胸を揺らしながら
+			ELSE
+				PRINTFORM 、胸を揉みしだきながら
+			ENDIF
+		ENDIF
+	ENDIF
+	PRINTFORML 喘いでいる……
+	IF TARGET == ASSI
+		IF RAND:2
+			PRINTFORML %CALLNAME:MASTER%が目を覚ましたことを確認すると、%CALLNAME:TARGET%は緩々と腰を動かし、嬌声を挿みながら今日のスケジュールを読み上げ始めた…
+		ELSE
+			PRINTFORML 寝起きで頭が胡乱な%CALLNAME:MASTER%は、%CALLNAME:TARGET%の腰を掴んで突き上げながら今日のスケジュールを喘ぎ声まじりで報告させた…
+		ENDIF
+	ENDIF
+CASE "朝キス"
+	;奉仕レベルが高いと、先に起きている確率が高い
+	IF ABL:奉仕精神 >= 5 && RANDF(2)
+		PRINTFORML 朝、%CALLNAME:TARGET%の\@ TFLAG:プレイ回数 >= 3 ? 濃厚な # \@口付けで目を覚ました
+	ELSE
+		IF (COND("夜這い相手") || AGE(TARGET) == 1) && RAND:2
+			PRINTFORML 朝、%CALLNAME:MASTER%は突然の揺れと身体にかかる重みで目を覚ました
+			PRINTFORML どうやら、%CALLNAME:TARGET%が%TEXTR("胸/腰")%に跨ってユサユサ揺すっていたようだ…
+			PRINTFORML %CALLNAME:MASTER%の目覚めに気付いた%CALLNAME:TARGET%は、顔を近づけておはようのキスをしてきた
+		ELSEIF TALENT:巨乳 && RAND:2
+			PRINTFORML 朝、目を覚ますと枕が妙に柔らかくて気持ち良い……
+			IF TALENT:恥薄い && RAND:3 == 0
+				PRINT 全裸で
+			ELSEIF RAND:2
+				PRINT 下着姿で
+			ENDIF
+			PRINTFORML ベッドに潜り込んだ%CALLNAME:TARGET%が、%CALLNAME:MASTER%の頭を胸に抱き抱えているようだ
+			PRINTFORML %CALLNAME:MASTER%の目覚めに気付いた%CALLNAME:TARGET%は、顔を近づけておはようのキスをしてきた
+		ELSE
+			PRINTFORML 朝、目を覚ますと身体が重い……
+			PRINTFORML いつの間にかベッドに潜り込んだ%CALLNAME:TARGET%が、%CALLNAME:MASTER%を抱き枕にしているようだ
+			IF TALENT:相思相愛 && RAND:2
+				PRINTFORML %CALLNAME:MASTER%が愛おしさに耐え切れずに眠っている%CALLNAME:TARGET%に口付けをすると、
+				PRINTFORML %CALLNAME:TARGET%は夢見心地のままで%CALLNAME:MASTER%の頬を捕まえて、深い深いキスを返してきた…
+			ELSE
+				PRINTFORML %CALLNAME:MASTER%の目覚めに気付いた%CALLNAME:TARGET%は、顔を近づけておはようのキスをしてきた
+			ENDIF
+		ENDIF
+	ENDIF
+CASE "朝添い寝"
+	IF (COND("夜這い相手") || AGE(TARGET) == 1) && RAND:2
+		PRINTFORML 朝、%CALLNAME:MASTER%は突然の揺れと身体にかかる重みで目を覚ました
+		PRINTFORML どうやら、%CALLNAME:TARGET%が胸に跨ってユサユサとしていたようだ…
+	ELSEIF TALENT:巨乳 && RAND:2
+		PRINTFORML 朝、目を覚ますと枕が妙に柔らかくて気持ち良い……
+		IF TALENT:恥薄い && RAND:3 == 0
+			PRINT 全裸で
+		ELSEIF RAND:2
+			PRINT 下着姿で
+		ENDIF
+		PRINTFORML ベッドに潜り込んだ%CALLNAME:TARGET%が、%CALLNAME:MASTER%の頭を胸に抱き抱えているようだ
+	ELSE
+		PRINTFORML 朝、目を覚ますと身体が重い……
+		PRINTFORML いつの間にかベッドに潜り込んだ%CALLNAME:TARGET%が、%CALLNAME:MASTER%を抱き枕にしているようだ
+	ENDIF
+CASE "朝フェラ"
+	PRINTFORML 朝、目が覚めると妙に下腹部が気持ち良い…
+	PRINTFORML どうやら、\@ CALCF("同棲チェック") ? 同棲中の # \@%CALLNAME:TARGET%が寝ている%CALLNAME:MASTER%にフェラチオをしていたようだ…
+CASE "Ｗ朝フェラ"
+	PRINTFORML 朝、目が覚めると妙に下腹部が気持ち良い…
+	PRINTFORML どうやら、%CALLNAME:PARTNER()%と%CALLNAME:TARGET%が協力して寝ている%CALLNAME:MASTER%にフェラチオをしていたようだ…
+CASE "朝シックスナイン"
+	PRINTFORML 朝、目が覚めると妙に下腹部が気持ち良い…
+	PRINTFORM 視線をそちらに向けると…大股開きの体勢で身体に跨る%CALLNAME:TARGET%の
+	IF (TALENT:淫乱 && ABL:露出癖 >= 5 && RAND:2) || CLO_ORI(TARGET,"ボディスーツ","パンツ") == 0 || COND("身嗜み：ノーパン")
+		IF RAND:3 == 0
+			PRINT 今にも愛液が垂れそうなアソコ
+		ELSEIF RAND:2
+			PRINT すっかり発情したアソコ
+		ELSE
+			PRINT 剥き出しのアソコ
+		ENDIF
+	ELSEIF CLO_ORI(TARGET,"ボディスーツ")
+		IF (ABL:欲望 >= 4 || TALENT:濡れやすい) && RAND:2
+			PRINTFORM 染みの浮いたパンツ
+		ELSEIF AGE(TARGET) >= 3
+			PRINTFORM 股間に食い込むパンツ
+		ELSE
+			PRINTFORM 可愛らしいパンツ
+		ENDIF
+	ELSE
+		IF (ABL:欲望 >= 4 || TALENT:濡れやすい) && RAND:2
+			PRINTFORM 染みの浮いた
+		ELSEIF AGE(TARGET) >= 3
+			PRINTFORM 股間に食い込む
+		ELSE
+			PRINTFORM 可愛らしい
+		ENDIF
+		IF EQUIP:パンツ
+			PRINTFORM %PANTIES(TARGET, "略")%
+		ELSE
+			PRINTFORM パンツ
+		ENDIF
+	ENDIF
+	PRINTL が目に入った
+	PRINTFORML どうやら、%CALLNAME:TARGET%が寝ている%CALLNAME:MASTER%の顔に股間を擦りつけながらフェラチオをしていたようだ…
+ENDSELECT
+
+
+;-------------------------------------------------
+;朝Ｈ地の文(事後)
+;-------------------------------------------------
+@AFTERTEXT_NEWDAY
+SELECTCASE CSTR:朝駆け
+CASE "朝逆正常位"
+	IF TARGET == ASSI
+		IF EXP_GAIN("射精経験") && RAND:2
+			PRINTFORMW すっかり目が覚めた%CALLNAME:MASTER%は腰を突き出して%CALLNAME:TARGET%にしっかり奉仕するように言いつけると、膣奥を叩く精液の感触を楽しみながら今日のスケジュールを報告させました…
+		ELSE
+			PRINTFORMW 主人が目を覚ましたことを確認すると、%CALLNAME:TARGET%は緩々と腰を動かして%CALLNAME:MASTER%に嬌声をあげさせながら今日のスケジュールを報告しはじめた…
+		ENDIF
+	;ＭＡＳＴＥＲ主導権な展開はまだできてない
+	;ELSEIF RAND:2
+	;	PRINTFORMW %CALLNAME:MASTER%が下半身の違和感に目を覚ますと、下着を剥ぎ取りいきり立ったペニスを突き入れようとする%CALLNAME:TARGET%と目があった
+	;	PRINTFORMW しどろもどろになって言い訳するAへあなたは妖艶に笑いかけながら、足を開いてAを誘った…
+	ELSE
+		IF EXP_GAIN("射精経験") && RAND:3 == 0
+			PRINTFORM %CALLNAME:MASTER%が起きるまで射精を我慢していたらしい%CALLNAME:TARGET%は、
+		ELSEIF RAND:2
+			PRINTFORM 膣の締まりの変化で%CALLNAME:MASTER%の目覚めを感じ取った%CALLNAME:TARGET%は、
+		ELSE
+			PRINTFORM 寝込みを襲ったことについて嗜める%CALLNAME:MASTER%の口をキスで塞いだ%CALLNAME:TARGET%は、
+		ENDIF
+		IF EXP_GAIN("射精経験") && RAND:3 == 0
+			PRINTFORMW 腰を突き出すと共に大量の精液を\@ COND("危険日", MASTER) ? 危険日の子宮に流し込み # 気持ちよさそうに中出しし \@ながら朝の挨拶をしてきた…
+		ELSEIF ABL:腰使い >= 3 && RAND:3 == 0
+			PRINTFORMW 巧みに腰を動かしてお互いの快感を高めながら朝の挨拶をしてきた…
+		ELSEIF ABL:サドっ気 >= 3 && RAND:2
+			PRINTFORMW 寝起きで\@ RAND:2 ? 抵抗が弱い # 動きの鈍い \@のをいい事に\@ (EXP_GAIN("射精経験") && RAND:2) ? たっぷりと種付け # 更に激しく犯 \@しながら朝の挨拶をしてきた…
+		ELSE
+			PRINTFORMW 叩きつけるように腰を振って気持ちよさそうな顔を見せながら朝の挨拶をしてきた…
+		ENDIF
+	ENDIF
+CASE "朝クンニ"
+	PRINTFORM %CALLNAME:TARGET%はぺろっと舌を出して笑顔を浮かべ、
+	IF ABL:奉仕精神 >= 3 && RAND:2
+		PRINTFORMW 陰唇を綺麗にお掃除しながら朝の挨拶をしてきた…
+		CALL RESET_STAIN_EX, "Ｖ", MASTER
+	ELSE
+		PRINTFORMW 朝の挨拶をしてきた…
+	ENDIF
+
+	;IF COND("身嗜み：ノーパン", MASTER) == 0 && RAND:2
+	;	PRINTFORMW %CALLNAME:TARGET%が部屋を出て行った後に鏡の前に立つと、無防備な下半身が目に入る
+	;	PRINTFORMW …どうやら、%CALLNAME:TARGET%にパンツを持っていかれたようだ……
+	;ENDIF
+CASE "朝足コキ"
+	PRINTFORM %CALLNAME:TARGET%は
+	IF TALENT:意地悪 || TALENT:小悪魔
+		IF EXP_GAIN("射精経験", MASTER)
+			PRINTFORM 足に付着した精液を指で拭ってペロリとひと舐めしつつ、
+		ELSEIF PENIS(MASTER) == 0
+			PRINTFORM 足に付着した愛液を指で拭ってペロリとひと舐めしつつ、
+		ENDIF
+	ENDIF
+	PRINTFORMW 優越感に浸ったような顔で朝の挨拶をしてきた
+
+CASE "朝の新妻プレイ"
+	PRINTFORMW 思わず朝食前に%CALLNAME:TARGET%を頂いてしまった…
+	SIF TALENT:恥じらい || TALENT:生意気
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の行為に文句を言ったりしているが、明らかに嬉しそうだ…
+CASE "朝パイズリ"
+	IF EXP_GAIN("射精経験", MASTER)
+		PRINTFORMW %CALLNAME:TARGET%は精液の貼りついた顔で朝の挨拶をしてきた
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%は股間に顔を埋めたままの姿勢で朝の挨拶をしてきた
+	ENDIF
+CASE "朝騎乗位"
+	IF EXP_GAIN("射精経験", MASTER)
+		IF TARGET != ASSI
+			PRINTFORMW %CALLNAME:TARGET%は膣内で射精を受け止めながら、朝の挨拶をしてきた
+		ELSE
+			PRINTFORMW 騎乗位で%CALLNAME:TARGET%の膣内に射精しながら朝の挨拶を交わしました
+		ENDIF
+	ELSE
+		PRINTFORMW 騎乗位で目を覚ましました
+	ENDIF
+CASE "朝Ａ騎乗位"
+	IF EXP_GAIN("射精経験", MASTER)
+		IF TARGET == ASSI
+			PRINTFORMW 騎乗位で%CALLNAME:TARGET%のアナルに射精しながら朝の挨拶を交わしました
+		ELSE
+			IF COND("Ａお掃除フェラ可能")
+				PRINTFORML %TEXTR("アナル/お尻の穴")%で%TEXTR("精液を搾り取っ/快楽を貪っ")%た%CALLNAME:TARGET%は、%CALLNAME:MASTER%の汚れたペニス%TEXTR("を舌で綺麗にし/に感謝の口付けをし/を舐め清め")%ながら朝の挨拶をしてきた
+				;恥垢もお掃除
+				CALL RESET_STAIN_EX, "Ｐ", MASTER
+				PRINTFORMW お掃除フェラ経験＋１
+				EXP:お掃除フェラ経験 += 1
+			ELSE
+				PRINTFORMW %CALLNAME:TARGET%は、%TEXTR("アナル/お尻の穴/不浄の穴")%で%CALLNAME:MASTER%の%TEXTR("精液を搾り取り/射精を受け止め/精液を味わい")%ながら朝の挨拶をしてきた
+			ENDIF
+		ENDIF
+	ELSE
+		PRINTFORMW アナル騎乗位で目を覚ましました
+	ENDIF
+
+CASE "朝キス"
+	IF ABL:奉仕精神 >= 5 && RANDF(2)
+		PRINTFORM %CALLNAME:TARGET%は
+		IF RAND:4 && TALENT:恥じらい && TALENT:素直 + TALENT:相思相愛 == 0
+			PRINTFORM 顔を朱に染めながら
+		ELSE
+			PRINTFORM %CALLNAME:MASTER%に抱きつ\@ TALENT:好色 ? いて、股間を撫でさすり # き \@ながら、
+		ENDIF
+		PRINTFORMW 朝の挨拶をしてきた
+	ENDIF
+CASE "朝添い寝"
+	PRINTFORM %CALLNAME:TARGET%は
+	IF RAND:4 && TALENT:恥じらい && TALENT:素直 + TALENT:相思相愛 == 0
+		PRINTFORM 顔を朱に染めながら
+	ELSE
+		PRINTFORM %CALLNAME:MASTER%に抱きつ\@ TALENT:好色 ? いて、股間を撫でさすり # き \@ながら、
+	ENDIF
+	PRINTFORMW 朝の挨拶をしてきた
+CASE "朝フェラ", "朝シックスナイン"
+	IF (TALENT:好色 || ABL:奉仕精神 >= 5) && CLO_ORI(TARGET,"パンツ") && COND("身嗜み：ノーパン") == 0 && RAND:3 == 0
+		PRINTFORM %CALLNAME:TARGET%は体温の残るパンツで%CALLNAME:MASTER%のペニスを拭き清め
+		IF RAND:2
+			PRINTFORMW ながら朝の挨拶をしてきた
+		ELSE
+			PRINTFORMW て、目の前で汚れたそれを穿きながら朝の挨拶をしてきた
+		ENDIF
+	ELSEIF CSTR:朝駆け == "朝シックスナイン" && ABL:サドっ気 && RAND:2
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の顔にふにゅっと股間を下ろして、肩越しに朝の挨拶をしてきた
+	;お掃除フェラ
+	ELSEIF (ABL:奉仕精神 >= 5 || TALENT:献身) && RAND:3
+		;ＭＡＳＴＥＲが包茎
+		IF TALENT:MASTER:包茎 && ABL:奉仕精神 + TALENT:献身 >= 5 && RAND:3
+			PRINTFORM %CALLNAME:TARGET%は%CALLNAME:MASTER%の
+			IF COND("真性包茎", MASTER)
+				PRINTFORML 亀頭を包む皮の中に舌を差し入れ、内部に溜まった恥垢を舌で掻き出しながら朝の挨拶をしてきた
+			ELSE
+				PRINTFORML 包茎ペニスの皮をぐっと根元の方に寄せて亀頭を剥き出しにし、寝ている間に溜まった恥垢を舌でお掃除しながら朝の挨拶をしてきた
+			ENDIF
+			;恥垢もお掃除
+			CALL RESET_STAIN_EX, "Ｐ", MASTER
+		ELSE
+			IF EXP_GAIN("射精経験", MASTER)
+				PRINTFORM %CALLNAME:TARGET%は精液を\@ ABL:精液中毒 >= 3 ? 美味しそう # 零さず \@に飲み込むと、
+			ELSE
+				PRINTFORM %CALLNAME:TARGET%は%CALLNAME:MASTER%のペニスを
+			ENDIF
+			;ちんきす
+			IF (TALENT:恋慕 || MARK:屈服刻印 >= 2) && RAND:2
+				PRINTFORML 舌でお掃除した後に鈴口にキスをしながら朝の挨拶をしてきた
+			ELSE
+				PRINTFORML 口でお掃除しながら朝の挨拶をしてきた
+			ENDIF
+		ENDIF
+		PRINTFORMW お掃除フェラ経験＋１
+		EXP:お掃除フェラ経験 += 1
+	ELSEIF EXP_GAIN("射精経験", MASTER) && RAND:3
+		IF ABL:サドっ気 >= 3 && RAND:2
+			PRINTFORMW %CALLNAME:TARGET%は精液を味わいながら飲み込むと、唇をぺろりと舐めて朝の挨拶をしてきた
+		ELSE
+			PRINTFORMW %CALLNAME:TARGET%は精液の貼りついた顔で朝の挨拶をしてきた
+		ENDIF
+	ELSE
+		PRINTFORM %CALLNAME:TARGET%は股間に顔を埋め
+		IF COND("指の使用") && RAND:4 == 0
+			PRINTFORM て指のぬめりを舐めとりながら、笑顔で
+		ELSE
+			PRINTFORM %TEXTR("て、ペニスを舐めしゃぶりながら/て口をもごもごさせながら、くぐもった声で/たままの姿勢で")%
+		ENDIF
+		PRINTFORMW 朝の挨拶をしてきた
+	ENDIF
+CASE "Ｗ朝フェラ"
+	;お掃除フェラ
+	IF (ABL:奉仕精神 >= 5 || TALENT:献身) && RAND:3
+		;ＭＡＳＴＥＲが包茎
+		IF TALENT:MASTER:包茎 && ABL:奉仕精神 + TALENT:献身 >= 5 && RAND:3
+			PRINTFORM %CALLNAME:PARTNER()%達は%CALLNAME:MASTER%の
+			IF COND("真性包茎", MASTER)
+				PRINTFORML 亀頭を包む皮の中に舌を差し入れ、内部に溜まった恥垢を舌で競うように掻き出しながら朝の挨拶をしてきた
+			ELSE
+				PRINTFORML 包茎ペニスの皮をぐっと根元の方に寄せて亀頭を剥き出しにし、寝ている間に溜まった恥垢を舌で代わりばんこにお掃除しながら朝の挨拶をしてきた
+			ENDIF
+			;恥垢もお掃除
+			CALL RESET_STAIN_EX, "Ｐ", MASTER
+		ELSE
+			IF EXP_GAIN("射精経験", MASTER)
+				PRINTFORM %CALLNAME:PARTNER()%達は精液を\@ ABL:精液中毒 >= 3 ? 美味しそう # 零さず \@に飲み込むと、
+			ELSE
+				PRINTFORM %CALLNAME:PARTNER()%達は%CALLNAME:MASTER%のペニスを
+			ENDIF
+			;ちんきす
+			IF (TALENT:恋慕 || MARK:屈服刻印 >= 2) && RAND:2
+				PRINTFORML 舌でお掃除した後に亀頭へと左右からキスをしながら朝の挨拶をしてきた
+			ELSE
+				PRINTFORML 口で協力してお掃除しながら朝の挨拶をしてきた
+			ENDIF
+		ENDIF
+		PRINTFORMW お掃除フェラ経験＋１(二人とも)
+		EXP:お掃除フェラ経験 += 1
+		EXP:PARTNER():お掃除フェラ経験 += 1
+	ELSEIF EXP_GAIN("射精経験", MASTER) && RAND:3
+		PRINTFORMW %CALLNAME:PARTNER()%達は精液の貼りついた顔で、左右からペニスに舌を這わせながら朝の挨拶をしてきた
+	ELSE
+		PRINTFORM %CALLNAME:PARTNER()%達は股間に顔を埋め
+		PRINTFORM %TEXTR("て、ペニスを舐めしゃぶりながら/て口をもごもごさせながら、くぐもった声で/たままの姿勢で")%
+		PRINTFORMW 朝の挨拶をしてきた
+	ENDIF
+ENDSELECT
+
+
+@PLAY_AT_MORNING
+#DIM LCOUNT
+
+;実行可能コマンドの確認
+CALL CHECK_COM_ABLE, TARGET
+
+STR:選択肢 = 
+
+SIF CANTRAIN("キス") && EXP:キス経験 && COND("合意：キス") && CHECK_COM("キス") && (CFLAG:好感度 >= 1000 || TALENT:Ｍ性向 || TALENT:恋慕)
+	STR:選択肢 += "朝キス/"
+;ちょっと例外なので一旦オミット
+;SIF (TALENT:恋慕 || ABL:信頼 >= 5) && TALENT:母乳体質 && ABL:奉仕精神 >= 3 && EXP:噴乳経験 >= 20
+;	STR:選択肢 += "朝の母乳搾り/"
+SIF CANTRAIN("足コキ") && EXP:足コキ経験 && ABL:サドっ気 >= 3
+	STR:選択肢 += "朝足コキ/"
+SIF CANTRAIN("奉仕クンニ") && EXP:クンニ経験 && COND("性別嫌悪") == 0 && TALENT:MASTER:オトコ == 0
+	STR:選択肢 += "朝クンニ/"
+SIF CANTRAIN("正常位奉仕") && PENIS(TARGET) && FIRSTCOMS("Ｖ逆挿入") && TALENT:童貞 == 0 && EXP:Ｖ挿入経験 >= 20 && ABL:欲望 >= 3 && TALENT:MASTER:処女 == 0 && TALENT:MASTER:妊娠 == 0
+	STR:選択肢 += "朝逆正常位/"
+
+IF CANTRAIN("フェラチオ") && EXP:フェラ経験 && PENIS(MASTER) && COND("性別嫌悪") == 0 && MAX(ABL:欲望, ABL:奉仕精神) >= 3 && (ABL:精液中毒 >= 1 || ABL:奉仕精神 >= 5)
+	CALL COM_ABLE99
+	IF CANTRAIN("シックスナイン") && PENIS(TARGET) == 0 && COND("脚の使用") && ABL:欲望 >= 3 && ABL:奉仕精神 >= 3 && CLO_ORI(TARGET,"アウター") == 0 && RAND:2
+		STR:選択肢 += "朝シックスナイン/"
+	ELSEIF COND("Ｗ朝フェラ可能") && FIND_COND("Ｗ朝フェラ可能", "相性○") && RAND:2
+		STR:選択肢 += "Ｗ朝フェラ/"
+	ELSE
+		STR:選択肢 += "朝フェラ/"
+	ENDIF
+ENDIF
+SIF CANTRAIN("騎乗位") && EXP:Ｖ性交経験 && PENIS(MASTER) && (ABL:奉仕精神 >= 5 || (ABL:欲望 >= 4 && ABL:Ｖ感覚 >= 3) ) && TALENT:処女 + TALENT:オトコ + TALENT:PLAYER:童貞 == 0 && COND("女性主導生セックス")
+	STR:選択肢 += "朝騎乗位/"
+SIF CANTRAIN("アナル騎乗位") && COND("Ａ熟達") > COND("Ｖ熟達") && PENIS(MASTER) && (ABL:奉仕精神 >= 5 || (ABL:欲望 >= 4 && ABL:Ａ感覚 >= 3) ) && EXP:PLAYER:Ａ挿入経験
+	STR:選択肢 += "朝Ａ騎乗位/"
+SIF CANTRAIN("パイズリ") && EXP:パイズリ経験 && PENIS(MASTER) && COND("性別嫌悪") == 0 && ABL:奉仕精神 >= 4 && (COND("男の娘") || TALENT:オトコ == 0)
+	STR:選択肢 += "朝パイズリ/"
+IF CANTRAIN("後背位") && PENIS(MASTER) && TALENT:恋慕
+	IF TALENT:オトコ == 0
+		SIF EXP:Ｖ性交経験 && TALENT:処女 + TALENT:PLAYER:童貞 == 0 && COND("女性主導生セックス")
+			STR:選択肢 += "朝の新妻プレイ/"
+	ELSEIF COND("男の娘")
+		SIF EXP:Ａ性交経験 && FIRSTCOMS("Ａ挿入") && COND("Ａ熟達")
+			STR:選択肢 += "朝の新妻プレイ/"
+	ENDIF
+ENDIF
+
+IF STR:選択肢 == ""
+	STR:選択肢 += "朝添い寝/"
+ELSEIF COND("夏") == 0 && (ABL:信頼 >= 5 || CFLAG:好感度 >= 2000 || TALENT:恋慕)
+	STR:選択肢 += "朝添い寝/"
+ENDIF
+
+CSTR:朝駆け = %TEXTR(STR:選択肢)%
+
+RETURN 0
+

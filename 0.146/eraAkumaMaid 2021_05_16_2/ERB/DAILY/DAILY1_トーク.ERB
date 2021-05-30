@@ -1,0 +1,182 @@
+;-------------------------------------------------
+;トーク。とりあえず選んで様子を見る
+;挨拶して無いならまず挨拶。そのあとはわりとてきとー
+;-------------------------------------------------
+@MESSAGE_DAILY_SELECT1
+;起きうるイベントの判定に使う
+STR:選択肢 = 
+
+SELECTCASE DAILYCOMNAME(1)
+CASE "トーク"
+	;口上側で選択肢を自由に作ることができる
+	TRYCALLFORM DAILY1_K{NO:TARGET}_ADDSELECT
+
+	STR:選択肢 += "雑談する/"
+	SIF CHARA_NUM("室内の邪魔者")
+		STR:選択肢 += "みんなで雑談する/"
+	;IF COND("セクハラ雑談可能")
+	;	SIF TALENT:乳房
+	;		STR:選択肢 += "胸を揉みながら雑談する/"
+	;	STR:選択肢 += "股間を弄りながら雑談する/"
+	;ENDIF
+	;SIF TALENT:好色 || TALENT:淫乱 || ABL:欲望 >= 5
+	;	STR:選択肢 += "Ｈな話をする/"
+	SIF CFLAG:甘い言葉 == 0 && (TALENT:片思い || TALENT:相思相愛 || TALENT:MASTER:甘い言葉)
+		STR:選択肢 += "甘い言葉/"
+	SIF CFLAG:褒める == 0
+		STR:選択肢 += "褒める/"
+	SIF CFLAG:褒める == 0 && COND("おやつを手作りした")
+		STR:選択肢 += "おやつを褒める/"
+	;SIF COND("パンツ色確認") == 0
+	;	STR:選択肢 += "パンツの話/"
+
+	STR:選択肢 += "やっぱやめる/"
+
+	SELECTCASE STRCOUNT(STR:選択肢, "/")
+	CASE IS >= 2
+		VARSET LOCALS
+		SPLIT STR:選択肢, "/", LOCALS
+		CALL PRINT_SELECT, STR:選択肢
+		STR:日常イベント名 = %LOCALS:RESULT%
+	CASEELSE
+		STR:日常イベント名 = %TEXTR(STR:選択肢)%
+	ENDSELECT
+
+	SELECTCASE STR:日常イベント名
+	CASE "やっぱやめる"
+		STR:日常イベント名 = 
+		RETURN 0
+	CASE "雑談する"
+		STR:日常イベント名 = トーク
+	CASE "みんなで雑談する"
+		STR:日常イベント名 = トーク
+		FLAG:対複数 = 1
+	ENDSELECT
+CASE "挨拶する"
+	STR:選択肢 = 普通に挨拶/
+	SIF CHARA_NUM("挨拶していない") >= 2
+		STR:選択肢 += "みんなに挨拶/"
+	STR:選択肢 += "ハグしながら/"
+	SIF COND("合意：キス")
+		STR:選択肢 += "キスしながら/"
+	IF COND("性別嫌悪") == 0 && CHECK_OUTER("ズボン") == 0
+		IF PENIS(TARGET)
+			STR:選択肢 += "ちんキスしながら/"
+		ELSE
+			STR:選択肢 += "アソコにキスしながら/"
+		ENDIF
+	ENDIF
+	VARSET LOCALS
+	SPLIT STR:選択肢, "/", LOCALS
+	CALL PRINT_SELECT, STR:選択肢
+
+	SELECTCASE LOCALS:RESULT
+	CASE "ハグしながら"
+		STR:日常イベント名 = 挨拶ハグ
+	CASE "キスしながら"
+		STR:日常イベント名 = 挨拶キス
+	CASE "ちんキスしながら"
+		STR:日常イベント名 = 挨拶フェラ
+	CASE "アソコにキスしながら"
+		STR:日常イベント名 = 挨拶クンニ
+	CASE "みんなに挨拶"
+		STR:日常イベント名 = 挨拶する
+		FLAG:対複数 = 1
+	CASEELSE
+		STR:日常イベント名 = 挨拶する
+	ENDSELECT
+CASEELSE
+	STR:日常イベント名 = %DAILYCOMNAME(1)%
+ENDSELECT
+
+;-------------------------------------------------
+;ここにはセリフのみを置く
+;-------------------------------------------------
+@MESSAGE_DAILY1
+SIF TFLAG:地の文スキップ
+	RETURN 0
+SELECTCASE STR:日常イベント名
+CASE "起こす"
+	;汚した？
+	IF COND("着衣の乱れ")
+		PRINTFORMW 着衣の乱れを直して証拠隠滅した%CALLNAME:MASTER%は、肩を優しく揺すって%CALLNAME:TARGET%を眠りから覚ました。
+	ELSEIF EXP_GAIN("睡眠悪戯経験") + EXP_GAIN("睡眠姦経験")
+		PRINTFORMW 十分楽しんだ%CALLNAME:MASTER%は、肩を優しく揺すって%CALLNAME:TARGET%を眠りから覚ました。
+	ELSE
+		PRINTFORMW %CALLNAME:MASTER%は肩を優しく揺すって%CALLNAME:TARGET%を眠りから覚ました。
+	ENDIF
+CASE "挨拶ハグ"
+	PRINTFORMW %CALLNAME:MASTER%は%CLO("現在の格好＆の")%%CALLNAME:TARGET%に抱きつきながら挨拶\@ CFLAG:挨拶した ? を返 # \@した。
+CASE "挨拶キス"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%にキスしながら挨拶\@ CFLAG:挨拶した ? を返 # \@した。
+CASE "挨拶フェラ"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の前に跪き、ペニスに口付けしながら挨拶\@ CFLAG:挨拶した ? を返 # \@した。
+CASE "挨拶クンニ"
+	PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%の股間に顔を埋め、
+	IF CHECK_CLO("Ｖ露出")
+		PRINTFORM 剥き出しの
+	ELSEIF CHECK_OUTER("ブルマ")
+		PRINTFORM ブルマ越しの
+	ELSEIF CHECK_CLO("パンスト露出")
+		PRINTFORM パンスト越しの
+	ELSEIF CHECK_CLO("ボディスーツ露出") || CHECK_CLO("アウター露出")
+		PRINTFORM 股布越しの
+	ELSEIF EQUIP:パンツ
+		PRINTFORM %PANTIES(TARGET, "パンツ")%越しの
+	ENDIF
+	PRINTFORMW アソコに口付けしながら挨拶\@ CFLAG:挨拶した ? を返 # \@した。
+CASE "挨拶する"
+	IF FLAG:対複数
+		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%達に挨拶\@ CFLAG:挨拶した ? を返 # \@した。
+	ELSE
+		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に挨拶\@ CFLAG:挨拶した ? を返 # \@した。
+	ENDIF
+CASE "甘い言葉"
+	PRINTFORM %CALLNAME:MASTER%は雑談しながら、%TEXTR("自然な流れで/隙を突いて/折を見て")%
+	IF TALENT:片思い || TALENT:相思相愛
+		PRINTFORMW %CALLNAME:TARGET%に%TEXTR("自分の気持ちを正直に伝え/愛を囁い/好意を伝え")%た。
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%に%TEXTR("甘い言葉を囁い/愛を囁い/好意を伝え")%た。
+	ENDIF
+CASE "おやつを褒める"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%が手作りしてきた%TEXTS("おやつ")%を褒めた。
+CASE "褒める"
+	PRINTFORM %CALLNAME:MASTER%は雑談しながら、%TEXTR("自然な流れで/隙を突いて/折を見て")%%CALLNAME:TARGET%
+	IF CFLAG:コスプレ中
+		PRINTFORMW の%CLO("現在の格好")%を褒めた。
+	ELSE
+		PRINTFORMW を褒めた。
+	ENDIF
+CASE "Ｈな話をする"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%とＨな話をした。
+;CASE "パンツの話"
+;	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%にパンツの色を訊ねてみた。
+CASE "胸を揉みながら雑談する"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の胸を揉みながら雑談した。
+CASE "股間を弄りながら雑談する"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%の股間を撫でながら雑談した。
+CASE "トーク"
+	IF FLAG:対複数
+		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%達とワイワイ雑談した。
+	ELSE
+		PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%と雑談した。
+	ENDIF
+ENDSELECT
+
+;-------------------------------------------------
+;主にパンツの描写などをする。STR:日常イベント名 は決定後。
+;-------------------------------------------------
+@AFTERMESSAGE_DAILY1
+SELECTCASE STR:日常イベント名
+CASE "挨拶クンニ", "挨拶フェラ"
+	SIF COND("パンツ形状確認") || CHECK_CLO("パンツ露出") == 0
+		RETURN 0
+
+	IF EQUIP:パンツ == 0
+		SIF EQUIP:スカート
+			CALL TEXT_PANTU_CHECK, SKIRT(TARGET)
+	ELSEIF CHECK_OUTER("ブルマ") == 0 && CHECK_CLO("ボディスーツ露出") == 0
+		CALL TEXT_PANTU_CHECK_SHORT
+	ENDIF
+ENDSELECT
+

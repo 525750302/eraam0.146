@@ -1,0 +1,149 @@
+;-------------------------------------------------
+;ABL:精液中毒 のLVUP処理
+;-------------------------------------------------
+@ABLUP23
+#DIM LCOUNT
+#DIM NUM_CHOICES
+#DIM SET_CHOICE
+#DIM NUM_JUEL, 10
+
+;必要な珠などの値を取得
+CALL IS_ABLUP23
+;何もできない場合
+IF RESULT == 0 && ABL:精液中毒 >= 99
+	PRINTFORMW 既にMAXです。
+	RETURN 0
+ENDIF
+
+DRAWLINE
+;珠以外で必要な条件や軽減の内訳の記載
+SETCOLOR DEF_COLOR("黄色")
+;精液経験による軽減
+SELECTCASE EXP:精液経験
+CASE IS >= EXP_LV(ABL:精液中毒 + 6)
+	PRINTFORML ※精液経験が非常に多いので、要求される珠が80％減少しています※
+CASE IS >= EXP_LV(ABL:精液中毒 + 5)
+	PRINTFORML ※精液経験がとても多いので、要求される珠が50％減少しています※
+CASE IS >= EXP_LV(ABL:精液中毒 + 4)
+	PRINTFORML ※精液経験が多いので、要求される珠が20％減少しています※
+;ある程度の経験が必要
+CASE IS < EXP_LV(ABL:精液中毒 + 1)
+	PRINTFORML ※精液経験が少なすぎるので、精液中毒のLVを上げる事が出来ません※
+	SETCOLOR DEF_COLOR("灰色")
+	PRINTFORML  [×] 精液経験 {EXP:精液経験, 8}/{EXP_LV(ABL:精液中毒 + 1)}
+;著しく足りていない
+CASE IS < EXP_LV(ABL:精液中毒 + 2)
+	PRINTFORML ※精液経験が少なすぎるので、要求される珠が３倍に増加しています※
+ENDSELECT
+RESETCOLOR
+
+VARSET NUM_JUEL
+NUM_CHOICES = 0
+FOR LCOUNT, 0, 16
+	SIF JUEL:0:LCOUNT == 0
+		CONTINUE
+
+	IF JUEL:LCOUNT >= JUEL:0:LCOUNT
+		PRINTFORML  [{NUM_CHOICES, 2}] %PALAMNAME:LCOUNT%の珠 {JUEL:LCOUNT, 8}/{JUEL:0:LCOUNT} ……ＯＫ
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORML  [×] %PALAMNAME:LCOUNT%の珠 {JUEL:LCOUNT, 8}/{JUEL:0:LCOUNT}
+		RESETCOLOR
+	ENDIF
+	NUM_JUEL:NUM_CHOICES = LCOUNT
+	NUM_CHOICES += 1
+NEXT
+
+;特殊な選択肢
+SET_CHOICE = 0
+
+PRINTL [100] 戻る
+
+CALL INPUT_SELECT, NUM_CHOICES, 100
+
+SELECTCASE RESULT
+CASE 100
+	RETURN 0
+CASEELSE
+	IF NUM_CHOICES && JUEL:(NUM_JUEL:RESULT) >= JUEL:0:(NUM_JUEL:RESULT)
+		JUEL:(NUM_JUEL:RESULT) -= JUEL:0:(NUM_JUEL:RESULT)
+		ABL:精液中毒 += 1
+		PRINTFORMW 精液中毒が{ABL:精液中毒}LVになりました。
+	ENDIF
+ENDSELECT
+
+IF TALENT:精液に弱い == 0
+	CALL CALC, "精液に弱い", TARGET
+	;素質を得た
+	IF TALENT:精液に弱い && EXP:Ｈ回数
+		PRINTFORMW %CALLNAME:TARGET%は幾度も精液を受け止めているうちに、精液で快楽を得る身体になってしまったようだ…
+		PRINTFORM %CALLNAME:TARGET%は
+		LOCALS = [%TALENT_NAME(GETNUM(TALENT, "精液に弱い"), TALENT:精液に弱い)%]
+		CALL PRINT_COLORTEXT, LOCALS, DEF_COLOR("黄色")
+		PRINTFORMW を得た
+	ENDIF
+ENDIF
+
+;まだレベルが上げられたりする場合には最初に戻る
+CALL IS_ABLUP23
+SIF RESULT
+	RESTART
+
+
+
+;ABL:精液中毒のLVUPに必要な条件を算出し、LVUP出来るなら1を返す
+@IS_ABLUP23, ARGS
+CALL VARSET_ABLUP
+SELECTCASE ABL:精液中毒
+CASE 0
+	JUEL:0:欲情 = 10000
+CASE 1
+	JUEL:0:欲情 = 20000
+CASE 2
+	JUEL:0:欲情 = 40000
+CASE 3
+	JUEL:0:欲情 = 50000
+CASE 4
+	JUEL:0:欲情 = 80000
+CASEELSE
+	JUEL:0:欲情 = 80000 + (ABL:精液中毒 - 5) * 50000
+ENDSELECT
+
+SIF TALENT:汚臭敏感
+	TIMES JUEL:0:欲情, 2.00
+SIF TALENT:真面目 || TALENT:自制心
+	TIMES JUEL:0:欲情, 2.00
+SIF TALENT:中毒しやすい
+	TIMES JUEL:0:欲情, 0.50
+SIF TALENT:倒錯的 || TALENT:においに弱い
+	TIMES JUEL:0:欲情, 0.80
+
+;精液経験による軽減
+SELECTCASE EXP:精液経験
+CASE IS >= EXP_LV(ABL:精液中毒 + 6)
+	TIMES JUEL:0:欲情, 0.20
+CASE IS >= EXP_LV(ABL:精液中毒 + 5)
+	TIMES JUEL:0:欲情, 0.50
+CASE IS >= EXP_LV(ABL:精液中毒 + 4)
+	TIMES JUEL:0:欲情, 0.80
+;ある程度の精液経験が必要
+CASE IS < EXP_LV(ABL:精液中毒 + 1)
+	JUEL:0:欲情 = 0
+;著しく足りていない
+CASE IS < EXP_LV(ABL:精液中毒 + 2)
+	TIMES JUEL:0:欲情, 3.00
+ENDSELECT
+
+JUEL:0:屈服 = JUEL:0:欲情 * 3 / 2
+
+;最大LV未満か？
+SIF ABL:精液中毒 >= 99
+	RETURN 0
+
+;条件のどれかをクリアしてる？
+SIF JUEL:0:欲情 && JUEL:欲情 >= JUEL:0:欲情
+	RETURN 1
+SIF JUEL:0:屈服 && JUEL:屈服 >= JUEL:0:屈服
+	RETURN 1
+RETURN 0
+

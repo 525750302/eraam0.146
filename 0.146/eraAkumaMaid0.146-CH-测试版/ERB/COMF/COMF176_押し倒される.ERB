@@ -1,0 +1,141 @@
+@COM176
+;押し倒される
+
+IF COND("種族：ラミア")
+	PRINTL 巻きつかれる
+ELSE
+	PRINTL 押し倒される
+ENDIF
+
+;-------------------------------------------------
+;実行できるかの判定
+;-------------------------------------------------
+CALL SHOW_COM_ORDER_COM, 176
+
+;実行できない
+SIF TCVAR:やる気 == 0
+	RETURN 0
+;-------------------------------------------------
+;実行決定
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = 押し倒される
+
+;押し倒され状態の付与
+TEQUIP:押し倒し = 1
+
+RETURN 1
+
+@FLAG_COM176, ARG
+
+@SOURCE_COM176, ARG
+CALL VARSET_COMF
+
+SOURCE:0:性行動 = 450
+SOURCE:0:達成感 = 900
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM176
+;ラミア
+IF COND("種族：ラミア")
+	PRINTFORMW 妖しく微笑みながら%CALLNAME:TARGET%が%CALLNAME:PLAYER%に長い尾を巻きつけてくる… 
+	PRINTFORMW %CALLNAME:PLAYER%の動きは封じられてしまった…
+;それ以外
+ELSE
+	IF INSERT("インサート")
+		PRINTFORMW 妖しく微笑みながら%CALLNAME:TARGET%が%CALLNAME:PLAYER%を押さえつける…
+	ELSE
+		PRINTFORMW 妖しく微笑みながら%CALLNAME:TARGET%が%CALLNAME:PLAYER%に歩み寄る…
+	ENDIF
+	PRINTFORMW %CALLNAME:PLAYER%は押し倒されてしまった…
+ENDIF
+
+
+@EQUIP_COM176
+;押し倒され中
+SIF TEQUIP:押し倒し == 0
+	RETURN 0
+
+CALL SOURCE_COM176, 20
+SIF STATE("バインド", PLAYER)
+	EXP:PLAYER:拘束経験 += 1
+
+RETURN 1
+
+@EQUIP_COM176_2
+;押し倒され中
+SIF TEQUIP:押し倒し == 0
+	RETURN 0
+
+PRINTL ＜押し倒され中＞
+
+RETURN 1
+
+
+@COM_ORDER_COM176, ARG
+VARSET LOCAL
+LOCALS = 
+
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
+CALL COM_ORDER, ARG
+
+LOCAL = RESULT
+
+;ABL:奉仕精神
+IF ABL:奉仕精神
+	LOCAL += MIN(ABL:奉仕精神, 10) * 2
+	LOCALS = %LOCALS% + 奉仕精神LV{ABL:奉仕精神}({MIN(ABL:奉仕精神, 10) * 2})
+ENDIF
+;ABL:サドっ気
+IF ABL:サドっ気
+	LOCAL += MIN(ABL:サドっ気, 5) * 3
+	LOCALS = %LOCALS% + サドっ気LV{ABL:サドっ気}({MIN(ABL:サドっ気, 5) * 3})
+ENDIF
+;強気
+IF TALENT:強気
+	LOCAL += 10
+	LOCALS = %LOCALS% + 強気(10)
+ENDIF
+;恥じらい
+IF TALENT:恥じらい
+	LOCAL -= 5
+	LOCALS = %LOCALS% - 恥じらい(5)
+ENDIF
+;快感の否定
+IF TALENT:快感の否定
+	LOCAL -= 1
+	LOCALS = %LOCALS% - 快感の否定(1)
+ENDIF
+
+;処女
+IF TALENT:処女
+	LOCAL -= 20
+	LOCALS = %LOCALS% - 処女(20)
+ELSEIF EXP:Ｖ経験 < EXPLV:2
+	LOCAL -= 5
+	LOCALS = %LOCALS% - Ｖ経験不足(5)
+ENDIF
+
+;受け身
+IF TALENT:受け身
+	LOCAL -= 10
+	LOCALS = %LOCALS% - 受け身(10)
+ENDIF
+
+;媚薬
+IF TEQUIP:媚薬
+	LOCAL += 6
+	LOCALS = %LOCALS% + 媚薬(6)
+ENDIF
+
+;合計を表示(24以上で実行)
+CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 24
+
+RETURN RESULT

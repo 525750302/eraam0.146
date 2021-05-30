@@ -1,0 +1,102 @@
+﻿@COM62
+;屈曲位
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+;-------------------------------------------------
+;射精チェック
+;-------------------------------------------------
+CALL SAMEN_CHECK
+
+RETURN 1
+
+@FLAG_COM62, ARG
+CALL FLAG_INSERTION, "Ｖインサート", ARG, 120
+
+@SOURCE_COM62, ARG
+CALL SOURCE_INSERTION, "Ｖインサート", ARG, 120
+CALL VARSET_COMF
+
+;露出、屈従のソース
+SOURCE:0:露出 = 3000
+SOURCE:0:屈従 = 3000
+
+;根元まで受け入れられる場合にはクリを擦られてしまう
+IF ABL:Ｖ拡張 > SIZE("ペニス", PLAYER) && PENIS(TARGET) == 0
+	;ABL:Ｃ感覚をみる
+	SOURCE:0:Ｃ快楽 = CALCF("Ｃ刺激", 2, 20)
+	;調教者の腰使いをみる
+	SOURCE:0:Ｃ快楽 = SOURCE_EXABL(SOURCE:0:Ｃ快楽, "腰使い", PLAYER)
+ENDIF
+SOURCE:0:情愛 = 300
+
+;PALAM:欲情をみる
+SELECTCASE PALAM:欲情
+CASE IS < PALAMLV:1
+	TIMES SOURCE:0:情愛, 0.30
+CASE IS < PALAMLV:2
+	TIMES SOURCE:0:情愛, 0.60
+CASE IS < PALAMLV:3
+	TIMES SOURCE:0:情愛, 1.00
+CASE IS < PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.50
+CASE IS >= PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.80
+ENDSELECT
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM62
+#DIM MEMO_LINECOUNT
+
+MEMO_LINECOUNT = LINECOUNT
+CALL TRAIN_MESSAGE_INSERTION
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;前回、挿入前に暴発してしまった
+IF PREVCOM == TNUM("挿入前暴発") && COND("前Ｔ調教者") == PLAYER
+	PRINTFORM 気を取り直した%CALLNAME:PLAYER%は、
+ELSE
+	PRINTFORM %CALLNAME:PLAYER%は
+ENDIF
+IF COND("前Ｔから対象のみ変更") && VAU_INSERT_PLAY(PREVCOM:1)
+	CALL ADD_TEXT, "性器から性器へ"
+	PRINTFORM %CALLNAME:TARGET%をひっくり返すと、
+;穴開きでないパンツをはいていて、ずらされていないなら、必ずずらす
+ELSEIF !CHECK_CLO("Ｖ露出") && CHECK_CLO("Ｖ露出可")
+	PRINTFORM %CALLNAME:TARGET%の
+	CALL SETFLAG, "ボトムを露出：テキスト有り", TARGET
+	PRINTFORM 、まんぐり返しの体勢で
+ELSE
+	PRINTFORM %CALLNAME:TARGET%をひっくり返すと、
+ENDIF
+
+IF TEQUIP:キス
+	PRINTFORM 唇を奪いながら
+	CALL SETFLAG, "追加キスフラグ", TARGET
+ELSEIF NUM("ターン数") == 0 && TALENT:妊娠 == 0
+	PRINTFORM %TEXTR("前戯もせずに/準備もせずに")%
+ELSE
+	PRINTFORM 結合部が良く見えるようにしながら
+ENDIF
+IF TALENT:小柄
+	PRINT 幼いワレメ
+ELSE
+	PRINT 秘裂
+ENDIF
+IF TALENT:妊娠
+	PRINTFORMW を普段よりも浅めに犯した。
+;巨根分岐
+ELSEIF ABL:PLAYER:サドっ気 && SIZE("ペニス", PLAYER) >= 2 && CHOSECOMS("Ｖ挿入") == 0
+	PRINTFORMW の奥深くまで巨根を沈めた。
+ELSE
+	PRINTFORMW の奥深くまで犯した。
+ENDIF

@@ -1,0 +1,78 @@
+;-------------------------------------------------
+;このキャラ独自の衣装を設定する。制服、体操服、水着は既存のものから選ぶのが楽です
+;-------------------------------------------------
+@CLOTHES_K16, ARGS
+
+SELECTCASE ARGS
+;高めの頻度で着用します。設定しなくてもかまいません
+CASE "下着"
+	CSTR:パンツ = ショーツ/白/
+	CSTR:ブラ = ブラジャー/白/
+
+;衣装に関わらず常に付けているアクセサリです。設定しなくてもかまいません
+CASE "アクセサリ"
+	CSTR:アクセサリ = 
+
+;学園での普段着です。設定必須です
+CASE "制服"
+	CALL SET_COSTUME, "セーラー服"
+;学園の体育の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+CASE "体操服"
+	CALL SET_COSTUME, "体操服ハーフパンツ"
+;学園の水泳の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+CASE "水着"
+	CALL SET_COSTUME, "スク水"
+
+;自宅など学園外で着ます。設定必須です
+CASE "普段着"
+	IF COND("冬")
+		IF PLACE("自宅")
+			CALL SET_SHIRT, "どてら"
+			CALL SET_OUTER, "ジャージズボン"
+		ELSE
+			CALL SET_COSTUME, "上下ジャージ"
+		ENDIF
+	ELSE
+		IF RAND:2
+			CALL SET_SHIRT, "変な柄のＴシャツ"
+			CALL SET_OUTER, "ハーフパンツ"
+			CALL SET_SOCKS, "ソックス"
+			CALL SET_SHOES, "スニーカー"
+		ELSE
+			CALL SET_COSTUME, "上下ジャージ"
+		ENDIF
+	ENDIF
+;自分の部屋(notあなたの部屋)で着ます
+CASE "部屋着"
+
+;デート以外で家から外に出る際に着ます。ラブホ呼出とかね
+CASE "外出着"
+
+;もちろんデートの際に着ます
+CASE "デート衣装"
+	SELECTCASE TEXTS("季節")
+	CASE "夏"
+		CALL SET_SHIRT, "変な柄のＴシャツ"
+		CALL SET_OUTER, "ハーフパンツ"
+		CALL SET_SHOES, "サンダル"
+	CASE "冬"
+		CALL SET_SHIRT, "ジャージ"
+		CALL SET_OUTER, "ジーンズ"
+		CALL SET_SOCKS, "ソックス"
+		CALL SET_SHOES, "スニーカー"
+	CASEELSE
+		CALL SET_SHIRT, "変な柄のＴシャツ"
+		CALL SET_OUTER, "ジーンズ"
+		CALL SET_SOCKS, "ソックス"
+		CALL SET_SHOES, "スニーカー"
+	ENDSELECT
+ENDSELECT
+
+;変な柄処理
+IF CHECK_SHIRT("変な柄")
+	IF RAND:4 == 0
+		CSTR:服 += @"柄：%TEXTR("Don't Try This at Home/ＷＡＴＣＨ ＳＨＡＲＫ ＭＯＶＩＥＳ")%/英字/"
+	ELSE
+		CSTR:服 += @"柄：%TEXTR("ええじゃないか/半額弁当ハンター/弱き怪物 きゅうりおじさん/こんでん えいねん/餃子1日100万個/拉麺一筋参拾年/オーバーボディ着用中/いちいち読むな外国人(英語)/テストラン配信中/コスパなんざクソ喰らえ/猫派/犬派/↑コイツの言うこと信用するな/汚くありません そういう加工のシャツです/反発刻印Ｌｖ３")%/"
+	ENDIF
+ENDIF

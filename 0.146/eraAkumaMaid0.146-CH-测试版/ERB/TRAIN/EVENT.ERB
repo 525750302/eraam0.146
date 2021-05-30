@@ -1,0 +1,197 @@
+;------------------------------------------------------------------------
+;調教終了時の満足度チェック
+;------------------------------------------------------------------------
+@CHECK_SATISFACTION, ARG
+SIF ARG <= 0
+	RETURN 0
+
+CFLAG:ARG:満足度 = 0
+;体力チェック
+SIF COND("疲労")
+	SETBIT CFLAG:ARG:満足度, 0
+
+;性欲チェック
+IF ABL:ARG:欲望
+	CALL SETFLAG, "性欲ゲージ", ARG
+
+	SELECTCASE BASE:ARG:性欲
+	CASE 0
+	;大満足
+	CASE IS >= MAXBASE:ARG:性欲 * 2
+		SETBIT CFLAG:ARG:満足度, 2
+	CASE IS >= MAXBASE:ARG:性欲
+		SETBIT CFLAG:ARG:満足度, 1
+	ENDSELECT
+ENDIF
+;精液欲チェック
+IF ABL:ARG:精液中毒
+	CALL SETFLAG, "精液欲ゲージ", ARG
+	SELECTCASE BASE:ARG:精液欲
+	CASE 0
+	;大満足
+	CASE IS >= MAXBASE:ARG:精液欲 * 2
+		SETBIT CFLAG:ARG:満足度, 4
+	CASE IS >= MAXBASE:ARG:精液欲
+		SETBIT CFLAG:ARG:満足度, 3
+	ENDSELECT
+ENDIF
+
+;レズ中毒チェック
+;PLAYER絶頂チェック
+
+
+;------------------------------------------------------------------------
+;TARGETによる否定判定
+;------------------------------------------------------------------------
+@REFUSE_CHECK()
+#FUNCTION
+SIF TFLAG:コマンドキャンセル || NEXTCOM == 999
+	RETURNF 1
+
+RETURNF 0
+
+;------------------------------------------------------------------------
+;口上等で行われた射精ゲージの増加を変数にも影響させる
+;------------------------------------------------------------------------
+@CHECK_BASEPLAYER2
+TCVAR:絶頂増加 = MAX(TCVAR:絶頂増加, BASE:絶頂 - TCVAR:絶頂開始前)
+TCVAR:MASTER:絶頂増加 = MAX(TCVAR:MASTER:絶頂増加, BASE:MASTER:絶頂 - TCVAR:MASTER:絶頂開始前)
+SIF ASSI
+	TCVAR:ASSI:絶頂増加 = MAX(TCVAR:ASSI:絶頂増加, BASE:ASSI:絶頂 - TCVAR:ASSI:絶頂開始前)
+
+
+@EVENT_NEXTTIME
+SIF TARGET <= 0
+	RETURN 0
+SIF EXP:Ｈ回数 == 0
+	RETURN 0
+
+;[精液に弱い]を得るかのチェック。ただし通常は精液中毒を上昇させた時に得るのであくまで補助的
+IF TALENT:精液に弱い == 0
+	CALL CALC, "精液に弱い", TARGET
+	;素質を得た
+	IF TALENT:精液に弱い
+		PRINTFORM %CALLNAME:TARGET%は幾度も精液を受け止めているうちに、
+		SELECTCASE TALENT_NAME(GETNUM(TALENT, "精液に弱い"), TALENT:精液に弱い)
+		CASE "精飲に弱い"
+			PRINT 精液を飲まされる事
+		CASE "膣内射精に弱い"
+			PRINT 膣内に射精される事
+		CASE "肛内射精に弱い"
+			PRINT アナルに射精される事
+		CASE "乳内射精に弱い"
+			PRINT ニプルファック中に射精される事
+		CASE "尿道内射精に弱い"
+			PRINT 尿道を犯されながら射精される事
+		ENDSELECT
+		PRINTFORMW で快楽を得る身体になってしまったようだ…
+		PRINTFORM %CALLNAME:TARGET%は
+		LOCALS = [%TALENT_NAME(GETNUM(TALENT, "精液に弱い"), TALENT:精液に弱い)%]
+		CALL PRINT_COLORTEXT, LOCALS, DEF_COLOR("黄色")
+		PRINTFORMW を得た。
+	ENDIF
+;精液に弱い箇所の変更判定
+ELSE
+	LOCAL = TALENT:精液に弱い
+	CALL CALC, "精液に弱い部位の変化", TARGET
+	IF TALENT:精液に弱い != LOCAL
+		PRINTFORM %CALLNAME:TARGET%は幾度も精液を受け止めているうちに、
+		SELECTCASE TALENT_NAME(GETNUM(TALENT, "精液に弱い"), TALENT:精液に弱い)
+		CASE "精飲に弱い"
+			PRINT 精液を飲まされる事
+		CASE "膣内射精に弱い"
+			PRINT 膣内に射精される事
+		CASE "肛内射精に弱い"
+			PRINT アナルに射精される事
+		CASE "乳内射精に弱い"
+			PRINT ニプルファック中に射精される事
+		CASE "尿道内射精に弱い"
+			PRINT 尿道を犯されながら射精される事
+		ENDSELECT
+		PRINTFORMW で快楽を得る身体になってしまったようだ…
+		PRINTFORM %CALLNAME:TARGET%は
+		LOCALS = [%TALENT_NAME(GETNUM(TALENT, "精液に弱い"), LOCAL)%]
+		CALL PRINT_COLORTEXT, LOCALS, DEF_COLOR("黄色")
+		PRINTFORM を失い、
+		LOCALS = [%TALENT_NAME(GETNUM(TALENT, "精液に弱い"), TALENT:精液に弱い)%]
+		CALL PRINT_COLORTEXT, LOCALS, DEF_COLOR("黄色")
+		PRINTFORMW を得た。
+	ENDIF
+ENDIF
+
+
+;------------------------------------------------------------------------
+;調教終了後40%の確率で体力の最大値が上昇
+;ただし増加する値は＋30が限度。
+;------------------------------------------------------------------------
+@EVENT_GROWTH
+#DIM MEMO_CUPS
+#DIM MEMO_TALENT
+#DIM VALUE_GROWTH
+
+;豊穣
+IF TEQUIP:豊穣
+	MEMO_CUPS = BASE:カップ
+	MEMO_TALENT = TALENT:貧乳 + TALENT:巨乳*2
+	CALL BLANKLINE
+	;ひとまずはここが限界
+	IF BASE:バスト成長 >= 500
+		PRINTFORML %CALLNAME:TARGET%の胸に悪戯したが……どうも変化が無い。
+		PRINTFORML どうやら、これ以上大きくすることは%CALLNAME:MASTER%の力をもってしても出来ない様だ。
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%に悪戯された事で%CALLNAME:TARGET%の胸が少し豊かになったようだ。
+		PRINTFORML バスト+0.{TEQUIP:豊穣}cm
+		IF (BASE:バスト成長 + TEQUIP:豊穣)/10 > BASE:バスト成長/10
+			BASE:バスト += 1
+			;バストカップの変化による素質の変化
+			BASE:カップ = CALCF("バストカップ", CALCF("バストカップ計算値", TARGET) )
+			SIF BASE:カップ > MEMO_CUPS
+				BASE:カップ成長 += 1
+			CALL SETFLAG, "バストの素質設定", TARGET
+			IF TALENT:貧乳 + TALENT:巨乳*2 != MEMO_TALENT
+				IF TALENT:巨乳 >= 3
+					CALL PRINT_STR, @"%CALLNAME:TARGET%は_黄色_[超乳]_になった！_L"
+				ELSEIF TALENT:巨乳 >= 2
+					CALL PRINT_STR, @"%CALLNAME:TARGET%は_黄色_[爆乳]_になった！_L"
+				ELSEIF TALENT:巨乳
+					CALL PRINT_STR, @"%CALLNAME:TARGET%は_黄色_[巨乳]_になった！_L"
+				ELSE
+					CALL PRINT_STR, @"%CALLNAME:TARGET%は[貧乳]ではなくなった。_L"
+				ENDIF
+			ENDIF
+		ENDIF
+		BASE:バスト成長 += TEQUIP:豊穣
+	ENDIF
+	TEQUIP:豊穣 = 0
+	WAIT
+ENDIF
+
+
+;絶頂＆射精回数とイかせた回数、精液経験で体力増加
+VALUE_GROWTH = EXP_GAIN("絶頂経験") + EXP_GAIN("射精経験") + EXP_GAIN("イかせた回数")*2 + EXP_GAIN("精液経験")/3
+SIF RAND:5 <= 2 || VALUE_GROWTH <= RAND:20
+	RETURN 0
+
+SELECTCASE VALUE_GROWTH
+CASE IS < 5
+	VALUE_GROWTH = 1 + RAND:5
+CASE IS < 20
+	VALUE_GROWTH = 3 + RAND:10
+CASE IS < 50
+	VALUE_GROWTH = 5 + RAND:15
+CASEELSE
+	VALUE_GROWTH = 10 + RAND:20
+ENDSELECT
+
+SELECTCASE MAXBASE:体力
+CASE IS >= CSVBASE(NO:TARGET, GETNUM(BASE, "体力") )*3
+	VALUE_GROWTH = MAX(VALUE_GROWTH/4, 1)
+CASE IS >= CSVBASE(NO:TARGET, GETNUM(BASE, "体力") )*2
+	VALUE_GROWTH = MAX(VALUE_GROWTH/2, 1)
+ENDSELECT
+
+MAXBASE:体力 += VALUE_GROWTH
+CALL BLANKLINE
+PRINTFORML 激しい調教によって%CALLNAME:TARGET%は我慢することの快感を知った。
+PRINTFORMW %CALLNAME:TARGET%の体力の最大値が{VALUE_GROWTH}上がりました。
+

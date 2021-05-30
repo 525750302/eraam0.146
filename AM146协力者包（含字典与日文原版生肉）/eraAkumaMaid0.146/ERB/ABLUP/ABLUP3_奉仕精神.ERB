@@ -1,0 +1,124 @@
+﻿;-------------------------------------------------
+;ABL:奉仕精神 のLVUP処理
+;-------------------------------------------------
+@ABLUP3
+#DIM LCOUNT
+#DIM NUM_CHOICES
+#DIM NUM_JUEL, 10
+
+;必要な珠などの値を取得
+CALL IS_ABLUP3
+;何もできない場合
+IF RESULT == 0 && ABL:奉仕精神 >= 99
+	PRINTFORMW 既にMAXです。
+	RETURN 0
+ENDIF
+
+DRAWLINE
+;珠以外で必要な条件や軽減の内訳の記載
+SETCOLOR DEF_COLOR("黄色")
+;奉仕快楽経験による軽減
+SELECTCASE EXP:奉仕快楽経験
+CASE IS >= EXP_LV(ABL:奉仕精神 + 4)
+	PRINTFORML ※奉仕快楽経験が非常に多いので、要求される珠が80％減少しています※
+CASE IS >= EXP_LV(ABL:奉仕精神 + 3)
+	PRINTFORML ※奉仕快楽経験がとても多いので、要求される珠が50％減少しています※
+CASE IS >= EXP_LV(ABL:奉仕精神 + 2)
+	PRINTFORML ※奉仕快楽経験が多いので、要求される珠が20％減少しています※
+;著しく足りていない
+CASE IS < EXP_LV(ABL:奉仕精神 + 1)
+	PRINTFORML ※奉仕快楽経験が少なすぎるので、要求される珠が３倍に増加しています※
+ENDSELECT
+RESETCOLOR
+
+VARSET NUM_JUEL
+NUM_CHOICES = 0
+FOR LCOUNT, 0, 16
+	SIF JUEL:0:LCOUNT == 0
+		CONTINUE
+
+	IF JUEL:LCOUNT >= JUEL:0:LCOUNT
+		PRINTFORML  [{NUM_CHOICES, 2}] %PALAMNAME:LCOUNT%の珠 {JUEL:LCOUNT, 8}/{JUEL:0:LCOUNT} ……ＯＫ
+	ELSE
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORML  [×] %PALAMNAME:LCOUNT%の珠 {JUEL:LCOUNT, 8}/{JUEL:0:LCOUNT}
+		RESETCOLOR
+	ENDIF
+	NUM_JUEL:NUM_CHOICES = LCOUNT
+	NUM_CHOICES += 1
+NEXT
+
+PRINTL [100] 戻る
+
+CALL INPUT_SELECT, NUM_CHOICES, 100
+
+SELECTCASE RESULT
+CASE 100
+	RETURN 0
+CASEELSE
+	IF NUM_CHOICES && JUEL:(NUM_JUEL:RESULT) >= JUEL:0:(NUM_JUEL:RESULT)
+		JUEL:(NUM_JUEL:RESULT) -= JUEL:0:(NUM_JUEL:RESULT)
+		ABL:奉仕精神 += 1
+		PRINTFORMW 奉仕精神が{ABL:奉仕精神}LVになりました。
+	ENDIF
+ENDSELECT
+
+;まだレベルが上げられたりする場合には最初に戻る
+CALL IS_ABLUP3
+SIF RESULT
+	RESTART
+
+
+
+;ABL:奉仕精神のLVUPに必要な条件を算出し、LVUP出来るなら1を返す
+@IS_ABLUP3, ARGS
+CALL VARSET_ABLUP
+SELECTCASE ABL:奉仕精神
+CASE 0
+	JUEL:0:恭順 = 1000
+CASE 1 TO 4
+	JUEL:0:恭順 = 1000 + ABL:奉仕精神 * 2000
+CASE 5 TO 9
+	JUEL:0:恭順 = 9000 + (ABL:奉仕精神 - 4) * 5000
+CASEELSE
+	JUEL:0:恭順 = 30000 + (ABL:奉仕精神 - 10) * 20000
+ENDSELECT
+
+SIF TALENT:反抗的
+	TIMES JUEL:0:恭順, 1.50
+SIF TALENT:素直
+	TIMES JUEL:0:恭順, 0.80
+SIF TALENT:高慢
+	TIMES JUEL:0:恭順, 2.00
+SIF TALENT:献身
+	TIMES JUEL:0:恭順, 0.50
+
+;奉仕快楽経験による軽減…実質はこっちがLV判定の主
+SELECTCASE EXP:奉仕快楽経験
+CASE IS >= EXP_LV(ABL:奉仕精神 + 4)
+	TIMES JUEL:0:恭順, 0.20
+CASE IS >= EXP_LV(ABL:奉仕精神 + 3)
+	TIMES JUEL:0:恭順, 0.50
+CASE IS >= EXP_LV(ABL:奉仕精神 + 2)
+	TIMES JUEL:0:恭順, 0.80
+;著しく足りていない
+CASE IS < EXP_LV(ABL:奉仕精神 + 1)
+	TIMES JUEL:0:恭順, 3.00
+ENDSELECT
+
+JUEL:0:習得 = JUEL:0:恭順
+JUEL:0:屈服 = JUEL:0:恭順 * 2
+
+;最大LV未満か？
+SIF ABL:奉仕精神 >= 99
+	RETURN 0
+
+;条件のどれかをクリアしてる？
+SIF JUEL:0:恭順 && JUEL:恭順 >= JUEL:0:恭順
+	RETURN 1
+SIF JUEL:0:屈服 && JUEL:屈服 >= JUEL:0:屈服
+	RETURN 1
+SIF JUEL:0:習得 && JUEL:習得 >= JUEL:0:習得
+	RETURN 1
+RETURN 0
+

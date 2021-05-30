@@ -1,0 +1,306 @@
+;-------------------------------------------------
+;相手を紹介してもらったりします
+;-------------------------------------------------
+@SHOP_CHARA
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIM MEMO_TARGET
+#DIM CHOICE
+#DIMS CHOICES
+#DIM MEMO_BASE, 100
+
+REDRAW 0
+;キャラメイク中フラグON
+SETBIT FLAG:状況判定, 13
+;あなたの血縁フラグ等を記憶
+FOR LCOUNT, 0, 100
+	MEMO_BASE:LCOUNT = BASE:MASTER:LCOUNT
+NEXT
+SIF CONFIG("素質の固定と除外")
+	CALL SETFLAG, "素質の固定と除外の初期化"
+
+MEMO_LINECOUNT = LINECOUNT
+
+PRINTL 
+CALL SHOP_CHARA_SHOW
+
+$INPUT_LOOP
+INPUTS
+
+CHOICES = %RESULTS%
+CHOICE = TOINT(CHOICES)
+
+SELECTCASE CHOICE
+CASE 999
+	RETURN 0
+;[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　[204]教師　[205]その他
+CASE 200 TO 205
+	IF TFLAG:フィルタ == CHOICE
+		TFLAG:フィルタ = 0
+	ELSE
+		TFLAG:フィルタ = CHOICE
+	ENDIF
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+CASE IS >= 1
+	SIF EXISTCSV_EX(CHOICE) == 0
+		GOTO INPUT_LOOP
+
+	;出現条件がある場合は個別に判定
+	STR:実行条件 = 
+	TRYCALLFORM ADDCOND_K{CHOICE}("勧誘")
+
+	;ダメだった場合
+	IF STR:実行条件 != ""
+		CALL PRINT_STRW, STR:実行条件
+		[IF_DEBUG]
+			PRINTL 
+			PRINTFORML デバッグモードの特権で条件を無視して勧誘しますか？
+			CALL PRINT_SELECT, "はい/ズルはしない"
+			SIF RESULT == 0
+				STR:実行条件 = 
+		[ENDIF]
+		IF STR:実行条件 != ""
+			CLEARLINE LINECOUNT - MEMO_LINECOUNT
+			RESTART
+		ENDIF
+	ENDIF
+	;紹介してもらえるか判定。そのキャラが既にいるかで判定する
+	IF FINDCHARA(NO, CHOICE) >= 0
+		SIF CFLAG:FINDCHARA(NO, CHOICE):初期仲間 == 0
+			PRINTW 既に勧誘済みのようですよ
+		CLEARLINE LINECOUNT - MEMO_LINECOUNT
+		RESTART
+	ENDIF
+;それ以外はだいたい文字列
+CASEELSE
+	IF COMMENT_ADVISER(CHOICES) != ""
+		CLEARLINE 1
+		PRINTL 
+		PRINTFORML ☆%CHOICES%☆
+		PRINTFORMW %COMMENT_ADVISER(CHOICES)%
+	ENDIF
+
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+ENDSELECT
+
+MEMO_TARGET = TARGET
+
+;キャラ解説を入れる
+CALL CHARA_MANUAL, CHOICE
+;いいえを選ぶと再入力
+IF RESULT == 0
+	;表示されていたキャラを白紙に戻す
+	DELCHARA CHARANUM-1
+	TARGET = MEMO_TARGET
+
+	;あなたのフラグの変化を元に戻す（現在だと血縁のみ）
+	FOR LCOUNT, 0, 100
+		BASE:MASTER:LCOUNT = MEMO_BASE:LCOUNT
+	NEXT
+
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+ENDIF
+
+;もしもアドバイザーが居ない状態ならば、現在のTARGETを（可能なら）アドバイザーにし、選んだキャラをTARGETにする
+SIF ASSI == 0 && TARGET && COND("助手可能")
+	ASSI = TARGET
+
+TARGET = CHARANUM - 1
+
+;式神などの特例
+IF COND("種族：式神")
+	PRINTFORMW ★力を失ったとはいえ元は鬼神か妖か。今は学園の%CSTR:学年%。その名も[%CSTR:肩書%]%NAME:TARGET%を式としました★
+ELSEIF CSTR:学年 == "不法侵入"
+	PRINTFORM ★学園で見つけた不法侵入\@ COND("種族：悪魔") ? 悪魔 # 者 \@、
+	IF CSTR:関係 == "居候"
+		PRINTFORMW [%CSTR:肩書%]%NAME:TARGET%を家に連れ帰りました★
+	ELSE
+		PRINTFORMW [%CSTR:肩書%]%NAME:TARGET%を勧誘しました★
+	ENDIF
+ELSE
+	PRINTFORMW ★学園の%CSTR:学年%、[%CSTR:肩書%]%NAME:TARGET%を勧誘しました★
+ENDIF
+CALL SETFLAG, "合意", TARGET
+PRINTL 
+MEMO_LINECOUNT = LINECOUNT
+;加入後台詞（なくても大丈夫）
+CALL EVENT_PROFILE, "勧誘直後", TARGET
+SIF LINECOUNT == MEMO_LINECOUNT
+	CLEARLINE 1
+
+TFLAG:地の文スキップ = 0
+MEMO_LINECOUNT = LINECOUNT
+;出現条件の出力。特殊な場合以外は書かなくて良いです
+CALL EVENT_PROFILE, "出現条件"
+SIF COND("部室出現可能") && TFLAG:地の文スキップ == 0 && LINECOUNT == MEMO_LINECOUNT
+	CALL PRINT_STRW, @"%NAME:TARGET%は%CALLNAME:MASTER%の_黄色_%CSTR:関係%_として、(昼)の部室に顔を出してくれます。"
+
+;顔グラの設定
+IF CFLAG:顔グラ == 0 && CONFIG("顔グラＯＮ")
+	DRAWLINE
+	PRINTFORML %NAME:TARGET%は顔グラが設定されていないようです。設定しますか？
+	CALL PRINT_SELECT, "設定する/しない"
+	IF RESULT == 0
+		CALL SIMULATE_MAIDFACE, TARGET
+	ELSE
+		PRINTFORMW 今後設定したくなった場合は、コンフィグからどうぞ。
+	ENDIF
+ENDIF
+
+IF PLACE("部室")
+	IF COND("部室出現可能")
+		DRAWLINE
+		CALL SETFLAG, "優先順位", TARGET
+		TFLAG:地の文スキップ = 0
+		MEMO_LINECOUNT = LINECOUNT
+		CALL EVENT_PROFILE, "初訪問"
+		IF TFLAG:地の文スキップ == 0 && LINECOUNT == MEMO_LINECOUNT
+			PRINTFORMW ……ということで%CALLNAME:TARGET%が部室に来てくれました。
+		ENDIF
+	ELSE
+		CFLAG:不在 = 1
+		CFLAG:優先順位 = CHARANUM - 2
+		TARGET = MEMO_TARGET
+	ENDIF
+ELSEIF PLACE("自宅")
+	IF COND("自宅出現可能")
+		CALL SETFLAG, "優先順位", TARGET
+	ELSE
+		CFLAG:不在 = 1
+		CFLAG:優先順位 = CHARANUM - 2
+		TARGET = MEMO_TARGET
+	ENDIF
+ENDIF
+
+
+@SHOP_CHARA_SHOW
+DRAWLINE
+CALL PRINT_STRL, @"%CALLNAME:MASTER%に興味のある相手を部員として勧誘します。詳しくは各キャラの_緑_□ 特記事項 □_を見てください"
+CALL PRINT_STRL, "黄色_（魂の授受は性交が最も簡単なので、注釈ない限りは皆セックスフレンド扱いとなります）"
+CALL PRINT_STRL, "特技については名称をクリックする事で効果を確認できます"
+DRAWLINE
+CALL PRINT_STRL, "ハートピンク_H_エンディングがあるキャラは色が変わります_ハートピンク_H"
+
+DRAWLINE
+CALL SET_SHOP_CHARA_SHOW, "ＥＮＤチェック"
+DRAWLINE
+
+SELECTCASE TFLAG:フィルタ
+CASE 200
+	CALL PRINT_STRL, "[999]戻る　_黄色_[200]中等部以下_　[201]１年生　[202]２年生　[203]３年生　[204]教師　[205]その他"
+CASE 201
+	CALL PRINT_STRL, "[999]戻る　[200]中等部以下　_黄色_[201]１年生_　[202]２年生　[203]３年生　[204]教師　[205]その他"
+CASE 202
+	CALL PRINT_STRL, "[999]戻る　[200]中等部以下　[201]１年生　_黄色_[202]２年生_　[203]３年生　[204]教師　[205]その他"
+CASE 203
+	CALL PRINT_STRL, "[999]戻る　[200]中等部以下　[201]１年生　[202]２年生　_黄色_[203]３年生_　[204]教師　[205]その他"
+CASE 204
+	CALL PRINT_STRL, "[999]戻る　[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　_黄色_[204]教師_　[205]その他"
+CASE 205
+	CALL PRINT_STRL, "[999]戻る　[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　[204]教師　_黄色_[205]その他"
+CASEELSE
+	PRINTFORML [999]戻る　[200]中等部以下　[201]１年生　[202]２年生　[203]３年生　[204]教師　[205]その他
+ENDSELECT
+
+
+
+;-------------------------------------------------
+;勧誘するキャラの一覧表示
+;ARGSに"ＥＮＤチェック"って入れるとエンディングが書かれているキャラの色が変わる
+;-------------------------------------------------
+@SET_SHOP_CHARA_SHOW, ARGS
+#DIM LCOUNT
+#DIM LCOUNT2
+
+PRINTFORML 　　　%TEXT_LJ("名前", 16)%　%TEXT_LJ("学年",14)%　%TEXT_LJ("肩書",22)%　特技
+DRAWLINE
+;実際にキャラを表示
+FOR LCOUNT, 1, 200
+	;存在するキャラなのか判定
+	SIF EXISTCSV_EX(LCOUNT) == 0
+		CONTINUE
+
+	SELECTCASE CSVCSTR(LCOUNT, GETNUM(CSTR, "学年") )
+	CASE "初等部", "中等部"
+		SELECTCASE TFLAG:フィルタ
+		CASE 201 TO 205
+			CONTINUE
+		ENDSELECT
+	CASE "１年生"
+		SELECTCASE TFLAG:フィルタ
+		CASE 200, 202 TO 205
+			CONTINUE
+		ENDSELECT
+	CASE "２年生"
+		SELECTCASE TFLAG:フィルタ
+		CASE 200 TO 201, 203 TO 205
+			CONTINUE
+		ENDSELECT
+	CASE "３年生"
+		SELECTCASE TFLAG:フィルタ
+		CASE 200 TO 202, 204 TO 205
+			CONTINUE
+		ENDSELECT
+	CASEELSE
+		;教員
+		IF STRCOUNTS(CSVCSTR(LCOUNT, GETNUM(CSTR, "学年") ), "教師", "司書")
+			SELECTCASE TFLAG:フィルタ
+			CASE 200 TO 203, 205
+				CONTINUE
+			ENDSELECT
+		ELSE
+			SELECTCASE TFLAG:フィルタ
+			CASE 200 TO 204
+				CONTINUE
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+
+	;そのキャラが既にいるかで判定
+	IF FINDCHARA(NO, LCOUNT) >= 0
+		SETCOLOR DEF_COLOR("灰色")
+		FONTSTYLE 4
+	ENDIF
+
+	;エンディングが書かれているかチェック（TRYCALLなのでRESULTに0を代入しておく）
+	IF ARGS == "ＥＮＤチェック"
+		RESULT = 0
+		TRYCALLFORM IS_SINGLE_ENDING_K{LCOUNT}
+		SIF RESULT
+			SETCOLOR DEF_COLOR("ハートピンク")
+	ENDIF
+	;名前、肩書、特技
+	IF LCOUNT >= 100
+		PRINTFORM [{LCOUNT}] 
+	ELSE
+		PRINTFORM  [{LCOUNT, 2}] 
+	ENDIF
+	PRINTFORM %TEXT_LJ(CSVNAME(LCOUNT), 16)%　
+
+	IF CSVTALENT(LCOUNT, GETNUM(TALENT, "処女") )
+		PRINTFORM %TEXT_LJ(@"%CSVCSTR(LCOUNT, GETNUM(CSTR, "学年") )%(処女)", 14)%　
+	ELSE
+		PRINTFORM %TEXT_LJ(CSVCSTR(LCOUNT, GETNUM(CSTR, "学年") ), 14)%　
+	ENDIF
+	PRINTFORM %TEXT_LJ(CSVCSTR(LCOUNT, GETNUM(CSTR, "肩書") ), 22)%　
+
+	VARSET LOCALS
+	SPLIT CSVCSTR(LCOUNT, GETNUM(CSTR, "アドバイス") ), "＆", LOCALS
+	FOR LCOUNT2, 0, 10
+		SELECTCASE LOCALS:LCOUNT2
+		CASE ""
+			BREAK
+		CASEELSE
+			PRINTBUTTON LOCALS:LCOUNT2, LOCALS:LCOUNT2
+			SIF LOCALS:(LCOUNT2 + 1) != ""
+				PRINT ＆
+		ENDSELECT
+	NEXT
+	PRINTL 
+	RESETCOLOR
+	FONTSTYLE 0
+NEXT
+

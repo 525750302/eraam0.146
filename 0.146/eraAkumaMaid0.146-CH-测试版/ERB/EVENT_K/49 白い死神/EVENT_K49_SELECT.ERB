@@ -1,0 +1,225 @@
+;-------------------------------------------------
+;ここに記述する事で各コマンドの選択肢を増やすことができる
+;X1はキャラ番号に置換してください
+;-------------------------------------------------
+;お願い・取引での選択肢を追加。番号は60～89を使ってよい
+@WISH_K49_ADDSELECT
+IF TALENT:恋慕 || TALENT:相思相愛
+	IF TALENT:妊娠不能 == 1
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("妊娠して欲しい", 16)% … %CALLNAME:TARGET%に妊娠出来るようにしてもらいます/
+	ELSEIF TALENT:妊娠不能 == 0
+		STR:選択肢 = %STR:選択肢% [61] %TEXT_LJ("妊娠しないで欲しい", 16)% … %CALLNAME:TARGET%に妊娠しないようにしてもらいます/
+	ENDIF
+ENDIF
+IF TALENT:恋慕 && BASE:MASTER:魂 > 201 && TALENT:MASTER:リザレクション <= 299 && CFLAG:魂の器拡張済み == 0
+	STR:選択肢 = %STR:選択肢% [62] %TEXT_LJ("魂の器を大きく", 16)% … %CALLNAME:TARGET%にリザレクションを強化してもらいます/
+ELSE
+	IF TALENT:恋慕 && TALENT:MASTER:リザレクション >= 300
+		STR:選択肢 = %STR:選択肢%灰色/ [62] %TEXT_LJ("魂の器を大きく", 16)% … これ以上は無理です/
+	ELSEIF TALENT:恋慕 && CFLAG:魂の器拡張済み == 1
+		STR:選択肢 = %STR:選択肢%灰色/ [62] %TEXT_LJ("魂の器を大きく", 16)% … 今日はもう駄目です/
+	ELSEIF TALENT:恋慕 && BASE:MASTER:魂 <= 200
+		STR:選択肢 = %STR:選択肢%灰色/ [62] %TEXT_LJ("魂の器を大きく", 16)% … %CALLNAME:MASTER%の魂が2.01以上必要です/
+	ENDIF
+ENDIF
+;お願い・取引で増やした選択肢の地の文と台詞
+@KOJO_WISH_K49_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "妊娠して欲しい"
+    PRINTFORMW 「ん……子供を作りたいのかい？」
+    PRINTFORMW 「良いよ」
+    PRINTFORMW 「その代わりいっぱい出して、ね？」
+    TALENT:妊娠不能 = 0
+CASE "妊娠しないで欲しい"
+    PRINTFORMW 「んー？無責任にしたいのかい？」
+    PRINTFORMW 「……ふふっ。いっぱい中にだしたいんだね？」
+    PRINTFORMW 「うん、好きにすると良いよ」
+    PRINTFORMW 「%CNAME("一人称")%は%CNAME("二人称")%がシたいようにするだけだよ」
+    TALENT:妊娠不能 = 1
+CASE "魂の器を大きく"
+	IF CEVENT("魂の器大きくしてほしい：初回") == 0
+		PRINTFORMW 「魂の器を大きくしたい……？」
+		PRINTFORMW 「うーん、出来るけど」
+		PRINTFORMW 「ホントだったらしちゃダメなんだけど」
+		PRINTFORMW 「……うん、%CNAME("二人称")%だったら良いかな？」
+		PRINTFORMW そう言って%CALLNAME:TARGET%は%CALLNAME:MASTER%の胸に手を添えて
+		PRINTFORMW 「иадукак ов авуту он ийхсамат он уохсиат иеснихс.」
+		PRINTFORMW 「укадоыкуоыруж,ихци,ин,нас.」
+		;iadukak ow wautu on iihsamat on uohsiat iesnihs.
+		;ukadoykuoyruj,ihci,in,nas.
+		;原文「申請―――対象の魂の器を拡大。三、二、一、受領許諾」
+		;ローマ字にした後に逆にした後にキリル文字に変換しただけの雑言語。
+		PRINTFORMW 良く分からない言語を呟き始めた。
+		PRINTFORMW 「ん、これで大丈夫だよ」
+		PRINTFORMW 「でも、何か不具合があったら怖いから一日一回だけだよ？」
+		CALL SET_CEVENT, "魂の器大きくしてほしい：初回"
+	ELSEIF TALENT:MASTER:リザレクション >= 290
+		PRINTFORMW 「んー、多分これが最後とだと思うね」
+		PRINTFORMW 「何でか？うん、それは」
+		PRINTFORMW 「これ以上魂の器を大きくしたら肉体の方が耐えられなくなりそうだからだよ」
+		PRINTFORMW 「流石に%CNAME("二人称")%が吹き飛ぶのを見たくはないから、これ以上はしたくないな」
+		PRINTFORMW 「じゃあ、始めよっか」
+		PRINTFORMW 何時もの通りに%CALLNAME:TARGET%は%CALLNAME:MASTER%の胸に手を添えて何かを呟く。
+		PRINTFORML 
+		PRINTFORMW 「%CNAME("二人称")%に頼まれてやった事だけど」
+		PRINTFORMW 「%CNAME("一人称")%はもしかしたら取り返しのつかない事をやったかもしれないね？」
+		PRINTFORMW 「ふふっ、まぁでも」
+		PRINTFORMW 「あん畜生が咎めてないって事は罪じゃないね」
+		PRINTFORMW そう%CALLNAME:TARGET%は蠱惑的に笑った。
+	ELSE
+		PRINTFORMW 「ん、まただね」
+		PRINTFORMW そう言って%CALLNAME:TARGET%は%CALLNAME:MASTER%の胸に手を添えて何時もの何かの呪文を呟き始めた。
+		PRINTFORML 
+		PRINTFORMW 「ん、良し」
+		PRINTFORMW 「最初は初めての事だから不安だったけど二回目以降になると簡単に感じるね」
+		PRINTFORMW 「でも、何かあったら怖いから何時も通り一日一回だけだよ」
+	ENDIF
+	PRINTL 
+	CALL PRINT_STRW, @"%CALLNAME:MASTER%のリザレクションが_黄色_0.1LV_だけ上昇した。"
+	BASE:MASTER:魂 -= 200
+	TALENT:MASTER:リザレクション += 10
+	CFLAG:魂の器拡張済み = 1
+ENDSELECT
+
+;-------------------------------------------------
+;トークコマンドの選択肢を追加
+@DAILY1_K49_ADDSELECT
+;STR:選択肢 += "追加選択肢その１/"
+;STR:選択肢 += "追加選択肢その２/"
+
+;トークコマンドで増やした選択肢の地の文と台詞
+;@KOJO_DAILY1_K49_ADDSELECT, ARGS
+;SELECTCASE ARGS
+;CASE "追加選択肢その１"
+;	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+;	PRINTL 
+;	PRINTFORMW 「台詞」
+;	PRINTL 
+;	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+;CASE "追加選択肢その２"
+;	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+;	PRINTL 
+;	PRINTFORMW 「台詞」
+;	PRINTL 
+;	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+;ENDSELECT
+
+;-------------------------------------------------
+;もてなすコマンドの選択肢を追加
+@DAILY2_K49_ADDSELECT
+IF DEVENT("紫煙を燻らせる") == 1 && CHARA_NUM("室内の邪魔者") == 0
+	STR:選択肢 += "紫煙を燻らせる/"
+ENDIF
+;STR:選択肢 += "追加選択肢その２/"
+
+;もてなすコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY2_K49_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "紫煙を燻らせる"
+	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%に喫煙を勧めた。
+	PRINTFORMW 「ん、ありがと」
+	;「あれ？火付けが……、(ッボ)すぅ……はぁ……」
+	;面倒になったのか人差し指に黒い炎を灯して煙草に火をつけた。
+	;その炎は生理的恐怖を沸かせるモノだった。
+	;「……あっごめん。探すのが面倒で少し地獄の火を使っちゃった」
+	;からからと笑う白い死神。
+	;……そんなに気軽に地獄の火は使っていい物なのだろうか？？？
+	
+	
+	PRINTFORMW そう言うと、%CALLNAME:TARGET%は煙草を取り出して咥え、火を点けた。
+	PRINTFORMW 「すぅ……%TEXTR("ふぅー/はぁー")%……」
+	IF RAND:3 == 0
+		PRINTFORMW 「ん、%CNAME("一人称")%が吸っている銘柄？」
+		PRINTFORMW 「Pax」と書かれているのは知っているがどんなのかは知らないから聞いてみた。
+		PRINTFORMW 「うん、平和って意味の銘柄の煙草だよ」
+		PRINTFORMW 「他の煙草より少し重たいのだけど、甘い味で個人的に好きな味だね」
+	ELSEIF RAND:2 == 0
+		IF DEVENT("喫煙の理由") == 0
+			PRINTFORMW 「煙草を吸い始めた理由？」
+			PRINTFORMW ふと気になったので聞いてみる事にした。
+			PRINTFORMW 「最初は……そうだねキミ達の真似だったかな」
+			PRINTFORMW 「煙に巻けば、この胸の憤りをマシに出来るかとか考えていたんだ」
+			PRINTFORMW 「実際少しはマシになったけどね……」
+			CALL SET_DEVENT, "喫煙の理由" 
+		ELSE
+			PRINTFORMW 「煙草が好きか、かい？」
+			PRINTFORMW 「そうだね……うん好きだと思う」
+			PRINTFORMW 「少しずつ燃えて、灰になって、最期に煙になって消えていく」
+			PRINTFORMW 「少し悲しいけれどキミ達ヒトみたいだからね……」
+		ENDIF
+	ELSE
+		GETFONT
+		CHKFONT "ＭＳ 明朝"
+		SIF RESULT
+			SETFONT "ＭＳ 明朝"
+			PRINTFORMW 「私は時宜にも合わないおまえの陽気な顔を眺め、
+			PRINTFORMW 　かなしく煙草を吹かすのだ、
+			PRINTFORMW 　一服、一服、吹かすのだ……」
+		SETFONT RESULTS
+		PRINTFORMW ふと%CALLNAME:TARGET%はそんな事を呟き始めた。
+		IF DEVENT("わが喫煙") == 0
+			PRINTFORMW 「ん、ああ。昔そんな事を呟きながら煙草を吸っていたヒトを見かけた事があったんだ」
+			CALL SET_DEVENT, "わが喫煙"
+		ENDIF
+		IF TALENT:恋慕
+			PRINTFORMW 「今だったら分かるなぁ」
+			PRINTFORMW 「%CNAME("二人称")%が%CNAME("一人称")%を見てくれないってなるとこんな事を呟きながら」
+			PRINTFORMW 「煙草を吸っちゃうかも」
+			PRINTFORMW そう少し%CALLNAME:TARGET%は悲しそうに笑った。
+		ELSE
+			PRINTFORMW 「一体どう言う意味だったのだろうね？」
+			PRINTFORMW 煙と共に%CALLNAME:TARGET%はそう笑った。
+		ENDIF
+	ENDIF
+	IF CFLAG:不機嫌指数 > 0
+		CFLAG:不機嫌指数 -= 5
+	ENDIF
+;CASE "追加選択肢その２"
+;	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+;	PRINTL 
+;	PRINTFORMW 「台詞」
+;	PRINTL 
+;	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+ENDSELECT
+
+;-------------------------------------------------
+;デート行き先の選択肢を追加。
+@DATE_K49_ADDSELECT
+;ここで増やした選択肢を選ぶと、それがSAVESTR:デート に代入される仕組みです
+;STR:選択肢 += "追加選択肢その１/"
+;STR:選択肢 += "追加選択肢その２/"
+;
+;増やした行先での地の文と台詞。起きうるイベントのフラグもここで決める
+@KOJO_DATE_K49_ADDSELECT
+;SELECTCASE SAVESTR:デート
+;CASE "追加選択肢その１"
+;	PRINTFORMW 「台詞」
+;	;地の文
+;	PRINTFORMW %SAVESTR:デート%での%CALLNAME:TARGET%の反応
+;	;地の文を用意していない場合には汎用のものを使う
+;	;CALL DAILY_MESSAGE, "デート本番"
+;	PRINTL 
+;	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+;	FLAG:ムード += 30
+;	;それぞれ可能なもののコメントアウトを外す
+;	;TFLAG:デートエロ可能 = 1
+;	;TFLAG:デート手つなぎ可能 = 1
+;	;TFLAG:下着チラ見え可能 = 1
+;	;TFLAG:水着デート = 1
+;CASE "追加選択肢その２"
+;	PRINTFORMW 「台詞」
+;	;地の文
+;	PRINTFORMW %SAVESTR:デート%での%CALLNAME:TARGET%の反応
+;	;地の文を用意していない場合には汎用のものを使う
+;	;CALL DAILY_MESSAGE, "デート本番"
+;	PRINTL 
+;	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+;	FLAG:ムード += 30
+;	;それぞれ可能なもののコメントアウトを外す
+;	;TFLAG:デートエロ可能 = 1
+;	;TFLAG:デート手つなぎ可能 = 1
+;	;TFLAG:下着チラ見え可能 = 1
+;	;TFLAG:水着デート = 1
+;ENDSELECT
+
+

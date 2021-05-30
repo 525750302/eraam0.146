@@ -1,0 +1,88 @@
+﻿@COM61
+;後背位
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+;-------------------------------------------------
+;射精チェック
+;-------------------------------------------------
+CALL SAMEN_CHECK
+
+RETURN 1
+
+@FLAG_COM61, ARG
+CALL FLAG_INSERTION, "Ｖインサート", ARG, 110
+
+@SOURCE_COM61, ARG
+CALL SOURCE_INSERTION, "Ｖインサート", ARG, 110
+
+CALL VARSET_COMF
+
+SOURCE:0:露出 = 1000
+;動物耳
+SIF TALENT:動物耳
+	SOURCE:0:露出 = 200
+SOURCE:0:情愛 = 350
+
+;PALAM:欲情をみる
+SELECTCASE PALAM:欲情
+CASE IS < PALAMLV:1
+	TIMES SOURCE:0:情愛, 0.30
+CASE IS < PALAMLV:2
+	TIMES SOURCE:0:情愛, 0.60
+CASE IS < PALAMLV:3
+	TIMES SOURCE:0:情愛, 1.00
+CASE IS < PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.50
+CASE IS >= PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.80
+ENDSELECT
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM61
+#DIM MEMO_LINECOUNT
+
+MEMO_LINECOUNT = LINECOUNT
+CALL TRAIN_MESSAGE_INSERTION
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;前回、挿入前に暴発してしまった
+IF PREVCOM == TNUM("挿入前暴発") && COND("前Ｔ調教者") == PLAYER
+	PRINTFORM 気を取り直した%CALLNAME:PLAYER%は、
+ELSE
+	PRINTFORM %CALLNAME:PLAYER%は
+ENDIF
+IF COND("前Ｔから対象のみ変更") && VAU_INSERT_PLAY(PREVCOM:1)
+	CALL ADD_TEXT, "性器から性器へ"
+	PRINTFORM 後ろから%CALLNAME:TARGET%の%TEXTS("Ｖ挿入前")%
+;穴開きでないパンツをはいていて、ずらされていないなら、必ずずらす
+ELSEIF !CHECK_CLO("Ｖ露出") && CHECK_CLO("Ｖ露出可")
+	PRINTFORM %CALLNAME:TARGET%の
+	CALL SETFLAG, "ボトムを露出：テキスト有り", TARGET
+	PRINTFORM 、後ろから%TEXTS("Ｖ挿入前")%
+;巨根分岐
+ELSEIF ABL:PLAYER:サドっ気 && SIZE("ペニス", PLAYER) >= 2 && COND("視力") && CHOSECOMS("Ｖ挿入") == 0
+	PRINTFORM 後ろから%TEXTS("巨根：視覚", PLAYER)%%TEXTR("をお尻に打ち付けて/でお尻を擦りあげて")%
+	PRINTFORM %TEXTR("どれほど深くまで犯す/何処まで入る/根元まで突き込んだらどういう事になる")%
+	PRINTFORM かを%CALLNAME:TARGET%に知らしめたのち、腰を突き出して%TEXTS("Ｖ挿入前")%
+ELSE
+	PRINTFORM 後ろから%CALLNAME:TARGET%の%TEXTS("Ｖ挿入前")%
+ENDIF
+
+IF TALENT:妊娠
+	PRINT にゆっくり
+ELSE
+	PRINT の最奥まで
+	SIF NUM("ターン数") == 0
+		PRINTFORM %TEXTR("前戯無しで/準備もせずに")%
+ENDIF
+PRINTFORMW 突き入れた。

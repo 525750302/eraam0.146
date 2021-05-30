@@ -1,0 +1,275 @@
+﻿
+@BIRTH_RECORD, ARGS, ARG, ARG:1
+#DIM LCOUNT
+#DIM LCOUNT2
+#DIM NEXT_LINE
+#DIM DIVISION_NUM
+#DIM FATHER_NUM
+#DIM BOY_NUM
+#DIM GIRL_NUM
+#DIM FATHER_COUNT
+#DIMS FATHER_NAME
+#DIMS CHILD, 2
+
+SELECTCASE ARGS
+CASE "出産記録：保存"
+
+	IF TALENT:ARG:出産経験 > 99
+		CALL PRINT_STR, "イエロー_出産記録の記録数が限界です。これ以上は記録できません_W"
+		RETURN ARG:1
+	ENDIF
+	;親番号の保存
+	SELECTCASE CSTR:ARG:出産記録
+	CASE ""
+
+	CASEELSE
+		CSTR:ARG:出産記録 += "/"
+	ENDSELECT
+	SELECTCASE BASE:ARG:精液の優勢
+	CASE IS > 0
+		CSTR:ARG:出産記録 += @"%TOSTR(BASE:ARG:精液の優勢)%"
+	CASEELSE
+		CSTR:ARG:出産記録 += "不"
+	ENDSELECT
+	;性別の保存
+	SELECTCASE ARG:1
+	CASE 1
+		CSTR:ARG:出産記録 += "_1"
+	CASEELSE
+		CSTR:ARG:出産記録 += "_0"
+	ENDSELECT
+	;この後の処理でも性別判定は必要なのでRETURNで性別を返す
+	RETURN ARG:1
+
+CASE "出産記録：書き出し"
+
+	SIF CSTR:ARG:出産記録 == ""
+		RETURN 0
+
+	CALL DRAWLINES, "□ 出産の記録 □", "出産の記録"
+
+	SIF CONFIG("項目：出産の記録")
+		RETURN 0
+
+	VARSET LOCALS
+	NEXT_LINE = 0
+
+	;子供1人ずつの情報に分離
+	SPLIT CSTR:ARG:出産記録, "/", LOCALS
+	;分離した数を記録
+	DIVISION_NUM = RESULT
+
+	FOR LCOUNT, 1, CHARANUM
+		;自分自身は父親にならない
+		SIF LCOUNT == ARG
+			CONTINUE
+
+		BOY_NUM = 0
+		GIRL_NUM = 0
+
+		FOR LCOUNT2, 0, DIVISION_NUM
+			;親番号と性別を分離
+			SPLIT LOCALS:LCOUNT2, "_", CHILD
+
+			;文字列を整数に
+			IF ISNUMERIC(CHILD:0)
+				FATHER_NUM = TOINT(CHILD:0)
+			ELSE
+				FATHER_NUM = 0
+			ENDIF
+
+			SIF FATHER_NUM != BASE:LCOUNT:識別番号
+				CONTINUE
+			SELECTCASE TOINT(CHILD:1)
+			CASE 1
+				BOY_NUM += 1
+			CASEELSE
+				GIRL_NUM += 1
+			ENDSELECT
+		NEXT
+
+		IF BOY_NUM + GIRL_NUM
+			PRINTFORM [{LCOUNT,2}]%TEXT_LJ(@"%CALLNAME:LCOUNT%との子供", 26)%{BOY_NUM + GIRL_NUM,2}人(
+			CALL GENDER_SYMBOL, "男", 1
+			PRINTFORM {BOY_NUM,2}:
+			CALL GENDER_SYMBOL, "女", 1
+			PRINTFORM {GIRL_NUM,2}) 
+			NEXT_LINE += 1
+			SIF NEXT_LINE%2 == 0
+				PRINTL 
+		ENDIF
+	NEXT
+
+	;部員以外の子供
+	FOR LCOUNT, 0, 4
+
+		BOY_NUM = 0
+		GIRL_NUM = 0
+
+		FOR LCOUNT2, 0, DIVISION_NUM
+			;親番号と性別を分離
+			SPLIT LOCALS:LCOUNT2, "_", CHILD
+
+			IF (LCOUNT == 0 && CHILD:0 == "旦那") || (LCOUNT == 1 && CHILD:0 == "彼氏") || (LCOUNT == 2 && CHILD:0 == "元彼") || (LCOUNT == 3 && CHILD:0 == "不")
+				SELECTCASE TOINT(CHILD:1)
+				CASE 1
+					BOY_NUM += 1
+				CASEELSE
+					GIRL_NUM += 1
+				ENDSELECT
+			ENDIF
+		NEXT
+
+		SELECTCASE LCOUNT
+		CASE 0
+			FATHER_NAME = 旦那との子供
+		CASE 1
+			FATHER_NAME = 彼氏との子供
+		CASE 2
+			FATHER_NAME = 元カレとの子供
+		CASE 3
+			FATHER_NAME = 父親不明の子供
+		ENDSELECT
+
+		IF BOY_NUM + GIRL_NUM
+			PRINTFORM [XX]%TEXT_LJ(FATHER_NAME, 26)%{BOY_NUM + GIRL_NUM,2}人(
+			CALL GENDER_SYMBOL, "男", 1
+			PRINTFORM {BOY_NUM,2}:
+			CALL GENDER_SYMBOL, "女", 1
+			PRINTFORM {GIRL_NUM,2}) 
+			NEXT_LINE += 1
+			SIF NEXT_LINE%2 == 0
+				PRINTL 
+		ENDIF
+	NEXT
+
+	SIF NEXT_LINE%2
+		PRINTL 
+
+;子供を生まれた順番に表示していく方式
+CASE "出産記録：書き出し２"
+
+	SIF CSTR:ARG:出産記録 == ""
+		RETURN 0
+
+	CALL DRAWLINES, "□ 出産の記録 □", "出産の記録"
+
+	SIF CONFIG("項目：出産の記録")
+		RETURN 0
+
+	VARSET LOCALS
+	NEXT_LINE = 0
+
+	;子供1人ずつの情報に分離
+	SPLIT CSTR:ARG:出産記録, "/", LOCALS
+	;分離した数を記録
+	DIVISION_NUM = RESULT
+
+	FOR LCOUNT, 0, DIVISION_NUM
+		;親番号と性別を分離
+		SPLIT LOCALS:LCOUNT, "_", CHILD
+
+		;文字列を整数にしてから父親の識別番号と照合
+		IF ISNUMERIC(CHILD:0)
+			FATHER_NUM = TOINT(CHILD:0)
+			FATHER_COUNT = 0
+
+			FOR LCOUNT2, 1, CHARANUM
+				;自分自身は父親にならない
+				IF LCOUNT2 == ARG
+					FATHER_COUNT += 1
+					CONTINUE
+				ENDIF
+				;部員内に父親がいる
+				SELECTCASE FATHER_NUM
+				CASE BASE:LCOUNT2:識別番号
+					PRINTFORM [{LCOUNT + 1,2}]%TEXT_LJ(@"%CALLNAME:LCOUNT2%との子供(\@ TOINT(CHILD:1) ? 男 # 女 \@の子)", 34)%　
+					NEXT_LINE += 1
+				CASEELSE
+					FATHER_COUNT += 1
+				ENDSELECT
+			NEXT
+			;父親が識別番号持ちだが誰の識別番号とも一致しなかった場合(キャラ削除でもしない限り起きないとは思うが念のため)
+			IF FATHER_COUNT == (CHARANUM - 1)
+				PRINTFORM [{LCOUNT + 1,2}]%TEXT_LJ(@"父親不明の子供(\@ TOINT(CHILD:1) ? 男 # 女 \@の子)", 34)%　
+				NEXT_LINE += 1
+			ENDIF
+		;父親が識別番号を持たない場合(現状ではないと思うが念のため)
+		ELSE
+			SELECTCASE CHILD:0
+			CASE "旦那"
+				FATHER_NAME = 旦那との子供
+			CASE "彼氏"
+				FATHER_NAME = 彼氏との子供
+			CASE "元彼"
+				FATHER_NAME = 元カレとの子供
+			CASEELSE
+				FATHER_NAME = 父親不明の子供
+			ENDSELECT
+			PRINTFORM [{LCOUNT + 1,2}]%TEXT_LJ(@"%FATHER_NAME%(\@ TOINT(CHILD:1) ? 男 # 女 \@の子)", 34)%　
+			NEXT_LINE += 1
+		ENDIF
+
+		SIF NEXT_LINE%2 == 0
+			PRINTL 
+	NEXT
+
+	SIF NEXT_LINE%2
+		PRINTL 
+
+ENDSELECT
+
+;ARG:1がARGの子供を産んだ数を返す関数
+@BABY(ARG, ARG:1)
+#FUNCTION
+#DIM LCOUNT
+#DIM DIVISION_NUM
+#DIMS CHILD, 2
+
+;ARG:1を省略でTARGET
+SIF ARG:1 == 0 && TARGET
+	ARG:1 = TARGET
+SIF ARG < 0 || ARG:1 < 0
+	RETURNF 0
+SIF ARG == ARG:1
+	RETURNF 0
+SIF CSTR:(ARG:1):出産記録 == ""
+	RETURNF 0
+
+VARSET LOCALS
+
+;子供1人ずつの情報に分離
+SPLIT CSTR:(ARG:1):出産記録, "/", LOCALS
+;分離した数を記録
+DIVISION_NUM = RESULT
+LOCAL = 0
+
+FOR LCOUNT, 0, DIVISION_NUM
+	;親番号と性別を分離
+	SPLIT LOCALS:LCOUNT, "_", CHILD
+
+	SIF TOINT(CHILD:0) == BASE:ARG:識別番号
+		LOCAL += 1
+NEXT
+
+RETURNF LOCAL
+
+;性別記号を出力する関数
+@GENDER_SYMBOL, ARGS, ARG
+GETFONT
+CHKFONT "Times New Roman"
+SIF RESULT && ARG == 1
+	SETFONT "Times New Roman"
+SELECTCASE ARGS
+CASE "男"
+	SETCOLOR DEF_COLOR("青")
+	PRINT ♂
+	;PRINTFORM %UNICODE(0x2642)%
+CASE "女"
+	SETCOLOR DEF_COLOR("赤")
+	PRINT ♀
+	;PRINTFORM %UNICODE(0x2640)%
+ENDSELECT
+SETFONT RESULTS
+RESETCOLOR
+

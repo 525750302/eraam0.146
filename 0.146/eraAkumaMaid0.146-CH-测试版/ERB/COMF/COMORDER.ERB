@@ -1,0 +1,506 @@
+;実際にコマンド選択をしたら、これを呼ぶ
+@SHOW_COM_ORDER_COM, ARG, ARG:1
+;ARG:1が1ならテキストが出力されない
+TRYCALLFORM COM_ORDER_COM{ARG}, ARG:1
+TCVAR:やる気 = RESULT
+
+@PRINT_COM_ORDER_COM, ARGS, ARG, ARG:1, ARG:2
+SELECTCASE ARG
+CASE 0
+	PRINTFORM %ARGS% = {ARG:1} 
+	SELECTCASE ARG:1
+	CASE IS < ARG:2
+		PRINT <
+	CASE ARG:2
+		PRINT =
+	CASEELSE
+		PRINT >
+	ENDSELECT
+	PRINTFORMW  実行値{ARG:2}
+ENDSELECT
+
+;RESULT > 0で実行値クリア
+RETURN MAX(ARG:1 - ARG:2 + 1, 0)
+
+
+@COM_ORDER, ARG
+;少しは早くなるか…？
+SIF TFLAG:実行値ボーナス
+	RETURN TFLAG:実行値ボーナス
+SIF TCVAR:基本実行値 && ARG
+	RETURN TCVAR:基本実行値
+
+
+STR:実行値 = 
+TCVAR:基本実行値 = 0
+
+IF EQUIP:Ｈなご褒美
+	TCVAR:基本実行値 += 15
+	STR:実行値 = %STR:実行値% + Ｈなご褒美(15)
+ENDIF
+IF TEQUIP:MASTER:不毛な相談
+	TCVAR:基本実行値 += 8
+	STR:実行値 = %STR:実行値% + 不毛な相談(8)
+ENDIF
+IF TEQUIP:解放感 && PLACE("野外")
+	TCVAR:基本実行値 += 15
+	STR:実行値 = %STR:実行値% + 解放感(15)
+ENDIF
+IF TEQUIP:トリックスター
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + トリックスター(5)
+ENDIF
+IF CFLAG:褒める
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + 上機嫌(5)
+ENDIF
+IF CFLAG:ムラムラ
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + ムラムラ中(5)
+ENDIF
+IF ABL:信頼
+	TCVAR:基本実行値 += MIN(ABL:信頼, 10)
+	STR:実行値 = %STR:実行値% + 信頼LV{ABL:信頼}({MIN(ABL:信頼, 10)})
+ENDIF
+IF ABL:欲望
+	TCVAR:基本実行値 += MIN(ABL:欲望, 10)
+	STR:実行値 = %STR:実行値% + 欲望LV{ABL:欲望}({MIN(ABL:欲望, 10)})
+ENDIF
+
+;刻印チェック
+IF MARK:苦痛刻印
+	TCVAR:基本実行値 += MARK:苦痛刻印 * 5
+	STR:実行値 = %STR:実行値% + 苦痛刻印LV{MARK:苦痛刻印}({MARK:苦痛刻印 * 5})
+ENDIF
+IF MARK:快楽刻印
+	TCVAR:基本実行値 += MARK:快楽刻印 * 2
+	STR:実行値 = %STR:実行値% + 快楽刻印LV{MARK:快楽刻印}({MARK:快楽刻印 * 2})
+ENDIF
+IF MARK:淫紋 && TALENT:オトコ == 0
+	TCVAR:基本実行値 += MARK:淫紋 * 1
+	STR:実行値 = %STR:実行値% + 淫紋LV{MARK:淫紋}({MARK:淫紋 * 1})
+ENDIF
+
+IF MARK:屈服刻印
+	TCVAR:基本実行値 += MARK:屈服刻印 * (3 + TALENT:高慢*3 - TALENT:謙虚)
+	STR:実行値 = %STR:実行値% + 屈服刻印LV{MARK:屈服刻印}({MARK:屈服刻印 * (3 + TALENT:高慢*3 - TALENT:謙虚)})
+ENDIF
+
+;好感度(補正のMAXは16)
+IF PLAYER == MASTER && MIN(GET_EXP_LV(CFLAG:好感度)/5, 16)
+	TCVAR:基本実行値 += MIN(GET_EXP_LV(CFLAG:好感度)/5, 16)
+	STR:実行値 = %STR:実行値% + 好感度({MIN(GET_EXP_LV(CFLAG:好感度)/5, 16)})
+ENDIF
+
+IF GET_PALAMLV(PALAM:欲情)
+	TCVAR:基本実行値 += GET_PALAMLV(PALAM:欲情)
+	STR:実行値 = %STR:実行値% + 欲情LV{GET_PALAMLV(PALAM:欲情)}({GET_PALAMLV(PALAM:欲情)})
+ENDIF
+IF GET_PALAMLV(PALAM:恐怖)
+	TCVAR:基本実行値 += GET_PALAMLV(PALAM:恐怖)
+	STR:実行値 = %STR:実行値% + 恐怖LV{GET_PALAMLV(PALAM:恐怖)}({GET_PALAMLV(PALAM:恐怖)})
+ENDIF
+
+;反抗的
+IF TALENT:反抗的
+	TCVAR:基本実行値 -= 10
+	STR:実行値 = %STR:実行値% - 反抗的(10)
+ENDIF
+;気丈
+IF TALENT:気丈
+	TCVAR:基本実行値 -= 5
+	STR:実行値 = %STR:実行値% - 気丈(5)
+ENDIF
+;素直
+IF TALENT:素直
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + 素直(5)
+ENDIF
+;高慢(押し倒してるなら無視)
+IF TALENT:高慢 && TEQUIP:押し倒し == 0
+	TCVAR:基本実行値 -= 15
+	STR:実行値 = %STR:実行値% - 高慢(15)
+ENDIF
+;謙虚
+IF TALENT:謙虚
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + 謙虚(5)
+ENDIF
+;目立ちたがり
+IF TALENT:目立ちたがり
+	TCVAR:基本実行値 += 2
+	STR:実行値 = %STR:実行値% + 目立ちたがり(2)
+ENDIF
+
+;好色
+IF TALENT:好色
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + 好色(5)
+ENDIF
+
+;淫乱
+IF TALENT:淫乱
+	TCVAR:基本実行値 += 10
+	STR:実行値 = %STR:実行値% + 淫乱(10)
+ENDIF
+
+IF COND("性別嫌悪")
+	TCVAR:基本実行値 -= 10 * COND("性別嫌悪")
+	STR:実行値 = %STR:実行値% - 性別嫌悪({10 * COND("性別嫌悪")})
+ENDIF
+
+;相思相愛
+IF TALENT:相思相愛 && PLAYER == MASTER
+	TCVAR:基本実行値 += 10
+	STR:実行値 = %STR:実行値% + 相思相愛(10)
+;恋慕
+ELSEIF TALENT:恋慕 && PLAYER == MASTER
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + 恋慕(5)
+ENDIF
+
+;酔い
+IF STATE("悪酔い", TARGET)
+	TCVAR:基本実行値 += 10
+	STR:実行値 = %STR:実行値% + 悪酔い(10)
+ELSEIF STATE("酔い", TARGET)
+	TCVAR:基本実行値 += 3
+	STR:実行値 = %STR:実行値% + 酔い(3)
+ENDIF
+
+;人形
+IF COND("種族：人形")
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + 人形(5)
+ENDIF
+
+IF COND("疲労")
+	TCVAR:基本実行値 -= 30
+	STR:実行値 = %STR:実行値% - 疲労困憊(30)
+ENDIF
+
+;調教者の素質
+;魅力
+IF TALENT:PLAYER:魅力
+	TCVAR:基本実行値 += 3
+	STR:実行値 = %STR:実行値% + 魅力(3)
+ENDIF
+IF TALENT:PLAYER:謎の魅力
+	TCVAR:基本実行値 += TALENT:PLAYER:謎の魅力
+	STR:実行値 = %STR:実行値% + %TALENT_NAME(GETNUM(TALENT, "謎の魅力"), TALENT:PLAYER:謎の魅力)%({TALENT:PLAYER:謎の魅力})
+ENDIF
+IF TALENT:PLAYER:鼓舞
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + 鼓舞(5)
+ENDIF
+IF TEQUIP:室内露出プレイ
+	TCVAR:基本実行値 -= 5
+	STR:実行値 = %STR:実行値% - 室内露出(5)
+ENDIF
+IF TEQUIP:ビデオカメラ
+	TCVAR:基本実行値 -= 10
+	STR:実行値 = %STR:実行値% - 撮影中(10)
+ENDIF
+;IF TEQUIP:野外プレイ
+;	IF COND("人里")
+;		TCVAR:基本実行値 -= 10
+;		STR:実行値 = %STR:実行値% - 野外(人里)(10)
+;	ELSE
+;		TCVAR:基本実行値 -= 5
+;		STR:実行値 = %STR:実行値% - 野外(5)
+;	ENDIF
+;ENDIF
+;押し倒し時のボーナスを追加
+IF TEQUIP:押し倒し
+	TCVAR:基本実行値 += 10
+	STR:実行値 = %STR:実行値% + 押し倒され特別ボーナス(10)
+ENDIF
+IF TEQUIP:甘い言葉
+	TCVAR:基本実行値 += 10
+	STR:実行値 = %STR:実行値% + 甘い言葉(10)
+ENDIF
+
+IF COND("調教中")
+	;ムード
+	IF MOOD() / 10
+		TCVAR:基本実行値 += MOOD() / 10
+		STR:実行値 = %STR:実行値% + ムード({MOOD() / 10})
+	ENDIF
+	;アドバイザー関係
+	IF ASSI && TARGET != ASSI && STATE("撃沈", ASSI) == 0
+		IF TEQUIP:動画撮影
+			TCVAR:基本実行値 -= 5
+			STR:実行値 = %STR:実行値% - スマホで撮影中(5)
+		ENDIF
+		IF TALENT:ASSI:鼓舞
+			TCVAR:基本実行値 += 10
+			STR:実行値 = %STR:実行値% + %TEXTS("助手の名称")%の鼓舞(10)
+		ENDIF
+		;相性チェック
+		SELECTCASE RELATION:(NO:ASSI)
+		CASE 1 TO 30
+			TCVAR:基本実行値 -= 30
+			STR:実行値 = %STR:実行値% - %TEXTS("助手の名称")%との相性が最悪(30)
+		CASE 31 TO 50
+			TCVAR:基本実行値 -= 15
+			STR:実行値 = %STR:実行値% - %TEXTS("助手の名称")%との相性が悪い(15)
+		CASE 51 TO 80
+			TCVAR:基本実行値 -= 5
+			STR:実行値 = %STR:実行値% - %TEXTS("助手の名称")%との相性がいまいち(5)
+		CASE 120 TO 149
+			TCVAR:基本実行値 += 1
+			STR:実行値 = %STR:実行値% + %TEXTS("助手の名称")%との相性なかなか(1)
+		CASE 150 TO 199
+			TCVAR:基本実行値 += 5
+			STR:実行値 = %STR:実行値% + %TEXTS("助手の名称")%との相性が良好(5)
+		CASE IS >= 200
+			TCVAR:基本実行値 += 10
+			STR:実行値 = %STR:実行値% + %TEXTS("助手の名称")%との相性が最高(10)
+		ENDSELECT
+	ENDIF
+ELSE
+	IF CFLAG:甘い言葉
+		TCVAR:基本実行値 += 5
+		STR:実行値 = %STR:実行値% + ときめき(5)
+	ENDIF
+	IF CHARA_NUM("室内の邪魔者")
+		TCVAR:基本実行値 -= 20
+		STR:実行値 = %STR:実行値% - 二人きりじゃない(20)
+	ELSEIF PLACE("自宅") == 0 && CHARA_NUM("集合予定") > 2
+		TCVAR:基本実行値 -= 10
+		STR:実行値 = %STR:実行値% - まだまだ人が来る予定がある(10)
+	ENDIF
+
+	;着せ替えのお願い中
+	IF COND("パンツ取引中")
+		IF CHECK_CLO("パンツを脱いだらＶ露出")
+			TCVAR:基本実行値 -= 20
+			STR:実行値 = %STR:実行値% - パンツを脱いだらＶ露出(20)
+		ELSEIF CHECK_CLO("パンツを脱ぐのが難儀")
+			TCVAR:基本実行値 -= 5
+			STR:実行値 = %STR:実行値% - パンツを脱ぎづらい(5)
+		ENDIF
+	ELSEIF COND("下着姿取引中")
+		;上下揃った下着姿
+		IF EQUIP:パンツ && (EQUIP:ブラ || TALENT:オトコ)
+			TCVAR:基本実行値 -= 10
+			STR:実行値 = %STR:実行値% - 下着姿になって欲しい(10)
+		;トップレス
+		ELSEIF EQUIP:パンツ && EQUIP:ブラ == 0
+			TCVAR:基本実行値 -= 15
+			STR:実行値 = %STR:実行値% - 脱いだらトップレス(15)
+		;ボトムレス
+		ELSEIF EQUIP:パンツ == 0 && EQUIP:ブラ
+			TCVAR:基本実行値 -= 20
+			STR:実行値 = %STR:実行値% - 脱いだらＶ露出(20)
+		;全裸じゃん！
+		ELSE
+			TCVAR:基本実行値 -= 30
+			STR:実行値 = %STR:実行値% - 脱いだら全裸(30)
+		ENDIF
+	ELSEIF COND("全裸取引中")
+		TCVAR:基本実行値 -= 30
+		STR:実行値 = %STR:実行値% - 裸になって欲しい(30)
+	ENDIF
+	IF COND("パンツ取引中") || COND("下着姿取引中") || COND("全裸取引中")
+		IF STRCOUNT(CSTR:アドバイス, "ナチュラリスト")
+			TCVAR:基本実行値 += 15
+			STR:実行値 = %STR:実行値% + ナチュラリスト(15)
+		ELSEIF STRCOUNT(CSTR:(ASSI:1):アドバイス, "ナチュラリスト")
+			TCVAR:基本実行値 += 15
+			STR:実行値 = %STR:実行値% + %CALLNAME:ASSI%の助言(15)
+		ENDIF
+	ENDIF
+	IF COND("合意：露出プレイ") && COND("パンツ取引中") + COND("下着姿取引中") + COND("全裸取引中")
+		TCVAR:基本実行値 += 10
+		STR:実行値 = %STR:実行値% + 露出プレイの合意(10)
+	ENDIF
+ENDIF
+
+;現在地による補正
+IF PLACE("野外")
+	TCVAR:基本実行値 -= 20
+	STR:実行値 = %STR:実行値% - 野外(20)
+ELSEIF PLACE("パートナーの部屋")
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + 自分の部屋(5)
+ELSEIF PLACE("自室")
+	TCVAR:基本実行値 += 5
+	STR:実行値 = %STR:実行値% + %CALLNAME:MASTER%の部屋(5)
+ELSEIF PLACE("ラブホテル")
+	TCVAR:基本実行値 += 10
+	STR:実行値 = %STR:実行値% + ラブホテル(10)
+ELSEIF PLACE("個室") == 0
+	TCVAR:基本実行値 -= 5
+	STR:実行値 = %STR:実行値% - 個室ではない(5)
+ENDIF
+
+SIF ARG == 0
+	PRINTFORM %SUBSTRING(STR:実行値, 3)%
+
+RETURN TCVAR:基本実行値
+
+
+;ARGSにPLAYERの場所、ARGS:1にTARGETの場所
+@COM_ORDER_STAIN(ARGS, ARGS:1)
+#FUNCTION
+#DIM STAIN_TARGET
+#DIM STAIN_PLAYER
+
+;汚れ無視
+SIF TALENT:汚れ無視
+	RETURNF 0
+
+SELECTCASE ARGS
+CASE "Ｍ", "手", "脚", "Ｐ", "Ｖ", "Ａ", "Ｂ"
+	STAIN_PLAYER = STAIN:PLAYER:ARGS
+CASE "尿道"
+	IF PENIS(PLAYER)
+		STAIN_PLAYER = STAIN:PLAYER:Ｐ
+	ELSE
+		STAIN_PLAYER = STAIN:PLAYER:Ｖ
+	ENDIF
+CASEELSE
+	RETURNF 0
+ENDSELECT
+
+SELECTCASE ARGS:1
+CASE "Ｍ", "手", "脚", "Ｐ", "Ｖ", "Ａ", "Ｂ"
+	STAIN_TARGET = STAIN:(ARGS:1)
+CASE "尿道"
+	IF PENIS(TARGET)
+		STAIN_TARGET = STAIN:Ｐ
+	ELSE
+		STAIN_TARGET = STAIN:Ｖ
+	ENDIF
+CASEELSE
+	STAIN_TARGET = 0
+ENDSELECT
+
+VARSET LOCAL
+
+;愛液の汚れ
+IF CHECK_STAIN(STAIN_PLAYER, "Ｖ")
+	LOCAL:0 = 16
+	SIF COND("性別嫌悪")
+		LOCAL:0 += 5 * 2
+	SIF TALENT:オトコ || TALENT:両刀
+		LOCAL:0 -= 8
+	SIF TALENT:においに弱い
+		LOCAL:0 -= 2
+	;場所自体がＶでお風呂上りならペナ軽減
+	SIF LOCAL:0 > 0 && ARGS == "Ｖ" && TEQUIP:PLAYER:お風呂上り
+		LOCAL:0 /= 2
+ENDIF
+;ペニスの汚れ
+IF CHECK_STAIN(STAIN_PLAYER, "Ｐ")
+	LOCAL:1 = 5
+	SIF COND("性別嫌悪")
+		LOCAL:1 += 5 * COND("性別嫌悪")
+	SIF TALENT:においに弱い
+		LOCAL:1 -= 2
+	;場所自体がＰでお風呂上りならペナ軽減
+	SIF LOCAL:1 > 0 && ARGS == "Ｐ" && TEQUIP:PLAYER:お風呂上り
+		LOCAL:1 /= 2
+	SIF CALCF("ペニス好き度", TARGET) > 0
+		LOCAL:1 -= CALCF("ペニス好き度", TARGET)
+ENDIF
+;精液の汚れ(精液中毒で相殺)
+IF CHECK_STAIN(STAIN_PLAYER, "精液")
+	SIF COND("性別嫌悪")
+		LOCAL:2 += 5 * COND("性別嫌悪")
+	SIF ABL:精液中毒
+		LOCAL:2 = 6 - ABL:精液中毒*2 - (TALENT:においに弱い > 0)
+	SIF TALENT:吸精体質
+		LOCAL:2 -= 6
+ENDIF
+;アナルの汚れ
+IF CHECK_STAIN(STAIN_PLAYER, "Ａ")
+	LOCAL:3 = 65 - ABL:マゾっ気*5 - ABL:サドっ気*2
+	SIF TALENT:尻穴狂い
+		LOCAL:3 -= 20
+	SIF TALENT:においに弱い && TALENT:恋慕
+		LOCAL:3 /= 2
+	;場所自体がＡでお風呂上りならペナ軽減
+	SIF LOCAL:3 > 0 && ARGS == "Ａ" && TEQUIP:PLAYER:お風呂上り
+		LOCAL:3 /= 2
+ENDIF
+;母乳の汚れ
+IF CHECK_STAIN(STAIN_PLAYER, "乳")
+	LOCAL:4 += 1
+ENDIF
+;尿の汚れ
+IF CHECK_STAIN(STAIN_PLAYER, "尿")
+	LOCAL:5 += 15
+	SIF TALENT:においに弱い && TALENT:恋慕
+		LOCAL:5 /= 2
+ENDIF
+
+;アソコの恥垢汚れ
+IF CHECK_STAIN(STAIN_PLAYER, "Ｖ恥垢")
+	LOCAL:7 = 20
+	SIF COND("性別嫌悪")
+		LOCAL:7 += 5 * COND("性別嫌悪")
+	SIF TALENT:においに弱い && TALENT:恋慕
+		LOCAL:7 /= 2
+	;場所自体がＶでお風呂上りならペナ軽減
+	SIF LOCAL:7 > 0 && ARGS == "Ｖ" && TEQUIP:PLAYER:お風呂上り
+		LOCAL:7 /= 2
+ENDIF
+;ちんかすの汚れ
+IF CHECK_STAIN(STAIN_PLAYER, "Ｐ恥垢")
+	LOCAL:8 = 20
+	SIF COND("性別嫌悪")
+		LOCAL:8 += 5 * COND("性別嫌悪")
+	SIF TALENT:においに弱い && TALENT:恋慕
+		LOCAL:8 /= 2
+	;場所自体がＰでお風呂上りならペナ軽減
+	SIF LOCAL:8 > 0 && ARGS == "Ｐ" && TEQUIP:PLAYER:お風呂上り
+		LOCAL:8 /= 2
+	IF CALCF("ペニス好き度", TARGET) > 0
+		LOCAL:8 /= CALCF("ペニス好き度", TARGET)
+		SIF TALENT:献身
+			LOCAL:8 -= 5
+		SIF TALENT:倒錯的
+			LOCAL:8 -= 5
+	ENDIF
+ENDIF
+
+
+;もともとある汚れは無視する＆場所によっては汚れの強さＵＰ
+SELECTCASE ARGS:1
+CASE "Ｍ"
+	LOCAL:3 = MIN(MULTIPLY(LOCAL:3, 150), LOCAL:3 + 20)
+CASE "Ｐ"
+	LOCAL:0 = 0
+	LOCAL:1 = 0
+	LOCAL:2 = 0
+	LOCAL:5 = 0
+CASE "Ｖ"
+	LOCAL:0 = 0
+	LOCAL:1 = 0
+	LOCAL:3 = MIN(MULTIPLY(LOCAL:3, 200), LOCAL:3 + 50)
+CASE "Ａ"
+	LOCAL:0 = 0
+	LOCAL:1 = 0
+	LOCAL:3 = 0
+CASE "尿道"
+	LOCAL:5 = 0
+	LOCAL:3 = MIN(MULTIPLY(LOCAL:3, 200), LOCAL:3 + 50)
+ENDSELECT
+
+LOCAL = LOCAL:0 + LOCAL:1 + LOCAL:2 + LOCAL:3 + LOCAL:4 + LOCAL:5 + LOCAL:6 + LOCAL:7 + LOCAL:8
+
+SIF TALENT:汚臭鈍感
+	LOCAL = MAX(DIVIDE(LOCAL, 200), LOCAL - 20)
+SIF TALENT:汚臭敏感
+	LOCAL = MIN(MULTIPLY(LOCAL, 200), LOCAL + 20)
+
+;陶酔中は汚れに鈍感になる
+SIF LOCAL > 0 && COND("陶酔")
+	LOCAL /= 2
+
+LOCAL = MAX(LOCAL, 0)
+
+RETURNF LOCAL
+

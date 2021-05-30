@@ -1,0 +1,312 @@
+﻿;-------------------------------------------------
+;素質の獲得
+;-------------------------------------------------
+@ABLUP90
+#DIM MEMO_LINECOUNT
+#DIM CHOICE
+#DIM IS_GET, 200
+#DIMS TALENTNAME_UP
+#DIMS TALENTNAME_NOW
+#DIMS TALENTNAME_DOWN
+
+REDRAW 0
+
+MEMO_LINECOUNT = LINECOUNT
+
+PRINTL 
+
+PRINTFORM 経験値を
+SETCOLOR DEF_COLOR("黄色")
+PRINTFORM {NUM("経験値：素質獲得")}Ｐ
+RESETCOLOR
+PRINTFORML 使用することで、幾つかの素質を獲得したり失ったり出来ます
+PRINTFORML （ただし、ここで素質等を変化させる度に、必要な経験値は200Ｐづつ増えていきます）
+PRINTFORML あと{EXP:経験値}Ｐの経験値があります
+
+PRINTFORML 
+VARSET IS_GET
+
+PRINTFORML [  0] 体力+200
+IS_GET:0 = 1
+
+;37で性器年齢+1, 38で性器年齢-1
+IF TALENT:オトコ == 0 && CONFIG("性器年齢")
+	TALENTNAME_UP = 
+	TALENTNAME_DOWN = 
+	TALENTNAME_NOW = [%TALENT_NAME(GETNUM(TALENT, "性器年齢"), TALENT:性器年齢)%]
+
+	IF TALENT:性器年齢 <= 4
+		PRINTFORM [ 37] [性器年齢]を+1させる 
+
+		TALENTNAME_UP = [%TALENT_NAME(GETNUM(TALENT, "性器年齢"), TALENT:性器年齢 + 1)%]
+		SELECTCASE TALENTNAME_UP
+		CASE "[性器年齢]"
+			SIF TALENTNAME_NOW != "[性器年齢]"
+				PRINTFORM (%TALENTNAME_NOW%を失います)
+		CASE TALENTNAME_NOW
+		;	PRINTFORM (現在は%TALENTNAME_NOW%です)
+		CASEELSE
+			IF TALENTNAME_NOW != "[性器年齢]"
+				CALL PRINT_STR, @"(%TALENTNAME_NOW%から_黄色_%TALENTNAME_UP%_になります)"
+			ELSE
+				PRINTFORM (%TALENTNAME_UP%になります)
+			ENDIF
+		ENDSELECT
+		IS_GET:37 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [性器年齢]を+1させる"
+	ENDIF
+	PRINTL 
+
+	IF TALENT:性器年齢 >= 2
+		PRINTFORM [ 38] [性器年齢]を-1させる 
+
+		TALENTNAME_DOWN = [%TALENT_NAME(GETNUM(TALENT, "性器年齢"), TALENT:性器年齢 - 1)%]
+		SELECTCASE TALENTNAME_DOWN
+		CASE "[性器年齢]"
+			SIF TALENTNAME_NOW != "[性器年齢]"
+				PRINTFORM (%TALENTNAME_NOW%を失います)
+		CASE TALENTNAME_NOW
+		;	PRINTFORM (現在は%TALENTNAME_NOW%です)
+		CASEELSE
+			IF TALENTNAME_NOW != "[性器年齢]"
+				CALL PRINT_STR, @"(%TALENTNAME_NOW%から_黄色_%TALENTNAME_DOWN%_になります)"
+			ELSE
+				PRINTFORM (%TALENTNAME_DOWN%になります)
+			ENDIF
+		ENDSELECT
+		IS_GET:38 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [性器年齢]を-1させる"
+	ENDIF
+	PRINTL 
+ENDIF
+
+IF TALENT:濡れにくい
+	PRINTFORML [ 41] [濡れにくい] を失う
+	IS_GET:41 = 1
+ELSEIF TALENT:濡れやすい == 0
+	PRINTFORML [ 40] [濡れやすい] を得る
+	IS_GET:40 = 1
+ENDIF
+
+IF PENIS(TARGET)
+	IF TALENT:遅漏
+		PRINTFORML [ 43] [遅漏] を失う
+		IS_GET:43 = 1
+	ELSEIF TALENT:早漏
+		PRINTFORML [ 42] [早漏] を失う
+		IS_GET:42 = 1
+	ELSE
+		PRINTFORML [ 42] [早漏] を得る
+		IS_GET:42 = 1
+		PRINTFORML [ 43] [遅漏] を得る
+		IS_GET:43 = 1
+	ENDIF
+ENDIF
+IF TALENT:縦割れアナル == 0
+	IF EXP:Ａ経験 >= 300 && EXP:Ａ拡張経験 >= 20 && ABL:Ａ拡張 >= 3
+		PRINTFORML [ 45] [縦割れアナル] を得る
+		IS_GET:45 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [縦割れアナル] を得る　（要:Ａ経験300＆Ａ拡張経験20＆Ａ拡張3LV）_L"
+	ENDIF
+ENDIF
+IF TALENT:腸液分泌体質 == 0
+	IF EXP:Ａ経験 >= 100
+		PRINTFORML [ 50] [腸液分泌体質] を得る
+		IS_GET:50 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [腸液分泌体質] を得る　（要:Ａ経験100）_L"
+	ENDIF
+ENDIF
+IF TALENT:絶頂失禁体質 == 0
+	IF EXP:お漏らし経験 >= 5
+		PRINTFORML [ 51] [絶頂失禁体質] を得る
+		IS_GET:51 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [絶頂失禁体質] を得る　（要:お漏らし経験5）_L"
+	ENDIF
+ENDIF
+IF TALENT:発情体質 == 0
+	PRINTFORML [ 53] [発情体質] を得る
+	IS_GET:53 = 1
+ENDIF
+IF TALENT:嘔吐反射耐性 == 0
+	IF EXP:フェラ経験 >= 300
+		PRINTFORML [ 55] [嘔吐反射耐性] を得る
+		IS_GET:55 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [嘔吐反射耐性] を得る　（要:フェラ経験300）_L"
+	ENDIF
+ENDIF
+IF TALENT:拡張適性 == 0
+	IF MAX(EXP:Ｖ拡張経験, EXP:Ａ拡張経験, EXP:尿道拡張経験) >= 20
+		PRINTFORML [ 57] [拡張適性] を得る
+		IS_GET:57 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [拡張適性] を得る　　　（要:Ｖ拡張経験20 or Ａ拡張経験20 or 尿道拡張経験20）_L"
+	ENDIF
+ENDIF
+
+IF TALENT:汚れ無視 == 0
+	PRINTFORML [124] [汚れ無視] を得る
+	IS_GET:124 = 1
+ENDIF
+IF TALENT:具現 == 0
+	IF COND("種族：悪魔") || COND("種族：魔法使い") || COND("種族：淫魔")
+		PRINTFORML [136] [具現] を得る
+		IS_GET:136 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [具現] を得る　　　　　（要:[魔法使い] or [悪魔] or [淫魔]）_L"
+	ENDIF
+ENDIF
+
+IF TALENT:愚か == 0
+	PRINTFORML [144] [調教知識] を\@ TALENT:調教知識 ? 変更する # 得る \@
+	IS_GET:144 = 1
+ENDIF
+
+IF TALENT:Ｃ性向 == 0
+	PRINTFORML [160] [Ｃ性向] を得る
+	IS_GET:160 = 1
+ENDIF
+IF TALENT:オトコ == 0
+	IF TALENT:Ｖ性向 == 0
+		PRINTFORML [162] [Ｖ性向] を得る
+		IS_GET:162 = 1
+	ENDIF
+ENDIF
+IF TALENT:Ａ性向 == 0
+	PRINTFORML [164] [Ａ性向] を得る
+	IS_GET:164 = 1
+ENDIF
+IF TALENT:オトコ == 0
+	IF TALENT:Ｂ性向 == 0
+		PRINTFORML [166] [Ｂ性向] を得る
+		IS_GET:166 = 1
+	ENDIF
+ENDIF
+IF TALENT:Ｍ性向 == 0
+	PRINTFORML [168] [Ｍ性向] を得る
+	IS_GET:168 = 1
+ENDIF
+IF TALENT:尿道性感 == 0
+	IF ABL:Ｃ感覚 >= 3 && EXP:尿道経験 >= 5
+		PRINTFORML [170] [尿道性感] を得る
+		IS_GET:170 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [尿道性感] を得る　　　（要:Ｃ感覚3LV＆尿道経験5）_L"
+	ENDIF
+ENDIF
+IF TALENT:喉性感 == 0
+	IF ABL:Ｍ感覚 >= 3
+		PRINTFORML [172] [喉性感] を得る
+		IS_GET:172 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [喉性感] を得る　　　　（要:Ｍ感覚3LV）_L"
+	ENDIF
+ENDIF
+IF TALENT:子宮性感 == 0 && TALENT:オトコ == 0
+	IF ABL:Ｖ感覚 >= 3 && EXP:子宮口経験 >= 5
+		PRINTFORML [173] [子宮性感] を得る
+		IS_GET:173 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [子宮性感] を得る　　　（要:Ｖ感覚3LV＆子宮口経験5）_L"
+	ENDIF
+ENDIF
+IF TALENT:においに弱い == 0
+	PRINTFORML [175] [においに弱い] を得る\@ TALENT:汚臭鈍感 ? （同時に[汚臭鈍感]を失います）# \@
+	IS_GET:175 = 1
+ENDIF
+IF TALENT:結腸性感 == 0
+	IF TALENT:尻穴狂い && EXP:結腸経験 >= 5
+		PRINTFORML [177] [結腸性感] を得る
+		IS_GET:177 = 1
+	ELSE
+		CALL PRINT_STR, "暗灰色_[ ×] [結腸性感] を得る　　　（要:[尻穴狂い]＆結腸経験5）_L"
+	ENDIF
+ENDIF
+
+PRINTL [999] 戻る
+
+CALL INPUT_SELECT, 200, 999
+
+CHOICE = RESULT
+
+IF CHOICE == 999
+	REDRAW 1
+	RETURN 0
+ELSEIF IS_GET:CHOICE == 0
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+ELSEIF EXP:経験値 < NUM("経験値：素質獲得")
+	PRINTW 経験値が足りません
+	REDRAW 1
+	RETURN 0
+ENDIF
+
+SELECTCASE CHOICE
+CASE 0
+	MAXBASE:体力 += 200
+	BASE:体力 += 200
+	PRINTFORMW 体力が200上昇しました
+CASE 37
+	TALENT:性器年齢 += 1
+	SELECTCASE TALENT_NAME(GETNUM(TALENT, "性器年齢"), TALENT:性器年齢)
+	CASE "性器年齢", TALENT_NAME(GETNUM(TALENT, "性器年齢"), TALENT:性器年齢 - 1)
+		PRINTFORMW 性器年齢が+1されました
+	CASEELSE
+		PRINTFORMW 性器年齢が+1され、[%TALENT_NAME(GETNUM(TALENT, "性器年齢"), TALENT:性器年齢)%]になりました
+	ENDSELECT
+CASE 38
+	TALENT:性器年齢 -= 1
+	SELECTCASE TALENT_NAME(GETNUM(TALENT, "性器年齢"), TALENT:性器年齢)
+	CASE "性器年齢", TALENT_NAME(GETNUM(TALENT, "性器年齢"), TALENT:性器年齢 + 1)
+		PRINTFORMW 性器年齢が-1されました
+	CASEELSE
+		PRINTFORMW 性器年齢が-1され、[%TALENT_NAME(GETNUM(TALENT, "性器年齢"), TALENT:性器年齢)%]になりました
+	ENDSELECT
+;以下は素質名で判定
+CASEELSE
+	SELECTCASE TALENTNAME:CHOICE
+	CASE "調教知識"
+		LOCAL = TALENT:調教知識
+		CALL SETFLAG, "調教知識の選択", TARGET
+		SIF TALENT:調教知識 == LOCAL
+			RESTART
+	CASE "においに弱い"
+		TALENT:CHOICE = 1
+		PRINTFORMW [%TALENTNAME:CHOICE%]を獲得しました
+		IF TALENT:汚臭鈍感
+			TALENT:汚臭鈍感 = 0
+			PRINTFORMW そして、[汚臭鈍感]を失いました
+		ENDIF
+	;純粋喪失
+	CASE "濡れにくい"
+		TALENT:CHOICE = 0
+		PRINTFORMW [%TALENTNAME:CHOICE%]を失いました
+	;逆転
+	CASE "早漏", "遅漏"
+		IF TALENT:CHOICE
+			TALENT:CHOICE = 0
+			PRINTFORMW [%TALENTNAME:CHOICE%]を失いました
+		ELSE
+			TALENT:CHOICE = 1
+			PRINTFORMW [%TALENTNAME:CHOICE%]を獲得しました
+		ENDIF
+	;それ以外は純粋獲得
+	CASEELSE
+		TALENT:CHOICE = 1
+		PRINTFORMW [%TALENTNAME:CHOICE%]を獲得しました
+	ENDSELECT
+ENDSELECT
+
+EXP:経験値 -= NUM("経験値：素質獲得")
+ABL:素質獲得回数 += 1
+
+SIF COND("素質獲得可能")
+	RESTART
+
+REDRAW 1
+

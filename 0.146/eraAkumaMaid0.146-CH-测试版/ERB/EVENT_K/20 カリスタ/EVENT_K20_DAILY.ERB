@@ -1,0 +1,1070 @@
+;-------------------------------------------------
+;各種挨拶
+;-------------------------------------------------
+@KOJO_GREETING_K20, ARGS
+#DIM MEMO_LINECOUNT
+;イベント発生中のキャラ
+#DIM ACTOR
+;イベント発生中のキャラのデフォのCALLNAME
+#DIMS CALLNAME_ACTOR
+
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+CASE "挨拶する"
+	SELECTCASE CSTR:朝駆け
+	CASE "朝騎乗位"
+		IF EXP_GAIN("射精経験", PLAYER)
+			CALL PRINT_STR, @"「ぉはょぅござぃます、%CNAME("二人称","かな")%……_H_」_W"
+		ELSE
+			PRINTFORMW 「ぉはょぅござぃます、%CNAME("二人称","かな")%……。」
+		ENDIF
+	CASE "朝フェラ", "朝シックスナイン"
+		SIF EXP_GAIN("射精経験", PLAYER)
+			CALL PRINT_STR, @"「んっ、んきゅ……_H_―――ぷぁっ。」_W"
+		PRINTFORMW 「ぉはょぅござぃます、%CNAME("二人称","かな")%。」
+	CASEELSE
+		PRINTFORMW 「おはようございます、%CNAME("二人称")%。」
+
+	ENDSELECT
+
+	;何か発言してたらここまで
+	;SIF LINECOUNT > MEMO_LINECOUNT
+	;	RETURN 1
+
+	IF COND("体育")
+		PRINTFORMW 「今日は体育の授業がありますね。」
+		SELECTCASE RAND:3
+		CASE 0
+			PRINTFORMW 「%CNAME("一人称")%としては比較的苦手なのですが。」
+		CASE 1
+			PRINTFORMW 「準備運動をサボってはいけませんよ？」
+			;ぶっちゃけ事故につながるので割と大事。（マジレス）
+		CASEELSE
+			PRINTFORMW 「体操服とタオル、水筒の準備は出来ていますか？」
+		ENDSELECT
+
+	ELSE
+
+	ENDIF
+
+CASE "一番乗り"
+	IF COND("同伴中")
+		IF RAND:2
+			PRINTFORMW 「おっと、誰もいませんね。」
+		ELSE
+			PRINTFORMW 「%CNAME("一人称Ｂ")%たちが一番乗りのようですね。」
+		ENDIF
+		PRINTFORMW 「だから何というわけでもありませんけれども。」
+	ELSE
+		PRINTFORMW 「おや、%CNAME("二人称")%でしたか。」
+	ENDIF
+
+CASE "ただいま"
+	PRINTFORMW 「%CNAME("二人称")%、ただいまお戻りいたしました。」
+
+CASE "既に入室"
+	;家で出迎えてくれる時
+	IF COND("夜")
+		PRINTFORMW 「%TEXTR("おかえりなさい/おつかれさまです/今日も一日ごくろうさまです")%、%CNAME("二人称")%。」
+	ELSE
+		PRINTFORMW 「おかえりなさい、%CNAME("二人称")%。」
+	ENDIF
+
+CASE "入室挨拶"
+	SELECTCASE CFLAG:MASTER:PREV_DAILYCATE
+	;トーク
+	CASE 1
+		SELECTCASE CSTR:MASTER:PREV_DAILYCOM
+		CASE "挨拶クンニ", "挨拶フェラ"
+			IF RAND:4 == 0
+				PRINTFORMW 「しつｒ……」
+			ELSEIF RAND:3 == 0
+				PRINTFORMW 「しつれいしま……ってちょっと、なにやってるんですか…？」
+			ELSEIF RAND:2
+				PRINTFORMW 「し、しつれいします……あれ？」
+				PRINTFORMW 「いえ、どうぞ、%CNAME("一人称")%のことなぞ気にせずに……」
+			ELSE
+				PRINTFORMW 「すみません、おくれました……っと、お取込み中ですね。」
+				PRINTFORMW 「これは一旦、出直してきたほうがいいのでしょうか……？」
+			ENDIF
+			SIF RAND:3 == 0
+				PRINTFORMW %CALLNAME:TARGET%は驚いたのか、輪っかが一度だけ飛び跳ねた。
+		ENDSELECT
+	;もてなす
+	CASE 2
+	;隙を見せる
+	CASE 3
+	;ぱんつ、性処理
+	CASE 4, 6
+		IF RAND:4 == 0
+			PRINTFORMW 「しつｒ……」
+		ELSEIF RAND:3 == 0
+			PRINTFORMW 「しつれいしま……ってちょっと、なにやってるんですか…？」
+		ELSEIF RAND:2
+			PRINTFORMW 「し、しつれいします……あれ？」
+			PRINTFORMW 「いえ、どうぞ、%CNAME("一人称")%のことなぞ気にせずに……」
+		ELSE
+			PRINTFORMW 「すみません、おくれました……っと、お取込み中ですね。」
+			PRINTFORMW 「これは一旦、出直してきたほうがいいのでしょうか……？」
+		ENDIF
+		SIF RAND:5 == 0
+			PRINTFORMW %CALLNAME:TARGET%は驚いたのか、輪っかが一度だけ飛び跳ねた。
+	ENDSELECT
+;部屋にいる他の人から挨拶を返される挨拶。WAITの使用は一回が望ましい
+CASE "簡易入室挨拶"
+	;遅れた時のセリフ（既に部員の４分の３が集合済）
+	IF CHARA_NUM("入室挨拶時の室内人数") >= CHARANUM*3/4 && RAND:3 == 0
+		PRINTFORMW 「お邪魔します、みなさん集まっていらっしゃいますね」
+	ELSE
+		PRINTFORMW 「こんにちは。今日も部活動を頑張りましょうね。」
+	ENDIF
+CASE "居間に現れた"
+	IF COND("欲求不満") >= 2
+		CALL PRINT_STR, @"『%CNAME("二人称")%、今お暇でしょうか……？』_L"
+		;PRINTFORMW 居間だけに。
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%に構ってもらいたそうだ……。
+	;一度居間から別の場所に行って、居間に帰って来た時
+	ELSEIF CMOVE("居間")
+		IF RAND:2 == 0
+			PRINTFORMW 『%CNAME("二人称")%、何かお申し付けはございますか？』
+		ELSE
+			PRINTFORMW 『この番組、%CNAME("二人称")%も観てみませんか？』
+		ENDIF
+	ELSE
+		IF COND("夜")
+			PRINTFORMW 『こんばんは、%CNAME("二人称")%。』
+		ELSE
+			PRINTFORMW 『こんにちは、%CNAME("二人称")%。』
+		ENDIF
+		PRINTFORMW 『お元気そうで何よりですね……』
+	ENDIF
+CASE "抜け出された"
+
+CASE "お弁当"
+	IF RAND:2 == 0
+		PRINTFORMW 「%CNAME("二人称")%、手作りのサンドイッチをご用意いたしました。」
+		;低確率で変わったメニューが出てきます
+		SELECTCASE RAND:16
+		CASE 0
+			;何なんだよ・・・コレは・・・
+			PRINTW 今日のお弁当は
+			GETFONT
+			CHKFONT "ＭＳ Ｐゴシック"
+			SIF RESULT
+				SETFONT "ＭＳ Ｐゴシック"
+				PRINTFORML 　　＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+				PRINTFORML 　（＿＿＿＿＿＿＿＿＿＿＿＿＿＿ ）
+				PRINTFORML 　　　（　　　　　　　　・　ω・　　　　　）
+				PRINTFORML 　（～～～～～～～～～～～～～～ ）
+				PRINTFORMW 　　――――――――――――――
+			SETFONT RESULTS
+			PRINTFORMW よく見ると、サンドイッチのパンの間から謎の生物がこちらを見ている……。
+			PRINTFORMW 思い切って食べてみたが、案外美味しかった。
+		CASE 1
+			PRINTFORM 今日のお弁当は
+			IF RAND:2 == 0
+				;しまった…　ラップを突き破ってソースをしみ出させてしまったぞ……
+				PRINTFORMW %TEXTR("カツサンド/コーンサラダサンド")%のようだ……
+				PRINTFORMW マヨネーズソースもたっぷり入っている。
+			ELSE
+				;あいつ　毎日こんなの食べてんのか！！
+				PRINTFORMW ローストビーフサンドイッチだ
+				PRINTFORMW スゴイぞ！オニオンと卵も入ってる
+			ENDIF
+		CASEELSE
+			;通常欄にも時々変なの混ざってます（カツサンドが3種類ある時点で既におかしいが）
+			PRINTFORM 今日のお弁当は
+			PRINTFORM %TEXTR("チキンカツサンド/ハムカツサンド/きゅうりサンド/ツナサラダサンド/たまごサンド/ポテトサラダサンド/きたのさばサンド/メンチカツサンド/コロッケサンド/オムレツサンド/ベーコンサンド/ちくわ天ぷらサンド")%
+			PRINTFORMW のようだ……
+		ENDSELECT
+	ELSE
+		PRINTFORMW 「%CNAME("二人称")%、今日のお弁当をお持ちしました。」
+		PRINTFORM 今日のお弁当は
+		PRINTFORM %TEXTR("味噌汁付き日の丸弁当/ポテトサラダ付き唐揚げ弁当/おにぎり＆卵焼き弁当/エビフライ弁当/アジフライ弁当/メンチカツ＆だし巻き玉子弁当/海苔弁当/そぼろ弁当/烏賊の唐揚げ弁当/おひたし付きハンバーグ弁当/虹弁もどき")%
+		PRINTFORMW のようだ……
+	ENDIF
+ENDSELECT
+
+;-------------------------------------------------
+;メイン画面での台詞。いわゆる一言イベント強化版
+;ちなみに画面リロードしても同じセリフを喋ります
+;選択肢に挟まれた場所で出力するのでWAITの使用は禁止
+;-------------------------------------------------
+@KOJO_DAILY_K20, ARGS
+#DIM MEMO_LINECOUNT
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+;初回のセリフ
+CASE "初回台詞"
+	PRINTFORML 「よろしくお願いします、%CNAME("二人称")%。」
+CASE "汗だく"
+	IF RAND:2
+		PRINTFORML 「あ゛っつ゛ーぃですね……。汗拭きたい……」
+	ELSE
+		PRINTFORML 「うぅ…じとじとするぅ……」
+	ENDIF
+CASE "寝起き"
+	IF RAND:2
+		PRINTFORML 「うぅーん……。」
+	ELSE
+		PRINTFORML 「ぁ…あたまがくらくらするぅ……。」
+	ENDIF
+;眠っている
+CASE "睡眠"
+	;寝言
+	CALL KOJO_SLEEP_K20
+	;寝言用の汎用地の文呼出
+	CALL DAILY_MESSAGE, "寝言"
+ENDSELECT
+
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;前回コマンド対応台詞
+SELECTCASE CONDS("直前行動")
+CASE "愛の告白"
+	PRINTFORML 
+CASE "契約成立"
+	SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 「よいおこないをなされました。神もよろばれましょう、たぶん。」
+			;この部分はEVENT_K9_DAILY.ERBのコンパチ
+		CASE 1
+			PRINTFORML 「魂がいくつもある人が存在するとか、よのなかふしぎですね。」
+			;よのなかどうなっとるんかのう。
+		CASEELSE
+			PRINTFORML 「」(ふょんふょん)
+			PRINTFORML 「いえ、%CNAME("一人称","かな")%の魂が抜かれているわけではないのでご安心を。」
+	ENDSELECT
+CASE "抜け出す"
+	PRINTFORML 
+CASE "あなたの部屋に連れ込まれた"
+	SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 「お、結構綺麗に使っているんですね」
+		CASE 1
+			;「どういう方向に偏っているか」は言わないことでイメージ乖離を少なくする作戦である。
+			PRINTFORML 「（%CNAME("二人称")%の読む漫画、内容が割と偏っていますね…）」
+		CASEELSE
+			PRINTFORML 「……どうなされますか？」
+	ENDSELECT
+CASE "ミニスカパンチラ"
+	PRINTFORML 
+CASE "スカートをめくる"
+	PRINTFORML 
+CASE "裸になった"
+	IF (COND("秋") || COND("冬")) && RAND:2
+		PRINTFORML 「%CNAME("二人称")%、%TEXTR("こんな季節に裸だなんて/風邪になっても知りませんよ/流石に寒いです")%……！」(ぷるぷる)
+		PRINTFORML %CALLNAME:TARGET%は%TEXTR("ドン引きして/寒そうにして/呆れて")%いるようだ……
+	ELSEIF RAND:3 == 0
+		PRINTFORML 「（やっぱり恥ずかしいです……。）」
+	ELSE
+		PRINTFORML 「%CNAME("二人称", "どもり")%。何のつもりでしょうか……？」
+	ENDIF
+CASE "買い物する"
+	;買ってきたアイテムなどで分岐
+	;IF COND("巨大バイブ購入")
+
+	;	CALL SET_DEVENT, "巨大バイブ感想"
+	;ELSE
+		;単純にいっぱい買ったかどうかで分岐
+		PRINTFORML 「%TEXTR("お買い物お疲れ様です/お買い物お疲れ様でした/無事に帰ってこれましたね/お疲れ様です/お疲れ様でした")%、%CNAME("二人称")%。」
+		SELECTCASE COND("買上品数")
+		CASE IS >= 4
+			PRINTFORML 「%TEXTR("おぉ/それにしても/こう整理してみると")%、%TEXTR("結構/色々/たくさん")%買ってきましたね……。」
+		CASEELSE
+
+		ENDSELECT
+	;ENDIF
+ENDSELECT
+
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;標語の反応。書いたらコメントアウトを外してください
+IF CFLAG:標語実践
+	SELECTCASE SAVESTR:標語
+	CASE "喉の渇きに注意"
+		;IF DEVENT("標語お茶") == 0
+		;	PRINTFORML 
+		;	CALL SET_DEVENT, "標語お茶"
+		;ENDIF
+	CASE "体操服はやっぱりブルマ"
+		;IF DEVENT("標語ブルマ") == 0
+		;	PRINTFORML 
+		;	CALL SET_DEVENT, "標語ブルマ"
+		;ENDIF
+	CASE "学生服はミニスカに限る"
+		;IF DEVENT("標語ミニスカ") == 0
+		;	PRINTFORML 
+		;	CALL SET_DEVENT, "標語ミニスカ"
+		;ENDIF
+	ENDSELECT
+ENDIF
+
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;イベント台詞。書いたらコメントアウトを外してください
+;CFLAG:日常イベント回数が10増えるたびに一つ起こすぐらいで良いでしょう
+;IF CFLAG:日常イベント回数 >= 5 && DEVENT("質問１") == 0
+;	PRINTFORML 
+;	CALL SET_DEVENT, "質問１"
+;ENDIF
+;IF CFLAG:日常イベント回数 >= 15 && DEVENT("質問２") == 0
+;	PRINTFORML 
+;	CALL SET_DEVENT, "質問２"
+;ENDIF
+
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;他の人といちゃついた後にパートナー変更
+IF COND("いちゃいちゃ") == 0 && FIND_COND("Ｈないちゃつき中")
+;	PRINTFORML 
+ENDIF
+
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;以下はランダム台詞など
+
+;時間帯と場所と関係で変化有り
+IF COND("夜")
+	PRINTFORML 「%TEXTR("………。/………♪/………★")%」
+	PRINTFORM %CALLNAME:TARGET%は
+	IF TEXTS("曜日") == "土"
+		PRINTFORML 文字通り羽を伸ばしてくつろいでいる
+	ELSE
+		PRINTFORM %TEXTR("黙々と/要領よく/微笑みつつ/没頭した様子で/慣れた様子で")%
+		PRINTFORML %TEXTR("本の整理をして/掃除をして/掃除機をかけて/食器を洗って/制服をブラシ掛けして/消耗品の残量を確認して/洗濯をして/明日の様々な準備をして")%いる
+	ENDIF
+ELSE
+	IF CHARA_NUM("現在存在") == 0 && RAND:3 == 0
+		;レア台詞あり。
+		SELECTCASE RAND:8
+		CASE 0
+			PRINTFORML 「……………zzz」（うとうと）
+		CASE 1
+			PRINTFORML 「（ぼっち……か。）」
+		CASEELSE
+			PRINTFORML 「おや、二人きりみたいですね。」
+		ENDSELECT
+	ELSEIF FIND_COND("現在存在", "フェリシエル") && RAND:5 == 0
+		;実はここ千穂口上のコンパチ。
+		PRINTFORML %CALLNAME:TARGET%と%CALLNAME:FINDCHARA(NO, 1)%は
+		CALL PRINT_STR, @"%TEXTR(@"%CNAME("二人称")%のこと/メイドと執事のこと/悪魔と天使のこと/天界や魔界での出来事")%について話している。_L"
+	ELSEIF FIND_COND("現在存在", "祥子") && RAND:4 == 0
+		PRINTFORML 「あっ、お手伝い頂きありがとうございます。」
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:FINDCHARA(NO, 21)%に部室掃除を手伝ってもらっている……
+	ELSE
+		SELECTCASE RAND:4
+		CASE 0
+			;ここは祥子口上のコンパチ。
+			PRINTFORM %CALLNAME:TARGET%は部室の
+			PRINTFORM %TEXTR("机と椅子を並べて/ゴミ袋を交換して/机を拭いて/窓を拭いて/床を箒で掃いて/黒板のチョークを交換して/花瓶の水を交換して")%
+			PRINTFORML いる。
+		CASE 1
+			PRINTFORML 「%TEXTR("………。/………♪/………★/………？/………！")%」
+			PRINTFORM %CALLNAME:TARGET%は
+			PRINTFORM 『%TEXTR("メイドと執事のイメージ変遷史/マチルダは小さな大天才/ビリティスの歌/バグは人生/アダムの呪い/今更聞けないお茶の出し方/空想科学読本/―パッショーネ24時―/錬金術師アンジュと闇の授乳組織/銀河戦士バルロイ（小説版）/ロマンシングサガ２（漫画版）")%』
+			PRINTFORML と題された本を読んでいる……
+			SIF RAND:4 == 0
+				PRINTFORML 内容が面白いのか、時折%CALLNAME:TARGET%の翼がぱたぱた動いている。
+			;書名は実在するものからそうでないものまで色々。
+		CASE 2
+			PRINTFORML 「%TEXTR("………。/（なるほどなるほど）/………★/………？")%」
+			PRINTFORML %CALLNAME:TARGET%は新聞を読んでいる。
+			PRINTFORM 気になって覗き込むと、
+			PRINTFORML %TEXTR("天気予報/小欄/川柳/iPS細胞について/4コマ漫画/法律制定について/経済/テレビ番組/スポーツ/怪事件/社会情勢")%の項目だった……
+		CASEELSE
+			CALL TaiTaChara_K20
+			;PRINTFORML 
+		ENDSELECT
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;寝言。適当にむにゃむにゃ言わせてください
+;-------------------------------------------------
+@KOJO_SLEEP_K20
+;極稀にレア寝言が聞けます
+SELECTCASE RAND:23
+CASE 0
+	IF RAND:4 == 0
+		PRINTFORML 「めんばーかーどがあればさ……。」
+		;PRINTFORML それ以上いけない
+		;PRINTFORML 「ひみつのみせにはいれるって
+		;PRINTFORML 　はなしだぜ
+		;PRINTFORML 　だけど　そのみせが
+		;PRINTFORML 　どこにあるかは　だれも
+		;PRINTFORML 　しらねえってよ」
+	ELSEIF RAND:3 == 0
+		PRINTFORML 「ばしゃと　きれぼし………。」
+	ELSEIF RAND:2
+		PRINTFORML 「ごにんあわせて……『こわれている……」
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%はすやすやだ。
+	ENDIF
+CASEELSE
+	IF RAND:3
+		IF RAND:3 == 0
+			PRINTFORML 「…………」
+		ELSEIF RAND:2
+			PRINTFORML 「………zzz」
+		ELSE
+			PRINTFORML 「すやぁ………」
+		ENDIF
+	ELSEIF RAND:2
+		IF RAND:3 == 0
+			PRINTFORML 「…………%CNAME("二人称","かな")%……zzz」
+		ELSEIF RAND:2
+			PRINTFORML 「……きゅぅぅー………」
+		ELSE
+			PRINTFORML 「んぅ………」
+		ENDIF
+	ELSE
+		PRINTFORML 「ぉふとぅん…♪」
+	ENDIF
+ENDSELECT
+
+;-------------------------------------------------
+;メイン画面で選択肢として独立している日常イベントでのセリフ。WAIT使って大丈夫です
+;こっちはあくまで選択肢で選ばれた場合に限るのに注意。
+;-------------------------------------------------
+@KOJO_DAILYCOM_K20, ARGS
+;挨拶
+#DIMS GREETING
+
+
+SELECTCASE ARGS
+CASE "帰り道"
+	;SAVESTR:現在位置 と SAVESTR:帰り道の行動 を決定する
+	CALL SETFLAG, "遭遇地点"
+	;地の文を出す
+	CALL DAILY_MESSAGE, "帰り道"
+;[999]選択後の台詞。TFLAG:ベッドイン = 1とすることで強制的にエロにも行ける
+CASE "休憩"
+	IF PLACE("自宅")
+		IF COND("夜")
+
+		ELSE
+
+		ENDIF
+	;ここは実質昼のみ
+	ELSEIF PLACE("部室")
+
+	;場所移動後
+	ELSE
+
+	ENDIF
+;ここには特殊な条件でのキャラ独自のイベントを書く。別に無くても構わない
+;発生タイミングは日常イベント選択後の好感度を得た直後
+CASE "特殊イベント"
+	;眠ってる時でも来るので書くことないならRETURN 0してください
+	SIF CFLAG:睡眠
+		RETURN 0
+
+CASE "おやつを用意した"
+	IF COND("手作りおやつ")
+		PRINTFORMW 「本日は%TEXTS("おやつ")%を作りました。　お口に合えば幸いです……」
+	ELSE
+		SELECTCASE TEXTS("おやつ")
+		CASE "糖衣チョコレート"
+			PRINTFORMW 「%CNAME("二人称")%、糖衣チョコレートをお持ちしました。」
+			PRINTFORMW 「手が汚れにくいので個人的に好きな菓子の一つですね。」
+			;糖衣チョコレート…商品名で言うならマー○ルチョコやＭ＆○辺りのこと。
+		CASE "謎生物グミ"
+			GETFONT
+			CHKFONT "ＭＳ Ｐゴシック"
+			SIF RESULT
+				SETFONT "ＭＳ Ｐゴシック"
+				PRINTFORML 　　　　_,,..,,,,_
+				PRINTFORML 　　　./・ω ・ヽ
+				PRINTFORML 　　　l　　 　　 l
+				PRINTFORMW 　 　 `'ｰ---‐´
+			SETFONT RESULTS
+			PRINTFORMW 「これは天界のとある製菓会社が販売している人気のグミですね。」
+			PRINTFORMW 「見た目は単純な目と口の付いた不透明なグミですが、中にもう一つグミがあって…」
+			GETFONT
+			CHKFONT "ＭＳ Ｐゴシック"
+			SIF RESULT
+				SETFONT "ＭＳ Ｐゴシック"
+				PRINTFORML 　　　　_,,..,,,,_
+				PRINTFORML 　　　./・ω ・ヽ
+				PRINTFORML 　　 　ヽ(ﾟДﾟ)ﾉ
+				PRINTFORML 　　　　　)＿)
+				PRINTFORML 　　　　　(　(
+				PRINTFORML 　　　l￣￣￣~l
+				PRINTFORMW 　 　 `'ｰ---‐´
+			SETFONT RESULTS
+			PRINTFORMW 「このように分離出来るんですよ。」
+		CASE "謎生物ゼリー"
+			PRINTFORMW 「%CNAME("二人称")%、ゼリーをお持ちしました…」
+			GETFONT
+			CHKFONT "ＭＳ Ｐゴシック"
+			SIF RESULT
+				SETFONT "ＭＳ Ｐゴシック"
+				PRINTFORML 　　　＿＿＿＿＿＿
+				PRINTFORML 　／o　　　・　ω・　　＼
+				PRINTFORMW .｜　　　　　　　　　　　｜
+				PRINTFORMW （｜｜｜｜｜｜｜｜｜）
+			SETFONT RESULTS
+			PRINTFORMW ゼリーのようなものがこちらを見ている……。
+			PRINTFORMW 思い切って食べてみたが、案外美味しかった。
+		CASEELSE
+			PRINTFORMW 「本日は%TEXTS("おやつ")%をお持ちしました。」
+		ENDSELECT
+	ENDIf
+
+;これは昼か夜
+CASE "挨拶する"
+	IF COND("夜")
+		GREETING = こんばんは
+	ELSEIF COND("昼")
+		GREETING = こんにちは
+	ELSE
+		GREETING = おはようございます
+	ENDIF
+
+	SELECTCASE STR:日常イベント名
+	CASE "挨拶ハグ"
+		IF DEVENT(STR:日常イベント名) == 0
+			PRINTFORML 「%GREETING%」
+			PRINTFORMW 「」
+			PRINTFORML %CALLNAME:TARGET%は驚いたのかそれとも恥ずかしいのか、
+			PRINTFORMW 翼をぴくぴくさせている…。
+		ELSEIF COND("汗かき")
+			IF COND("汗かき", MASTER)
+				PRINTFORML 「%GREETING%」
+				PRINTFORMW 「ぁっぃー………」
+				PRINTFORMW %CALLNAME:TARGET%は翼をばたばたさせている。
+				PRINTFORMW 流石に嫌がっているようだ。
+			ELSE
+				PRINTFORMW 「%CNAME("二人称")%、せめて汗を拭かせてください」
+			ENDIF
+		ELSE
+			PRINTFORMW 「%GREETING%。」
+		ENDIF
+	CASEELSE
+		;あなたに先に挨拶をされた
+		IF CFLAG:挨拶した == 0
+			PRINTFORMW 「%GREETING%。」
+		ELSE
+			PRINTFORMW 「%GREETING%、%CNAME("二人称")%。」
+		ENDIF
+	ENDSELECT
+CASE "起こす"
+	IF RAND:2
+		PRINTFORMW 「お、おはようございます……」
+		PRINTFORMW 「今日の%CNAME("二人称","かな")%は早起きですね……。」
+	ELSE
+		PRINTFORMW 「んぅ……」
+	ENDIF
+CASE "トーク"
+	SELECTCASE STR:日常イベント名
+	CASE "褒める", "おやつを褒める"
+		IF RAND:2 == 0
+			PRINTFORMW 「あ、ありがとうございます。」
+		ELSE
+			PRINTFORMW 「うーん、実感沸きませんね……。」
+		ENDIF
+	CASE "甘い言葉"
+		IF TALENT:恋慕
+			CALL PRINT_STRW, "「………_H_」"
+		ELSEIF CALCF("甘い言葉成功")
+			CALL PRINT_STRW, "「……。_／／／_」"
+			PRINTFORMW %CALLNAME:TARGET%は%TEXTR("嬉しかった/恥ずかしい")%のか、%TEXTR("輪っかが不規則に飛び跳ねて/翼をぱたつかせて")%いる…
+		ELSE
+			PRINTFORML 「……？」
+			PRINTFORMW 意味が伝わっていないようだ。
+		ENDIF
+	CASEELSE
+		;低確率で変わったセリフが聞けます
+		IF RAND:32 == 0
+			PRINTFORML （う゛ぃぃぃぃん゛……）
+			PRINTFORMW 「え、今なにをおっしゃいましたか？」
+			PRINTFORML （う゛ぃぃぃぃん゛……）
+			PRINTFORMW どうやら掃除機をかけていて気がつかなかったようだ。
+		ELSEIF RAND:16 == 0
+			IF COND("夜")
+				PRINTFORMW 「%CNAME("二人称")%、カラオケでもしてみませんか？」
+				PRINTFORML %CALLNAME:TARGET%はおもむろにゲーム機を持ち出してきた。
+				PRINTFORMW それはカラオケじゃなくて、スパロボの「カラオケモード」だ……
+				;PRINTFORMW しかもウィンキー時代のスパロボ。
+			ELSE
+				PRINTFORMW 「ボードゲームですか？バトルテックやPathfinder RPGならありますけど。」
+				PRINTFORMW それだとルール説明するだけで休み時間が終わってしまう……
+				;バトルテック……メックと呼ばれるロボット兵器同士で戦うウォー・シミュレーション。
+				;Pathfinder RPG…D&D(TRPGの一つ)のフリー版のようなもの。データが多くてめんどい
+			ENDIF
+		ELSEIF RAND:3 == 0
+			IF TALENT:オンナ
+				PRINTFORMW 「いちおう、%CNAME("一人称")%のように女性でも執事になれるそうです。」
+				PRINTFORMW 「とくに女性の主人には女性の執事が仕えることが多いらしいです。」
+				;IF RAND:2 == 0
+					;PRINTFORMW 「そういえばどうして『女装ショタメイド』はいくらかいるのに、
+					;PRINTFORMW 　『男装ロリ執事』がなかなかいないのでしょうか。」
+					;PRINTFORMW 「やはり、お堅いイメージがいくらかあるからでしょうか？」
+					;;ぶっちゃけ『男装ロリ』自体がそんなにいないような気がする。
+				;ELSE
+					;PRINTFORMW 「そういえばイスラーム圏では『天使は大概男性』ということになってるらしいです。」
+					;PRINTFORMW 「しかし熱心な教徒でも天使の創造にはふつう立ち会わないので、
+					;PRINTFORMW 　ぶっちゃけ偏見やおもいこみというほかありません。」
+					;PRINTFORMW 「天使が女でわるいかおまえらー」
+				;ENDIF
+			ELSE
+				IF TALENT:小柄
+					PRINTFORMW 「ところで、なぜ執事には『背が高い』というイメージが強いのでしょうか？」
+					PRINTFORMW 「%CNAME("一人称Ｂ")%は背が低くても特に困ったことはありませんでしたが。」
+				ELSE
+					PRINTFORMW 「『男に見えるけど実は女かと思ったら本当に男だった』とかぜってー需要ねーから……。」
+					PRINTFORMW %CALLNAME:TARGET%は悩ましい表情を浮かべている…。
+				ENDIF
+			ENDIF
+		ELSEIF RAND:3 == 0
+			IF CEVENT("カリスタ：眼鏡着用")
+				PRINTFORMW 「眼鏡を掛けている理由ですか？」
+				PRINTFORMW 「魔力や魂の力等々の流れが見え過ぎてモヤになっているので、その補正です。」
+			ELSE
+				PRINTFORML 「%CNAME("一人称")%は魔力や魂の力等々が見えるので、」
+				PRINTFORMW 「部室ではいつも霧がかかったように見えるのが困りどころですね。」
+				PRINTFORML 「それを補正する為に、本を読む等の際は眼鏡を掛けておりますが、」
+				PRINTFORMW 「同じ効果を持つコンタクトレンズが存在しないので地味に辛いです。」
+			ENDIF
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「んゅ……」（のびー……）
+			PRINTFORMW 「ときどき体をほぐしておかないと、急に用事ができたときに困りますからね」
+		ELSE
+			PRINTFORMW 「%CNAME("二人称")%、%TEXTR("本棚/学習机/衣装タンス/押入れ")%の整理が終わりました。」
+			PRINTFORMW 「%TEXTR("ベッドの下の本/この大きな枕カバー/ぬいぐるみ")%はどこに置けばいいのでしょうか？」
+		ENDIF
+	ENDSELECT
+
+CASE "汗を拭く"
+	PRINTFORMW 「おぉ、ありがとうございます」
+	IF RAND:4 == 0 && !TALENT:恋慕
+		PRINTFORMW 「……。（何か下心でも……あるのでしょうかね？）」
+	ELSEIF RAND:3 == 0
+		PRINTFORMW 「（（（・ω・）））」
+	ELSEIF RAND:2
+		PRINTFORMW 「ただの汗でも放置すると冷えますからね」
+	ELSE
+		PRINTFORMW 「………★」
+	ENDIF
+	PRINTFORMW %CALLNAME:TARGET%は、されるがままに汗を拭かれている…。
+CASE "シャワー独り言"
+	IF RAND:23 == 0
+		PRINTFORML 「%TEXTR("I JUST FEEL RHYTHM EMOTION～♪/Where are you going to, When are you coming home～♪/You'll be ok～♪太陽が西から昇っても～♪/Youはshock！哀で月がぴちてくぅ～♪/君～知～ってるかい～♪宇宙の戦士～♪/止ま～らない～♪未来を～目指して～♪/ババババン♪ビンビビビビン　バン♪/やＢみザ　！（ぺーユくユシペ")%」
+		PRINTFORML %CALLNAME:TARGET%は突然歌い出した……
+	ELSEIF RAND:2
+		PRINTFORML ただシャワーの音だけが聞こえる……
+	ELSE
+		PRINTFORML 「%TEXTR("かぽーん……/（。・ω・）/（（（・ω・）））")%」
+	ENDIF
+CASE "シャワー"
+	;実は下着を漁ったのに気づかれています
+	IF COND("シャワー：下着漁りバレ")
+
+	ELSE
+		SELECTCASE RAND:4
+		CASE 0
+			PRINTFORMW 「あ、%TEXTR("ドライヤー/タオル")%使いますね」
+		CASE 1
+			PRINTFORMW 「ふぅ、さっぱりしました」
+		CASE 2
+			PRINTFORMW 「%TEXTR("はふー……/もしかして、順番待ちをしておられましたか？")%」
+		CASE 3
+			PRINTFORMW 「うーん、喉が渇いてきましたね」
+			SIF TALENT:MASTER:母乳体質
+				PRINTFORMW %CALLNAME:TARGET%は何故か%CALLNAME:MASTER%をチラチラと見ている……
+		ENDSELECT
+	ENDIF
+CASE "シャワー後着替え"
+	PRINTFORMW 「ふふ。似合っていますか、%CNAME("二人称")%？」
+
+CASE "シャワー後着替え失敗"
+	;初めて
+	IF DEVENT(STR:日常イベント名) == 0
+		PRINTFORML 「あれを置いたのは、もしかして%CNAME("二人称")%でしたか？」
+		PRINTFORMW 「他の方の私物なのかと思ったら着るに着れなくて……。」
+	ELSE
+		PRINTFORMW 「今日は気分が乗らなかったですね……」
+	ENDIF
+
+
+;睡眠中の悪戯
+CASE "寝込みを襲う"
+	;寝言
+	CALL KOJO_SLEEP_K20
+	WAIT
+CASE "もてなす"
+	SELECTCASE STR:日常イベント名
+	CASE "おっぱいリフトする"
+			IF RAND:4 == 0
+				PRINTFORML ぷにぷに。
+				PRINTFORMW 「%CNAME("二人称")%、どうかなさいましたか……？」
+			ELSEIF RAND:3 == 0
+				PRINTFORML むにょむにょ。
+				CALL PRINT_STRW, "「……_／／／_。」(じとー…。)"
+			ELSEIF RAND:2 == 0
+				IF RAND:2 == 0 && TALENT:貧乳
+					PRINTFORML ぷにぷに。
+					PRINTFORMW 「………うーん……？」
+				ELSE
+					PRINTFORML むにょ。
+					PRINTFORMW 「えっ、何やってるんですか？」
+				ENDIF
+			ELSE
+				IF TALENT:貧乳
+					PRINTFORML 「……。」(ひょい。)
+					PRINTFORMW 紙一重の差でよけられた。
+				ELSE
+					PRINTFORML むにょ。
+					CALL PRINT_STRW, "「うぅ……。_／／／_」"
+				ENDIF
+			ENDIF
+			SIF RAND:4 == 0 && TALENT:貧乳
+				PRINTFORMW %CALLNAME:TARGET%は自身の薄い胸を全然気にしていないようだ……。
+	CASE "マッサージする"
+		;低確率で変わったセリフが聞けます
+		IF RAND:36 == 0
+			PRINTFORML 「お゛ぉ゛ぉ゛ぉ゛っ゛……★」
+		ELSEIF RAND:3 == 0
+			PRINTFORML 「あ、ありがとうございます。」
+			IF TALENT:巨乳
+				PRINTFORMW 「肩がやたら凝っていて辛かったので……。」
+			ELSE
+				PRINTFORMW 「歩きすぎて足が疲れているので……。」
+			ENDIF
+		ELSEIF RAND:2 == 0
+			PRINTFORML ぐりぐり……
+			GETFONT
+			CHKFONT "ＭＳ Ｐゴシック"
+			SIF RESULT
+				SETFONT "ＭＳ Ｐゴシック"
+				PRINTFORMW 「%TEXTR("ぃ゛っ/み゜っ/きゅっ/ぷゅっ")%」
+			SETFONT RESULTS
+		ELSE
+			PRINTFORML 「～★」
+		ENDIF
+		PRINTFORMW %CALLNAME:TARGET%は%TEXTR("マッサージを満喫し/翼をぱたつかせ")%ている……
+	CASE "キスする"
+		IF CSTR:PREV_DAILYCOM == STR:日常イベント名
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	CASE "膝枕する"
+		IF RAND:3 == 0
+			PRINTFORML 「……zzz」
+			PRINTFORMW 「あっ、いけないいけない。」
+		ELSEIF RAND:2 == 0
+			PRINTFORML 「おぉ、ありがとうございます。」
+			PRINTFORMW 「……♪」
+		ELSE
+			PRINTFORMW 「……★」
+		ENDIF
+	CASE "お茶を淹れる"
+		IF RAND:3 == 0
+			PRINTFORML 「おや、気が利きますね。ありがとうございます。」
+			PRINTFORMW %CALLNAME:TARGET%はにこやかにお茶を受け取った。
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「んきゅ…おいしいですね。」
+		ELSE
+			PRINTFORMW 「時にはこのようにまったりするのもいいですね……。」
+		ENDIF
+	CASE "一緒に勉強する"
+		IF RAND:2 || BASE:MASTER:学力 >= BASE:学力 + 10
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORMW 「%CNAME("二人称")%、そこが解けないのですね……」
+				PRINTFORML ………
+				PRINTFORMW 「%CNAME("一人称")%にもわかりません。さっぱり　わかりません。」
+			CASE 1
+				PRINTFORMW 「答えが分かるのに解法が導けないのはもどかしいですね……」
+			CASEELSE
+				IF CALCF("試験の予想点数") >= 80
+					PRINTFORMW 「%CNAME("二人称")%の学力なら合格ラインは余裕で越えられると思います……」
+					PRINTFORMW 「というより、そんなに出来るのであれば%CNAME("一人称")%に教えて頂きたい所ですよ。」
+				ELSE
+					PRINTFORMW 「えーと、その辺りは%CNAME("一人称")%も全然ついていけなくて……」
+				ENDIF
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORMW 「よし…ここは%CNAME("一人称")%にお任せください」
+			CASE 1
+				IF CALCF("試験の予想点数") >= 70
+					PRINTFORMW 「気分転換に試験範囲外の問題を解いてみましょうか」
+					SELECTCASE RAND:10
+					CASE 0
+						PRINTFORML 『図は【アカンステロール】の構造式です。
+						PRINTFORMW 　【ゴルゴステロール】の構造式との相違点に印を付けなさい』
+						PRINTFORMW ※実在する化合物名です
+					CASE 1
+						PRINTFORML 『【－√5≦x≦√5】で定義される2つの関数
+						PRINTFORML 　【ｆ（ｘ）＝√｜ｘ｜＋√（5－ｘ＾2）】
+						PRINTFORMW 　【ｇ（ｘ）＝√｜ｘ｜＋√（5－ｘ＾2）】
+						PRINTFORMW 　に対し、次の問題に答えよ。　　　　　　』
+						PRINTL 　
+						PRINTFORML 『（1）関数ｆ（ｘ）とｇ（ｘ）の増減を調べ、
+						PRINTFORMW 　　　 ｙ＝ｆ（ｘ）とｙ＝ｇ（ｘ）のグラフの概形をかけ。』
+						PRINTFORML 『（2）2つの曲線ｙ＝ｆ（ｘ）と
+						PRINTFORMW 　　　ｙ＝ｇ（ｘ）で囲まれた図形の面積を求めよ。』
+						PRINTFORMW ※ハート型になります
+					CASE 2
+						PRINTFORML 『夜、4人の人が不安定な縄の吊り橋を渡って宿営地に戻る必要があります。
+						PRINTFORMW 　しかし彼らは懐中電灯を1つしか持っておらず、電池は17分しか保ちません。』
+						PRINTFORML 『吊り橋は危険で、懐中電灯無しでは渡ることが出来ません。
+						PRINTFORMW 　また、吊り橋は常に2人を支えるだけの強度しかありません。』
+						PRINTFORML 『4人はみな、歩く速度が違います。1人は橋を1分で歩くことが出来ます。
+						PRINTFORMW 　　　　　　もう1人は2分、3人目は5分で、最後の1人は10分かかります。』
+						PRINTFORMW 『どうすれば、全員が17分以内に渡ることが出来ますか？』
+						;PRINTL 　
+						;PRINTFORMW ※答え
+						;PRINTFORML １．1分と2分が渡る→2分経過（計2分）
+						;PRINTFORML ２．1分だけ戻る→1分経過（計3分）
+						;PRINTFORML ３．5分と10分が渡る→10分経過（計13分）
+						;PRINTFORML ４．2分が戻る→2分経過（計15分）
+						;PRINTFORMW ５．2分と1分が渡る→2分経過（計17分）
+						PRINTL 　
+						PRINTFORMW 「所謂『川渡り問題』の亜種として考えれば分かり易いかもしれませんね。」
+					CASE 3
+						PRINTFORMW 『さくらちゃんが、12時に自宅から時速4kmで歩き始めた。』
+						PRINTFORML 『12時半になってから、妹のみなみちゃんが同じく自宅から
+						PRINTFORMW 　自転車を使って時速16kmでさくらちゃんを追いかけ始めた。』
+						PRINTFORMW 『みなみちゃんがさくらちゃんに追いつく時刻を答えよ。』
+						PRINTFORMW （※みなみちゃんの心境は答えなくてもよい）
+					CASE 4
+						PRINTFORMW 『図は地下鉄の路線図である。次の問題に答えよ。』
+						PRINTFORML 『（１）我が名は%TEXTR("アシタカ/バシタカ")%！
+						PRINTFORMW 　　　　阪急梅田駅に行こうとして阪神梅田駅に来てしまった！
+						PRINTFORML 　　　　その後は御堂筋梅田駅と四つ橋西梅田駅と
+						PRINTFORMW 　　　　谷町線東梅田を経由してこの地へ来た！ここは一体どこだ！』
+					CASEELSE
+						
+					ENDSELECT
+				ELSE
+					PRINTFORMW 「あ、ここは試験範囲外のようですね」
+				ENDIF
+			CASEELSE
+				IF CALCF("試験の予想点数") >= 80
+					PRINTFORMW 「今のところ、かなり順調ですね。」
+					PRINTFORMW 「このまま勉強し続ければ、学年トップクラスも夢ではないかもしれません…」
+				ELSEIF CALCF("試験の予想点数") >= 60
+					PRINTFORML 「予想問題がどちらも半分以上解けましたね。」
+					PRINTFORMW 「実際の試験でもこの調子だと良いのですが。」
+				ELSE
+					PRINTFORML 「分からない部分があれば聞いてくださいね。」
+					PRINTFORMW 「%CNAME("一人称")%が解けない可能性も勿論ありますが……」
+				ENDIF
+			ENDSELECT
+		ENDIF
+	
+	;当然だが尻尾がある相手のみ
+	CASE "しっぽをなでる"
+		;初めて
+		IF DEVENT(STR:日常イベント名) == 0
+			PRINTFORMW 
+		;連続実行
+		ELSEIF CSTR:PREV_DAILYCOM == STR:日常イベント名
+			PRINTFORMW 
+		;この時間で初実行
+		ELSEIF CHOSE_DEVENT(STR:日常イベント名) == 0 && RAND:2
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	CASEELSE
+		PRINTFORMW 
+	ENDSELECT
+CASE "寝姿を整える"
+	;寝言
+	CALL KOJO_SLEEP_K20
+	WAIT
+CASE "隙を見せる"
+	SELECTCASE STR:日常イベント名
+	CASE "お風呂のお誘い"
+		PRINTFORMW 
+	CASE "Ｈのお誘い", "パンツ見せ"
+		PRINTFORMW 
+	CASE "押し倒し"
+		PRINTFORMW 
+	CASE "お掃除フェラ"
+		PRINTFORMW 
+	CASE "口淫"
+		PRINTFORMW 
+	CASE "頬キス", "キス"
+		PRINTFORMW 「っちゅ……。」
+	CASE "膝を枕にしてくる", "股間擦り付け"
+		PRINTFORMW 
+	CASE "抱きつき", "おっぱい押し付け"
+		;オノマトペの分岐多すぎたかも。
+		PRINTFORMW %TEXTR(@"もにゅ/むにゅ/むっぎゅ/むぎゅ/にゅも/にゅむ/ぎゅむ/がばし/ゅぎむ/むゅぎ/もにゅっさ")%
+			IF RAND:3 == 0
+				IF TALENT:貧乳 || TALENT:オトコ
+					PRINTFORMW 「……。何かドキドキしますね…。」
+					PRINTFORMW %CALLNAME:TARGET%は平たい胸を押し付けて、人肌の温もりを楽しんでいる…。
+				ELSE
+					PRINTFORMW 「……。」(´・ω・｀)
+					PRINTFORMW 「抱きつこうとしたのですが、どうしても胸が先に当たりますね…。」
+				ENDIF
+			ELSEIF RAND:2 == 0
+				PRINTFORMW 「……？」
+				PRINTFORMW 「%CNAME("一人称")%がこういう事をするのは意外ですか……？」
+			ELSE
+				PRINTFORMW 「%CNAME("二人称")%、いかがですか？」
+				PRINTFORMW 「」
+			ENDIF
+	CASE "なでなで"
+		PRINTFORMW %TEXTR(@"なでなで/なでぇ……/ふわふわ/わしゃわしゃ/ぽふぽふ")%。
+		PRINTFORMW 「ﾅﾃﾞﾅﾃﾞｼﾃ-%TEXTR(@"と言われた気がして/という鳴き声がしたので/と轟く叫びを耳にしたので")%。」
+		PRINTFORMW そんなこと言ってない。
+	CASE "手淫"
+		PRINTFORMW 
+	CASE "膝枕"
+		PRINTFORMW 
+	CASE "お茶汲み"
+		PRINTFORMW 「よろしければ%SAVESTR:お茶%どうぞ。」
+	;それ以外
+	CASEELSE
+		IF RAND:529 == 0
+			PRINTFORMW 「ところで、この口上においては低確率でネタ分岐が実装されております。」
+			PRINTFORMW 「一見ネタに見えないものからきれぼし脳まで様々。」
+			PRINTFORMW 「作者曰く、『マリーさん口上でも低確率ネタ分岐あるしいいかなー』とのことです。」
+			PRINTFORMW %CALLNAME:TARGET%は唐突にメタ発言をしている……。
+		ELSEIF RAND:2
+			PRINTFORMW 「…んゅ？」
+		ELSE
+			PRINTFORMW 「どうなされましたか？」
+		ENDIF
+	ENDSELECT
+CASE "構って欲しい！"
+	PRINTFORMW 「……。」
+	PRINTFORMW %CALLNAME:TARGET%は構って欲しそうに翼をぱたぱたさせている…。
+CASE "トイレ"
+	;トイレで用を済ませた後の台詞
+	IF BASE:尿意 == 0
+		;主人もトイレで済ませてきた
+		IF BASE:MASTER:尿意 == 0
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	;トイレに行く際の台詞
+	ELSE
+		PRINTFORMW 
+	ENDIF
+CASE "トイレ詮索"
+	PRINTFORMW 
+CASE "アソコチェック"
+	;睡眠中の悪戯
+	IF CFLAG:睡眠
+		;寝言
+		CALL KOJO_SLEEP_K20
+		WAIT
+	ELSEIF COND("合意：アソコチェック") == 0
+		;拒否されたのに連続実行
+		IF CSTR:PREV_DAILYCOM == STR:日常イベント名
+			PRINTFORMW 「うぅ……、%CNAME("二人称")%はひどいです……。」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「え、ここでですか……？」
+		ELSE
+			PRINTFORMW 「流石にいつでもどこででもという訳には……。」
+		ENDIF
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の要求に呆れているようだ…。
+	ELSEIF RAND:2 == 0
+		CALL PRINT_STR, "「や、やっぱり恥ずかしいです……_／／／_」_W_"
+	ELSE
+		CALL PRINT_STR, "「…………。_／／／_」_W_"
+	ENDIF
+CASE "パンツチェック"
+	;睡眠中の悪戯
+	IF CFLAG:睡眠
+		;寝言
+		CALL KOJO_SLEEP_K20
+		WAIT
+	ELSE
+		;連続実行
+		IF CSTR:PREV_DAILYCOM == STR:日常イベント名
+			IF RAND:2 == 0
+				PRINTFORMW 「えっ、まだ続けるのですか……？」
+			ELSE
+				PRINTFORMW 「%CNAME("二人称")%って本当に%PANTIES(TARGET, "下着")%好きなんですね……。」
+			ENDIF
+		ELSE
+			IF RAND:3 == 0
+				PRINTFORMW 「あまり服には似合っていないかもしれませんが……」
+			ELSEIF RAND:2 == 0
+				PRINTFORMW 「えっ、えっと……、楽しいですか？」
+			ELSE
+				PRINTFORMW 「%CNAME("二人称")%がどうしてもと仰るなら……。」
+			ENDIF
+		ENDIF
+	ENDIF
+CASE "ブルマチェック", "股間観察"
+	;睡眠中の悪戯
+	IF CFLAG:睡眠
+		;寝言
+		CALL KOJO_SLEEP_K20
+		WAIT
+	ELSEIF CFLAG:股間確認済 && RAND:2
+		PRINTFORMW 
+	;上機嫌
+	ELSEIF CFLAG:褒める
+		PRINTFORMW 
+	ELSE
+		PRINTFORMW 
+	ENDIF
+
+CASE "スカートをめくる"
+	SELECTCASE STR:日常イベント名
+	CASE "スカートたくし上げ"
+		;初めて
+		IF DEVENT(STR:日常イベント名) == 0
+			PRINTFORMW 
+		;パンチラ直後
+		ELSEIF COND("パンチラ直後")
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	;スカートをめくる
+	CASEELSE
+		;寝起きの胡乱な状態を襲う
+		IF CFLAG:寝起き
+			PRINTFORMW 
+		;睡眠中の悪戯
+		ELSEIF CFLAG:睡眠
+			;寝言
+			CALL KOJO_SLEEP_K20
+			WAIT
+		;初めて
+		ELSEIF DEVENT(STR:日常イベント名) == 0
+			PRINTFORMW 
+		;パンチラ直後
+		ELSEIF COND("パンチラ直後")
+			PRINTFORMW 
+		ELSE
+			IF COND("挨拶前")
+				PRINTFORMW 
+			ELSE
+				;パンツはいてない
+				IF EQUIP:パンツ == 0
+					PRINTFORMW 
+				ELSE
+					PRINTFORMW 
+				ENDIF
+			ENDIF
+		ENDIF
+	ENDSELECT
+ENDSELECT

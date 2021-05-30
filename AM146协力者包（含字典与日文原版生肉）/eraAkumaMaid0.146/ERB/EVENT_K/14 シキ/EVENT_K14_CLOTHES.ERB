@@ -1,0 +1,73 @@
+﻿;-------------------------------------------------
+;このキャラ独自の衣装を設定する。制服、体操服、水着は既存のものから選ぶのが楽です
+;-------------------------------------------------
+@CLOTHES_K14, ARGS
+
+SELECTCASE ARGS
+;高めの頻度で着用します。設定しなくてもかまいません
+CASE "下着"
+	CSTR:パンツ = トランクス/男物の色/男物/
+	CSTR:ブラ = 
+
+;衣装に関わらず常に付けているアクセサリです。設定しなくてもかまいません
+CASE "アクセサリ"
+
+;学園での普段着です
+CASE "制服"
+	CALL SET_COSTUME, "セーラー服"
+	SIF COND("秋") || COND("冬")
+		CALL SET_OUTER, "ジャージズボン"
+;学園の体育の授業で着ます。この格好のまま部室に現れたりもする
+CASE "体操服"
+	CALL SET_COSTUME, "体操服ジャージ"
+;学園の水泳の授業で着ます。この格好のまま部室に現れたりもする
+CASE "水着"
+	CALL SET_COSTUME, "スク水"
+
+;自宅で着ます
+CASE "普段着"
+	CALL SET_COSTUME, "上下ジャージ"
+	SIF RAND:2
+		CALL SET_SHIRT, "Ｔシャツ"
+
+;自分の部屋(notあなたの部屋)で着ます
+CASE "部屋着"
+	CALL SET_COSTUME, "Ｔシャツジャージ"
+
+;デート以外で家から外に出る際に着ます。ラブホ呼出とかね
+CASE "外出着"
+
+;もちろんデートの際に着ます
+CASE "デート衣装"
+	IF TALENT:恋慕
+		CALL SET_SHIRT, "白いワンピース"
+		CALL SET_SOCKS, "ソックス"
+		CALL SET_SHOES, "スニーカー"
+	ELSE
+		CALL SET_COSTUME, "Ｔシャツジャージ"
+	ENDIF
+ENDSELECT
+
+
+;-------------------------------------------------
+;時間帯や場所に応じた髪型、表情の変化を記述する。設定しなくてもかまいません
+;-------------------------------------------------
+@MAIDFACE_K14
+IF COND("夜")
+	;髪型変更
+	IF TALENT:恋慕
+		CALL SETFLAG, "普段の髪型復元", TARGET
+
+		SELECTCASE RAND:4
+		CASE 0
+			CSTR:アレンジ = ツインテール
+		CASE 1
+			CSTR:後ろ髪 = ナチュラル
+		CASE 2
+			CSTR:アレンジ = 三つ編み
+		CASEELSE
+			CSTR:前髪 = 編み込み
+			CSTR:後ろ髪 = ナチュラル
+		ENDSELECT
+	ENDIF
+ENDIF

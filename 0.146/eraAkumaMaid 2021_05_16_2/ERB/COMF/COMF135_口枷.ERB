@@ -1,0 +1,82 @@
+@COM135
+;口枷
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+IF TEQUIP:口枷 == 2
+	STR:前回コマンド = リングギャグ
+ELSEIF TEQUIP:口枷
+	STR:前回コマンド = ボールギャグ
+ELSE
+	STR:前回コマンド = %STR:今回コマンド%
+ENDIF
+
+RETURN 1
+
+@TRAIN_MESSAGE_COM135
+;ボールギャグの着脱
+IF TEQUIP:口枷
+	PRINTFORMW %CALLNAME:TARGET%から%NAMES("口枷")%を取ってやった
+	TEQUIP:口枷 = 0
+	CALL REMOVE_TEQUIP, "口枷", "鼻フック", "アイマスク"
+ELSE
+	PRINTFORML どちらで%CALLNAME:TARGET%の口を塞ぎますか？
+	PRINTL  [ 0] ボールギャグ
+	PRINTL  [ 1] リングギャグ
+	PRINTL [100] 戻る
+	CALL INPUT_SELECT, 2, 100
+	IF RESULT == 100
+		TFLAG:コマンドキャンセル = 1
+	ELSEIF RESULT == 0
+		TEQUIP:口枷 = 1
+		PRINTFORMW %CALLNAME:TARGET%にボールギャグを嵌めさせた
+	ELSEIF RESULT == 1
+		TEQUIP:口枷 = 2
+		PRINTFORMW %CALLNAME:TARGET%にリングギャグを嵌めて、口を開きっぱなしにさせた…
+	ENDIF
+	CALL ADD_TEQUIP, "口枷", "鼻フック", "アイマスク"
+ENDIF
+
+@FLAG_COM135, ARG
+
+@SOURCE_COM135, ARG
+CALL SOURCE_SMPLAY, "口枷", ARG
+
+CALL VARSET_COMF
+
+CALL SOURCE_DOWNBASE_HP, 135
+
+SOURCE:0:痛み = 50
+SOURCE:0:充足 = 50
+SOURCE:0:露出 = 80
+SOURCE:0:屈従 = 150
+SOURCE:0:逸脱 = 80
+
+CALL CALC, "調教ソース", ARG
+
+
+@EQUIP_COM135
+SIF TEQUIP:口枷 == 0
+	RETURN 0
+SIF SELECTCOM == 135
+	RETURN 0
+;ボールギャグ装備中
+CALL SOURCE_COM135, 20
+
+@EQUIP_COM135_2
+SIF TEQUIP:口枷 == 0
+	RETURN 0
+SIF SELECTCOM == 135
+	RETURN 0
+;ボールギャグ装備中
+IF TEQUIP:口枷 == 1
+	PRINTL ＜ボールギャグ装備中＞
+ELSEIF TEQUIP:口枷 == 2
+	PRINTL ＜リングギャグ装備中＞
+ENDIF
+EXP:拘束経験 += 1
+PRINTL 拘束経験＋１

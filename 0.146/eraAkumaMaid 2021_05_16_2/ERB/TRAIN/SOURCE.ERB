@@ -1,0 +1,1827 @@
+@SOURCE_CHECK
+#DIM LCOUNT
+
+;-------------------------------------------------
+;@FLAG_COM{SELECTCOM}を呼ぶ。二本挿入や二穴挿入の場合は特殊な処理
+;-------------------------------------------------
+CALL CALC, "調教のフラグ取得"
+;-------------------------------------------------
+;奉仕快楽、嗜虐快楽、被虐快楽のフラグを立てる
+;-------------------------------------------------
+CALL SETFLAG, "快楽経験判定", SELECTCOM
+;-------------------------------------------------
+;インサート解除（NEXTCOM等を考慮）
+;-------------------------------------------------
+CALL SETFLAG, "体勢戻し"
+;-------------------------------------------------
+;バイブなど付けっぱなしアイテムのチェック(主にSOURCE計算。快楽のSOURCEが増えないものは、ここにはなくても良い)
+;-------------------------------------------------
+CALL EQUIP_1
+;-------------------------------------------------
+;SOURCE計算
+;-------------------------------------------------
+CALL CALC_SOURCE
+;-------------------------------------------------
+;助手が調教側として参加している３Ｐの場合のSOURCEやFLAGを得る
+;-------------------------------------------------
+IF COND("３Ｐ")
+	CALL SETFLAG, "調教者交代"
+	TRYCALLFORM SOURCE_COM{SELECTCOM}, 50
+	TRYCALLFORM FLAG_COM{SELECTCOM}, 50
+	CALL CALC_SOURCE
+	CALL SETFLAG, "調教者交代"
+ENDIF
+;-------------------------------------------------
+;絶頂処理(見込み)
+;-------------------------------------------------
+CALL ORGASM_ADD_A
+;-------------------------------------------------
+;刻印取得のチェック(見込み)
+;-------------------------------------------------
+CALL MARK_GOT_CHECK
+;-------------------------------------------------
+;コマンド実行時の口上
+;-------------------------------------------------
+CALL KOJO_MESSAGE_COM
+;-------------------------------------------------
+;各種経験の変動
+;-------------------------------------------------
+CALL GET_EXP_COM
+;-------------------------------------------------
+;受精確率の変動を表示
+;-------------------------------------------------
+CALL CHECK_NINSHIN_ALLACTOR
+;-------------------------------------------------
+;口上(@KOJO_MESSAGE_COM)による強制終了
+;-------------------------------------------------
+SIF NEXTCOM == 999
+	RETURN 0
+;-------------------------------------------------
+;コマンドによるムードの獲得
+;-------------------------------------------------
+CALL MOOD_COM, SELECTCOM
+;-------------------------------------------------
+;インサートフラグ等の設定
+;-------------------------------------------------
+CALL CHECK_INSERT
+;顔面騎乗フラグなどのON
+CALL CHECK_EX_EQUIP
+;-------------------------------------------------
+;特別経験獲得_1
+;-------------------------------------------------
+CALL RECORD_SP_EXP_ALLACTOR
+
+;-------------------------------------------------
+;ラグジャラス判定 （EVENT_M.ERBに記述）
+;-------------------------------------------------
+SIF STATE("恍惚", PLAYER) == 0
+	CALL LUXURIOUS_HIT, "コマンド", PLAYER
+;PLAYERが恍惚になってしまったらTARGETは恍惚にならない
+SIF STATE("恍惚", PLAYER) == 0 && STATE("恍惚", TARGET) == 0
+	CALL LUXURIOUS_HIT, "コマンド", TARGET
+
+;-------------------------------------------------
+;助手の行動
+;-------------------------------------------------
+CALL EVENT_ASSI_AUTO, "調教中"
+;-------------------------------------------------
+;バイブなど付けっぱなしアイテムのチェック(テキストと経験)
+;-------------------------------------------------
+CALL EQUIP_2
+;-------------------------------------------------
+;アドバイザー能力発動
+;-------------------------------------------------
+CALL TURN_BONUS_ADVISER
+;-------------------------------------------------
+;おもな経験の増加が一段落下ところで技能ＬＶチェック
+;-------------------------------------------------
+CALL GET_EXABL2, TARGET
+CALL GET_EXABL2, MASTER
+CALL GET_EXABL2, ASSI
+;-------------------------------------------------
+;特別経験獲得_2
+;-------------------------------------------------
+CALL RECORD_SP_EXP_ALLACTOR
+
+;-------------------------------------------------
+;絶頂処理、パートナーの射精＆噴乳チェック（ふたなり・オトコ）
+;-------------------------------------------------
+;手加減している時には止めるか選択させる？
+CALL ORGASM_ADD_A
+CALL ORGASM_ADD_B
+;-------------------------------------------------
+;特別経験獲得_3
+;-------------------------------------------------
+CALL RECORD_SP_EXP_ALLACTOR
+
+;-------------------------------------------------
+;NEW_UPCHECKの直接記述コマンド対応用
+;-------------------------------------------------
+FOR LCOUNT, 1, CHARANUM
+	SELECTCASE LCOUNT
+	CASE PLAYER, PLAYER:1, MASTER, ASSI
+		;精力が減少している
+		SIF BASE:LCOUNT:精力 < TCVAR:LCOUNT:精力開始前
+			TCVAR:LCOUNT:精力減少 = TCVAR:LCOUNT:精力開始前 - BASE:LCOUNT:精力
+	ENDSELECT
+NEXT
+
+;-------------------------------------------------
+;絶頂メッセージの表示
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_A
+
+;-------------------------------------------------
+;パラメータ変動による口上(TARGETの絶頂など)
+;-------------------------------------------------
+CALL KOJO_MESSAGE_PALAMCNG
+;口上による強制終了
+SIF NEXTCOM == 999
+	RETURN 0
+
+;-------------------------------------------------
+;助手によるお掃除
+;-------------------------------------------------
+CALL EVENT_ASSI_AUTO, "お掃除"
+
+;-------------------------------------------------
+;二人で押し倒してる時の助手の絶頂や射精のテキスト
+;-------------------------------------------------
+IF TEQUIP:Ｗ押し倒し
+	CALL ORGASM_ADD_TEXT, TARGET:1
+	CALL TARGET_EJAC_CHECK_TEXT, TARGET:1
+	CALL TARGET_MILK_CHECK_TEXT, TARGET:1
+	;射精or絶頂(こらえた時には発生しない)
+	IF NOWEX:(TARGET:1):絶頂数合計 + NOWEX:(TARGET:1):射精
+		PRINTFORM %CALLNAME:(TARGET:1)%は
+		IF NOWEX:(TARGET:1):射精
+			SELECTCASE SELECTCOM:1
+			CASE 121
+				PRINTFORM %CALLNAME:MASTER%の腸内に精液を吐き出し
+			CASE 4
+				PRINTFORM %CALLNAME:MASTER%の口に射精し
+			CASEELSE
+				PRINTFORM ペニスから精液を噴き出し
+			ENDSELECT
+		ELSE
+			IF NOWEX:(TARGET:1):絶頂数合計 >= 2 && TALENT:(TARGET:1):オトコ == 0 && RAND:2
+				PRINT 陰唇から透明な潮をピュッピュッと可愛く噴き出し
+			ELSE
+				PRINT 背中を大きく反らし
+			ENDIF
+		ENDIF
+		PRINTW ながら、全身を震わせて絶頂に達した
+		CALL BLANKLINE
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;射精・絶頂判定
+;-------------------------------------------------
+CALL SAMEN_AND_EXTACY
+
+;-------------------------------------------------
+;SOURCE計算
+;-------------------------------------------------
+CALL CALC_SOURCE
+;-------------------------------------------------
+;PLAYERの射精＆絶頂をトリガーにした口上
+;-------------------------------------------------
+CALL KOJO_MESSAGE_SAMEN_AND_EXTACY
+;口上による強制終了
+SIF NEXTCOM == 999
+	RETURN 0
+;-------------------------------------------------
+;PLAYERの射精＆絶頂をトリガーにした口上（３Ｐ）
+;-------------------------------------------------
+CALL KOJO_MESSAGE_SAMEN_AND_EXTACY_3P
+;口上による強制終了
+SIF NEXTCOM == 999
+	RETURN 0
+
+;-------------------------------------------------
+;パートナーの状態（陥没乳首の勃起など）チェック
+;-------------------------------------------------
+CALL TARGET_FLAG_CHECK
+;-------------------------------------------------
+;被虐快楽経験、奉仕快楽経験等のチェック
+;-------------------------------------------------
+CALL EXP_GOT_CHECK
+;-------------------------------------------------
+;主人による調教の経験値
+;-------------------------------------------------
+CALL MASTER_FLAG_CHECK
+;-------------------------------------------------
+;刻印取得のチェック(@KOJO_MESSAGE_MARKCNG は@MARK_GOT_CHECK 内にある)
+;-------------------------------------------------
+CALL MARK_GOT_CHECK
+
+;口上による強制終了
+SIF NEXTCOM == 999
+	RETURN 0
+
+;-------------------------------------------------
+;特別経験獲得_4
+;-------------------------------------------------
+CALL RECORD_SP_EXP_ALLACTOR
+
+;-------------------------------------------------
+;カウンターによる恍惚・押し倒され、撃沈判定
+;-------------------------------------------------
+CALL COUNTER_SYS_2
+
+;-------------------------------------------------
+;調教ソースの表示
+;-------------------------------------------------
+CALL SHOW_SOURCE
+
+;-------------------------------------------------
+;数値変動の表示
+;-------------------------------------------------
+;同じコマンドの連続実行
+SIF COND("連続実行")
+	PRINTL ＜同一コマンド連続実行＞
+
+;-------------------------------------------------
+;体力の減少
+;-------------------------------------------------
+SIF TALENT:Ｖ損傷 || TALENT:Ａ損傷
+	CALL PRINT_STR, "黄色_ ＜体内損傷中＞_L"
+
+CALL CALC, "体力減少"
+;体力の変動を表示
+IF DOWNBASE:体力
+	IF DOWNBASE:体力 > 0
+		CALL PRINT_STR, @"イエロー_体力-{ABS(DOWNBASE:体力)}"
+	ELSE
+		CALL PRINT_STR, @"ピンク_体力+{ABS(DOWNBASE:体力)}"
+	ENDIF
+ENDIF
+PRINTFORML \@ COND("疲労") ? ★疲労困憊★ # \@
+
+;-------------------------------------------------
+;非参加者の体力の回復
+;-------------------------------------------------
+FOR LCOUNT, 2, CHARANUM
+	SIF DOWNBASE:LCOUNT:体力 > 0
+		CONTINUE
+
+	BASE:LCOUNT:体力 = LIMIT(BASE:LCOUNT:体力 + 20 + RAND:81, 0, MAXBASE:LCOUNT:体力)
+NEXT
+;-------------------------------------------------
+;テキストの表示
+;-------------------------------------------------
+CALL TEXT_TURNEND
+
+;-------------------------------------------------
+;SOURCE計算
+;-------------------------------------------------
+CALL CALC_SOURCE
+
+;-------------------------------------------------
+;刻印取得のチェック
+;-------------------------------------------------
+CALL MARK_GOT_CHECK
+
+;-------------------------------------------------
+;パラメータの上昇＆表示（CDOWNもここで）
+;-------------------------------------------------
+CALL NEW_UPCHECK
+
+;-------------------------------------------------
+;フラグに使う現実時間を取得
+;-------------------------------------------------
+CALL GET_REALTIMEFORFLAG
+
+;-------------------------------------------------
+;助手と一緒にＷ押し倒しに移行
+;-------------------------------------------------
+IF RAND:3 == 0 && BASE:体力 >= 1200 && ASSI && STATE("撃沈", ASSI) == 0 && RELATION:ASSI >= 120 && (TALENT:恋慕 == 0 || TALENT:淫乱) && TEQUIP:押し倒し && TEQUIP:Ｗ押し倒し == 0
+	CALL COM_ABLE178
+	SIF RESULT
+		NEXTCOM = 178
+ENDIF
+
+;-------------------------------------------------
+;体力消費の一括管理。DOWNBASE:0:体力 を増減させる。
+;～使いコマンドが高いと消費減
+;-------------------------------------------------
+@SOURCE_DOWNBASE_HP, ARG
+#DIM DOWNBASE_HP
+#DIM USE_MOUSE
+#DIM USE_HAND
+#DIM USE_WAIST
+#DIM USE_TITS
+#DIM USE_STRENGTH
+
+USE_MOUSE = 0
+USE_HAND = 0
+USE_WAIST = 0
+USE_TITS = 0
+USE_STRENGTH = 0
+
+DOWNBASE_HP = 0
+
+SELECTCASE ARG
+CASE TNUM("クンニ")
+	SIF CHECK_COM("万謝の口付け", 1) == 0
+		DOWNBASE_HP += 50
+CASE TNUM("アナル愛撫")
+	IF TEQUIP:アナルバイブ
+
+	ELSEIF CHECK("Ａ指挿入れ")
+		DOWNBASE_HP += 75
+	ELSE
+		DOWNBASE_HP += 50
+	ENDIF
+CASE TNUM("自慰")
+	DOWNBASE_HP += 50 + MIN(ABL:自慰中毒, 5)*10
+CASE TNUM("キス")
+	SIF CHECK_COM("テンダーキス") == 0
+		DOWNBASE_HP += 80
+	USE_MOUSE = 1
+CASE TNUM("くぱぁさせる"), TNUM("Ａくぱぁさせる")
+	DOWNBASE_HP += 30
+;愛撫系
+CASE 0 TO 29
+	DOWNBASE_HP += 50
+;道具系
+CASE 30 TO 59
+	DOWNBASE_HP += 100
+;騎乗位は通常に加えてこの分を追加で消費する
+CASE 65, 75, 88
+	DOWNBASE_HP += 150
+	USE_WAIST = 1
+	USE_STRENGTH = 1
+;インサート
+CASE 60 TO 69, 70 TO 79, 83 TO 88
+	DOWNBASE_HP += 100
+	USE_WAIST = 1
+CASE TNUM("貝合わせ")
+	DOWNBASE_HP += 150
+	USE_WAIST = 1
+CASE TNUM("胸の谷間を犯す")
+	DOWNBASE_HP += 100
+	USE_TITS = 1
+CASE TNUM("ニプルファック")
+	DOWNBASE_HP += 150
+CASE TNUM("フェラチオ")
+	DOWNBASE_HP += 150
+	SIF TEQUIP:ディープスロート && TALENT:嘔吐反射耐性 == 0
+		DOWNBASE_HP += 50
+	SIF CHECK_COM("ペニスキス", 91)
+		DOWNBASE_HP = 0
+	USE_MOUSE = 1
+CASE TNUM("イラマチオ")
+	DOWNBASE_HP += 200
+	SIF TALENT:嘔吐反射耐性 == 0
+		DOWNBASE_HP += 50
+	SIF TEQUIP:ディープスロート
+		DOWNBASE_HP += 50
+	USE_MOUSE = 1
+CASE TNUM("ディープスロート")
+	DOWNBASE_HP += 50
+	SIF TALENT:嘔吐反射耐性 == 0
+		DOWNBASE_HP += 50
+	USE_MOUSE = 1
+CASE TNUM("アナル奉仕"), TNUM("奉仕クンニ")
+	DOWNBASE_HP += 100
+	USE_MOUSE = 1
+CASE TNUM("手淫"), TNUM("ぱんつコキ")
+	DOWNBASE_HP += 100
+	USE_HAND = 1
+CASE TNUM("オナホコキ"), TNUM("逆バイブ"), TNUM("逆Ａバイブ")
+	DOWNBASE_HP += 150
+	USE_HAND = 1
+	USE_STRENGTH = 1
+CASE TNUM("素股")
+	DOWNBASE_HP += 100
+	USE_WAIST = 1
+CASE TNUM("パイズリ")
+	DOWNBASE_HP += 100
+	USE_TITS = 1
+CASE TNUM("ぱふぱふ")
+	DOWNBASE_HP += 50
+	USE_TITS = 1
+CASE TNUM("泡踊り")
+	DOWNBASE_HP += 150
+	USE_WAIST = 1
+	USE_TITS = 1
+;奉仕系
+CASE 90 TO 119
+	DOWNBASE_HP += 100
+;挿入奉仕系
+CASE 120, 121, 125, 126
+	DOWNBASE_HP += 200
+	USE_WAIST = 1
+	USE_STRENGTH = 1
+;騎乗位で犯す
+CASE 122, 127
+	DOWNBASE_HP += 100
+
+;弱ハードコマンド
+CASE TNUM("スパンキング"), TNUM("鼻フック"), TNUM("アイマスク"), TNUM("口枷"), TNUM("放尿"), TNUM("剃毛"), TNUM("ゴム精飲"), TNUM("尿道カテーテル")
+	DOWNBASE_HP += 50
+
+;中ハードコマンド
+CASE TNUM("拘束する"), TNUM("浴尿させる"), TNUM("ピアッシング"), TNUM("尿道ブジー"), TNUM("尿道バイブ")
+	DOWNBASE_HP += 100
+
+;ハードコマンド
+CASE 130 TO 159
+	DOWNBASE_HP += 200
+;もがく
+CASE 280
+	DOWNBASE_HP += 50
+	USE_STRENGTH = 1
+
+ENDSELECT
+
+SIF USE_MOUSE
+	DOWNBASE_HP = DIVIDE(DOWNBASE_HP, 110 + ABL:舌使い*10)
+SIF USE_HAND
+	DOWNBASE_HP = DIVIDE(DOWNBASE_HP, 110 + ABL:指使い*10)
+SIF USE_WAIST
+	DOWNBASE_HP = DIVIDE(DOWNBASE_HP, 110 + ABL:腰使い*10)
+SIF USE_TITS
+	DOWNBASE_HP = DIVIDE(DOWNBASE_HP, 110 + ABL:魔乳*10 - TALENT:巨乳*10)
+SIF USE_STRENGTH
+	DOWNBASE_HP = DIVIDE(DOWNBASE_HP, 150 + TALENT:力持ち*50)
+
+;PRINTFORML DOWNBASE_HP = {DOWNBASE_HP}, DOWNBASE:0:体力 = {DOWNBASE:0:体力}
+
+DOWNBASE:0:体力 += DOWNBASE_HP
+
+
+
+;追加処理及びサブイベント
+;-------------------------------------------------
+;パートナーの状態（陥没乳首の勃起など）チェック
+;-------------------------------------------------
+@TARGET_FLAG_CHECK
+#DIM ERECT_B_BEFORE
+#DIM ERECT_B
+#DIM ERECT_C_BEFORE
+#DIM ERECT_C
+#DIM MEMO_PALAM
+#DIM MEMO_EXB
+#DIM MEMO_EXC
+#DIM MEMO_LINECOUNT
+
+;乳首の勃起に関係あるのはPALAM:欲情(CUP:欲情はまだPALAMには転化されていない)と
+;EX:Ｂ絶頂(この関数内ではNOWEXはEXに変換済み)なので、このターンの開始時の乳首の状況と現在を比較する
+MEMO_PALAM = PALAM:欲情
+MEMO_EXB = EX:Ｂ絶頂
+MEMO_EXC = EX:Ｃ絶頂
+
+PALAM:欲情 += CUP:欲情
+ERECT_B = CALCF("Ｂ発情")
+ERECT_C = CALCF("Ｃ発情")
+
+PALAM:欲情 = MEMO_PALAM
+EX:Ｂ絶頂 -= NOWEX:Ｂ絶頂
+ERECT_B_BEFORE = CALCF("Ｂ発情")
+EX:Ｃ絶頂 -= NOWEX:Ｃ絶頂
+ERECT_C_BEFORE = CALCF("Ｃ発情")
+
+MEMO_LINECOUNT = LINECOUNT
+;陰核が勃起状態になった
+IF ERECT_C >= 2 && ERECT_C_BEFORE < 2
+	CALL BLANKLINE
+	CALL PRINT_STR, @"ハートピンク_%CALLNAME:TARGET%の隠れていた\@ COND("陰核肥大") ? 大きな # \@クリトリスが性的興奮を引き金に勃起して露出した！_W"
+ENDIF
+
+;陥没乳首が勃起状態になった
+IF ERECT_B && ERECT_B_BEFORE == 0
+	SIF LINECOUNT == MEMO_LINECOUNT
+		CALL BLANKLINE
+	;授乳済み
+	IF EXP_GAIN("授乳経験")
+		CALL PRINT_STR, @"ハートピンク_%CALLNAME:TARGET%の陥没していた乳首が、性的興奮と授乳の刺激でムクムクと立ち上がった！_W"
+	ELSEIF COND("乳首肥大")
+		CALL PRINT_STR, @"ハートピンク_%CALLNAME:TARGET%の陥没していた大きな乳首が、性的興奮を引き金にして露出した！_W"
+	ELSE
+		CALL PRINT_STR, @"ハートピンク_%CALLNAME:TARGET%の陥没していた乳首が性的興奮を引き金にして露出した！_W"
+	ENDIF
+ENDIF
+
+PALAM:欲情 = MEMO_PALAM
+EX:Ｂ絶頂 = MEMO_EXB
+EX:Ｃ絶頂 = MEMO_EXC
+
+;-------------------------------------------------
+;主人による調教の経験値
+;-------------------------------------------------
+@MASTER_FLAG_CHECK
+#DIM MOOD_UP
+#DIM FAV_UP
+
+;このターンに上昇したムードを算出
+MOOD_UP = MOOD() - TFLAG:ターン開始時のムード
+
+IF (MOOD_UP < 5 && MOOD_HEART() < 3) || MOOD_UP < 0
+	IF TALENT:淫乱 + TALENT:好色 && SEXUAL_PLAY()
+		FLAG:ムード += 10
+	ELSEIF TALENT:淫乱 + TALENT:倒錯的 && ABNORMAL_PLAY()
+		FLAG:ムード += 10
+	ENDIF
+ENDIF
+
+;ムードの上昇
+MOOD_UP = MOOD() - TFLAG:ターン開始時のムード
+
+SIF TEQUIP:MASTER:不毛な相談 && MOOD_UP >= 3
+	MOOD_UP -= 1
+
+;ムード変化有り
+SIF MOOD_UP
+	CALL TEXT, "ムード変化", MOOD_UP
+
+
+SIF PLAYER != MASTER
+	RETURN 1
+
+FAV_UP = TFLAG:好感度ボーナス + NOWEX:同時絶頂
+SIF NOWEX:絶頂数合計
+	FAV_UP += 1
+;絶頂箇所に対応する敏感系の素質があるなら、係数ＵＰ
+SIF NOWEX:Ｃ絶頂 > 0 && (TALENT:淫核 || TALENT:Ｃ性向)
+	FAV_UP += 2
+SIF NOWEX:Ｖ絶頂 > 0 && (TALENT:淫壷 || TALENT:Ｖ性向)
+	FAV_UP += 2
+SIF NOWEX:Ａ絶頂 > 0 && (TALENT:尻穴狂い || TALENT:Ａ性向)
+	FAV_UP += 2
+SIF NOWEX:Ｂ絶頂 > 0 && (TALENT:淫乳 || TALENT:Ｂ性向)
+	FAV_UP += 2
+SIF NOWEX:Ｍ絶頂 > 0 && (TALENT:蕩唇 || TALENT:Ｍ性向)
+	FAV_UP += 2
+SIF NOWEX:尿道絶頂 > 0 && (TALENT:尿道性感 || TALENT:尿道狂い)
+	FAV_UP += 2
+;射精+(倒錯的orオトコ）
+SIF NOWEX:射精 > 0 && TALENT:倒錯的 + TALENT:オトコ
+	FAV_UP += 2
+;噴乳+倒錯的
+SIF NOWEX:噴乳 > 0 && TALENT:倒錯的
+	FAV_UP += 2
+;お漏らし+倒錯的
+SIF NOWEX:絶頂お漏らし > 0 && TALENT:倒錯的
+	FAV_UP += 2
+
+;幸せな処女喪失をした
+SIF GETBIT(NOWEX:処女喪失, 1)
+	FAV_UP += 50
+
+;素質による増加
+;惚れっぽい
+SIF TALENT:惚れっぽい
+	FAV_UP += 5
+;主人の魅力
+SIF TALENT:MASTER:魅力
+	FAV_UP += 1
+;主人の謎の魅力
+SIF TALENT:MASTER:謎の魅力
+	FAV_UP += 1
+
+;苦痛刻印によるペナルティ
+SIF MARK:苦痛刻印 > ABL:マゾっ気 && TALENT:倒錯的 == 0
+	FAV_UP -= MARK:苦痛刻印 - ABL:マゾっ気
+;苦痛刻印によるボーナス
+SIF MARK:苦痛刻印 == 3 && (ABL:マゾっ気 >= 3 || TALENT:倒錯的)
+	FAV_UP += 1
+
+;反感と不快と恐怖によるペナルティ
+SIF CUP:恐怖 + CUP:反感 >= 100
+	FAV_UP -= POWER(2, GET_PALAMLV(CUP:恐怖 + CUP:反感) )
+
+;恭順によるボーナス
+SIF CUP:恭順 >= 500
+	FAV_UP += GET_PALAMLV(CUP:恭順)
+
+;ムード
+SIF MOOD_HEART() >= 3
+	FAV_UP += 1
+
+;媚薬
+IF TEQUIP:媚薬
+	FAV_UP -= TEQUIP:媚薬/50
+	;快感に素直、好色、淫乱、倒錯的、マゾのどれでもない
+	SIF TALENT:快感に素直 + TALENT:好色 + TALENT:淫乱 + TALENT:倒錯的 == 0
+		FAV_UP -= 2
+	;快感の否定(快感の否定持ちは、累計で-7の修正)
+	SIF TALENT:快感の否定
+		FAV_UP -= 2
+ENDIF
+;利尿剤
+SIF TEQUIP:利尿剤 && TALENT:倒錯的 == 0
+	FAV_UP -= 3
+
+;素質による減少
+;反抗的
+SIF TALENT:反抗的 && FAV_UP > 0
+	FAV_UP -= 1
+;冷静
+SIF TALENT:冷静 && FAV_UP > 0
+	FAV_UP -= 1
+;感情乏しい
+SIF TALENT:感情乏しい && FAV_UP > 0
+	FAV_UP -= 1
+;一線越えない(二段階減少)
+SIF TALENT:一線越えない && FAV_UP > 0
+	FAV_UP -= 1
+SIF TALENT:一線越えない && FAV_UP > 10
+	FAV_UP -= 2
+;快感の否定
+SIF TALENT:快感の否定 && FAV_UP > 0
+	FAV_UP -= 1
+
+;好感度のキャップ
+IF FAV_UP > 0
+	SELECTCASE CFLAG:好感度
+	CASE IS >= 100000000
+		FAV_UP /= 64
+	CASE IS >= 10000000
+		FAV_UP /= 32
+	CASE IS >= 1000000
+		FAV_UP /= 16
+	CASE IS >= 100000
+		FAV_UP /= 8
+	CASE IS >= 10000
+		FAV_UP /= 4
+	CASE IS >= 5000
+		FAV_UP /= 2
+	ENDSELECT
+	FAV_UP = MAX(FAV_UP, 1)
+ENDIF
+
+SELECTCASE FAV_UP
+CASE IS >= 200
+	FAV_UP = 60 + (FAV_UP - 200)/16
+;MAX60
+CASE IS >= 100
+	FAV_UP = 48 + (FAV_UP - 100)/8
+;MAX47
+CASE IS >= 50
+	FAV_UP = 35 + (FAV_UP - 50)/4
+;MAX35
+CASE IS >= 20
+	FAV_UP = 20 + (FAV_UP - 20)/2
+ENDSELECT
+
+CFLAG:好感度 += FAV_UP
+
+;好感度変化有り
+IF FAV_UP
+	PRINTFORM 好感度:{CFLAG:好感度}
+	IF FAV_UP > 0
+		SETCOLOR DEF_COLOR("ピンク")
+		PRINTFORML  ↑{FAV_UP}
+	ELSE
+		SETCOLOR DEF_COLOR("青")
+		PRINTFORML  ↓{-FAV_UP}
+	ENDIF
+	RESETCOLOR
+ENDIF
+
+
+;-------------------------------------------------
+;経験取得と表示の管理
+;ARGに２以上の数字が代入されている場合には獲得経験をARG倍する
+;ただし、拡張経験など一部のものは経験を積むたびに上昇が鈍るので、２回までは単純にARG倍させたりはしない
+;-------------------------------------------------
+@GET_EXP_COM, ARG
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIM MEMO_EXP_TARGET, 100
+#DIM MEMO_EXP_PLAYER, 100
+#DIM EXP_TARGET_GET, 100
+#DIM EXP_PLAYER_GET, 100
+#DIM V_SONSHOU, 2
+#DIM A_SONSHOU, 2
+
+VARSET EXP_TARGET_GET
+VARSET EXP_PLAYER_GET
+
+FOR LCOUNT, 0, 100
+	MEMO_EXP_TARGET:LCOUNT = EXP:LCOUNT
+	MEMO_EXP_PLAYER:LCOUNT = EXP:PLAYER:LCOUNT
+NEXT
+
+V_SONSHOU = TALENT:Ｖ損傷
+A_SONSHOU = TALENT:Ａ損傷
+
+V_SONSHOU:1 = TALENT:PLAYER:Ｖ損傷
+A_SONSHOU:1 = TALENT:PLAYER:Ａ損傷
+
+
+;シックスナインだけは特殊
+IF SELECTCOM == 99 && TEQUIP:シックスナイン
+	SELECTCOM = TEQUIP:シックスナイン
+	CALL CALC, "経験取得", SELECTCOM
+	IF ARG >= 2
+		FOR LCOUNT, 0, ARG-1
+			SELECTCASE LCOUNT
+			CASE 0
+				CALL CALC, "経験取得", SELECTCOM
+			CASEELSE
+				CALL CALC, "経験取得", SELECTCOM, ARG - 2
+				BREAK
+			ENDSELECT
+		NEXT
+	ENDIF
+
+	SELECTCOM = TEQUIP:PLAYER:シックスナイン
+	CALL CALC, "経験取得", SELECTCOM
+	IF ARG >= 2
+		FOR LCOUNT, 0, ARG-1
+			SELECTCASE LCOUNT
+			CASE 0
+				CALL CALC, "経験取得", SELECTCOM
+			CASEELSE
+				CALL CALC, "経験取得", SELECTCOM, ARG - 2
+				BREAK
+			ENDSELECT
+		NEXT
+	ENDIF
+
+	SELECTCOM = 99
+ELSE
+	CALL CALC, "経験取得", SELECTCOM
+	IF ARG >= 2
+		FOR LCOUNT, 0, ARG-1
+			SELECTCASE LCOUNT
+			CASE 0
+				CALL CALC, "経験取得", SELECTCOM
+			CASEELSE
+				CALL CALC, "経験取得", SELECTCOM, ARG - 2
+				BREAK
+			ENDSELECT
+		NEXT
+	ENDIF
+ENDIF
+
+IF COND("３Ｐ")
+	SWAP SELECTCOM, SELECTCOM:2
+	SWAP PLAYER, PLAYER:1
+	CALL CALC, "経験取得", SELECTCOM
+	IF ARG >= 2
+		FOR LCOUNT, 0, ARG-1
+			SELECTCASE LCOUNT
+			CASE 0
+				CALL CALC, "経験取得", SELECTCOM
+			CASEELSE
+				CALL CALC, "経験取得", SELECTCOM, ARG - 2
+				BREAK
+			ENDSELECT
+		NEXT
+	ENDIF
+	SWAP SELECTCOM, SELECTCOM:2
+	SWAP PLAYER, PLAYER:1
+ENDIF
+
+;以下は獲得経験の表示
+SIF TFLAG:システム文スキップ
+	RETURN 0
+
+FOR LCOUNT, 0, 100
+	EXP_TARGET_GET:LCOUNT = EXP:LCOUNT - MEMO_EXP_TARGET:LCOUNT
+	EXP_PLAYER_GET:LCOUNT = EXP:PLAYER:LCOUNT - MEMO_EXP_PLAYER:LCOUNT
+NEXT
+;"経験取得"内では増加していないが、実際には増えている
+
+;表示するべき経験があるならPRINTL ないならここで終わり
+FOR LCOUNT, 0, 100
+	SELECTCASE LCOUNT
+	;表示しない経験
+	CASE 5 TO 7
+		CONTINUE
+	CASEELSE
+		SELECTCASE EXP_TARGET_GET:LCOUNT + EXP_PLAYER_GET:LCOUNT
+		CASE IS > 0
+			BREAK
+		ENDSELECT
+	ENDSELECT
+NEXT
+CALL BLANKLINE
+
+FOR LCOUNT, 0, 100
+	SIF EXP_TARGET_GET:LCOUNT == 0
+		CONTINUE
+
+	SELECTCASE LCOUNT
+	;表示しない経験
+	CASE 5 TO 7
+		CONTINUE
+	ENDSELECT
+
+	PRINTFORML %EXPNAME:LCOUNT%＋{EXP_TARGET_GET:LCOUNT}
+NEXT
+;-------------------------------------------------
+;無理な拡張による体内の損傷チェック
+;-------------------------------------------------
+SETCOLOR DEF_COLOR("ピンク")
+SIF TALENT:Ｖ損傷 > V_SONSHOU
+	PRINTFORMW %CALLNAME:TARGET%の膣は挿入されたものの大きさに耐え切れず、壊されてしまった！
+SIF TALENT:Ａ損傷 > A_SONSHOU
+	PRINTFORMW %CALLNAME:TARGET%のアナルは挿入されたものの大きさに耐え切れず、壊されてしまった！
+RESETCOLOR
+SIF TALENT:Ｖ損傷 > V_SONSHOU || TALENT:Ａ損傷 > A_SONSHOU
+	PRINTFORMW これが治るには早くても数日、下手したら十日程かかるかもしれない……
+
+FOR LCOUNT, 0, 100
+	SIF EXP_PLAYER_GET:LCOUNT == 0
+		CONTINUE
+	PRINTFORML %EXPNAME:LCOUNT%＋{EXP_PLAYER_GET:LCOUNT} (%CALLNAME:PLAYER%)
+NEXT
+
+SETCOLOR DEF_COLOR("ピンク")
+SIF TALENT:PLAYER:Ｖ損傷 > V_SONSHOU:1
+	PRINTFORMW %CALLNAME:PLAYER%の膣は挿入されたものの大きさに耐え切れず、壊されてしまった！
+SIF TALENT:PLAYER:Ａ損傷 > A_SONSHOU:1
+	PRINTFORMW %CALLNAME:PLAYER%のアナルは挿入されたものの大きさに耐え切れず、壊されてしまった！
+RESETCOLOR
+SIF TALENT:PLAYER:Ｖ損傷 > V_SONSHOU:1 || TALENT:PLAYER:Ａ損傷 > A_SONSHOU:1
+	PRINTFORMW これが治るには早くても数日、下手したら十日程かかるかもしれない……
+
+;-------------------------------------------------
+;バイブなど付けっぱなしアイテムのチェック(主にSOURCE計算。快楽のSOURCEが増えないものは、ここにはなくても良い)
+;-------------------------------------------------
+@EQUIP_1
+#DIM LCOUNT
+;とりあえず調教コマンドの300番まで
+FOR LCOUNT, 0, 300
+	TRYCALLFORM EQUIP_COM{LCOUNT}
+NEXT
+
+
+;-------------------------------------------------
+;バイブなど付けっぱなしアイテムのチェック(テキストと経験)
+;-------------------------------------------------
+@EQUIP_2
+#DIM LCOUNT
+
+;手加減失敗判定
+IF TEQUIP:手加減
+	IF COND("手加減失敗")
+		CALL PRINT_STRL, @"黄色_＜%CALLNAME:PLAYER%は焦らすのを失敗してしまった！＞"
+		TEQUIP:手加減 = 0
+	ELSE
+		PRINTL ＜手加減中＞
+	ENDIF
+ENDIF
+
+;とりあえず調教コマンドの300番まで
+FOR LCOUNT, 0, 300
+	TRYCALLFORM EQUIP_COM{LCOUNT}_2
+NEXT
+
+
+;-------------------------------------------------
+;絶頂処理
+;絶頂予定などを見る関係上、何度呼びだしてもRANDが等しくなるようにRANDFを使う
+;-------------------------------------------------
+@ORGASM_ADD_A
+#DIM LCOUNT
+;それぞれ対応する絶頂と寸止めの名前が入る
+#DIMS NAME_EX
+#DIMS STOP_EX
+
+SIF NOWEX:イくのをこらえた && NOWEX:ラグジャラスヒット == 0
+	RETURN 1
+
+NOWEX:イくのをこらえた = 0
+
+;快感を受け入れられる量は１万とする
+
+FOR LCOUNT, 0, 30
+	;絶頂しうるPALAM以外はスキップ
+	SELECTCASE PALAMNAME:LCOUNT
+	CASE "快Ｃ"
+		NAME_EX = Ｃ絶頂
+		STOP_EX = Ｃ寸止め
+	CASE "快Ｖ"
+		NAME_EX = Ｖ絶頂
+		STOP_EX = Ｖ寸止め
+	CASE "快Ａ"
+		NAME_EX = Ａ絶頂
+		STOP_EX = Ａ寸止め
+	CASE "快Ｂ"
+		NAME_EX = Ｂ絶頂
+		STOP_EX = Ｂ寸止め
+	CASE "快Ｍ"
+		NAME_EX = Ｍ絶頂
+		STOP_EX = Ｍ寸止め
+	CASE "快尿"
+		NAME_EX = 尿道絶頂
+		STOP_EX = 尿道寸止め
+	CASEELSE
+		CONTINUE
+	ENDSELECT
+
+	;手加減中
+	IF TEQUIP:手加減
+		SELECTCASE NOW_PALAM(PALAMNAME:LCOUNT)
+		;寸止め
+		CASE IS >= 20000
+			NOWEX:STOP_EX = 2
+		CASE IS >= 10000
+			NOWEX:STOP_EX = 1
+		ENDSELECT
+	;イくのを堪えたor手加減でゲージが1万超えたままのは、他の絶頂が発生した時に同時に絶頂する。(ここを2回見るのでOK)
+	ELSEIF CUP:LCOUNT || NOWEX:絶頂数合計 || NOWEX:ラグジャラスヒット
+		SELECTCASE NOW_PALAM(PALAMNAME:LCOUNT)
+		CASE IS >= 100000
+			NOWEX:NAME_EX = 5
+			CDOWN:LCOUNT = 100000
+		CASE IS >= 60000
+			NOWEX:NAME_EX = 4
+			CDOWN:LCOUNT = 60000
+		CASE IS >= 30000
+			NOWEX:NAME_EX = 3
+			CDOWN:LCOUNT = 30000
+		CASE IS >= 20000
+			NOWEX:NAME_EX = 2
+			CDOWN:LCOUNT = 20000
+		CASE IS >= 10000
+			NOWEX:NAME_EX = 1
+			CDOWN:LCOUNT = 10000
+		ENDSELECT
+		SIF NOW_PALAM(PALAMNAME:LCOUNT) - CDOWN:LCOUNT >= 10000 && NOWEX:NAME_EX
+			CDOWN:LCOUNT = NOW_PALAM(PALAMNAME:LCOUNT) - 10000 + 1000*NOWEX:NAME_EX
+		SIF LCOUNT == 0 && CDOWN:0 && PENIS(TARGET)
+			CDOWN:0 = NOW_PALAM(PALAMNAME:LCOUNT)
+	ENDIF
+	SIF NOWEX:NAME_EX
+		NOWEX:STOP_EX = 0
+	SIF NOWEX:STOP_EX || NOWEX:NAME_EX == 0
+		CDOWN:LCOUNT = 0
+
+NEXT
+
+;NOWEX:絶頂数合計とNOWEX:寸止め数合計を設定
+NOWEX:絶頂数合計 = NOWEX:Ｃ絶頂 + NOWEX:Ｖ絶頂 + NOWEX:Ａ絶頂 + NOWEX:Ｂ絶頂 + NOWEX:Ｍ絶頂 + NOWEX:尿道絶頂
+NOWEX:寸止め数合計 = NOWEX:Ｃ寸止め + NOWEX:Ｖ寸止め + NOWEX:Ａ寸止め + NOWEX:Ｂ寸止め + NOWEX:Ｍ寸止め + NOWEX:尿道寸止め
+
+;MAXは12万
+MAXBASE:快感許容値オンナ = MIN(ABL:欲望*5000+ABL:技巧*2000+(JUEL:欲情+JUEL:快Ｃ+JUEL:快Ｖ+JUEL:快Ａ+JUEL:快Ｂ+JUEL:快Ｍ+JUEL:快尿)/200, 120000)
+;連続絶頂には強い
+SIF PALAM:連続絶頂COMBO数
+	MAXBASE:快感許容値オンナ = MULTIPLY(MAXBASE:快感許容値オンナ, 100 + PALAM:連続絶頂COMBO数*20)
+;疲労困憊だとあんまり耐えない
+SELECTCASE BASE:体力
+CASE IS < 100
+	TIMES MAXBASE:快感許容値オンナ, 0.50
+CASE IS < 500
+	TIMES MAXBASE:快感許容値オンナ, 0.75
+ENDSELECT
+
+BASE:快感許容値オンナ = NOW_PALAM("快Ｃ")+NOW_PALAM("快Ｖ")+NOW_PALAM("快Ａ")+NOW_PALAM("快Ｂ")+NOW_PALAM("快Ｍ")+NOW_PALAM("快尿")
+SIF PENIS(TARGET) && NOW_PALAM("快Ｃ") >= EJAC:TARGET
+	BASE:快感許容値オンナ *= 2
+
+SIF NOWEX:絶頂数合計 == 0
+	RETURN 0
+
+;恋慕の人はあなたの絶頂に合わせてくれます
+IF TALENT:恋慕 && PLAYER == MASTER && COND("絶頂", PLAYER) >= MAX(2, RANDF(5)+1) && RANDF(3) == 0
+	EX:イくのをこらえた = 0
+;ラグジャラスヒットの時にはこらえることが出来ない
+ELSEIF NOWEX:ラグジャラスヒット || NOWEX:精液絶頂
+	EX:イくのをこらえた = 0
+;排泄していたらこらえることはできない
+ELSEIF NOWEX:放尿 || NOWEX:排泄 || NOWEX:射精
+	EX:イくのをこらえた = 0
+;媚薬使用中はこらえる事が出来ない
+ELSEIF TEQUIP:媚薬 >= 100
+	EX:イくのをこらえた = 0
+;前立腺刺激もこらえる事が出来ない
+ELSEIF COND("前立腺刺激")
+	EX:イくのをこらえた = 0
+;堪える確率は20%～90%＆快感が許容量を越えているなら、堪えることが出来ない
+ELSEIF MAXBASE:快感許容値オンナ >= BASE:快感許容値オンナ && LIMIT(30*MAXBASE:快感許容値オンナ/(BASE:快感許容値オンナ + 1), 20, 90) > RANDF(100)
+	EX:イくのをこらえた += 1
+	NOWEX:イくのをこらえた = 1
+	FOR LCOUNT, 0, 6
+		NOWEX:LCOUNT = 0
+	NEXT
+	NOWEX:絶頂数合計 = 0
+	VARSET CDOWN
+ELSE
+	EX:イくのをこらえた = 0
+ENDIF
+
+
+@CHECK_ECST(ARG)
+#FUNCTION
+#DIM LCOUNT
+;何重絶頂したかを返す
+LOCAL = 0
+
+SIF NOWEX:ARG:Ｃ絶頂
+	LOCAL += 1
+SIF NOWEX:ARG:Ｖ絶頂
+	LOCAL += 1
+SIF NOWEX:ARG:Ａ絶頂
+	LOCAL += 1
+SIF NOWEX:ARG:Ｂ絶頂
+	LOCAL += 1
+SIF NOWEX:ARG:Ｍ絶頂
+	LOCAL += 1
+SIF NOWEX:ARG:尿道絶頂
+	LOCAL += 1
+
+RETURNF LOCAL
+
+@ORGASM_ADD_TEXT, ARG
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIMS TEXT_EX
+
+SIF TFLAG:システム文スキップ
+	RETURN 0
+
+MEMO_LINECOUNT = LINECOUNT
+
+TEXT_EX = 
+FOR LCOUNT, 0, 6
+	SIF NOWEX:ARG:LCOUNT + NOWEX:ARG:(LCOUNT + 20) == 0
+		CONTINUE
+
+	TEXT_EX = 
+	SIF NOWEX:ARG:LCOUNT >= 4
+		TEXT_EX = 超
+	SIF NOWEX:ARG:LCOUNT >= 2 || NOWEX:ARG:(LCOUNT + 20) >= 2
+		TEXT_EX = %TEXT_EX%強
+
+	;今回のターンの絶頂具合の表示で使用する
+	TEXT_EX = %SUBSTRING(EXNAME:LCOUNT, 0, STRLENS(EXNAME:LCOUNT) - 4)%%TEXT_EX%絶頂\@NOWEX:ARG:(LCOUNT + 20) ? 寸止め # \@
+	PRINTFORML %TEXT_EX% \@ ARG == ASSI ? (%TEXTS("助手の名称")%) # \@
+NEXT
+
+IF NOWEX:寸止め数合計
+	TEXT_EX = 寸止め
+;多重絶頂
+ELSEIF CHECK_ECST(ARG) >= 2
+	SELECTCASE CHECK_ECST(ARG)
+	CASE 5
+		TEXT_EX = 五 重 絶 頂
+		SETCOLOR DEF_COLOR("ハートピンク")
+	CASE 4
+		TEXT_EX = 四 重 絶 頂
+		SETCOLOR DEF_COLOR("ハートピンク")
+	CASEELSE
+		TEXT_EX = 
+		SIF NOWEX:ARG:尿道絶頂
+			TEXT_EX += "尿道＆"
+		SIF NOWEX:ARG:Ｃ絶頂
+			TEXT_EX += "Ｃ＆"
+		SIF NOWEX:ARG:Ｖ絶頂
+			TEXT_EX += "Ｖ＆"
+		SIF NOWEX:ARG:Ａ絶頂
+			TEXT_EX += "Ａ＆"
+		SIF NOWEX:ARG:Ｂ絶頂
+			TEXT_EX += "Ｂ＆"
+		SIF NOWEX:ARG:Ｍ絶頂
+			TEXT_EX += "Ｍ＆"
+		TEXT_EX = %SUBSTRING(TEXT_EX, 0, STRLENS(TEXT_EX) - 2)%絶頂
+		SETCOLOR DEF_COLOR("黄色")
+	ENDSELECT
+
+	PRINTFORML %TEXT_EX% \@ ARG == ASSI ? (%TEXTS("助手の名称")%) # \@ (それぞれ{CHECK_ECST(ARG)}倍の珠が得られます)
+
+	RESETCOLOR
+ENDIF
+
+IF ARG == ASSI
+	STR:助手の絶頂 = %TEXT_EX%
+ELSE
+	STR:対象の絶頂 = %TEXT_EX%
+ENDIF
+
+;堪える
+IF NOWEX:ARG:イくのをこらえた
+	CALL BLANKLINE
+	IF NOWEX:ARG:射精寸止め && COND("尿道使用中", ARG)
+		PRINTFORML %CALLNAME:ARG%は込み上げる精液をどうにも出来ず、身体を強張らせて必死で耐えている…
+	ELSEIF EX:ARG:イくのをこらえた == 1 && SELECTCOM == 3
+		PRINTFORML %CALLNAME:ARG%は、更なる絶頂を求めて自分を焦らしている…
+	ELSEIF EX:ARG:イくのをこらえた == 1 && RAND:3 == 0
+		PRINTFORML %CALLNAME:ARG%はイくのを堪えた！
+	ELSE
+		IF EXP_GAIN("イかせた回数", ARG) == 0 && EX:ARG:絶頂数合計 == 0 && INSERT("インサート", ARG) && TALENT:ARG:強気 && RAND:3 == 0
+			PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%を先にイかせてやる、と快感を堪えている…
+		ELSEIF INSERT("インサート", ARG) && RANDIF(3, COND("視力", ARG) )
+			IF INSERT("Ｖインサート", ARG)
+				PRINTFORML %CALLNAME:ARG%は膣をきゅぅっと締めながら、イかされるのに抵抗している…
+			ELSEIF INSERT("Ａインサート", ARG)
+				PRINTFORML %CALLNAME:ARG%はアナルから迸る快感に必死で耐えている…
+			ELSEIF INSERT("尿道インサート", ARG)
+				PRINTFORML %CALLNAME:ARG%は身体の深部を襲う禁断の快楽に必死で耐えている…
+			ENDIF
+		ELSEIF COND("視力", ARG) && RAND:3 == 0
+			IF RAND:2
+				PRINTFORML %CALLNAME:ARG%は悩ましげな表情でイくのを我慢している…
+			ELSE
+				PRINTFORML %CALLNAME:ARG%は瞳を潤ませつつ、快感を堪えている…
+			ENDIF
+		ELSEIF ABL:ARG:欲望 >= 3 && RAND:3 == 0
+			PRINTFORML %CALLNAME:ARG%は頬を赤らめながら、限界ぎりぎりまでイくのを我慢している…
+		ELSEIF RAND:2
+			PRINTFORML %CALLNAME:ARG%は呼吸を整えて、押し寄せている絶頂の波に耐えている…
+		ELSE
+			PRINTFORML %CALLNAME:ARG%は口の端から涎をこぼしながら、快感を堪えている…
+		ENDIF
+	ENDIF
+ELSEIF COND("焦らされ中")
+	PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%に焦らされている…！
+ELSE
+	LOCAL = LIMIT(CALCF("絶頂時精力消費", ARG), 0, BASE:ARG:精力)
+	SIF LOCAL > 0
+		PRINTFORML 精力-{LOCAL} \@ ARG == ASSI ? (%TEXTS("助手の名称")%) # \@
+ENDIF
+
+;表示があった場合にはWAITを入れる
+SIF LINECOUNT > MEMO_LINECOUNT
+	WAIT
+
+@ORGASM_ADD_C
+#DIM LCOUNT
+
+IF NOWEX:Ｃ絶頂
+	SOURCE:露出 += 300 * NOWEX:Ｃ絶頂
+	SIF TALENT:Ｃ性向
+		SOURCE:屈従 += 1000
+	;貝合わせで絶頂
+	SIF SELECTCOM == 80
+		CALL SETFLAG, "好きな体位", 80, NOWEX:Ｃ絶頂
+ENDIF
+IF NOWEX:Ｖ絶頂
+	SOURCE:露出 += 500 * NOWEX:Ｖ絶頂
+	SOURCE:屈従 += 500
+	SIF TALENT:Ｖ性向
+		SOURCE:屈従 += 1000
+	SOURCE:欲情追加 += 500
+	;好きな体位に影響
+	IF COND("調教中")
+		IF INSERT("Ｖ正常位")
+			CALL SETFLAG, "好きな体位", 60, NOWEX:Ｖ絶頂
+		ELSEIF INSERT("Ｖ後背位")
+			CALL SETFLAG, "好きな体位", 61, NOWEX:Ｖ絶頂
+		ELSEIF INSERT("Ｖ屈曲位")
+			CALL SETFLAG, "好きな体位", 62, NOWEX:Ｖ絶頂
+		ELSEIF INSERT("Ｖ対面座位")
+			CALL SETFLAG, "好きな体位", 63, NOWEX:Ｖ絶頂
+		ELSEIF INSERT("Ｖ背面座位")
+			CALL SETFLAG, "好きな体位", 64, NOWEX:Ｖ絶頂
+		ELSEIF INSERT("Ｖ騎乗位")
+			CALL SETFLAG, "好きな体位", 65, NOWEX:Ｖ絶頂
+		ENDIF
+	;ELSE
+	;	SELECTCASE SELECTCOM
+	;	CASE 60 TO 65
+	;		CALL SETFLAG, "好きな体位", SELECTCOM, NOWEX:Ｖ絶頂
+	;	ENDSELECT
+	ENDIF
+ENDIF
+IF NOWEX:Ａ絶頂
+	SOURCE:露出 += 1000 * NOWEX:Ａ絶頂
+	SOURCE:屈従 += 2000
+	SIF TALENT:Ａ性向
+		SOURCE:屈従 += 1000
+	SOURCE:欲情追加 += 500
+	IF COND("調教中")
+		IF INSERT("Ａ正常位")
+			CALL SETFLAG, "好きな体位", 70, NOWEX:Ａ絶頂
+		ELSEIF INSERT("Ａ後背位")
+			CALL SETFLAG, "好きな体位", 71, NOWEX:Ａ絶頂
+		ELSEIF INSERT("Ａ屈曲位")
+			CALL SETFLAG, "好きな体位", 72, NOWEX:Ａ絶頂
+		ELSEIF INSERT("Ａ対面座位")
+			CALL SETFLAG, "好きな体位", 73, NOWEX:Ａ絶頂
+		ELSEIF INSERT("Ａ背面座位")
+			CALL SETFLAG, "好きな体位", 74, NOWEX:Ａ絶頂
+		ELSEIF INSERT("Ａ騎乗位")
+			CALL SETFLAG, "好きな体位", 75, NOWEX:Ａ絶頂
+		ENDIF
+	;ELSE
+	;	SELECTCASE SELECTCOM
+	;	CASE 70 TO 75
+	;		CALL SETFLAG, "好きな体位", SELECTCOM, NOWEX:Ａ絶頂
+	;	ENDSELECT
+	ENDIF
+ENDIF
+IF NOWEX:尿道絶頂
+	SOURCE:露出 += 1000 * NOWEX:尿道絶頂
+	SOURCE:屈従 += 2000
+	SIF TALENT:尿道性感
+		SOURCE:屈従 += 1000
+	SOURCE:欲情追加 += 500
+	IF COND("調教中")
+		IF INSERT("尿道正常位")
+			CALL SETFLAG, "好きな体位", 83, NOWEX:尿道絶頂
+		ELSEIF INSERT("尿道後背位")
+			CALL SETFLAG, "好きな体位", 84, NOWEX:尿道絶頂
+		ELSEIF INSERT("尿道屈曲位")
+			CALL SETFLAG, "好きな体位", 85, NOWEX:尿道絶頂
+		ELSEIF INSERT("尿道対面座位")
+			CALL SETFLAG, "好きな体位", 86, NOWEX:尿道絶頂
+		ELSEIF INSERT("尿道背面座位")
+			CALL SETFLAG, "好きな体位", 87, NOWEX:尿道絶頂
+		ELSEIF INSERT("尿道騎乗位")
+			CALL SETFLAG, "好きな体位", 88, NOWEX:尿道絶頂
+		ENDIF
+	;ELSE
+	;	SELECTCASE SELECTCOM
+	;	CASE 83 TO 88
+	;		CALL SETFLAG, "好きな体位", SELECTCOM, NOWEX:尿道絶頂
+	;	ENDSELECT
+	ENDIF
+ENDIF
+IF NOWEX:Ｂ絶頂
+	SOURCE:露出 += 300 * NOWEX:Ｂ絶頂
+	SIF TALENT:Ｂ性向
+		SOURCE:屈従 += 1000
+ENDIF
+IF NOWEX:Ｍ絶頂
+	SOURCE:情愛 += 500 * NOWEX:Ｍ絶頂
+	SIF TALENT:Ｍ性向
+		SOURCE:屈従 += 1000
+ENDIF
+
+;絶頂した時の基本値
+IF NOWEX:絶頂数合計
+	SOURCE:屈従 += 1000 * CHECK_ECST(TARGET)
+	SOURCE:欲情追加 += 300 * CHECK_ECST(TARGET)
+	SOURCE:恭順追加 += 500 * CHECK_ECST(TARGET)
+	SIF TALENT:オトコ == 0
+		SOURCE:Ｖ液体追加 += 500 * NOWEX:絶頂数合計
+ENDIF
+
+;多重絶頂した時の珠の処理
+IF CHECK_ECST(TARGET) >= 2
+	;媚薬を使った場合にはボーナスを減らす
+	IF TEQUIP:媚薬
+		LOCAL = (CHECK_ECST(TARGET) - 1) * 100
+	ELSE
+		LOCAL = (CHECK_ECST(TARGET) - 1) * 1000
+	ENDIF
+	JUEL:快Ｃボーナス += NOWEX:Ｃ絶頂 * LOCAL
+	JUEL:快Ｖボーナス += NOWEX:Ｖ絶頂 * LOCAL
+	JUEL:快Ａボーナス += NOWEX:Ａ絶頂 * LOCAL
+	JUEL:快Ｂボーナス += NOWEX:Ｂ絶頂 * LOCAL
+	JUEL:快Ｍボーナス += NOWEX:Ｍ絶頂 * LOCAL
+	JUEL:快尿ボーナス += NOWEX:尿道絶頂 * LOCAL
+ENDIF
+
+;絶頂回数を増やす
+EX:Ｃ絶頂 += NOWEX:Ｃ絶頂
+EX:Ｖ絶頂 += NOWEX:Ｖ絶頂
+EX:Ａ絶頂 += NOWEX:Ａ絶頂
+EX:Ｂ絶頂 += NOWEX:Ｂ絶頂
+EX:Ｍ絶頂 += NOWEX:Ｍ絶頂
+EX:尿道絶頂 += NOWEX:尿道絶頂
+
+;絶頂回数に応じて好感度増加にボーナス
+FOR LCOUNT, 0, 6
+	;その部位の絶頂５回目
+	SIF EX:LCOUNT >= 5 && EX:LCOUNT - NOWEX:LCOUNT < 5
+		TFLAG:好感度ボーナス += 10
+	;その部位の絶頂10回目
+	SIF EX:LCOUNT >= 10 && EX:LCOUNT - NOWEX:LCOUNT < 10
+		TFLAG:好感度ボーナス += 20
+	;その部位の絶頂20回目
+	SIF EX:LCOUNT >= 20 && EX:LCOUNT - NOWEX:LCOUNT < 20
+		TFLAG:好感度ボーナス += 30
+NEXT
+
+;絶頂経験を増やす
+EXP:絶頂経験 += NOWEX:絶頂数合計
+;PLAYERは経験値Get
+CALL GET_EXPERIENCE, NOWEX:絶頂数合計, PLAYER
+;絶頂の内訳を記録（まだ開発中）
+;CALL SETFLAG, "絶頂の記録"
+;精力消費
+LOCAL = CALCF("絶頂時精力消費", TARGET)
+BASE:精力 = MAX(BASE:精力 - LOCAL, 0)
+TCVAR:精力減少 += LOCAL
+
+;絶頂回数の合計も記録
+EX:絶頂数合計 = EX:Ｃ絶頂 + EX:Ｖ絶頂 + EX:Ａ絶頂 + EX:Ｂ絶頂 + EX:Ｍ絶頂 + EX:尿道絶頂
+;ムードにボーナス
+SIF NOWEX:絶頂数合計
+	FLAG:ムード += LIMIT(NOWEX:絶頂数合計/2, 1, 5)
+
+
+@ORGASM_ADD_B
+;絶頂した時の処理
+CALL ORGASM_ADD_C
+
+;快感総量を増やす
+PALAM:Extacy += CUP:快Ｃ + CUP:快Ｖ + CUP:快Ａ + CUP:快Ｂ + CUP:快Ｍ + CUP:快尿
+;オバフロ対策
+SIF PALAM:Extacy >= 10000000000000000
+	PALAM:Extacy = 10000000000000000
+
+;オトコでないなら、快楽に応じたＶ潤が発生
+IF TALENT:オトコ == 0 && CUP:快Ｃ+CUP:快Ｖ+CUP:快Ａ+CUP:快Ｂ+CUP:快Ｍ+CUP:快尿 > 0
+	SELECTCASE CUP:快Ｃ+CUP:快Ｖ+CUP:快Ａ+CUP:快Ｂ+CUP:快Ｍ+CUP:快尿
+	CASE IS >= 10000
+		LOCAL = 500
+	CASE IS >= 3000
+		LOCAL = 200
+	CASE IS >= 500
+		LOCAL = 50
+	CASE IS >= 100
+		LOCAL = 20
+	CASEELSE
+		LOCAL = 5
+	ENDSELECT
+	LOCAL += LIMIT(NOWEX:絶頂数合計*200, 0, 600)
+	;Ｖ潤アップの50％を露出のソースに加える(濡れて恥ずかしい、というやつ)
+	IF TALENT:濡れやすい
+		SIF TALENT:濡れやすい >= 2
+			LOCAL += TALENT:濡れやすい * 100
+		SOURCE:Ｖ液体追加 += UP_PALAMLV(LOCAL)
+		SOURCE:露出 += UP_PALAMLV(LOCAL) / 2
+	ELSEIF TALENT:濡れにくい
+		SOURCE:Ｖ液体追加 += DOWN_PALAMLV(LOCAL)
+		SOURCE:露出 += DOWN_PALAMLV(LOCAL) / 2
+	ELSE
+		SOURCE:Ｖ液体追加 += LOCAL
+		SOURCE:露出 += LOCAL / 2
+	ENDIF
+ENDIF
+
+CALL ORGASM_ADD_TEXT, TARGET
+
+;絶頂による欲望ＬＶアップ
+LOCAL = 0
+SIF NOWEX:絶頂数合計
+	LOCAL = 1
+SIF NOWEX:Ｖ絶頂
+	LOCAL = 2
+SIF NOWEX:Ａ絶頂
+	LOCAL = 3
+SIF NOWEX:Ｃ絶頂 + NOWEX:尿道絶頂 >= 4 && NOWEX:Ａ絶頂 >= 4
+	LOCAL = 3
+SIF NOWEX:Ｃ絶頂 + NOWEX:尿道絶頂 >= 4 && NOWEX:Ｖ絶頂 >= 4 && NOWEX:Ａ絶頂 >= 4
+	LOCAL = 4
+;冷静があると１下がる
+SIF TALENT:冷静 && LOCAL
+	LOCAL -= 1
+
+;多重絶頂等による欲望の上昇や快感の否定の消滅
+SETCOLOR DEF_COLOR("黄色")
+IF ABL:欲望 < LOCAL
+	ABL:欲望 = LOCAL
+	PRINTFORML そして欲望がLV{LOCAL}になった
+ENDIF
+IF TALENT:快感の否定 && NOWEX:絶頂数合計 >= 3
+	PRINTFORML %CALLNAME:TARGET%は[快感の否定]を失った
+	TALENT:快感の否定 = 0
+
+	SIF JUEL:反感 > 0
+		PRINTL 反感の珠が半分になった
+	JUEL:反感 /= 2
+ENDIF
+RESETCOLOR
+
+;尿道性感の獲得…めんどくさい感覚なので尿道弄りながらのＣ絶頂で良いこととする
+IF TALENT:尿道性感 == 0 && COND("尿道性感フラグ") && NOWEX:Ｃ絶頂 + NOWEX:尿道絶頂
+	TALENT:尿道性感 = 1
+	PRINTFORML ……%CALLNAME:TARGET%は尿道を責められながらの絶頂により、新たな境地を開いてしまったようだ
+	PRINTFORM %CALLNAME:TARGET%は
+	CALL PRINT_COLORTEXT, "[尿道性感]", DEF_COLOR("黄色")
+	PRINTFORML を得た
+	FORCEWAIT
+ENDIF
+
+;-------------------------------------------------
+;尿意ゲージの増加
+;1万以上だとお漏らしの危険あり。とはいえ、絶頂失禁体質がない場合には利尿剤がないと早々漏らさない
+;CV絶頂は溜まり易い。
+;-------------------------------------------------
+LOCAL = 100 + (NOWEX:Ｃ絶頂 + NOWEX:Ｖ絶頂 + NOWEX:尿道絶頂)*300 + NOWEX:尿道絶頂*500 + (NOWEX:絶頂数合計 + NOWEX:Ｃ寸止め + NOWEX:Ｖ寸止め + NOWEX:尿道寸止め + NOWEX:寸止め数合計)*100
+
+;Gスポ刺激
+SIF CHECK_COM("Ｇスポ責め") || SELECTCOM == 66
+	LOCAL += 100
+;膣弄り
+SIF CUP:快Ｖ
+	LOCAL += 100
+;クリ弄り
+SIF CUP:快Ｃ
+	LOCAL += 100
+;利尿剤
+SIF TEQUIP:利尿剤
+	LOCAL += 2000
+;尿道弄り
+SIF COND("尿道性感フラグ")
+	LOCAL += 200
+;放尿済み
+SIF EXP_GAIN("放尿経験") + EXP_GAIN("お漏らし経験")
+	LOCAL /= 5
+
+BASE:尿意 = MIN(BASE:尿意 + MIN(LOCAL, 3000), 45000)
+
+
+;PLAYERの尿意増加は簡単な感じで
+IF COND("絶頂", PLAYER)
+	LOCAL = 1000
+ELSEIF COND("イきそう", PLAYER)
+	LOCAL = 300
+ELSE
+	LOCAL = 100
+ENDIF
+;利尿剤
+SIF TEQUIP:PLAYER:利尿剤
+	LOCAL += 2000
+;放尿済み
+SIF EXP_GAIN("放尿経験", PLAYER) + EXP_GAIN("お漏らし経験", PLAYER)
+	LOCAL /= 5
+
+BASE:PLAYER:尿意 = MIN(BASE:PLAYER:尿意 + MIN(LOCAL, 3000), 20000)
+
+CALL TARGET_EJAC_CHECK
+CALL TARGET_MILK_CHECK
+
+
+;-------------------------------------------------
+;RECORD_SP_EXP_ALLACTORは全部のPLAYER:0～1とTARGET:0～3についてRECORD_SP_EXPをチェックする
+;-------------------------------------------------
+@RECORD_SP_EXP_ALLACTOR
+#DIM LCOUNT
+
+FOR LCOUNT, 1, CHARANUM
+	SELECTCASE LCOUNT
+	CASE PLAYER, PLAYER:1, TARGET, TARGET:1, TARGET:2, TARGET:3
+		CALL RECORD_SP_EXP, LCOUNT
+	ENDSELECT
+NEXT
+
+
+;-------------------------------------------------
+;特筆すべき経験や出来事の表示＆記録。特別経験もここで得る
+;特別経験については特殊な判定が必要になるため、CSTR:ARG:特別経験 を使用する
+;イベントごとに イベント名：内容 の形式で記録する
+;-------------------------------------------------
+@RECORD_SP_EXP, ARG
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+;この値に等しい特別経験を得る
+#DIM GAIN_SPEXP, 100
+;特別経験の名前
+#DIMS NAME_SPEXP
+;特別経験の相手
+#DIM ACTOR
+
+SIF ARG < 0
+	RETURN 0
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+;色は黄色
+SETCOLOR DEF_COLOR("イエロー")
+
+VARSET GAIN_SPEXP
+
+VARSET LOCAL
+MEMO_LINECOUNT = LINECOUNT
+
+;相思相愛になった
+IF ARG != MASTER && TALENT:ARG:相思相愛 && STRCOUNT(CSTR:ARG:特別経験, "相思相愛") == 0
+	PRINTFORMW %CALLNAME:ARG%と相思相愛になりました！
+	SIF COND("セフレ契約", ARG)
+		PRINTFORMW （%CALLNAME:ARG%とのセフレ契約を破棄します）
+	;契約かどうかによらずセフレ関係は解消
+	TALENT:セフレ = 0
+
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%相思相愛：%RECORD("相思相愛", ARG, MASTER)%
+ENDIF
+
+;妊娠関連
+IF TALENT:ARG:妊娠 == 1 && STRCOUNT(CSTR:ARG:特別経験, "妊娠") == 0
+	GAIN_SPEXP:ARG += 1
+	IF TALENT:ARG:反抗的 && COND("精液の優勢", ARG) == MASTER
+		CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%望まぬ妊娠：%RECORD("望まぬ妊娠", ARG, COND("精液の優勢", ARG) )%
+	ELSEIF TALENT:ARG:相思相愛 && COND("精液の優勢", ARG) == MASTER
+		CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%幸せな妊娠：%RECORD("幸せな妊娠", ARG, COND("精液の優勢", ARG) )%
+	ELSE
+		CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%妊娠：%RECORD("妊娠", ARG, COND("精液の優勢", ARG) )%
+	ENDIF
+ENDIF
+
+;初めて処女喪失
+IF TALENT:ARG:処女 == 1 && COND("処女喪失フラグ", ARG)
+	TALENT:ARG:処女 = 0
+
+	;処女喪失
+	NOWEX:ARG:処女喪失 = 1
+	;恋慕状態で主人とのセックスで処女喪失した
+	IF ARG == TARGET && TALENT:恋慕 && PLAYER == MASTER
+		IF SELECTCOM >= 60 && SELECTCOM <= 69
+			SETBIT NOWEX:処女喪失, 1
+			;ムード大幅アップ
+			FLAG:ムード += 90
+		ENDIF
+	ENDIF
+	EX:ARG:処女喪失 = NOWEX:ARG:処女喪失
+
+	NAME_SPEXP = 処女喪失
+	IF TEQUIP:ARG:バイブ
+		NAME_SPEXP = \@ SIZE("バイブ", ARG) >= 2 ? 極太 # \@バイブで処女喪失
+	ELSEIF INSERT("Ｖインサート", ARG)
+		ACTOR = INSERT("Ｖインサート相手", ARG)
+		IF INSERT("騎乗位", ARG)
+			NAME_SPEXP = 騎乗位で処女喪失
+		ELSEIF PENIS(ACTOR) == 0
+			NAME_SPEXP = ペニバンで処女喪失
+		ENDIF
+	ENDIF
+
+	PRINTFORML ＜%NAME_SPEXP%＞
+
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%%NAME_SPEXP%：%RECORD("処女喪失", ARG, ACTOR)%
+
+	FOR LCOUNT, 1, CHARANUM
+		SIF COND("処女簒奪フラグ", LCOUNT) == 0
+			CONTINUE
+
+		EXP:LCOUNT:処女簒奪経験 += 1
+
+		IF ARG == MASTER
+			SETBIT TALENT:LCOUNT:初めての人, 1
+
+			PRINTFORML %CALLNAME:LCOUNT%は%CALLNAME:MASTER%の初めての人となった
+
+			GAIN_SPEXP:LCOUNT += 1
+			CSTR:LCOUNT:特別経験 = %CSTR:LCOUNT:特別経験%初めての人：%RECORD("初めての人", LCOUNT, MASTER)%
+		ENDIF
+	NEXT
+;再生処女喪失
+ELSEIF TALENT:ARG:処女 == 2 && COND("処女喪失フラグ", ARG)
+	TALENT:ARG:処女 = 0
+	PRINTL ＜処女喪失＞
+	;処女喪失
+	NOWEX:ARG:処女喪失 = 1
+	;恋慕状態で主人とのセックスで処女喪失した
+	IF ARG == TARGET && TALENT:恋慕 && PLAYER == MASTER
+		SIF SELECTCOM >= 60 && SELECTCOM <= 69
+			SETBIT NOWEX:処女喪失, 1
+	ENDIF
+	EX:ARG:処女喪失 = NOWEX:ARG:処女喪失
+ENDIF
+;処女を失った際にＶ拡張レベルが変動するかも
+SIF ABL:ARG:Ｖ拡張 == 0 && TALENT:ARG:処女 == 0 && COND("処女喪失フラグ", ARG) && CALCF("Ｖ拡張の上限", ARG)
+	ABL:ARG:Ｖ拡張 = 1
+
+;アナルセックス
+IF TALENT:ARG:Ａ処女 && COND("Ａ処女喪失フラグ", ARG) + EXP_GAIN("Ａ性交経験", ARG)
+	TALENT:ARG:Ａ処女 = 0
+
+	;アナルセックスを先に経験
+	IF TALENT:ARG:処女 == 1 && EXP:ARG:Ｖ性交経験 == 0
+		NAME_SPEXP = 処女より先にＡ処女喪失
+	;アナルセックスを先に経験 その２
+	ELSEIF PENIS(ARG) && TALENT:ARG:童貞
+		NAME_SPEXP = 童貞より先にＡ処女喪失
+	ELSE
+		NAME_SPEXP = Ａ処女喪失
+	ENDIF
+	PRINTFORML ＜%NAME_SPEXP%＞
+
+	GAIN_SPEXP:ARG += 1
+	ACTOR = INSERT("Ａインサート相手", ARG)
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%%NAME_SPEXP%：%RECORD("Ａ処女喪失", ARG, ACTOR)%
+ENDIF
+;結腸処女喪失
+IF EXP_GAIN("結腸経験", ARG) && EXP:ARG:結腸経験 == EXP_GAIN("結腸経験", ARG) && STRCOUNT(CSTR:ARG:特別経験, "結腸処女喪失") == 0
+	NAME_SPEXP = 結腸処女喪失
+	PRINTFORML ＜%NAME_SPEXP%＞
+
+	GAIN_SPEXP:ARG += 1
+	SELECTCASE TEQUIP:ARG:結腸責め
+	CASE GETNUM(TRAINNAME, "アナル愛撫"), GETNUM(TRAINNAME, "アナルバイブ"), GETNUM(TRAINNAME, "アナルフィスト")
+		ACTOR = PLAYER
+	;ペニスorペニバンで喪失
+	CASEELSE
+		ACTOR = INSERT("Ａインサート相手", ARG)
+	ENDSELECT
+
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%%NAME_SPEXP%：%RECORD("結腸処女喪失", ARG, ACTOR)%
+ENDIF
+;童貞喪失
+IF TALENT:ARG:童貞 && COND("童貞喪失フラグ", ARG)
+	PRINT ＜童貞喪失
+	SELECTCASE ARG
+	CASE MASTER
+		PRINTFORM (%CALLNAME:MASTER%)
+	CASE ASSI
+		PRINTFORM (%TEXTS("助手の名称")%)
+	CASE IS > 0
+		PRINTFORM (%CALLNAME:ARG%)
+	ENDSELECT
+	PRINTL ＞
+	TALENT:ARG:童貞 = 0
+
+	GAIN_SPEXP:ARG += 1
+	ACTOR = INSERT("Ｖ挿入中", ARG)
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%童貞喪失：%RECORD("童貞喪失", ARG, ACTOR)%
+
+	FOR LCOUNT, 1, CHARANUM
+		SIF COND("童貞狩りフラグ", LCOUNT) == 0
+			CONTINUE
+
+		EXP:LCOUNT:童貞狩り経験 += 1
+
+		IF ARG == MASTER
+			SETBIT TALENT:LCOUNT:初めての人, 0
+
+			PRINTFORML %CALLNAME:LCOUNT%は%CALLNAME:MASTER%の初めての人となった
+
+			GAIN_SPEXP:LCOUNT += 1
+			CSTR:LCOUNT:特別経験 = %CSTR:LCOUNT:特別経験%筆下ろし：%RECORD("筆下ろし", LCOUNT, MASTER)%
+		ENDIF
+
+	NEXT
+	
+ENDIF
+
+SELECTCASE ARG
+CASE PLAYER, MASTER
+	ACTOR = TARGET
+CASE TARGET
+	ACTOR = PLAYER
+ENDSELECT
+
+
+;初キスなどの相手記録。行為：人＃{日付}＠{大きさ}＊場所 
+SIF EXP_GAIN("キス経験", ARG) && EXP:ARG:キス経験 == EXP_GAIN("キス経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初キス") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初キス：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＊%SAVESTR:現在位置%\/
+SIF EXP_GAIN("フェラ経験", ARG) && EXP:ARG:フェラ経験 == EXP_GAIN("フェラ経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初フェラ") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初フェラ：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＊%SAVESTR:現在位置%\/
+SIF EXP_GAIN("精飲経験", ARG) && EXP:ARG:精飲経験 == EXP_GAIN("精飲経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初精飲") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初精飲：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＊%SAVESTR:現在位置%\/
+SIF EXP_GAIN("クンニ経験", ARG) && EXP:ARG:クンニ経験 == EXP_GAIN("クンニ経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初クンニ") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初クンニ：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＊%SAVESTR:現在位置%\/
+SIF EXP_GAIN("Ａ舐め経験", ARG) && EXP:ARG:Ａ舐め経験 == EXP_GAIN("Ａ舐め経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初Ａ舐め") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初Ａ舐め：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＊%SAVESTR:現在位置%\/
+SIF COND("Ａお掃除フェラフラグ", ARG) && STRCOUNT(CSTR:ARG:特別経験, "Ａお掃除フェラ") == 0 && STRCOUNT(CSTR:ARG:初行為相手, "初Ａお掃除フェラ") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初Ａお掃除フェラ：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＠{SIZE("ペニス", ACTOR)}＊%SAVESTR:現在位置%\/
+
+SIF EXP_GAIN("Ｖ性交経験", ARG) && EXP:ARG:Ｖ性交経験 == EXP_GAIN("Ｖ性交経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初Ｖ性交") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初Ｖ性交：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＠{SIZE("ペニス", ACTOR)}＊%SAVESTR:現在位置%\/
+SIF EXP_GAIN("Ａ性交経験", ARG) && EXP:ARG:Ａ性交経験 == EXP_GAIN("Ａ性交経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初Ａ性交") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初Ａ性交：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＠{SIZE("ペニス", ACTOR)}＊%SAVESTR:現在位置%\/
+SIF EXP_GAIN("Ｂ性交経験", ARG) && EXP:ARG:Ｂ性交経験 == EXP_GAIN("Ｂ性交経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初Ｂ性交") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初Ｂ性交：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＠{SIZE("ペニス", ACTOR)}＊%SAVESTR:現在位置%\/
+SIF EXP_GAIN("尿道性交経験", ARG) && EXP:ARG:尿道性交経験 == EXP_GAIN("尿道性交経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初尿道性交") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初尿道性交：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＠{SIZE("ペニス", ACTOR)}＊%SAVESTR:現在位置%\/
+
+SIF EXP_GAIN("Ｖ挿入経験", ARG) && EXP:ARG:Ｖ挿入経験 == EXP_GAIN("Ｖ挿入経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初Ｖ挿入") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初Ｖ挿入：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＠{ABL:ACTOR:Ｖ拡張}＊%SAVESTR:現在位置%\/
+SIF EXP_GAIN("Ａ挿入経験", ARG) && EXP:ARG:Ａ挿入経験 == EXP_GAIN("Ａ挿入経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初Ａ挿入") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初Ａ挿入：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＠{ABL:ACTOR:Ａ拡張}＊%SAVESTR:現在位置%\/
+SIF EXP_GAIN("Ｂ挿入経験", ARG) && EXP:ARG:Ｂ挿入経験 == EXP_GAIN("Ｂ挿入経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初Ｂ挿入") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初Ｂ挿入：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＊%SAVESTR:現在位置%\/
+SIF EXP_GAIN("尿道挿入経験", ARG) && EXP:ARG:尿道挿入経験 == EXP_GAIN("尿道挿入経験", ARG) && STRCOUNT(CSTR:ARG:初行為相手, "初尿道挿入") == 0
+	CSTR:ARG:初行為相手 = %CSTR:ARG:初行為相手%初尿道挿入：%TOSTR(BASE:ACTOR:識別番号)%＃%TOSTR(DAY)%＠{ABL:ACTOR:尿道拡張}＊%SAVESTR:現在位置%\/
+
+;初めてのキス
+;IF EXP_GAIN("キス経験", ARG) && EXP:ARG:キス経験 == EXP_GAIN("キス経験", ARG) && STRCOUNT(CSTR:ARG:特別経験, "初キス") == 0
+;	PRINTFORML ＜初めてのキス(%CALLNAME:ARG%)＞
+;	GAIN_SPEXP:ARG += 1
+;	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%初キス：%RECORD("初キス", ARG, ACTOR)%
+;ENDIF
+;初めてのお口を使ったプレイ…プレイの幅を狭めるっていうか、フェラ前にキス経験確認しないとってなるからオミット
+;IF EXP:ARG:キス経験 == 0 && FIRSTCOMS("口", ARG) == 0 && STRCOUNT(CSTR:ARG:特別経験, "キスより先") == 0
+;	IF EXP_GAIN("Ａ舐め経験", ARG)
+;		PRINTL ＜キスより先にＡ奉仕＞
+;		GAIN_SPEXP:ARG += 1
+;		CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%キスより先にＡ奉仕：%RECORD("キスより先にＡ奉仕", ARG, ACTOR)%
+;	ELSEIF EXP_GAIN("クンニ経験", ARG)
+;		PRINTL ＜キスより先にクンニ＞
+;		GAIN_SPEXP:ARG += 1
+;		CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%キスより先にクンニ：%RECORD("キスより先にクンニ", ARG, ACTOR)%
+;	ELSEIF EXP_GAIN("フェラ経験", ARG)
+;		PRINTL ＜キスより先にフェラ＞
+;		GAIN_SPEXP:ARG += 1
+;		CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%キスより先にフェラ：%RECORD("キスより先にフェラ", ARG, ACTOR)%
+;	ENDIF
+;ENDIF
+;野外でハダカ
+IF TEQUIP:野外プレイ && CHECK_CLO("ハダカ", ARG) && STRCOUNT(CSTR:ARG:特別経験, "野外全裸") == 0 && CLO_ORI(ARG, "服", "ボディスーツ", "アウター", "パンツ")
+	PRINTL ＜野外全裸＞
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%野外全裸：%RECORD("野外全裸", ARG, ACTOR)%
+ENDIF
+;性器ピアス
+IF COND("ピアスＯＮフラグ", ARG) && COND("クリピアスフラグ", ARG) + COND("ラビアピアスフラグ", ARG) + COND("ニプルピアスフラグ", ARG) && STRCOUNT(CSTR:ARG:特別経験, "性器ピアス") == 0
+	PRINTL ＜性器ピアス＞
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%性器ピアス：%RECORD("性器ピアス", ARG, ACTOR)%
+ENDIF
+;排泄
+IF NOWEX:ARG:排泄 && STRCOUNT(CSTR:ARG:特別経験, "排泄") == 0
+	;排泄記録
+	IF TEQUIP:ビデオカメラ
+		NAME_SPEXP = 排泄記録
+	ELSEIF TEQUIP:野外プレイ
+		NAME_SPEXP = 野外排泄
+	ELSE
+		NAME_SPEXP = 見られながらの排泄
+	ENDIF
+
+	PRINTFORML ＜%NAME_SPEXP%＞
+
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%%NAME_SPEXP%：%RECORD("排泄", ARG, ACTOR)%
+ENDIF
+;アナル奉仕
+IF COND("Ａ奉仕フラグ", ARG) && STRCOUNT(CSTR:ARG:特別経験, "アナル奉仕") == 0
+	PRINTL ＜アナル奉仕＞
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%アナル奉仕：%RECORD("アナル奉仕", ARG, ACTOR)%
+ENDIF
+;アナルの汚れをお掃除
+IF COND("Ａお掃除フェラフラグ", ARG) && STRCOUNT(CSTR:ARG:特別経験, "Ａお掃除フェラ") == 0
+	PRINTL ＜Ａお掃除フェラ＞
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%Ａお掃除フェラ：%RECORD("Ａお掃除フェラ", ARG, ACTOR)%
+ENDIF
+;初めての２穴責め
+IF INSERT("二穴挿入", ARG) && STRCOUNT(CSTR:ARG:特別経験, "二穴挿入") == 0
+	PRINTL ＜二穴挿入＞
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%二穴挿入：%RECORD("二穴挿入", ARG, ACTOR)%
+ENDIF
+;フィストファック
+IF EXP_GAIN("Ｖフィスト経験", ARG) + EXP_GAIN("Ａフィスト経験", ARG) && STRCOUNT(CSTR:ARG:特別経験, "フィストファック") == 0
+	PRINTL ＜フィストファック＞
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%フィストファック：%RECORD("フィストファック", ARG, ACTOR)%
+ENDIF
+;ふたなり(具現も含む)
+IF TALENT:ARG:ふたなり == 2 && CSVTALENT(NO:ARG, GETNUM(TALENT, "ふたなり") ) == 0 && STRCOUNT(CSTR:ARG:特別経験, "ふたなり化") == 0
+	PRINTL ＜ふたなり化＞
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%ふたなり化：%RECORD("ふたなり化", ARG, ACTOR)%
+ENDIF
+;性転換
+IF COND("性転換フラグ", ARG) && STRCOUNT(CSTR:ARG:特別経験, "性転換") == 0
+	PRINTL ＜性転換＞
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%性転換：%RECORD("性転換", ARG, ACTOR)%
+ENDIF
+;子宮
+IF COND("子宮挿入フラグ", ARG) && EXP_GAIN("子宮姦経験", ARG) && STRCOUNT(CSTR:ARG:特別経験, "子宮挿入") == 0
+	PRINTL ＜子宮挿入＞
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%子宮挿入：%RECORD("子宮挿入", ARG, ACTOR)%
+ENDIF
+;ニプルファック
+IF EXP_GAIN("Ｂ性交経験", ARG) && STRCOUNT(CSTR:ARG:特別経験, "ニプルファック") == 0
+	PRINTL ＜ニプルファック＞
+	GAIN_SPEXP:ARG += 1
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%ニプルファック：%RECORD("ニプルファック", ARG, ACTOR)%
+ENDIF
+;尿道処女喪失
+IF TALENT:ARG:尿道処女 && COND("尿道処女喪失フラグ", ARG) + EXP_GAIN("尿道性交経験", ARG)
+	TALENT:ARG:尿道処女 = 0
+
+	PRINTL ＜尿道処女喪失＞
+	GAIN_SPEXP:ARG += 1
+	ACTOR = INSERT("尿道インサート相手", ARG)
+	CSTR:ARG:特別経験 = %CSTR:ARG:特別経験%尿道処女喪失：%RECORD("尿道処女喪失", ARG, ACTOR)%
+ENDIF
+
+FOR LCOUNT, 1, CHARANUM
+	SIF GAIN_SPEXP:LCOUNT == 0
+		CONTINUE
+
+	PRINTFORML 特別経験＋{GAIN_SPEXP:LCOUNT}\@ LCOUNT != TARGET ? （%CALLNAME:LCOUNT%） # \@
+	EXP:LCOUNT:特別経験 += GAIN_SPEXP:LCOUNT
+NEXT
+
+SIF LINECOUNT > MEMO_LINECOUNT
+	FORCEWAIT
+
+RESETCOLOR
+
+;-------------------------------------------------
+;調教ソースの表示
+;-------------------------------------------------
+@SHOW_SOURCE
+#DIM LCOUNT
+#DIM IS_SHOW_SOURCE
+
+IS_SHOW_SOURCE = 0
+FOR LCOUNT, 0, 30
+	SIF TCVAR:(660 + LCOUNT) == 0
+		CONTINUE
+	PRINTFORM %SOURCENAME:LCOUNT%({TCVAR:(660 + LCOUNT)})
+	IS_SHOW_SOURCE = 1
+NEXT
+SIF IS_SHOW_SOURCE
+	CALL BLANKLINE

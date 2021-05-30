@@ -1,0 +1,235 @@
+;-------------------------------------------------
+;このキャラ独自の衣装を設定する。制服、体操服、水着は既存のものから選ぶのが楽です
+;-------------------------------------------------
+@CLOTHES_K50, ARGS
+#DIMS CLOTH_COLOR
+#DIMS COSTUME
+CLOTH_COLOR =
+COSTUME =
+
+;期間限定
+IF DAYEV("ハロウィン") && COND("夜")
+	SELECTCASE ARGS
+	CASE "普段着", "部屋着", "外出着"
+		CALL SETFLAG, "ハダカにする", TARGET
+		CSTR:ボディスーツ = ボンデージ/レザー/腋露出/谷間露出/へそ露出/
+		CALL SET_GLOVE, "レザースリーブ"
+		CALL SET_SHOES, "ニーソックス"
+		CSTR:靴 = サイハイブーツ/太ももまで/
+		CALL SET_OTHER, "レザーチョーカー"
+		RETURN 0
+	ENDSELECT
+ENDIF
+
+SELECTCASE ARGS
+;キャラクター独自の下着の組み合わせを設定できます。設定必須です。一定の確率で着用します。
+;もしも普段は付けない、という事ならCSTR:パンツ = と等号の右側を書き込まない事で出来ます。
+CASE "下着"
+	COSTUME = 小悪魔のパンツ
+	IF CEVENT("購入：子供パンツ")
+		COSTUME = %COSTUME%/子供パンツ
+	ELSE
+		COSTUME = %COSTUME%/ショーツ
+	ENDIF
+	
+	IF CEVENT("購入：和装下着セット")
+		COSTUME = %COSTUME%/和装下着セット
+	ELSE
+		COSTUME = %COSTUME%/パンティ
+	ENDIF
+
+	COSTUME = %TEXTR(COSTUME)%
+
+	SELECTCASE COSTUME
+	CASE "子供パンツ"
+		CLOTH_COLOR = %TEXTR("白/いちご柄/くま柄/さかな柄/ねこ柄/ひよこ柄/りぼん柄/水玉模様/緑色")%
+		CSTR:パンツ = 子供パンツ/%CLOTH_COLOR%/
+		CSTR:ブラ = キャミソール//%CLOTH_COLOR%/
+	CASE "和装下着セット"
+		CLOTH_COLOR = %TEXTR("黒/赤/薄桃色/白")%
+		CSTR:ブラ = さらし/%CLOTH_COLOR%/
+		CSTR:パンツ = 褌/%CLOTH_COLOR%/ハイレグ/Ｔバック/
+	CASE "小悪魔のパンツ"
+		CSTR:パンツ = 小悪魔のパンツ/黒/ローライズ/ローライズパンツ/
+		CSTR:ブラ = 小悪魔のブラ/黒/ハーフカップ/
+	CASE "ショーツ"
+		CLOTH_COLOR = %TEXTR("黄色/橙色/黒/紫/青/紺色/薄青色/真紅/赤/薄桃色/白/純白/緑色/薄緑")%
+		CSTR:パンツ = ショーツ/%CLOTH_COLOR%/シンプル/
+		CSTR:ブラ = シンプルブラ/%CLOTH_COLOR%/
+	CASE "パンティ"
+		CLOTH_COLOR = %TEXTR("黄色/橙色/黒/紫/青/紺色/薄青色/真紅/赤/薄桃色/白/純白/緑色/薄緑")%
+
+		SELECTCASE CLOTH_COLOR
+		CASE "黄色", "橙色"
+			CSTR:パンツ = パンティ/%CLOTH_COLOR%/フロントリボン%TEXTR("三角/紐")%黄/
+		CASE "黒", "緑色", "薄緑"
+			CSTR:パンツ = パンティ/%CLOTH_COLOR%/フロントリボン%TEXTR("三角/紐")%黒/
+		CASE "紫"
+			CSTR:パンツ = パンティ/%CLOTH_COLOR%/フロントリボン%TEXTR("三角/紐")%白/
+		CASE "青", "紺色", "薄青色"
+			CSTR:パンツ = パンティ/%CLOTH_COLOR%/フロントリボン%TEXTR("三角/紐")%青/
+		CASE "真紅", "赤"
+			CSTR:パンツ = パンティ/%CLOTH_COLOR%/フロントリボン%TEXTR("三角/紐")%赤/
+		CASEELSE
+			CSTR:パンツ = パンティ/%CLOTH_COLOR%/フロントリボン%TEXTR("三角/紐")%%TEXTR("白/赤")%/
+		ENDSELECT
+		CSTR:ブラ = ブラジャー/%CLOTH_COLOR%/
+	ENDSELECT
+;衣装に関わらず常に付けているアクセサリです。設定しなくてもかまいません
+CASE "アクセサリ"
+	SIF CEVENT("眼鏡ＯＮ")
+		CALL SET_OTHER, "眼鏡"
+
+;学園での普段着です。設定必須です。
+;セーラー服, ミニスカセーラー服, ブレザー, ミニスカブレザー, アメスクなど
+CASE "制服"
+	CALL SET_COSTUME, "ミニスカセーラー服/青"
+	IF COND("夏")
+		CALL SET_SOCKS, "ソックス"
+	ELSEIF  COND("冬")
+		CALL SET_OTHER, "カーディガン"
+		CALL SET_SOCKS, "サイハイソックス"
+	ELSE
+		CALL SET_SOCKS, "ハイソックス"
+	ENDIF
+	SIF COND("帰り道")
+		CALL SET_OTHER, "白いベレー帽"
+;学園の体育の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+;体操服ブルマ, 体操服ハーフパンツ, 体操服スパッツ, 体操服ジャージなど
+CASE "体操服"
+	CALL SET_COSTUME, "体操服スパッツ/赤"
+	IF COND("夏")
+		CALL SET_SOCKS, "ソックス"
+	ELSE
+		CALL SET_SOCKS, "ハイソックス"
+	ENDIF
+;学園の水泳の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+;スク水, 競泳水着, 白ビキニ, 黒ビキニなど
+CASE "水着"
+	CALL SET_COSTUME, "スク水"
+
+;自宅など学園外で着ます。設定必須です
+CASE "普段着"
+	COSTUME = へそ出しタンクトップ/キャミソール/Ｔシャツ/オープンショルダーブラウス
+	SIF CEVENT("購入：ゴシックワンピース")
+		COSTUME = %COSTUME%/ゴシックワンピース
+	COSTUME = %TEXTR(COSTUME)%
+
+	SELECTCASE COSTUME
+	CASE "ゴシックワンピース"
+		CALL SET_SHIRT, "ゴシックワンピース"
+		IF COND("合意：性処理")
+			CALL SET_OTHER, "黒いチョーカー/ヘッドドレス"
+		ELSE
+			CALL SET_OTHER, "チョーカー/ヘッドドレス"
+		ENDIF
+	CASE "へそ出しタンクトップ"
+		CALL SET_SHIRT, "へそ出しタンクトップ/灰"
+		CALL SET_BRA, ""
+		CALL SET_OUTER, "スパッツ/灰"
+	CASE "キャミソール"
+		CSTR:服 = キャミソール/%TEXTR("白/青/橙")%/汗透け/要たくし上げ/腋露出/
+		CALL SET_BRA, ""
+		CALL SET_OUTER, "ホットパンツ"
+		SIF COND("冬")
+			CALL SET_OTHER, @"%TEXTR("白い/青い/赤い")%フルジップパーカー"
+	CASE "Ｔシャツ"
+		CALL SET_SHIRT, "Ｔシャツ"
+		CALL SET_SKIRT, "フレアミニスカート"
+	CASE "オープンショルダーブラウス"
+		IF COND("冬")
+			CALL SET_SHIRT, "ニットオフショル"
+		ELSE
+			CSTR:服 = オープンショルダーブラウス/汗透け/
+		ENDIF
+		CALL SET_SKIRT, "プリーツミニスカート"
+	ENDSELECT
+
+	;靴と靴下
+	SELECTCASE COSTUME
+	CASE "ゴシックワンピース"
+		CALL SET_SOCKS, "フリルニーソ"
+		CALL SET_SHOES, "パンプス"
+	CASE "へそ出しタンクトップ"
+		CALL SET_SOCKS, ""
+		CALL SET_SHOES, ""
+	CASEELSE
+		IF COND("夏")
+			CALL SET_SOCKS, "ソックス"
+			CALL SET_SHOES, "シューズ"
+		ELSE
+			CALL SET_SOCKS, "サイハイソックス"
+			CALL SET_SHOES, "ブーツ"
+		ENDIF
+	ENDSELECT
+;自分の部屋(notあなたの部屋)で着ます
+CASE "部屋着"
+
+;デート以外で家から外に出る際に着ます。ラブホ呼出とかね
+CASE "外出着"
+	COSTUME = キャミソール/Ｔシャツ/オープンショルダーブラウス
+	SIF CEVENT("購入：ゴシックワンピース")
+		COSTUME = %COSTUME%/ゴシックワンピース
+	COSTUME = %TEXTR(COSTUME)%
+
+	SELECTCASE COSTUME
+	CASE "ゴシックワンピース"
+		CALL SET_SHIRT, "ゴシックワンピース"
+		IF COND("合意：性処理")
+			CALL SET_OTHER, "黒いチョーカー/ヘッドドレス"
+		ELSE
+			CALL SET_OTHER, "チョーカー/ヘッドドレス"
+		ENDIF
+	CASE "キャミソール"
+		CSTR:服 = キャミソール/%TEXTR("白/青/橙")%/汗透け/要たくし上げ/腋露出/
+		CALL SET_BRA, ""
+		CALL SET_OUTER, "ホットパンツ"
+		CALL SET_OTHER, @"%TEXTR("白い/青い/赤い")%フルジップパーカー"
+	CASE "Ｔシャツ"
+		CALL SET_SHIRT, "Ｔシャツ"
+		SIF COND("冬")
+			CALL SET_OTHER, "ダウンジャケット"
+		CALL SET_SKIRT, "フレアマイクロミニスカート"
+	CASE "オープンショルダーブラウス"
+		IF COND("冬")
+			CALL SET_SHIRT, "ニットオフショル"
+			CALL SET_OTHER, "チェスターコート"
+		ELSE
+			CSTR:服 = オープンショルダーブラウス/汗透け/
+		ENDIF
+		CALL SET_SKIRT, "プリーツミニスカート"
+	ENDSELECT
+
+	;靴と靴下
+	SELECTCASE COSTUME
+	CASE "ゴシックワンピース"
+		CALL SET_SOCKS, "フリルニーソ"
+		CALL SET_SHOES, "パンプス"
+	CASEELSE
+		IF COND("夏")
+			CALL SET_SOCKS, "ソックス"
+			CALL SET_SHOES, "シューズ"
+		ELSE
+			CALL SET_SOCKS, "サイハイソックス"
+			CALL SET_SHOES, "ブーツ"
+		ENDIF
+	ENDSELECT
+;もちろんデートの際に着ます
+CASE "デート衣装"
+	CALL SET_SHIRT, "ブラウス"
+	CALL SET_SKIRT, "フレアスカート"
+	CALL SET_SOCKS, "ソックス"
+	CALL SET_SHOES, "ショートブーツ"
+	CALL SET_OTHER, "リボンタイ"
+	SIF COND("冬")
+		CALL SET_OTHER, "ポンチョコート"
+ENDSELECT
+
+
+;-------------------------------------------------
+;時間帯や場所に応じた髪型、表情の変化を記述する。設定しなくてもかまいません
+;-------------------------------------------------
+@MAIDFACE_K50
+CALL SETFLAG, "普段の髪型復元", TARGET
+SIF COND("朝")
+	CALL CHANGE_MAIDFACE, "ノーアレンジ", TARGET

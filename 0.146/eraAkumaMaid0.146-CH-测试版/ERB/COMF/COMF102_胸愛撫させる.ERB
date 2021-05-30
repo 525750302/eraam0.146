@@ -1,0 +1,199 @@
+@COM102
+;胸愛撫させる　内容的には手淫のマイナーチェンジ
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+;-------------------------------------------------
+;実行できるかの判定
+;-------------------------------------------------
+CALL SHOW_COM_ORDER_COM, 102
+
+;実行できない
+SIF TCVAR:やる気 == 0
+	RETURN 0
+
+;-------------------------------------------------
+;実行決定
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+;-------------------------------------------------
+;射精チェック
+;-------------------------------------------------
+CALL SAMEN_CHECK
+
+RETURN 1
+
+@FLAG_COM102, ARG
+IF CHECK_COM("胸の揉み合い") == 102
+	CALL FLAG_COM5, 50
+ENDIF
+;対象の指⇔調教者のＢの汚れが移動
+CALL EQ_STAIN, TARGET, "手", PLAYER, "Ｂ"
+
+
+;汚れは手袋でふき取る。
+SIF EQUIP:手袋 && !CHECK_GLOVE("指露出")
+	CALL RESET_STAIN_EX, "Ｂ", PLAYER
+
+@SOURCE_COM102, ARG
+IF CHECK_COM("胸の揉み合い") == 102
+	CALL SOURCE_COM5, 50
+ENDIF
+
+CALL VARSET_COMF
+
+CALL SOURCE_SERVICE_PLAY, "胸愛撫させる"
+
+CALL SOURCE_DOWNBASE_HP, 90
+
+SOURCE:0:不潔 = COM_ORDER_STAIN("Ｂ", "手")*20 + 60
+SOURCE:0:欲情追加 = CALCF("実行値による欲情追加")
+SOURCE:0:屈従 = 300
+SOURCE:0:逸脱 = 100
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM102
+;前回と同じ
+IF PREVCOM == SELECTCOM && COND("前Ｔ調教者") == PLAYER
+	PRINTFORM %CALLNAME:TARGET%は
+	;プライド高いorサドっ気Lv4以上
+	IF (TALENT:高慢 || ABL:サドっ気 >= 4) && RAND:2 == 0
+		PRINTFORM サディスティックな表情を浮かべて
+		IF TALENT:PLAYER:母乳体質
+			PRINTFORM 白濁が滲み出る乳首を搾りながら、
+		ELSE
+			PRINTFORM 片手で乳首を抓りあげながら、
+		ENDIF
+	;恋慕持ち
+	ELSEIF TALENT:恋慕 && PLAYER == MASTER
+		IF TALENT:PLAYER:母乳体質
+			PRINTFORM 母乳で張っている箇所を愛おしむように、
+		ELSE
+			PRINTFORM 嬉しそうに微笑みながら、
+		ENDIF
+	ENDIF
+	IF (TALENT:PLAYER:貧乳 || TALENT:PLAYER:オトコ || TALENT:PLAYER:男の娘)
+		PRINTFORMW %CALLNAME:PLAYER%のなだらかな胸を撫で回している…
+	ELSEIF ABL:奉仕精神 >= 3 && TEQUIP:顔面騎乗 == 0 && RAND:3 == 0
+		PRINTFORMW %CALLNAME:PLAYER%の%TEXTS("おっぱい", PLAYER)%を揉みしだいている…
+	ELSE
+		PRINTFORMW %TEXTS("おっぱい", PLAYER)%の感触を楽しんでいる…
+	ENDIF
+ELSEIF CHECK_COM("胸の揉み合い")
+	IF TALENT:PLAYER:オトコ == 0 && TALENT:PLAYER:男の娘 == 0 && TALENT:TARGET:オトコ == 0 && TALENT:TARGET:男の娘 == 0 && RAND:2 == 0
+		PRINTFORMW %CALLNAME:PLAYER%と%CALLNAME:TARGET%は互いの柔肉を揉みしだき、胸と指で快楽を貪っている…
+	ELSE
+		PRINTFORM %CALLNAME:PLAYER%達は互いのバスト
+		IF RAND:2
+			PRINTFORMW を夢中で揉みしだいている…
+		ELSE
+			PRINTFORMW に手を伸ばし、快感を分かち合っている…
+		ENDIF
+	ENDIF
+;押し倒されているとき
+ELSEIF TEQUIP:押し倒し
+	PRINTFORM %CALLNAME:TARGET%は
+	IF TEQUIP:顔面騎乗
+		PRINT 顔に跨ったまま
+	;プライド高いor淫乱orサドっ気Lv4以上
+	ELSEIF (TALENT:高慢 || TALENT:淫乱 || ABL:サドっ気 >= 4) && RAND:2 == 0
+		PRINT 愉快そうに微笑みながら
+	;小悪魔
+	ELSEIF TALENT:小悪魔
+		IF TALENT:PLAYER:母乳体質
+			PRINT 意味深な笑顔を浮かべながら
+		ELSE
+			PRINT ニヤニヤしながら
+		ENDIF
+	;淫乱or欲情4LV以上
+	ELSEIF (TALENT:淫乱 || PALAM:欲情 >= PALAMLV:4) && RAND:2 == 0
+		PRINT 妖艶に微笑みながら
+	ELSEIF (TALENT:淫乱 || PALAM:欲情 >= PALAMLV:4) && RAND:2 == 0
+		PRINT 息を荒げながら
+	ELSEIF RAND:2 == 0 || TEQUIP:アイマスク
+		SIF RAND:2 == 0
+			PRINT 楽しそうに
+		PRINT 微笑みながら
+	ENDIF
+	PRINTFORM %TEXTS("おっぱい", PLAYER)%を弄び、
+	PRINTFORMW %CALLNAME:PLAYER%の反応を楽しんでいる…
+;それ以外
+ELSE
+	PRINTFORM %CALLNAME:TARGET%は
+	;プライド高いor淫乱orサドっ気Lv4以上
+	IF (TALENT:高慢 || TALENT:淫乱 || ABL:サドっ気 >= 4) && RAND:2 == 0
+		PRINT 乳首に軽く爪を立てながら
+	;小悪魔
+	ELSEIF TALENT:小悪魔
+		PRINT ニヤニヤしながら
+	ENDIF
+	PRINTFORM %CALLNAME:PLAYER%の
+	IF (TALENT:PLAYER:貧乳 || TALENT:PLAYER:オトコ || TALENT:PLAYER:男の娘)
+		PRINTFORMW 胸を撫で回した…
+	ELSE
+		PRINTFORMW %TEXTS("おっぱい", PLAYER)%を揉みしだいた…
+	ENDIF
+ENDIF
+
+@COM_ORDER_COM102, ARG
+#DIM MEMO_STAIN
+
+;手淫に比べて少し実行しやすい。保守的だと抵抗があるが、奉仕精神やサドっ気があるとハードルが下がる。
+
+VARSET LOCAL
+LOCALS = 
+
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
+CALL COM_ORDER, ARG
+
+LOCAL = RESULT
+
+;ABL:奉仕精神
+IF ABL:奉仕精神
+	LOCAL += MIN(ABL:奉仕精神, 10) * 2
+	LOCALS = %LOCALS% + 奉仕精神LV{ABL:奉仕精神}({MIN(ABL:奉仕精神, 10) * 2})
+ENDIF
+;ABL:サドっ気
+IF ABL:サドっ気
+	LOCAL += MIN(ABL:サドっ気, 10) * 2
+	LOCALS = %LOCALS% + サドっ気LV{ABL:サドっ気}({MIN(ABL:サドっ気, 10) * 2})
+ENDIF
+;保守的
+IF TALENT:保守的
+	LOCAL -= 10
+	LOCALS = %LOCALS% - 恥じらい(3)
+ENDIF
+;恥じらい
+IF TALENT:恥じらい
+	LOCAL -= 4
+	LOCALS = %LOCALS% - 恥じらい(3)
+ENDIF
+;献身的
+IF TALENT:献身
+	LOCAL += 6
+	LOCALS = %LOCALS% + 献身(6)
+ENDIF
+;小悪魔
+IF TALENT:小悪魔
+	LOCAL += 3
+	LOCALS = %LOCALS% + 献身(6)
+ENDIF
+;快感の否定
+IF TALENT:快感の否定
+	LOCAL -= 1
+	LOCALS = %LOCALS% - 快感の否定(1)
+ENDIF
+
+
+;合計を表示(10以上で実行)
+CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 10
+
+RETURN RESULT

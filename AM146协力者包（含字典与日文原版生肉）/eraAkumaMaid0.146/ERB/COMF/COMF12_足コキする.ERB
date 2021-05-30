@@ -1,0 +1,70 @@
+﻿@COM12
+;足コキ
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+RETURN 1
+
+@FLAG_COM12, ARG
+;対象の股間⇔調教者の脚の汚れが移動
+IF PENIS(TARGET)
+	CALL EQ_STAIN, TARGET, "Ｐ", PLAYER, "脚"
+ELSE
+	CALL EQ_STAIN, TARGET, "Ｖ", PLAYER, "脚"
+ENDIF
+
+@SOURCE_COM12, ARG
+SIF PENIS(TARGET) == 0 && TEQUIP:バイブ
+	CALL SOURCE_COM31, 30
+
+CALL VARSET_COMF
+
+CALL SOURCE_DOWNBASE_HP, 12
+
+SOURCE:0:逸脱 = 500
+
+;ABL:マゾっ気をみる
+SELECTCASE ABL:マゾっ気
+CASE 0 TO 5
+	SOURCE:0:達成感 = ABL:マゾっ気*800
+CASEELSE
+	SOURCE:0:達成感 = 4000 + (ABL:マゾっ気 - 5)*300
+ENDSELECT
+
+;倒錯的
+SIF TALENT:倒錯的
+	TIMES SOURCE:0:達成感, 1.80
+
+;ABL:Ｃ感覚をみる
+SOURCE:0:Ｃ快楽 = CALCF("Ｃ刺激", 1)
+SOURCE:0:Ｃ快楽 = SOURCE_EXABL(SOURCE:0:Ｃ快楽, "サドっ気", PLAYER)
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM12
+PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%の
+IF PENIS(TARGET)
+	PRINTFORMW %TEXTS("ペニス：視覚", TARGET)%ペニスを足でシゴいた…
+ELSE
+	IF TEQUIP:バイブ
+		PRINTFORMW アソコを埋めているバイブを足で弄った。
+		;バイブを弄られるのに慣れている
+		IF CHECK("バイブ")
+			PRINTFORMW %CALLNAME:TARGET%は足を引かれるのに合わせて膣の操作でバイブを押し戻し、更なる責めを待ち望んで腰を突き出した…
+		ELSE
+			PRINTFORMW 体重の乗せられたバイブで想定外の深い場所を抉られた%CALLNAME:TARGET%は、恐怖の滲んだ顔で%CALLNAME:PLAYER%を睨みつけてきた…
+		ENDIF
+	ELSE
+		PRINTFORMW 股間を足で弄った…
+	ENDIF
+ENDIF
+
+
+

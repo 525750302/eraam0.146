@@ -1,0 +1,36 @@
+﻿;;;<Summary>
+;;;	勝利判定するわよ
+;;;</Summary>
+;;;<returns>勝利判定(0=戦闘継続,1=勝利,-1=敗北)</returns>
+@Demoslaviya20XX_Judgment()
+	#DIM DYNAMIC LCount
+	#DIM DYNAMIC EnemyCount
+	#DIM DYNAMIC FrendCount
+
+	EnemyCount = 0
+	SELECTCASE Demoslaviya20XX_VictoryType
+		;全部の敵を倒せば勝利
+		CASE "殲滅"
+			FOR LCount, 0, 10000
+				SIF Demoslaviya20XX_Unit:LCount:1 == "-1"
+					BREAK
+				IF Demoslaviya20XX_Unit:LCount:0 == "敵"
+					SIF TOINT(Demoslaviya20XX_Unit:LCount:2) > 0
+						EnemyCount++
+				ELSEIF Demoslaviya20XX_Unit:LCount:0 == "味方"
+					SIF TOINT(Demoslaviya20XX_Unit:LCount:2) > 0
+						FrendCount++
+				ENDIF
+			NEXT
+			SIF FrendCount == 0
+				RETURN -1
+			SIF EnemyCount == 0
+				RETURN 1
+		CASEELSE
+			PRINTFORML %Demoslaviya20XX_VictoryType%
+			PRINTFORML ！デバッグメッセージ！
+			PRINTFORML どうやら勝利条件が設定されていないようですわよ？
+			PRINTFORMW とりあえず勝利ということにするのでデバッグをしてくださいな
+			RETURN 1
+	ENDSELECT
+	RETURN 0

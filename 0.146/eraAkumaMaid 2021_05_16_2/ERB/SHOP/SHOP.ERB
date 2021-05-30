@@ -1,0 +1,2949 @@
+;-------------------------------------------------
+;時間ごとに一度だけ起きるイベントはここで記述
+;-------------------------------------------------
+@EVENTSHOP
+#PRI
+#DIM LCOUNT
+#DIM LCOUNT2
+#DIM MEMO_LINECOUNT
+#DIM MEMO_TARGET
+#DIMS MEMOS_PANTU
+#DIMS MEMOS_BRA
+#DIMS MEMOS, 10
+#DIM CHARACOUNT
+
+;オートちょっかい関連フラグの初期化
+FLAG:なんかして欲しい = 0
+
+;安全危険日判定(誕生日依存でいってみる)
+CALL SETFLAG, "安全危険日判定"
+
+;早朝のＨイベント、朝の挨拶イベント
+IF COND("朝")
+	;朝の髪型変更はここ。昼と夜は下の方にある
+	CALL SETFLAG, "ＴＰＯによる外見変更"
+
+	CALL SETFLAG, "要受精確率"
+	;これは一日に一回だけ
+	FLAG:ゴム取り出し = 0
+	;中出しと精飲のリセット
+	CVARSET CFLAG, GETNUM(CFLAG, "Ｖ中出し済")
+	CVARSET CFLAG, GETNUM(CFLAG, "Ａ中出し済")
+	CVARSET CFLAG, GETNUM(CFLAG, "尿道中出し済")
+	CVARSET CFLAG, GETNUM(CFLAG, "Ｂ中出し済")
+	CVARSET CFLAG, GETNUM(CFLAG, "精飲済")
+	;没収した下着のリセット
+	CVARSET CSTR, GETNUM(CSTR, "没収済パンツ")
+	CVARSET CFLAG, GETNUM(CFLAG, "パンツ没収")
+	;汗のリセットは早朝と入浴のみ
+	CVARSET CFLAG, GETNUM(CFLAG, "汗")
+	CVARSET CFLAG, GETNUM(CFLAG, "シャワー済")
+	;水泳フラグ…塩素消毒フラグの方が近いか？
+	CVARSET CFLAG, GETNUM(CFLAG, "水泳")
+	CVARSET CFLAG, GETNUM(CFLAG, "体育")
+	;帰り道で一緒だったフラグ
+	CVARSET CFLAG, GETNUM(CFLAG, "一緒に帰宅")
+	;プレゼントも一日一回
+	CVARSET CFLAG, GETNUM(CFLAG, "プレゼント渡し済")
+
+
+	;早朝Ｈ
+	CALL YOBAI_ASAGAKE
+	DRAWLINE
+
+	;挨拶リセット
+	CVARSET CFLAG, GETNUM(CFLAG, "挨拶した")
+	CVARSET CFLAG, GETNUM(CFLAG, "挨拶された")
+
+	MEMO_TARGET = TARGET
+	;キャラごとに時間遷移で弄りたい事が有るならここで。時間帯はCOND("朝")
+	FOR LCOUNT, 2 , CHARANUM
+		TARGET = LCOUNT
+		DRAWLINE
+		MEMO_LINECOUNT = LINECOUNT
+		TRYCALLFORM TIMEEVENT_K{NO:TARGET}
+		SIF LINECOUNT == MEMO_LINECOUNT
+			CLEARLINE 1
+	NEXT
+	TARGET = MEMO_TARGET
+
+	;時間を昼に
+	TIME = 1
+
+	MEMO_LINECOUNT = LINECOUNT
+	FOR LCOUNT, 2, CHARANUM
+		SIF COND("同棲：一週間", LCOUNT)
+			CALL SETFLAG, "同棲：日数減らし", LCOUNT
+	NEXT
+	SIF LINECOUNT != MEMO_LINECOUNT
+		DRAWLINE
+
+	;朝拘束発生の際はパートナーが拘束相手になる
+	IF COND("朝拘束発生")
+		SIF COND("朝駆け相手") == 0
+			CALL SETFLAG, "対象指定", FIND_COND("朝駆け相手")
+		RETURN 1
+	ELSEIF TO_NUMBER(FLAG:昼の相手) > 0
+		CALL SETFLAG, "対象指定", TO_NUMBER(FLAG:昼の相手)
+	ENDIF
+ELSEIF COND("夜")
+	SIF TO_NUMBER(FLAG:夜の相手) > 0
+		CALL SETFLAG, "対象指定", TO_NUMBER(FLAG:夜の相手)
+ENDIF
+
+
+;PALAMとCUPなどの初期化
+FOR LCOUNT, 1, CHARANUM
+	VARSET PALAM:LCOUNT:0
+	VARSET CUP:LCOUNT:0
+	;おやつの感想フラグの初期化
+	CALL DEL_DEVENT, "おやつの感想", LCOUNT
+NEXT
+
+CALL SHOP_BONUS_ADVISER
+
+SAVESTR:パンツドーピング = 
+
+CVARSET EQUIP, GETNUM(EQUIP, "Ｈなご褒美")
+CVARSET EQUIP, GETNUM(EQUIP, "お風呂でＨ")
+;やる気リセット(脱衣などで使用)
+CVARSET TCVAR, GETNUM(TCVAR, "やる気")
+;標語実践フラグをOFF
+CVARSET CFLAG, GETNUM(CFLAG, "標語実践")
+
+CVARSET CFLAG, GETNUM(CFLAG, "ちょっかい数")
+;パンツは謎にする
+CVARSET CFLAG, GETNUM(CFLAG, "下着確認済")
+CVARSET CFLAG, GETNUM(CFLAG, "股間確認済")
+CVARSET CFLAG, GETNUM(CFLAG, "アソコチェック")
+CVARSET CFLAG, GETNUM(CFLAG, "アナルチェック")
+CVARSET CFLAG, GETNUM(CFLAG, "スカートめくり")
+CVARSET CFLAG, GETNUM(CFLAG, "甘い言葉")
+CVARSET CFLAG, GETNUM(CFLAG, "褒める")
+CVARSET CFLAG, GETNUM(CFLAG, "不機嫌")
+CVARSET CFLAG, GETNUM(CFLAG, "怒り")
+CVARSET CFLAG, GETNUM(CFLAG, "恥じらい")
+CVARSET CFLAG, GETNUM(CFLAG, "睡眠")
+CVARSET CFLAG, GETNUM(CFLAG, "びしょびしょ")
+CVARSET CFLAG, GETNUM(CFLAG, "隙あり")
+CVARSET CFLAG, GETNUM(CFLAG, "寝起き")
+CVARSET CFLAG, GETNUM(CFLAG, "トイレ済")
+
+CVARSET CFLAG, GETNUM(CFLAG, "不在")
+CVARSET CFLAG, GETNUM(CFLAG, "入室までの所要時間")
+CVARSET CFLAG, GETNUM(CFLAG, "シャワー中")
+CVARSET CFLAG, GETNUM(CFLAG, "暇を持て余す")
+CVARSET CFLAG, GETNUM(CFLAG, "電源ボックス")
+CVARSET CFLAG, GETNUM(CFLAG, "ポーズ撮影終了")
+CVARSET CFLAG, GETNUM(CFLAG, "ムラムラ")
+CVARSET CFLAG, GETNUM(CFLAG, "薄着になった")
+CVARSET CFLAG, GETNUM(CFLAG, "コスプレ中")
+CVARSET CFLAG, GETNUM(CFLAG, "淫紋の様子")
+CVARSET CFLAG, GETNUM(CFLAG, "陰毛描写")
+CVARSET CFLAG, GETNUM(CFLAG, "呼び出された")
+CVARSET CFLAG, GETNUM(CFLAG, "性処理済")
+CVARSET CFLAG, GETNUM(CFLAG, "性欲解消済")
+CVARSET CFLAG, GETNUM(CFLAG, "交流中")
+CVARSET CFLAG, GETNUM(CFLAG, "ＣＩＰ発生済")
+CVARSET CFLAG, GETNUM(CFLAG, "オートパンツ取引発生済")
+CVARSET CFLAG, GETNUM(CFLAG, "レクリエーション中")
+SAVESTR:レクリエーション = 
+
+;お店での買い物履歴は時間ごとにリセット
+CVARSET CSTR, GETNUM(CSTR, "SHOP_BUY履歴"), "/"
+
+CVARSET CSTR, GETNUM(CSTR, "PREV_DAILYCOM")
+CVARSET CSTR, GETNUM(CSTR, "DAILYCOM履歴")
+
+;移動履歴をリセット
+CVARSET CSTR, GETNUM(CSTR, "移動履歴")
+;脱いだ服は時間ごとにリセット
+CVARSET CSTR, GETNUM(CSTR, "脱いだ靴")
+CVARSET CSTR, GETNUM(CSTR, "脱いだパンツ")
+CVARSET CSTR, GETNUM(CSTR, "脱いだ服一式")
+CVARSET CSTR, GETNUM(CSTR, "しまった下着")
+CVARSET CSTR, GETNUM(CSTR, "帰宅時の格好")
+;汚れのリセット(CSTR:Ｐ汚れ もリセットもされる)
+FOR LCOUNT, 1, CHARANUM
+	CALL RESET_STAIN_EX, "老廃物以外全部", LCOUNT
+NEXT
+
+
+;日常イベント名をリセット
+STR:日常イベント名 = 
+SAVESTR:PREV_日常イベント名 = 
+CVARSET CFLAG, GETNUM(CFLAG, "PREV_DAILYCATE")
+SAVESTR:PREV_直前行動 = 
+
+SAVESTR:帰り道のゲスト = 
+
+SAVESTR:PREV_PHOTO = 
+;名前で自撮り送信してくるかを判定するので、昼夜に最高で各一回づつ
+SAVESTR:送信済み自撮り写真 = 
+SAVESTR:送信済み自撮りパンツ = 
+SAVESTR:この時間のポーズ撮影履歴 = 
+
+FLAG:対複数 = 0
+FLAG:呼び出しＨ中 = 0
+FLAG:お弁当の作り手 = 0
+
+;おやつフラグリセット
+FLAG:おやつ当番 = 0
+SAVESTR:おやつ = 
+SAVESTR:おやつ詳細 = 
+;お茶フラグリセット
+CVARSET CFLAG, GETNUM(CFLAG, "お茶")
+SAVESTR:お茶 = 
+
+;お昼に見たパンツフラグは次の昼(つまり今)消す
+SIF COND("昼")
+	CVARSET CSTR, GETNUM(CSTR, "PREV_パンツ")
+
+;あなたが居る初期位置なSAVESTR:現在位置 を決める
+SELECTCASE TEXTS("曜日")
+CASE "日"
+	;IF COND("昼") && FIND_COND("朝駆け相手") && CSTR:FIND_COND("朝駆け相手"):朝駆け == "朝添い寝"
+	;	SAVESTR:現在位置 = %CALLNAME:MASTER%の部屋
+	;ELSE
+		SAVESTR:現在位置 = 居間
+	;ENDIF
+CASEELSE
+	IF COND("昼")
+		SAVESTR:現在位置 = 部室
+	ELSE
+		SAVESTR:現在位置 = 居間
+	ENDIF
+ENDSELECT
+
+;時間経過ごとの移動テキストと着替え
+IF FLAG:オープニング
+	SAVESTR:現在位置 = %CALLNAME:MASTER%の部屋
+ELSEIF COND("昼")
+	;昼の髪型変更はここ。朝は上に、夜は下の方にある（家を出入りするタイミングで変更するため）
+	CALL SETFLAG, "ＴＰＯによる外見変更"
+
+	MEMO_LINECOUNT = LINECOUNT
+	SELECTCASE TEXTS("日付対応イベント")
+	CASE "", "バレンタイン翌日", "もうすぐクリスマス", "クリスマス翌日"
+	CASE "衣替え(夏)"
+		CALL PRINT_STRL, "今日から衣替えだ！"
+		CALL PRINT_STRW, "黄色_(※制服が夏仕様になり、汗をかいた際にブラが透けるようになります)"
+	CASE "衣替え(冬)"
+		CALL PRINT_STRL, "……今日から衣替えだ。"
+		CALL PRINT_STRW, "黄色_(※制服が通常のもの、もしくは冬仕様となります)"
+	CASE "もうすぐ文化祭"
+		IF DAYEV("月曜", "ゲーム内")
+			CALL PRINT_STRL, "今週末の日曜日は……_黄色_文化祭_だ！"
+			CALL PRINT_STRW, "黄色_(※日曜日のデートの行き先に文化祭が現れます)"
+		ENDIF
+	CASE "週末に試験"
+		IF DAYEV("月曜", "ゲーム内")
+			CALL PRINT_STRL, "……今週末の土曜日は_黄色_定期試験_だ。"
+			CALL PRINT_STRW, "黄色_(※もてなすコマンドで一緒に勉強する事が出来ます。頑張りましょう)"
+		ENDIF
+	CASE "メイドの日"
+		CALL PRINT_STRW, @"今日は_黄色_%TEXTS("日付対応イベント")%_だ。_L_きっとみんなメイド服に着替えてくれるはず……！"
+	CASE "ビキニの日"
+		CALL PRINT_STRW, @"今日は_黄色_%TEXTS("日付対応イベント")%_だ。_L_きっとみんなビキニに着替えてくれるはず……！"
+	CASE "バニーの日"
+		CALL PRINT_STRW, @"今日は_黄色_%TEXTS("日付対応イベント")%_だ。_L_きっとみんなバニースーツを着てくれるはず……！"
+	CASE "お正月"
+		CALL PRINT_STRW, @"今日は_黄色_%TEXTS("日付対応イベント")%_ですね。_L_あけましておめでとうございます_HH"
+	CASEELSE
+		CALL PRINT_STRW, @"今日は_黄色_%TEXTS("日付対応イベント")%_だ！"
+	ENDSELECT
+	SIF LINECOUNT > MEMO_LINECOUNT
+		DRAWLINE
+
+	IF COND("日")
+		SIF TEXTS("日付対応イベント") == ""
+			PRINTFORMW 今日は休みだ。昼まで寝ていよう。
+		;普段着に着替える
+		FOR LCOUNT, 2, CHARANUM
+			CALL SET_COORDINATE, "普段着", LCOUNT
+
+			;いつもの格好を設定
+			CSTR:LCOUNT:いつもの格好 = %CLO_ABOUT(LCOUNT)%
+
+			;日曜朝のお相手はあなたのＹシャツ姿に
+			IF TALENT:MASTER:オトコ && COND("朝駆け相手", LCOUNT)
+				CALL MEMO_DRESS, "脱いだ服一式", LCOUNT
+				CALL SET_COORDINATE, @"%CALLNAME:MASTER%のＹシャツ", LCOUNT
+			ENDIF
+		NEXT
+	ELSE
+		;お弁当の約束してる？
+		FLAG:お弁当の作り手 = COND("お弁当相手", MASTER)
+		IF FLAG:お弁当の作り手
+			IF COND("朝一緒", FLAG:お弁当の作り手)
+				PRINTFORML %CALLNAME:MASTER%は%CALLNAME:(FLAG:お弁当の作り手)%からお弁当を受け取り、学園に向かった。
+				PRINTFORM ……
+			ELSE
+				PRINTFORM %CALLNAME:MASTER%は学園に向かった……
+			ENDIF
+		ELSE
+			PRINTFORM %CALLNAME:MASTER%は学園に向かった……
+		ENDIF
+		;制服に着替える
+		FOR LCOUNT, 2, CHARANUM
+			SIF CFLAG:LCOUNT:夜型
+				CONTINUE
+			CALL SET_COORDINATE, "制服", LCOUNT
+		NEXT
+
+		IF DAYEV("試験当日")
+			CALL EVENT_ACADEMY, "試験終了"
+		ELSEIF DAYEV("試験返却日")
+			CALL EVENT_ACADEMY, "試験結果発表"
+		ELSEIF COND("体育")
+			CALL PRINT_STRW, "今日は昼休み前に_黄色_体育_の授業がある日だ。"
+			;体操服に着替える
+			FOR LCOUNT, 2, CHARANUM
+				SIF CFLAG:LCOUNT:夜型
+					CONTINUE
+				;妊娠していたら見学
+				SIF COND("妊娠中：妊娠発覚済み", LCOUNT)
+					CONTINUE
+				;75%で体操服で現れる
+				SIF RAND:4
+					CALL SET_COORDINATE, "体操服", LCOUNT
+				IF COND("教員", LCOUNT)
+					;体育教師ではない＆体操服姿でもない
+					SIF STRCOUNT(CSTR:LCOUNT:学年, "体育") == 0 && CHECK_CLO("体操服姿", LCOUNT) == 0
+						CONTINUE
+				ENDIF
+				CFLAG:LCOUNT:体育 = 1
+			NEXT
+			;PRINTFORMW 体操服の%CALLNAME:TARGET%を眺めていたら、ブルマを太ももまでずり下げて腰を突き出してきた
+		ELSEIF COND("水泳")
+			CALL PRINT_STRW, "今日は昼休み前に_水色_水泳_の授業がある日だ。"
+			;水着に着替える
+			FOR LCOUNT, 2, CHARANUM
+				SIF CFLAG:LCOUNT:夜型
+					CONTINUE
+				;妊娠していたら見学
+				SIF COND("妊娠中：妊娠発覚済み", LCOUNT)
+					CONTINUE
+
+				CALL SET_COORDINATE, "水着", LCOUNT
+				;水着姿でない
+				SIF CHECK_CLO("水着姿", LCOUNT) == 0
+					CONTINUE
+				;泳いだ人は水泳フラグON
+				CFLAG:LCOUNT:水泳 = 1
+				;75%で水着で現れる
+				IF RAND:4 == 0
+					CALL SET_COORDINATE, "制服", LCOUNT
+				ELSEIF COND("冬") + COND("秋")
+					CALL SET_SHIRT, "ジャージ", LCOUNT
+				ENDIF
+			NEXT
+		ELSE
+			PRINTFORMW 今日は座学のみの日だ。
+		ENDIF
+		;いつもの格好を設定
+		FOR LCOUNT, 2, CHARANUM
+			CSTR:LCOUNT:いつもの格好 = %CLO_ABOUT(LCOUNT)%
+		NEXT
+
+		;標語を実践してくれるかなどを判定
+		CALL FOLLOW_RULES
+
+		;日焼け対策をしていないなら日焼け(日焼け標語があるので標語の次)
+		SELECTCASE TEXTS("季節")
+		CASE "春", "夏"
+			FOR LCOUNT, 2, CHARANUM
+				SIF CFLAG:LCOUNT:水泳 && COND("日焼け対策", LCOUNT) == 0
+					CALL SETFLAG, "日焼け", LCOUNT
+			NEXT
+		ENDSELECT
+
+		;標語を貼りだす
+		CALL POST_RULES
+
+		;自撮りを行う
+		CALL PHOTO_SELFY
+		CALL SEND_SELFY
+
+		CALL EVENT_ACADEMY, "学園での日常"
+		CALL EVENT_ACADEMY, "お仕事"
+		CALL EVENT_ACADEMY, "性処理"
+		CVARSET CFLAG, GETNUM(CFLAG, "性処理済")
+		CVARSET CFLAG, GETNUM(CFLAG, "性欲解消済")
+		;お弁当orその他で主に２パターン
+		CALL EVENT_ACADEMY, "お昼ご飯"
+
+		;学園のお昼は性処理係の証を付ける
+		CALL SETFLAG, "性処理係の証"
+	ENDIF
+
+	;特殊な衣装
+	SELECTCASE TEXTS("日付対応イベント")
+	CASE "メイドの日"
+		FOR LCOUNT, 2, CHARANUM
+			SIF CFLAG:LCOUNT:夜型
+				CONTINUE
+			;オトコは男の娘のみ
+			;SIF TALENT:LCOUNT:オトコ && COND("男の娘", LCOUNT) == 0
+			;	CONTINUE
+			SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 < 3
+				CONTINUE
+			SIF (ABL:LCOUNT:露出癖 < 3 && TALENT:LCOUNT:恥薄い <= 0) && ABL:LCOUNT:奉仕精神 < 5
+				CONTINUE
+			;メイド服に着替える
+			CALL SET_COORDINATE, TEXTS("日付対応イベント"), LCOUNT
+
+			CFLAG:LCOUNT:コスプレ中 = 1
+		NEXT
+
+	CASE "ビキニの日"
+		FOR LCOUNT, 2, CHARANUM
+			SIF CFLAG:LCOUNT:夜型
+				CONTINUE
+			;オトコは男の娘のみ
+			;SIF TALENT:LCOUNT:オトコ && COND("男の娘", LCOUNT) == 0
+			;	CONTINUE
+			SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 < 3
+				CONTINUE
+			SIF (ABL:LCOUNT:露出癖 < 3 && TALENT:LCOUNT:恥薄い <= 0) && ABL:LCOUNT:奉仕精神 < 5
+				CONTINUE
+			;今年の水着が選んであるならそれに着替えるかも
+			IF CSTR:LCOUNT:今年の水着 != "" && (ABL:LCOUNT:露出癖 >= 5 || TALENT:LCOUNT:恥薄い)
+				CALL SET_COORDINATE, "今年の水着", LCOUNT
+			ELSE
+				CALL SET_COORDINATE, TEXTS("日付対応イベント"), LCOUNT
+			ENDIF
+			CFLAG:LCOUNT:コスプレ中 = 1
+		NEXT
+	CASE "バニーの日"
+		FOR LCOUNT, 2, CHARANUM
+			SIF CFLAG:LCOUNT:夜型
+				CONTINUE
+			;オトコは男の娘のみ
+			;SIF TALENT:LCOUNT:オトコ && COND("男の娘", LCOUNT) == 0
+			;	CONTINUE
+			SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 < 3
+				CONTINUE
+			SIF (ABL:LCOUNT:露出癖 < 3 && TALENT:LCOUNT:恥薄い <= 0) && ABL:LCOUNT:奉仕精神 < 5
+				CONTINUE
+			;バニーに着替える
+			CALL SET_COORDINATE, TEXTS("日付対応イベント"), LCOUNT
+
+			CFLAG:LCOUNT:コスプレ中 = 1
+		NEXT
+	CASE "お正月"
+		FOR LCOUNT, 2, CHARANUM
+			;SIF TALENT:LCOUNT:オトコ
+			;	CONTINUE
+			SIF TALENT:LCOUNT:反抗的
+				CONTINUE
+			;振袖に着替える
+			CALL SET_COORDINATE, TEXTS("日付対応イベント"), LCOUNT
+		NEXT
+	CASE "猫の日"
+		FOR LCOUNT, 2, CHARANUM
+			SIF TALENT:LCOUNT:反抗的
+				CONTINUE
+			;コスプレがあるかチェック
+			CALL SET_COORDINATE, TEXTS("日付対応イベント"), LCOUNT
+		NEXT
+	CASEELSE
+		;あなた好みの服装が分かっている場合には着替えてくれるかも
+		FOR LCOUNT, 2, CHARANUM
+
+			;確率は低い
+			SIF RAND:10
+				CONTINUE
+			SIF COND("同伴可能", LCOUNT)
+				CONTINUE
+			SIF COND("自発コスプレ可能", LCOUNT) == 0
+				CONTINUE
+			;どれに着替えるか
+			VARSET LOCALS
+			SPLIT CSTR:LCOUNT:着替え希望履歴, "/", LOCALS
+			;50％で最近希望された衣装に着替える
+			IF RAND:2
+				CALL SET_COORDINATE, EXTSTR(LOCALS:0, "＠"), LCOUNT
+			ELSE
+				CALL SET_COORDINATE, EXTSTR(TEXTR(CSTR:LCOUNT:着替え希望履歴), "＠"), LCOUNT
+			ENDIF
+			CFLAG:LCOUNT:コスプレ中 = 1
+		NEXT
+	ENDSELECT
+ELSEIF COND("夜")
+	SELECTCASE TEXTS("曜日")
+	CASE "日"
+	CASEELSE
+		;制服に着替える
+		FOR LCOUNT, 2, CHARANUM
+			SIF CFLAG:LCOUNT:夜型
+				CONTINUE
+			CALL SET_COORDINATE, "制服", LCOUNT
+		NEXT
+	ENDSELECT
+	;普段着に着替える
+	FOR LCOUNT, 2, CHARANUM
+		;帰宅時の格好を記録
+		CALL MEMO_DRESS, "帰宅時の格好", LCOUNT
+		CALL SET_COORDINATE, "普段着", LCOUNT
+		;いつもの格好を設定
+		CSTR:LCOUNT:いつもの格好 = %CLO_ABOUT(LCOUNT)%
+	NEXT
+ENDIF
+;標語で衣装を変えた後にコスプレで上書きした場合の処理
+FOR LCOUNT, 2, CHARANUM
+	SIF CFLAG:LCOUNT:コスプレ中 && CFLAG:LCOUNT:標語実践 == 2
+		CFLAG:LCOUNT:標語実践 = 0
+NEXT
+
+;着替えたタイミングで自撮りを行う
+CALL PHOTO_SELFY
+
+;自宅の場合にはキャラごとの居る基本の場所をCSTR:現在位置 に入れておく
+IF PLACE("自宅")
+	FOR LCOUNT, 2, CHARANUM
+		IF CSTR:LCOUNT:好みの部屋 != "" && RAND:4
+			CALL MOVE_PLACE, TEXTR(CSTR:LCOUNT:好みの部屋), LCOUNT
+		ELSE
+			CALL MOVE_PLACE, @"%CSVCALLNAME(NO:LCOUNT)%の部屋", LCOUNT
+		ENDIF
+	NEXT
+ELSEIF PLACE("部室")
+	;本日のおやつは？
+	CALL SETFLAG, "本日のおやつ"
+
+	FOR LCOUNT, 2, CHARANUM
+		CALL MOVE_PLACE, "部室", LCOUNT
+	NEXT
+ENDIF
+
+SELECTCASE TEXTS("季節詳細")
+;真夏は全員うっすら汗状態がデフォ
+CASE "夏"
+	CVARSET CFLAG, GETNUM(CFLAG, "汗"), 1
+	FOR LCOUNT, 1, CHARANUM
+		SIF RAND:3 == 0
+			CFLAG:LCOUNT:汗 += 1 + RAND:3
+		SIF TALENT:LCOUNT:陽気 && RAND:3
+			CFLAG:LCOUNT:汗 += RAND:4
+		SIF TALENT:LCOUNT:粗野 && RAND:3
+			CFLAG:LCOUNT:汗 += RAND:4
+		SIF TALENT:LCOUNT:汗かき
+			CFLAG:LCOUNT:汗 += 3 + RAND:5
+	NEXT
+CASE "初夏"
+	FOR LCOUNT, 1, CHARANUM
+		SIF RAND:3 == 0
+			CFLAG:LCOUNT:汗 += 1 + RAND:2
+		SIF TALENT:LCOUNT:陽気 && RAND:3
+			CFLAG:LCOUNT:汗 += RAND:3
+		SIF TALENT:LCOUNT:粗野 && RAND:3
+			CFLAG:LCOUNT:汗 += RAND:3
+		SIF TALENT:LCOUNT:汗かき
+			CFLAG:LCOUNT:汗 += 2 + RAND:4
+	NEXT
+CASEELSE
+	FOR LCOUNT, 1, CHARANUM
+		SIF TALENT:LCOUNT:汗かき == 0
+			CONTINUE
+
+		IF COND("冬") && RAND:6
+			CONTINUE
+		ELSEIF RAND:3
+			CONTINUE
+		ENDIF
+
+		CFLAG:LCOUNT:汗 += 1 + RAND:6
+	NEXT
+ENDSELECT
+;体を動かす講義の直後だと汗かき状態
+IF COND("体育") && COND("昼")
+	FOR LCOUNT, 1, CHARANUM
+		;汗かきにならない条件など
+		IF COND("妊娠中：妊娠発覚済み", LCOUNT)
+		;教師かつ体育担当ではない＆体操服姿でもない
+		ELSEIF COND("教員", LCOUNT) && STRCOUNT(CSTR:LCOUNT:学年, "体育") == 0 && CHECK_CLO("体操服姿", LCOUNT) == 0
+		ELSE
+			SIF CFLAG:LCOUNT:汗 < 6
+				CFLAG:LCOUNT:汗 = 6
+			SIF COND("冬") && RAND:2
+				CFLAG:LCOUNT:汗 = 3
+			;性器に汚れを付ける？
+			IF COND("夏") && CONFIG("夏の運動で蒸れ蒸れ")
+				SIF PENIS(LCOUNT)
+					SETBIT BASE:LCOUNT:老廃物, 0
+				SIF TALENT:LCOUNT:オトコ == 0
+					SETBIT BASE:LCOUNT:老廃物, 1
+			ENDIF
+		ENDIF
+
+		;着替え済みの場合には汗だくではなくす
+		SIF LCOUNT != MASTER && CHECK_CLO("体操服姿", LCOUNT) == 0
+			CALL SETFLAG_DAILY, "汗を拭く", LCOUNT
+	NEXT
+ENDIF
+;汗汚れを付ける
+FOR LCOUNT, 1, CHARANUM
+	SIF CFLAG:LCOUNT:汗 == 0
+		CONTINUE
+
+	;雪女は汗をかかない
+	SIF COND("種族：雪女", LCOUNT)
+		CFLAG:LCOUNT:汗 = 0
+
+	;夜は汗だく状態の人は汗状態にする
+	SIF COND("夜")
+		CFLAG:LCOUNT:汗 = 1
+
+	CALL SETFLAG_DAILY, "汗汚れ", LCOUNT
+NEXT
+
+MEMO_TARGET = TARGET
+TARGET = 0
+;入室にかかる時間フラグ設定…目当ての相手がなかなか来ないのは面白くないので基本的には３Ｔで全員集合させる
+IF TEXTS("曜日") != "日"
+	;これは = 1 の時に入室イベントが発生する
+	FOR LCOUNT, 1, CHARANUM
+		;最初からいない人は不在 = 1。場所移動ではぶられた人は = 2となる
+		IF COND("部室出現可能", LCOUNT) == 0
+			IF COND("昼")
+				CFLAG:LCOUNT:不在 = 1
+				CFLAG:LCOUNT:入室までの所要時間 = 0
+				CONTINUE
+			ENDIF
+		ENDIF
+		SELECTCASE LCOUNT
+		CASE MASTER
+			CFLAG:LCOUNT:入室までの所要時間 = 2
+		CASEELSE
+			;顔出し頻度が低い人
+			IF CFLAG:LCOUNT:顔出し頻度 && COND("発情中", LCOUNT) == 0
+				CFLAG:LCOUNT:入室までの所要時間 = 2 + RAND:100
+			ELSEIF RAND:2
+				CFLAG:LCOUNT:入室までの所要時間 = 2
+			ELSEIF RAND:2
+				CFLAG:LCOUNT:入室までの所要時間 = 3 + RAND:2
+			ELSE
+				CFLAG:LCOUNT:入室までの所要時間 = 5 + RAND:2
+			ENDIF
+		ENDSELECT
+	NEXT
+
+	;新しく入部する人々はCFLAG:入室までの所要時間の3から一人づつ順々に現れる
+	IF CHARA_NUM("入部前")
+		LOCAL = CHARA_NUM("入部前")
+		CHARACOUNT = 0
+
+		FOR LCOUNT, 2, CHARANUM
+			SIF CFLAG:LCOUNT:入室までの所要時間 == 0
+				CONTINUE
+
+			;加入前の人を3から一人づつ並べる
+			IF CFLAG:LCOUNT:加入日 == 0
+				CFLAG:LCOUNT:入室までの所要時間 = 3 + CHARACOUNT
+				CHARACOUNT += 1
+			;値が3以上の人全員、CHARA_NUM("入部前")だけ後にずらす
+			ELSEIF CFLAG:LCOUNT:入室までの所要時間 >= 3
+				CFLAG:LCOUNT:入室までの所要時間 += LOCAL
+			ENDIF
+		NEXT
+	ENDIF
+ENDIF
+
+IF COND("夜") || TEXTS("曜日") == "日"
+	;一部キャラは不在。呼び出せば来てくれるかも
+	FOR LCOUNT, 2, CHARANUM
+		;最初からいない人は不在 = 1。場所移動ではぶられた人は = 2となる
+		IF COND("自宅出現可能", LCOUNT) == 0
+			CFLAG:LCOUNT:不在 = 1
+			CFLAG:LCOUNT:入室までの所要時間 = 0
+			CONTINUE
+		ENDIF
+		CALL SETFLAG_DAILY, "挨拶", LCOUNT
+	NEXT
+ENDIF
+
+;寝てたりシャワってたりの判定。これについては例外的に全キャラの中から選び、イベント発生キャラがパートナーになる
+;汗＆服姿だとたまにシャワー
+IF RAND:4 == 0 && COND("コスプレ日") == 0
+	TARGET = FIND_COND("シャワー可能")
+	CFLAG:シャワー中 = 1
+;たまに寝てる…条件はまだ決まってないのでテキトー
+ELSEIF RAND:10 == 0
+	TARGET = FIND_COND("居眠り可能")
+	CFLAG:睡眠 = 4 + RAND:4 + RAND:4
+ENDIF
+SIF TARGET == 0
+	TARGET = MEMO_TARGET
+
+;パートナーが不在の場合
+SIF CFLAG:不在
+	CALL SETFLAG, "対象指定", FINDCHARA(CFLAG:不在, 0, 2)
+;何らかの処理でTARGETが変更されて優先順位が整えられてない場合
+SIF CFLAG:優先順位 != 1
+	CALL SETFLAG, "優先順位", TARGET
+;パートナーの入室時間はMASTERに合わせる
+CFLAG:入室までの所要時間 = CFLAG:MASTER:入室までの所要時間
+
+
+;各種パラの調整
+FOR LCOUNT, 1, CHARANUM
+	CALL SETFLAG, "ＳＨＯＰ画面開始前", LCOUNT
+NEXT
+
+;現実時間フラグ取得
+CALL GET_REALTIMEFORFLAG
+
+;自宅での処理
+IF PLACE("自宅")
+	;自宅にいる人が居間に居るのか、それぞれの部屋に居るのかチェック
+	FOR LCOUNT, 2, CHARANUM
+		SELECTCASE LCOUNT
+		CASE TARGET
+			CALL MOVE_PLACE, SAVESTR:現在位置, LCOUNT
+		CASEELSE
+			IF RAND:3 == 0
+				CALL MOVE_PLACE, SAVESTR:現在位置, LCOUNT
+			ELSE
+				;自室にいる場合はたまに睡眠中
+				SIF RAND:10 == 0
+					CFLAG:LCOUNT:睡眠 = 4 + RAND:4 + RAND:4
+			ENDIF
+		ENDSELECT
+		SIF CFLAG:LCOUNT:不在
+			CFLAG:LCOUNT:睡眠 = 0
+	NEXT
+
+	;自室にいる場合には部屋着
+	FOR LCOUNT, 2, CHARANUM
+		SIF COND("部屋着着替え可能", LCOUNT) == 0
+			CONTINUE
+
+		CALL SET_COORDINATE, "部屋着", LCOUNT
+	NEXT
+	;特殊な衣装
+	SELECTCASE TEXTS("日付対応イベント")
+	CASE "七夕"
+		FOR LCOUNT, 2, CHARANUM
+			SIF COND("夜") == 0
+				CONTINUE
+			;SIF TALENT:LCOUNT:オトコ
+			;	CONTINUE
+			SIF TALENT:LCOUNT:反抗的 || ABL:LCOUNT:信頼 < 3
+				CONTINUE
+
+			;浴衣に着替える
+			CALL SET_COORDINATE, TEXTS("日付対応イベント"), LCOUNT
+		NEXT
+	CASE "猫の日", "ハロウィン", "クリスマス"
+		FOR LCOUNT, 2, CHARANUM
+			SIF TALENT:LCOUNT:反抗的
+				CONTINUE
+			;コスプレがあるかチェック
+			CALL SET_COORDINATE, TEXTS("日付対応イベント"), LCOUNT
+		NEXT
+	ENDSELECT
+ENDIF
+
+;常時Ｖバイブな人が電源ボックスを繋いでいるかの判定
+FOR LCOUNT, 2, CHARANUM
+	SIF TALENT:LCOUNT:常時Ｖバイブ == 0 || ABL:LCOUNT:欲望 < 3 || ABL:LCOUNT:露出癖 == 0 || ABL:LCOUNT:自慰中毒 == 0 || CHECK_CLO("電源ボックス保持可能", LCOUNT) == 0
+		CONTINUE
+	SIF COND("欲求不満", LCOUNT) == 0 && ABL:LCOUNT:自慰中毒 < 5
+		CONTINUE
+	;スカート履いてない時にやっちゃうのは痴女なので現状不可能
+	SIF CHECK_SKIRT("スカート", LCOUNT) == 0
+		CONTINUE
+	SIF MAX(ABL:LCOUNT:露出癖, ABL:LCOUNT:自慰中毒) >= 3 && RAND:3 == 0
+		CALL SETFLAG, "電源ボックス装着", LCOUNT
+NEXT
+
+SELECTCASE TEXTS("曜日")
+CASE "日"
+CASEELSE
+
+	CALL BLANK_DRAWLINE
+	DRAWLINE
+
+	;入室イベント
+	CALL EVENT_ENTER_ROOM
+
+	;おやつイベント
+	CALL EVENT_ACADEMY, "部活のおやつ"
+ENDSELECT
+;夜の髪型変更はここ。朝と昼は上の方にある
+SIF COND("夜")
+	CALL SETFLAG, "ＴＰＯによる外見変更"
+
+;-------------------------------------------------
+;時間ごとに変化するフラグのチェック
+;-------------------------------------------------
+@CHECK_FLAG_CHARA
+#DIM LCOUNT
+#DIM NUM_MEMBER
+
+;現在この場所にいるキャラ数をカウントし、二人きりかを見る
+NUM_MEMBER = 1
+FLAG:二人きり = 0
+CVARSET CSTR, GETNUM(CSTR, "お誘い")
+
+FOR LCOUNT, 1, CHARANUM
+	VARSET NOWEX:LCOUNT:0
+	;服のずれなどを直す
+	CALL RESETFLAG_CLO, LCOUNT, "汚れはそのまま"
+	;自宅だと靴を脱ぐ設定なら脱がせる
+	CALL SET_SHOES_MEMO, LCOUNT
+	SIF COND("コート脱衣発生", LCOUNT)
+		CALL RESET_OTHER, "外套", LCOUNT
+	CALL VARSET_MAIDFACE, LCOUNT
+
+	CALL SETFLAG, "学力の設定", LCOUNT
+	CALL SETFLAG, "属性", LCOUNT
+
+	SELECTCASE COND("欲求不満", LCOUNT)
+	CASE IS >= 2
+		CFLAG:LCOUNT:ムラムラ = 1
+	CASE 1
+		IF COND("発情期", LCOUNT)
+			CFLAG:LCOUNT:ムラムラ = 1
+		ELSE
+			CFLAG:LCOUNT:ムラムラ = 0
+		ENDIF
+	CASE IS <= 0
+		CFLAG:LCOUNT:ムラムラ = 0
+	ENDSELECT
+
+	;オトコなら胎内の精液を消去。
+	IF TALENT:LCOUNT:オトコ && TALENT:LCOUNT:妊娠可能 == 0
+		BASE:LCOUNT:胎内精子量 = 0
+		BASE:LCOUNT:胎内精液量 = 0
+	ELSE
+		;妊娠などの理由でバイオリズムを一旦リセットされていた人の処理
+		SIF BASE:LCOUNT:バイオリズム == 0
+			BASE:LCOUNT:バイオリズム = (ABS(BASE:LCOUNT:誕生日%10 + FLAG:現実時間%10) % 10) + 1
+	ENDIF
+
+	SIF COND("現在存在", LCOUNT) == 0 || LCOUNT == MASTER
+		CONTINUE
+
+	NUM_MEMBER += 1
+
+	IF DEVENT("初回台詞", LCOUNT) == 0
+		CFLAG:LCOUNT:挨拶した = 1
+		CFLAG:LCOUNT:挨拶された = 1
+	ENDIF
+
+	IF SAVESTR:現在位置 == CSTR:LCOUNT:現在位置
+		SIF CMOVE(SAVESTR:現在位置, LCOUNT) == 0
+			CSTR:LCOUNT:移動履歴 = %SAVESTR:現在位置%\/%CSTR:LCOUNT:移動履歴%
+		;パンツ＆ブラの確認チェック
+		SIF CHECK_CLO("パンツ露出", LCOUNT) && CHECK_CLO("パンツ未確認", LCOUNT) == 0
+			CALL SETFLAG_DAILY, "パンツ形状確認", LCOUNT
+		SIF (CHECK_CLO("ブラ露出", LCOUNT) || COND("ブラ透け", LCOUNT) ) && CHECK_CLO("ブラ未確認", LCOUNT) == 0
+			CALL SETFLAG_DAILY, "ブラ形状確認", LCOUNT
+		;電源ボックスチェック
+		SIF CFLAG:LCOUNT:電源ボックス && (CFLAG:LCOUNT:スカートめくり || CHECK_SKIRT("スカート", LCOUNT) == 0)
+			CALL SETFLAG, "電源ボックス発覚", LCOUNT
+	ENDIF
+
+	SIF CFLAG:LCOUNT:加入日 == 0
+		CFLAG:LCOUNT:加入日 = DAY
+
+	IF CFLAG:LCOUNT:優先順位 == 0
+		;優先順位の調整
+		IF FINDCHARA(CFLAG:優先順位, 1, 2) <= 0
+			CFLAG:LCOUNT:優先順位 = 1
+		ELSEIF FINDCHARA(CFLAG:優先順位, 2, 2) <= 0
+			CFLAG:LCOUNT:優先順位 = 2
+		ELSEIF FINDCHARA(CFLAG:優先順位, 3, 2) <= 0
+			CFLAG:LCOUNT:優先順位 = 3
+		ENDIF
+	ENDIF
+NEXT
+
+SIF NUM_MEMBER == 2
+	FLAG:二人きり = 1
+
+
+@SETFLAG_SHOP
+#DIM LCOUNT
+;季節、年表示のフラグ
+CALL SETFLAG, "年月日"
+
+MONEY = MAX(MONEY, 0)
+;TFLAGをリセット
+VARSET TFLAG
+;オープニング終了
+FLAG:オープニング = 0
+;助手画面をデフォに戻す
+FLAG:助手画面 = 0
+;能力表示画面の３サイズ表示を初期化
+FLAG:能力画面 = 0
+;パートナー切り替え画面の設定を初期化
+FLAG:対象変更画面 = 0
+;調教中等を判定するフラグOFF
+FLAG:状況判定 = 0
+;立位モードOFF
+CLEARBIT FLAG:調教フィルタ, 10
+FLAG:放課後Ｈ = 0
+;非表示コマンドの表示状態をリセット
+CLEARBIT FLAG:調教フィルタ, 21
+;PLAYERをMASTERに戻す（念のため）
+MASTER = 1
+PLAYER = MASTER
+;複数キャラを使うイベント用の対象フラグリセット
+VARSET TARGET, 0, 1, 4
+VARSET PLAYER, 0, 1, 4
+;TARGETとASSIが-1となることを禁止
+TARGET = MAX(TARGET, 0)
+ASSI:1 = MAX(ASSI:1, 0)
+;調教助手は日常はアドバイザーと同じ
+ASSI = MAX(ASSI:1, 0)
+SELECTCOM = -1
+
+;TARGETをパートナーにする
+CALL SET_PARTNER, TARGET
+
+IF CHARA_NUM("室内の邪魔者")
+	FOR LCOUNT, 2, CHARANUM
+		SIF CFLAG:LCOUNT:睡眠 && COND("現在存在", LCOUNT)
+			CALL SETFLAG_DAILY, "起こす", LCOUNT
+	NEXT
+ENDIF
+;0夜に妊婦と過ごした, 3同衾イベント
+CVARSET CFLAG, GETNUM(CFLAG, "行動")
+CVARSET EQUIP, GETNUM(EQUIP, "Ｈなご褒美")
+;イベントフラグをリセット
+CVARSET TCVAR, GETNUM(TCVAR, "イベント")
+;あなたの居場所を再設定
+CSTR:MASTER:現在位置 = %SAVESTR:現在位置%
+
+STR:日常イベント名 = 
+STR:日常イベント名２ = 
+
+;アニメーション用変数のリセット
+VARSET ANIME_CHARA
+VARSET ANIME_FCOUNT
+
+;-------------------------------------------------
+;幾つかのフラグをここで設定（主に新規キャラ参入のときに働く）
+;-------------------------------------------------
+CALL CHECK_FLAG_CHARA
+
+;精力のセット
+CALL SET_COUNTER_BASE
+;調教コマンド実行前のパラメータの記録
+CALL SAVE_PALAM_BEFORECOM
+
+;-------------------------------------------------
+;SHOP画面
+;-------------------------------------------------
+@SHOW_SHOP
+#DIM MEMO_TARGET
+#DIM MEMO_LINECOUNT
+
+;-------------------------------------------------
+;バージョンアップ
+;-------------------------------------------------
+CALL VERUP_eraAkumaMaid, TARGET
+;ゲーム起動時にチェックする基本的なVERUP
+SIF FLAG:VER_UPチェック == 0
+	CALL CHECK_VER_UP
+
+;-------------------------------------------------
+;ロード時台詞
+;-------------------------------------------------
+;CALL KOJO_LOAD, TARGET
+
+CALL SHOW_SHOP_MAIN
+
+@SHOW_SHOP_MAIN
+IF SAVESTR:進行中Ｈイベント != ""
+	CALL EVENT_ACADEMY, SAVESTR:進行中Ｈイベント
+	SAVESTR:進行中Ｈイベント = 
+	RETURN 1
+ENDIF
+
+;-------------------------------------------------
+;メイン画面の表示前にフラグの整理
+;-------------------------------------------------
+CALL SETFLAG_SHOP
+;-------------------------------------------------
+;メイン画面を表示する
+;-------------------------------------------------
+CALL PRINT_SHOP
+;-------------------------------------------------
+;毎日のイチャラブイベント
+;-------------------------------------------------
+CALL KOJO_DAILY
+
+
+;これがONだと@USERSHOPに移動する
+FLAG:SELECT_USERSHOP = 0
+
+;@USERSHOP_PREはこの中で呼ばれる
+IF CONFIG("顔グラアニメ動作中")
+	CALL FLIRT_AND_ANIMATION
+ELSE
+	CALL FLIRT
+ENDIF
+
+;アニメーション用変数のリセット
+VARSET ANIME_CHARA
+VARSET ANIME_FCOUNT
+
+;これがONだと@USERSHOPに移動する
+SIF FLAG:SELECT_USERSHOP
+	RETURN 1
+
+RESTART
+
+@REPRINT_SHOP_ANIME
+TFLAG:顔グラアニメ中 = 1
+CLEARLINE LINECOUNT - TFLAG:LINECOUNT_SHOP
+CALL PRINT_SHOP
+CALL KOJO_DAILY
+TFLAG:顔グラアニメ中 = 0
+
+;-------------------------------------------------
+;SHOP画面の表示し直し。フラグが表示中に変更された場合などに使う
+;-------------------------------------------------
+@REPRINT_SHOP
+CLEARLINE LINECOUNT - TFLAG:LINECOUNT_SHOP
+CALL PRINT_SHOP
+
+@REPRINT_SHOP_NAME
+CLEARLINE LINECOUNT - TFLAG:LINECOUNT_SHOP
+CALL PRINT_SHOP
+;名前とだいたいの服装を表示
+CALL PRINT_NAME_CLO
+
+@REPRINT_SHOP_SELECT
+#DIM MEMO_LINECOUNT
+MEMO_LINECOUNT = LINECOUNT
+CALL PRINT_SHOP
+CLEARLINE LINECOUNT - MEMO_LINECOUNT
+
+
+;-------------------------------------------------
+;SHOP画面の表示
+;-------------------------------------------------
+@PRINT_SHOP
+#LOCALSIZE 1000
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIM NEXT_LINE
+#DIM MEMO_TARGET
+#DIM MEMO_ASSI
+#DIM CHOICE
+#DIMS MENU_SHOP
+#DIMS WISH_CLO
+#DIMS ITEMS
+#DIMS GET_PANTU
+#DIMS MEMO_PANTU
+
+REDRAW 0
+
+;再描画に備えて記録
+TFLAG:LINECOUNT_SHOP = LINECOUNT
+
+CALL BLANK_DRAWLINE
+DRAWLINE
+
+PRINTFORM %TEXTS("日付表示")% 
+PRINTFORM -%TEXTS("現在位置")%- 
+IF SAVESTR:現在位置 == "部室"
+	SIF SAVESTR:標語 != ""
+		CALL PRINT_STR, @"『_黄色_%SAVESTR:標語%_』"
+ENDIF
+IF TEXTS("日付対応イベント") != ""
+	SETCOLOR DEF_COLOR("黄色")
+	PRINTFORM %TEXTS("日付対応イベント")%
+	SIF DAYEV("週末に試験") && TEXTS("日付対応イベント") != "週末に試験"
+		PRINTFORM  週末に試験
+	;クリスマスツリーチェック
+	IF DAYEV("クリスマス期間") && NUM("クリスマスツリー")
+		SETCOLOR DEF_COLOR("ハートピンク")
+		FOR LCOUNT, 0, NUM("クリスマスツリー")
+			PRINTFORM %UNICODE(0xD83C)%%UNICODE(0xDF84)%
+		NEXT
+	ENDIF
+	RESETCOLOR
+ENDIF
+PRINTL 
+IF SAVESTR:おやつ != ""
+	PRINTFORM 本日のおやつ:%SAVESTR:おやつ詳細%
+	SIF SAVESTR:お茶 != ""
+		PRINTFORM ＆%SAVESTR:お茶%
+	PRINTL 
+ELSEIF SAVESTR:お茶 != ""
+	PRINTFORML 只今のお飲み物:%SAVESTR:お茶%
+ENDIF
+
+;この時間帯に居る人たちを並べる
+CALL PRINT_MEMBER
+
+CALL PRINT_STR, @"青_[0]_ %NAME:MASTER%"
+;PRINTFORM [0] %NAME:MASTER%
+IF TALENT:MASTER:ふたなり
+	PRINTPLAINFORM %UNICODE(0x26A5)%[%TALENT_NAME(GETNUM(TALENT, "ペニス"), TALENT:MASTER:ペニス, MASTER)%] 
+ELSEIF TALENT:MASTER:オトコ
+	PRINTPLAINFORM ♂[%TALENT_NAME(GETNUM(TALENT, "ペニス"), TALENT:MASTER:ペニス, MASTER)%] 
+ELSE
+	PRINTPLAINFORM ♀ 
+ENDIF
+PRINTPLAIN 魂
+CALL PRINT_BAR, "魂ゲージ", BASE:MASTER:魂, MAXBASE:MASTER:魂, 5
+PRINTFORM %TEXTS("0.01", BASE:MASTER:魂)% 
+PRINTFORM 精力
+CALL PRINT_BAR, "減少ゲージ", BASE:MASTER:精力, MAXBASE:MASTER:精力, 5
+PRINTFORM {BASE:MASTER:精力}/{MAXBASE:MASTER:精力} 
+CALL TEXT, "学力", MASTER
+CALL TEXT, "学力評価", MASTER
+CALL TEXT, "生理周期", MASTER
+CALL TEXT, "状態", MASTER
+PRINTL 
+PRINTFORM  所持金:%MONEY_C(MONEY)% 
+
+ITEMS = 
+;消耗品。クリックで購入可能
+FOR LCOUNT, 50, 60
+	SIF ITEMNAME:LCOUNT == ""
+		CONTINUE
+	ITEMS = %ITEMS%%ITEMNAME:LCOUNT% ×{ITEM:LCOUNT}_{9000 + LCOUNT}/
+NEXT
+CALL PRINT_LIST, ITEMS
+;没収中のパンツはここに並べる
+FOR LCOUNT, 2, CHARANUM
+	GET_PANTU = 
+	SIF CSTR:LCOUNT:没収済パンツ == ""
+		CONTINUE
+
+	SWAP CSTR:LCOUNT:パンツ, CSTR:LCOUNT:没収済パンツ
+
+	IF COND("パンツドーピング", LCOUNT)
+		GET_PANTU = 灰色\/%PANTIES(LCOUNT)%（%CALLNAME:LCOUNT%）\/
+	ELSE
+		GET_PANTU = %PANTIES(LCOUNT)%（%CALLNAME:LCOUNT%）_{4000 + LCOUNT}\/
+	ENDIF
+
+	CALL PRINT_LIST, GET_PANTU
+
+	SWAP CSTR:LCOUNT:パンツ, CSTR:LCOUNT:没収済パンツ
+NEXT
+PRINTL 
+
+;優先順位の整合性をとる
+CALL CHECK_POSITION
+
+NUM_ANIME = 0
+
+;優先順位上位５名を表示する
+FOR LCOUNT, 1, 6
+	CHOICE = FINDCHARA(CFLAG:優先順位, LCOUNT, 2)
+	SIF CHOICE <= 0
+		BREAK
+	SIF CFLAG:CHOICE:不在
+		CONTINUE
+
+	;PRINTL 
+	;PRINTFORM [{LCOUNT}]
+	CALL PRINT_STR, @"青_[{LCOUNT}]"
+
+	IF COND("現在不在", CHOICE)
+		IF PLACE("自宅")
+			SIF CHOICE != TARGET
+				PRINTFORM [{LCOUNT + 10}]
+			SELECTCASE CSTR:CHOICE:現在位置
+			CASE @"%CSVCALLNAME(NO:CHOICE)%の部屋"
+				CALL PRINT_STR, "灰色_(自室)_"
+			CASEELSE
+				CALL PRINT_STR, @"灰色_(%CSTR:CHOICE:現在位置%)_"
+			ENDSELECT
+		ELSE
+			SIF CHOICE != TARGET && CFLAG:睡眠 == 0
+				PRINTFORM [{LCOUNT + 10}]
+			CALL PRINT_STR, "灰色_(不在)_"
+		ENDIF
+	ELSE
+		IF COND("顔グラ表示中", CHOICE)
+			ANIME_CHARA:NUM_ANIME = CHOICE
+			NUM_ANIME += 1
+		ENDIF
+
+		SIF CHOICE != TARGET
+			PRINTFORM [{LCOUNT + 10}]
+
+		;SELECTCASE CHOICE
+		;CASE TARGET
+		;	SETCOLOR DEF_COLOR("黄色")
+		;CASE ASSI:1
+		;	SETCOLOR DEF_COLOR("緑")
+		;ENDSELECT
+
+		IF CFLAG:CHOICE:行動参加中
+			SETCOLOR DEF_COLOR("黄色")
+		ELSEIF CFLAG:CHOICE:レクリエーション中
+			SETCOLOR DEF_COLOR("緑")
+		ENDIF
+	ENDIF
+	PRINTFORM %NAME:CHOICE%
+	RESETCOLOR
+	IF TALENT:CHOICE:ふたなり
+		PRINTPLAINFORM %UNICODE(0x26A5)%[%TALENT_NAME(GETNUM(TALENT, "ペニス"), TALENT:CHOICE:ペニス, CHOICE)%]
+	ELSEIF TALENT:CHOICE:オトコ
+		PRINTPLAINFORM ♂[%TALENT_NAME(GETNUM(TALENT, "ペニス"), TALENT:CHOICE:ペニス, CHOICE)%]
+	ENDIF
+	SIF CFLAG:CHOICE:お弁当
+		PRINTFORM %UNI("お弁当")% 
+	IF TALENT:CHOICE:オトコ
+		PRINTPLAINFORM [%CONDS("体型", CHOICE)%]
+	ELSE
+		PRINTPLAINFORM [%CONDS("体型", CHOICE)%(%CONDS("バストカップ", CHOICE)%)]
+	ENDIF
+	;日焼け有り？
+	IF TEXTS("日焼け跡", CHOICE) != ""
+		CALL PRINT_STR, @"[_茶色_%TEXTS("日焼け跡", CHOICE)%_]"
+	ELSEIF TALENT:CHOICE:肌の色
+		SIF COND("顔グラ表示中", CHOICE) == 0
+			PRINTFORM [%CONDS("肌の色", CHOICE)%]
+	ENDIF
+	CALL TEXT, "関係", CHOICE
+	CALL TEXT, "学力評価", CHOICE
+	CALL TEXT, "生理周期", CHOICE
+	CALL TEXT, "状態", CHOICE
+
+	PRINTL 
+	SELECTCASE CFLAG:CHOICE:好感度
+	CASE IS >= 2500
+		CALL PRINT_STR, @" 好感度_ハートピンク_{CFLAG:CHOICE:好感度, 4}_ "
+	CASE IS < 0
+		CALL PRINT_STR, @" 好感度_青_{CFLAG:CHOICE:好感度, 4}_ "
+	CASEELSE
+		CALL PRINT_STR, @" 好感度{CFLAG:CHOICE:好感度, 4}_ "
+	ENDSELECT
+	PRINTFORM 体力{BASE:CHOICE:体力} 
+
+	PRINTFORM 精力
+	;CALL PRINT_BAR, "減少ゲージ", BASE:CHOICE:精力, MAXBASE:CHOICE:精力, 6
+	;PRINTFORM {BASE:CHOICE:精力}/{MAXBASE:CHOICE:精力} 
+	SELECTCASE BASE:CHOICE:精力*100/MAXBASE:CHOICE:精力
+	CASE IS >= 90
+		CALL PRINT_STR, @"緑_%TOSTR(BASE:CHOICE:精力)%_ "
+	CASE IS >= 75
+		CALL PRINT_STR, @"%TOSTR(BASE:CHOICE:精力)% "
+	CASEELSE
+		CALL PRINT_STR, @"青_%TOSTR(BASE:CHOICE:精力)%_ "
+	ENDSELECT
+
+	CALL TEXT, "学力", CHOICE
+
+	PRINTFORM 欲求
+	CALL PRINT_BAR, "欲求ゲージ", BASE:CHOICE:欲求不満, 100, 6
+	;PRINTFORM {BASE:CHOICE:欲求不満}\% 
+	PRINT  
+
+	IF TALENT:CHOICE:オトコ == 0
+		CALL TEXT, "胎内精液量", CHOICE
+		IF CFLAG:CHOICE:絆創膏装着
+			PRINTFORM %UNI("絆創膏")% 
+		ELSE
+			PRINT  
+		ENDIF
+	ENDIF
+
+	CALL TEXT, "尿意", CHOICE
+	PRINTL 
+	;不在でないなら衣装の表示
+	IF COND("現在不在", CHOICE) == 0
+		PRINT  
+		CALL PRINT_DRESS, CHOICE, "短縮表示"
+
+		;着せ替えのお願い表示
+		;3000-パンツ没収, 3100-全裸化, 3200-下着化
+		IF COND("現在不在", CHOICE) == 0 && CFLAG:CHOICE:睡眠 == 0
+			MEMO_TARGET = TARGET
+
+			TARGET = CHOICE
+			PRINT  
+			WISH_CLO = 
+
+			IF COND("パンツ没収実行可能") && COND("合意：パンツ取引")
+				WISH_CLO = %WISH_CLO%パンツ取引_{3000 + LCOUNT}\/
+			;返されても困るか…
+			;ELSEIF EQUIP:パンツ == 0 && CSTR:没収済パンツ != ""
+			;	WISH_CLO = %WISH_CLO%パンツ返却_{3000 + LCOUNT}\/
+			ENDIF
+
+			SIF CHECK_CLO("ハダカ") == 0 && COND("合意：全裸化") && CHOSE_DEVENT("裸になった") == 0
+				WISH_CLO = %WISH_CLO%全裸化_{3100 + LCOUNT}\/
+
+			;IF EQUIP:服 + EQUIP:スカート
+			;	;下着化判定
+			;	SELECTCASE TCVAR:やる気 - (CHARA_NUM("集合予定") - 2 > 0)*20
+			;	CASE IS <= 0
+			;		WISH_CLO = %WISH_CLO%灰色/下着姿_{3200 + CHOICE}\/
+			;	CASE IS < 30
+			;		WISH_CLO = %WISH_CLO%下着姿_{3200 + CHOICE}\/
+			;	CASEELSE
+			;		WISH_CLO = %WISH_CLO%ハートピンク/下着姿_{3200 + CHOICE}\/
+			;	ENDSELECT
+			;ENDIF
+
+			CALL PRINT_LIST, WISH_CLO
+
+			TARGET = MEMO_TARGET
+		ENDIF
+		PRINTL 
+	ENDIF
+	;指示されているならそれも表示
+	IF CHOICE == ASSI && ABL:CHOICE:助手 && CFLAG:CHOICE:助手の指示
+		PRINT  指示：
+		CALL ASSI_LIST_INDICATE, CHOICE
+		PRINTL 
+	ENDIF
+NEXT
+
+;優先順位上位５名の顔グラを表示する
+IF NUM_ANIME
+	DRAWLINE
+	;あなたの顔グラ出す？
+	IF CONFIG("MASTER顔グラ") && CFLAG:MASTER:顔グラ
+		CALL PRINT_MAIDFACE, 1, ANIME_CHARA:0, ANIME_CHARA:1, ANIME_CHARA:2, ANIME_CHARA:3
+	ELSE
+		CALL PRINT_MAIDFACE, ANIME_CHARA:0, ANIME_CHARA:1, ANIME_CHARA:2, ANIME_CHARA:3, ANIME_CHARA:4
+	ENDIF
+ENDIF
+DRAWLINE
+
+
+;基本的にはこんな感じ
+;[100]ベッドに誘う		[101]デートに誘う		[102]ラブホに呼び出す	[103]能力表示と役割変更
+;-------------------------------------------------
+;[200]トーク			[201]もてなす			[202]隙を見せる			[203]パンツチェック
+;[204]スマホで写真撮影	[205]性処理を頼む
+;-------------------------------------------------
+;[300]取引する			[301]人脈を広げる		[302]買い物する			[303]抜け出して密会
+;[333]セーブ			[444]ロード				[555]コンフィグ			[666]写真の閲覧
+;[777]エンディングを迎える						[888]季節イベント		[999]休憩
+
+
+VARSET MENU_SHOP
+
+SIF CFLAG:睡眠 || COND("デートの予定あり")
+	MENU_SHOP = %MENU_SHOP%灰色/
+IF CFLAG:ご褒美権
+	MENU_SHOP = %MENU_SHOP%[100]ご褒美を頂く/
+ELSE
+	MENU_SHOP = %MENU_SHOP%[100]%NAMES("ベッド")%に誘う/
+ENDIF
+
+;只今デートのお時間(日曜昼)
+IF DAYEV("デートタイム")
+	IF PLACE("自宅") == 0
+		MENU_SHOP = %MENU_SHOP%灰色/[101]誰かとデートする/
+	ELSEIF COND("デートの予定あり")
+		MENU_SHOP = %MENU_SHOP%ハートピンク/[101]デートに出かける/
+	ELSEIF CHARA_NUM("デート可能")
+		MENU_SHOP = %MENU_SHOP%[101]誰かとデートする/
+	ELSE
+		MENU_SHOP = %MENU_SHOP%灰色/[101]誰かとデートする/
+	ENDIF
+;休日のデートに誰かを誘う？
+ELSE
+	IF CFLAG:睡眠
+		MENU_SHOP = %MENU_SHOP%灰色/[101]デートに誘う/
+	ELSEIF COND("デート可能") && CHARA_NUM("デートの約束") == 0
+		IF COND("デートお誘い済み")
+			MENU_SHOP = %MENU_SHOP%[101]デートの誘いに乗る/
+		ELSE
+			MENU_SHOP = %MENU_SHOP%[101]デートに誘う/
+		ENDIF
+	ELSE
+		MENU_SHOP = %MENU_SHOP%灰色/[101]デートに誘う/
+	ENDIF
+ENDIF
+
+;この場にいない人をＨに誘う(居間or部室のみ選択可能)
+IF PLACE("居間") + PLACE("部室") == 0 || FIND_COND("呼び出しＨ可能") == 0 || COND("デートの予定あり")
+	MENU_SHOP = %MENU_SHOP%灰色/[102]部員を呼び出す/
+ELSEIF PLACE("居間")
+	MENU_SHOP = %MENU_SHOP%[102]ラブホに呼び出す/
+ELSEIF PLACE("部室")
+	MENU_SHOP = %MENU_SHOP%[102]ヤリ部屋に呼び出す/
+ENDIF
+
+MENU_SHOP = %MENU_SHOP%[103]能力表示と役割変更/
+
+;MENU_SHOP = %MENU_SHOP%[110]身嗜み変更/
+;MENU_SHOP = %MENU_SHOP%[111]弱点・性癖の変更/
+;MENU_SHOP = %MENU_SHOP%[112]好みの服装の変更/
+
+
+MENU_SHOP = %MENU_SHOP%DRAWLINE/
+
+;性処理できるかチェック
+CALL CHECK_COM_ABLE, TARGET
+;日常イベントのコマンド表示
+FOR LCOUNT, 200, 208
+	SELECTCASE DAILYCOMNAME_SELECT(DAILYCOMNAME(LCOUNT) )
+	CASE ""
+		CONTINUE
+	;性処理は合意が無いとダメ
+	CASE "性処理を頼む", "ながら性処理"
+		IF COND("性処理意欲") == 0 || CHARA_NUM("性処理合意無し")
+			MENU_SHOP = %MENU_SHOP%灰色/
+		ELSEIF COND("やる気性処理") == 0 && COND("ながら性処理") == 0
+			MENU_SHOP = %MENU_SHOP%灰色/
+		ENDIF
+	CASE "性欲解消を手伝う"
+		SIF COND("性欲解消を手伝う可能") == 0
+			MENU_SHOP = %MENU_SHOP%灰色/
+	;ちょっと隠ぺいしてみる
+	;CASE "股間に見入る"
+	;	MENU_SHOP = %MENU_SHOP%[{LCOUNT}]%DAILYCOMNAME(LCOUNT)%/
+	;	CONTINUE
+	;CASE "余韻に浸る", "股間に見入る"
+	;	MENU_SHOP = %MENU_SHOP%ハートピンク/
+	;CASE "お誘いに乗る"
+	;	MENU_SHOP = %MENU_SHOP%ハートピンク/
+	CASEELSE
+		STR:選択肢 = 
+		TRYCALLFORM DAILY{DAILYNUM(DAILYCOMNAME(LCOUNT))}_K{NO:TARGET}_ADDSELECT
+		SIF STR:選択肢 != ""
+			MENU_SHOP = %MENU_SHOP%緑/
+	ENDSELECT
+
+	MENU_SHOP = %MENU_SHOP%[{LCOUNT}]%DAILYCOMNAME_SELECT(DAILYCOMNAME(LCOUNT) )%/
+NEXT
+
+MENU_SHOP = %MENU_SHOP%DRAWLINE/
+
+SIF TARGET == 0 || CFLAG:睡眠
+	MENU_SHOP = %MENU_SHOP%灰色/
+IF TARGET && COND("魂の取引可能")
+	MENU_SHOP = %MENU_SHOP%[300]取引をする/
+ELSE
+	MENU_SHOP = %MENU_SHOP%[300]お願いする/
+ENDIF
+IF FLAG:勧誘可能 == 0 || CHARA_NUM("勧誘可能") == 0 || CFLAG:睡眠
+	MENU_SHOP = %MENU_SHOP%灰色/
+ELSE
+	SIF PLACE("出先")
+		MENU_SHOP = %MENU_SHOP%灰色/
+ENDIF
+MENU_SHOP = %MENU_SHOP%[301]仲間を勧誘する/
+
+SIF CEVENT("槞彁：バイト探し", MASTER) && !CEVENT("槞彁：就労ビザ取得命令", MASTER)
+	MENU_SHOP = %MENU_SHOP%太字/黄色/
+SIF CFLAG:睡眠
+	MENU_SHOP = %MENU_SHOP%灰色/
+MENU_SHOP = %MENU_SHOP%[302]買い物する/
+
+IF COND("場所移動可能") == 0 || COND("デートの予定あり")
+	MENU_SHOP = %MENU_SHOP%灰色/
+;槞彁はイベントあるかもなのでお知らせ
+ELSEIF NO:TARGET == 15 && CEVENT("槞彁：ビザ取得デートのお誘い", MASTER) && !CEVENT("槞彁：ビザ発行不可", MASTER) && TEXTS("曜日") == "日"
+	MENU_SHOP = %MENU_SHOP%太字/黄色/
+ENDIF
+IF PLACE("部室")
+	IF CHARA_NUM("集合予定") >= 3
+		MENU_SHOP = %MENU_SHOP%[303]抜け出して密会/
+	ELSE
+		MENU_SHOP = %MENU_SHOP%[303]場所を変える/
+	ENDIF
+ELSE
+	IF PLACE("野外")
+		MENU_SHOP = %MENU_SHOP%[303]帰る/
+	ELSE
+		MENU_SHOP = %MENU_SHOP%[303]場所を変える/
+	ENDIF
+ENDIF
+
+MENU_SHOP = %MENU_SHOP%改行/[333]セーブ/
+
+MENU_SHOP = %MENU_SHOP%[444]ロード/
+
+MENU_SHOP = %MENU_SHOP%[555]コンフィグ/
+SIF NUM("写真") == 0
+	MENU_SHOP = %MENU_SHOP%灰色/
+MENU_SHOP = %MENU_SHOP%[666]写真の閲覧/
+
+STR:ＥＮＤタイトル = 
+STR:エンディング = 
+STR:ＥＮＤカラー = 
+
+SIF CFLAG:睡眠 == 0 || CFLAG:睡眠時エンディング
+	TRYCALLFORM MENU_SINGLE_ENDING_K{NO:TARGET}
+
+SELECTCASE STR:エンディング
+CASE ""
+	STR:ＥＮＤタイトル = 
+CASEELSE
+	;@MENU_SINGLE_ENDING_K{NO:TARGET}で文字色が決められていない場合
+	IF STR:ＥＮＤカラー == ""
+		SIF COND("未読ＥＮＤ選択可能")
+			STR:ＥＮＤカラー = ハートピンク
+	ENDIF
+	SIF STR:ＥＮＤカラー != ""
+		MENU_SHOP = %MENU_SHOP%%STR:ＥＮＤカラー%/
+ENDSELECT
+
+SELECTCASE STRLENS(STR:ＥＮＤタイトル)
+CASE 0
+	MENU_SHOP = %MENU_SHOP%NOBUTTON/NOBUTTON/
+CASE IS >= 19
+	MENU_SHOP = %MENU_SHOP%[777]%STR:ＥＮＤタイトル% %BL(24 - STRLENS(STR:ＥＮＤタイトル) + 18)%/
+CASEELSE
+	MENU_SHOP = %MENU_SHOP%[777]%STR:ＥＮＤタイトル%/NOBUTTON/
+ENDSELECT
+
+;マリーちゃんの中の人さん作のキャラ固定季節イベント
+;メイドが健在である
+;IF FINDCHARA(NO, 1) > 0
+;	MENU_SHOP = %MENU_SHOP%[884]お菓子材料店/
+;	MENU_SHOP = %MENU_SHOP%[885]チョコレート練成陣/DRAWLINE/
+;ENDIF
+
+SELECTCASE TEXTS("季節")
+CASE "春"
+	FLAG:季節イベントフラグ = CLEARBITS(FLAG:季節イベントフラグ, 10, 39)
+
+	MENU_SHOP = %MENU_SHOP%NOBUTTON/
+CASE "夏"
+	FLAG:季節イベントフラグ = CLEARBITS(FLAG:季節イベントフラグ, 0, 9)
+	FLAG:季節イベントフラグ = CLEARBITS(FLAG:季節イベントフラグ, 20, 39)
+
+	IF GETBIT(FLAG:季節イベントフラグ, 10) == 0 && COND("昼") && TEXTS("曜日") == "土"
+		MENU_SHOP = %MENU_SHOP%[888]部員全員で海へ/
+	ELSEIF GETBIT(FLAG:季節イベントフラグ, 11) == 0 && COND("昼") && TEXTS("曜日") == "土"
+		MENU_SHOP = %MENU_SHOP%[888]海イベントおまけ/
+	ELSE
+		MENU_SHOP = %MENU_SHOP%NOBUTTON/
+	ENDIF
+CASE "秋"
+	FLAG:季節イベントフラグ = CLEARBITS(FLAG:季節イベントフラグ, 0, 19)
+	FLAG:季節イベントフラグ = CLEARBITS(FLAG:季節イベントフラグ, 30, 39)
+
+	MENU_SHOP = %MENU_SHOP%NOBUTTON/
+CASE "冬"
+	FLAG:季節イベントフラグ = CLEARBITS(FLAG:季節イベントフラグ, 0, 29)
+
+	IF GETBIT(FLAG:季節イベントフラグ, 30) == 0 && COND("夜") && TEXTS("日付対応イベント") == "クリスマス"
+		MENU_SHOP = %MENU_SHOP%[888]皆でクリスマス/
+	ELSE
+		MENU_SHOP = %MENU_SHOP%NOBUTTON/
+	ENDIF
+CASEELSE
+	MENU_SHOP = %MENU_SHOP%NOBUTTON/
+ENDSELECT
+
+SIF COND("デートの予定あり")
+	MENU_SHOP = %MENU_SHOP%灰色/
+;休憩
+IF PLACE("自宅")
+	SELECTCASE TEXTS("時間")
+	CASE "昼"
+		MENU_SHOP = %MENU_SHOP%[999]夜まで休憩/
+	CASE "夜"
+		IF PLACE("居間")
+			MENU_SHOP = %MENU_SHOP%[999]お風呂に入って寝る/
+		ELSE
+			MENU_SHOP = %MENU_SHOP%[999]就寝する/
+		ENDIF
+	CASEELSE
+		MENU_SHOP = %MENU_SHOP%[999]夜まで休憩/
+	ENDSELECT
+ELSE
+	SELECTCASE TEXTS("時間")
+	CASE "夜"
+		MENU_SHOP = %MENU_SHOP%[999]帰って寝る/
+	CASEELSE
+		MENU_SHOP = %MENU_SHOP%[999]暇を潰す/
+	ENDSELECT
+ENDIF
+
+MENU_SHOP = %MENU_SHOP%DRAWLINE/
+
+;六華が居る？
+IF FINDCHARA(NO, 5) > 0
+	IF TEXTS("日付対応イベント") == "お正月" && DEVENT("社修繕完了", FINDCHARA(NO, 5))
+		MENU_SHOP = %MENU_SHOP%[886]おみくじを引く/DRAWLINE/
+	ELSE
+		SIF COND("昼") && TEXTS("曜日") != "日"
+			MENU_SHOP = %MENU_SHOP%灰色/
+		MENU_SHOP = %MENU_SHOP%[886]白蛇神社を訪れる/DRAWLINE/
+	ENDIF
+ENDIF
+
+VARSET LOCALS
+SPLIT MENU_SHOP, "/", LOCALS
+
+NEXT_LINE = 0
+
+;SHOP画面の表示
+FOR LCOUNT, 0, 100
+	;まずは色だけチェック
+	SELECTCASE LOCALS:LCOUNT
+	CASE "灰色", "水色", "ハートピンク", "青", "緑", "緑色", "黄色"
+		;すでに指定色になっている場合は色変換を止める
+		IF GETCOLOR() != DEF_COLOR(LOCALS:LCOUNT)
+			SETCOLOR DEF_COLOR(LOCALS:LCOUNT)
+			CONTINUE
+		ENDIF
+	ENDSELECT
+
+	SELECTCASE LOCALS:LCOUNT
+	CASE ""
+		BREAK
+	CASE "太字"
+		FONTSTYLE 1
+		CONTINUE
+	CASE "改行"
+		IF NEXT_LINE%4
+			NEXT_LINE = 0
+			PRINTL 
+		ENDIF
+		CONTINUE
+	CASE "強制改行"
+		NEXT_LINE = 0
+		PRINTL 
+		CONTINUE
+	CASE "DRAWLINE"
+		IF NEXT_LINE%4
+			NEXT_LINE = 0
+			PRINTL 
+		ENDIF
+		DRAWLINE
+		CONTINUE
+	ENDSELECT
+
+	;太字にした？
+	IF GETBIT(GETSTYLE(), 0)
+		SELECTCASE LOCALS:LCOUNT
+		CASE "NOBUTTON"
+			PRINTPLAINFORM %TEXT_LJ("", 21)%
+		CASEELSE
+			PRINTFORM %TEXT_LJ(LOCALS:LCOUNT, 21)%
+		ENDSELECT
+	ELSE
+		SELECTCASE LOCALS:LCOUNT
+		CASE "NOBUTTON"
+			PRINTPLAINFORM %TEXT_LJ("", 24)%
+		CASEELSE
+			PRINTFORM %TEXT_LJ(LOCALS:LCOUNT, 24)%
+		ENDSELECT
+	ENDIF
+	FONTREGULAR
+	RESETCOLOR
+
+	NEXT_LINE += 1
+	SIF NEXT_LINE%4 == 0
+		PRINTL 
+NEXT
+SIF NEXT_LINE%4
+	PRINTL 
+
+
+;時間が経過しそうなものを選んだ際にはFLAG:現実時間を再取得する
+@USERSHOP
+#DIM LCOUNT
+#DIM CHOICE
+#DIM ACTOR
+#DIM MEMO_TARGET
+#DIM MEMO_ASSI
+#DIM MEMO_ITEM
+#DIM MEMO_DOPING
+#DIM MEMO_LINECOUNT
+#DIM MEMO_LINECOUNT2
+;起きうるイベントの判定に使う
+#DIMS EVENT_TABLE
+;これがONだとBEGIN TRAINする
+#DIM GO_BEGIN_TRAIN
+#DIM GO_BEGIN_TURNEND
+
+GO_BEGIN_TRAIN = 0
+GO_BEGIN_TURNEND = 0
+
+CHOICE = RESULT
+;PRINTFORML CHOICE = {CHOICE}
+
+SELECTCASE FLAG:SELECT_USERSHOP
+;[999]休憩
+CASE 999
+	SELECTCASE CHOICE
+	CASE 0
+		;現実時間フラグ取得
+		CALL GET_REALTIMEFORFLAG
+		IF CFLAG:睡眠 == 0
+			IF RAND:10 == 0 && DAYEV("日曜", "ゲーム内") && COND("昼") && TALENT:恋慕 && EXP:デート経験
+				PRINTFORMW %CALLNAME:MASTER%と%CALLNAME:TARGET%は、何をするかと考えた。
+				PRINTFORMW 買い出しに行ってくるとか、友達と遊びに行くとか、教会にいってミサに行くとか……
+				PRINTFORMW エッチも、%CALLNAME:MASTER%も%CALLNAME:TARGET%もそんな気分じゃない。
+				PRINTFORMW だから、家で無為に過ごすことにした。
+				PRINTFORMW どうせ、最近は刺激に満ち溢れた日々を過ごしているのだ。
+				PRINTFORMW 偶には、ゆったりとした一日を過ごしても良いだろう。
+				PRINTFORMW ソファに腰かけて何をするまでも無くだらけている%CALLNAME:MASTER%の横に座った%CALLNAME:TARGET%は
+				PRINTFORMW %CALLNAME:MASTER%の肩をとんとんと叩き、膝枕をさせて欲しいと言ってきた。
+				PRINTFORMW 拒否する理由も無いから%CALLNAME:MASTER%は、%CALLNAME:TARGET%に膝枕される事にした。
+				PRINTFORMW ただただ、時間がゆっくりと流れていく。
+				PRINTFORMW いつしか%CALLNAME:MASTER%は撫でられていて、髪を梳かれていた。
+				PRINTFORMW お互いに無言で、空気は静まっている。
+				PRINTFORMW だが、気持ちの良い静けさだ。
+				PRINTFORMW 偶には、こんな一日も良いなと思うのだった……
+			ELSE
+				CALL KOJO_DAILYCOM, "休憩"
+			ENDIF
+		ENDIF
+		IF TFLAG:お風呂でＨ
+			CALL BLANK_DRAWLINE
+			PRINTFORMW ……%TEXTS("間柄の")%%CALLNAME:TARGET%とお風呂場でＨする事にします。
+			GO_BEGIN_TRAIN = 1
+		ELSEIF TFLAG:ベッドイン
+			CALL BLANK_DRAWLINE
+			PRINTFORMW ……%TEXTS("間柄の")%%CALLNAME:TARGET%と寝る事にします。
+			GO_BEGIN_TRAIN = 1
+		ELSE
+			GO_BEGIN_TURNEND = 1
+		ENDIF
+	CASE 1
+
+	CASEELSE
+		CLEARLINE 1
+		INPUT
+		RESTART
+	ENDSELECT
+;[100]ベッドに誘う
+CASE 100
+	SELECTCASE CHOICE
+	CASE 0
+		GO_BEGIN_TRAIN = 1
+		IF CFLAG:ご褒美権
+			CFLAG:ご褒美権 -= 1
+			EQUIP:Ｈなご褒美 = 1
+		ENDIF
+	CASE 1
+
+	CASEELSE
+		CLEARLINE 1
+		INPUT
+		RESTART
+	ENDSELECT
+;[101]デートに誘う
+CASE 101
+	;デート
+	SELECTCASE CHOICE
+	;ラブホテルに誘う
+	CASE 0
+		IF STR:Ｈする場所 != ""
+			SAVESTR:現在位置 = %STR:Ｈする場所%
+		ELSEIF TFLAG:文化祭デート
+			SAVESTR:現在位置 = 人気のない教室
+		ELSE
+			SAVESTR:現在位置 = ラブホテル
+		ENDIF
+		TFLAG:ベッドイン = 1
+		CALL KOJO_DATE, "デート終了"
+	;帰る
+	CASE 1
+		CALL KOJO_DATE, "デート終了"
+		IF TFLAG:文化祭デート
+			PRINTFORML %CALLNAME:MASTER%と%CALLNAME:TARGET%は、そろそろ潮時だと家路についた。
+			PRINTFORMW お互いに楽しい思い出になったようだ……
+		ELSEIF COND("同棲中")
+			PRINTFORMW デートを終えた%CALLNAME:MASTER%達はあーだこーだと今日の出来事を反芻しながら、行きよりも体をくっつけつつ帰路についた……
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%達は今日のデートについて感想を言いあった後、後ろ髪を引かれつつも手を振り合って別れ家路についた……
+		ENDIF
+		PRINTL 
+	CASEELSE
+		CLEARLINE 1
+		INPUT
+		RESTART
+	ENDSELECT
+
+	CFLAG:好感度 += 100
+	PRINTFORML 好感度+100
+
+	EXP:MASTER:デート経験 += 1
+	EXP:デート経験 += 1
+	PRINTFORMW デート経験+1（二人とも）
+
+	;デートの約束リセット
+	CVARSET CFLAG, GETNUM(CFLAG, "デートの約束")
+
+	;フラグが立っているならＨ！
+	IF TFLAG:ベッドイン || TFLAG:お風呂でＨ
+		PRINTL 
+		IF TFLAG:文化祭デート
+			PRINTFORMW %TEXTS("間柄の")%%CALLNAME:TARGET%を祭りのテンションに任せてエッチに誘った。
+		ELSEIF SAVESTR:現在位置 == "ラブホテル"
+			PRINTFORMW %TEXTS("間柄の")%%CALLNAME:TARGET%をデート後のテンションに任せてラブホテルに誘った。
+		ELSE
+			PRINTFORMW %TEXTS("間柄の")%%CALLNAME:TARGET%をデート後のテンションに任せてエッチに誘った。
+		ENDIF
+		CALL MOVE_PLACE, SAVESTR:現在位置, TARGET
+		GO_BEGIN_TRAIN = 1
+	ELSE
+		GO_BEGIN_TURNEND = 1
+	ENDIF
+;[202]隙を見せる。でのＨのお誘いとか押し倒しとかお風呂とか
+CASE 202
+	SELECTCASE CHOICE
+	CASE 0
+		SELECTCASE CSTR:お誘い
+		CASE "お風呂のお誘い"
+			STR:日常イベント名 = 一緒にお風呂
+			CALL BLANK_DRAWLINE
+			PRINTL ………
+			PRINTL ……
+			PRINTL …
+			PRINTL 
+			CALL KOJO_DAILYCOM, "一緒にお風呂"
+			;フラグが立っているならＨ！
+			IF TFLAG:ベッドイン || TFLAG:お風呂でＨ
+				GO_BEGIN_TRAIN = 1
+			ELSE
+				PRINTFORMW %CALLNAME:MASTER%は%TEXTS("間柄の")%%CALLNAME:TARGET%と一緒にお風呂に入りました。
+				GO_BEGIN_TURNEND = 1
+			ENDIF
+		CASE "押し倒し"
+			SIF FLAG:呼び出しＨ中 == 0
+				PRINTFORMW %CALLNAME:MASTER%は%TEXTS("間柄の")%%CALLNAME:TARGET%を受け入れた。
+			GO_BEGIN_TRAIN = 1
+		CASEELSE
+			SIF FLAG:呼び出しＨ中 == 0
+				PRINTFORMW %CALLNAME:MASTER%は%TEXTS("間柄の")%%CALLNAME:TARGET%からのお誘いを受けた。
+			GO_BEGIN_TRAIN = 1
+		ENDSELECT
+		SIF STR:Ｈする場所 != ""
+			SAVESTR:現在位置 = %STR:Ｈする場所%
+	CASE 1
+		;後半部分を再生
+		CALL EVENT_DAILY, DAILYNUM("隙を見せる"), "隙を見せる"
+		;パートナーを元の人に戻す
+		TARGET = FINDCHARA(CFLAG:優先順位, 1, 2)
+	CASEELSE
+		CLEARLINE 1
+		INPUT
+		RESTART
+	ENDSELECT
+;特殊なイベントで来た場合
+CASE 250
+	SELECTCASE CHOICE
+	CASE 0
+		GO_BEGIN_TRAIN = 1
+	CASE 1
+
+	CASE 2
+		IF COND("自発パンツプレゼント可能")
+			GO_BEGIN_TRAIN = 1
+		ELSE
+			CLEARLINE 1
+			INPUT
+			RESTART
+		ENDIF
+	CASEELSE
+		CLEARLINE 1
+		INPUT
+		RESTART
+	ENDSELECT
+
+	TFLAG:選択番号 = CHOICE
+	CALL EVENT_ACADEMY, "二人きり：Ｈに誘う後半"
+ENDSELECT
+
+IF GO_BEGIN_TRAIN
+	SIF TFLAG:お風呂でＨ
+		EQUIP:お風呂でＨ = 1
+
+	IF CFLAG:ご褒美権
+		PRINTFORML 
+		PRINTFORML ……%CALLNAME:TARGET%からＨなご褒美を貰いますか？
+		CALL PRINT_STRL, "黄色_※実行値に+15＆初期ムード+_HH_HH_HH_黄色_＆危険日以外の中出し＆写真撮影許可、等のボーナスが貰えます"
+		CALL PRINT_SELECT, "貰う/まだ取っておく"
+		IF RESULT == 0
+			CFLAG:ご褒美権 -= 1
+			EQUIP:Ｈなご褒美 = 1
+		ENDIF
+	ENDIF
+
+	;他の人の反応があるなら一人だけ出す（喋るのは優先順位が上の人から）
+	IF FLAG:二人きり == 0
+		PRINTL 
+		MEMO_LINECOUNT = LINECOUNT
+		FOR LCOUNT, 1, CHARANUM
+			ACTOR = FINDCHARA(CFLAG:優先順位, LCOUNT, 2)
+			SELECTCASE ACTOR
+			CASE IS <= 0, TARGET, ASSI
+				CONTINUE
+			CASEELSE
+				SIF CFLAG:ACTOR:睡眠 || COND("現在不在", ACTOR)
+					CONTINUE
+			ENDSELECT
+
+			TFLAG:退出する = 0
+			;名前とだいたいの服装を表示
+			SIF COND("顔グラ表示中", ACTOR) == 0
+				CALL PRINT_NAME_CLO, ACTOR
+			MEMO_LINECOUNT2 = LINECOUNT
+			CALL KOJO_GREETING, "他の人がＨ開始", ACTOR
+			SIF TFLAG:退出する
+				CFLAG:ACTOR:不在 = 1
+
+			SELECTCASE LINECOUNT
+			CASE IS > MEMO_LINECOUNT2
+				BREAK
+			CASEELSE
+				SIF COND("顔グラ表示中", ACTOR) == 0
+					CLEARLINE 1
+			ENDSELECT
+		NEXT
+		SIF LINECOUNT == MEMO_LINECOUNT
+			CLEARLINE 1
+	ENDIF
+
+	;時間帯を進める場合には交流している部員を選出する
+	CALL SETFLAG, "部員同士の交流：キャラ選出"
+
+	REDRAW 1
+	CALL SETFLAG, "PALAMの記録"
+
+	;BEGIN前に顔グラ変化を一旦リセット
+	CVARSET CSTR, GETNUM(CSTR, "顔グラ変化")
+
+	BEGIN TRAIN
+ELSEIF GO_BEGIN_TURNEND
+	;休憩フラグを立てる
+	FLAG:休憩 = 1
+	;時間帯を進める場合には交流している部員を選出する
+	CALL SETFLAG, "部員同士の交流：キャラ選出"
+
+	;TRYCALL EVENT_REST_PRE
+
+	;BEGIN前に顔グラ変化を一旦リセット
+	CVARSET CSTR, GETNUM(CSTR, "顔グラ変化")
+
+	BEGIN TURNEND
+ENDIF
+
+RETURN 1
+
+
+@USERSHOP_PRE, ARG
+#DIM LCOUNT
+#DIM CHOICE
+#DIMS CHOICES
+#DIM MEMO_TARGET
+#DIM MEMO_ASSI
+#DIM MEMO_ITEM
+#DIMS MEMO_DOPING
+#DIM MEMO_LINECOUNT
+;起きうるイベントの判定に使う
+#DIMS EVENT_TABLE
+
+FLAG:SELECT_USERSHOP = 0
+CHOICE = ARG
+
+SELECTCASE CHOICE
+;選択されたキャラをTARGETに
+CASE 1002 TO 999+CHARANUM
+	CHOICE = CHOICE - 1000
+	SIF CFLAG:CHOICE:不在
+		RETURN 0
+	SELECTCASE CHOICE
+	CASE TARGET
+	CASEELSE
+		IF COND("現在不在", CHOICE) == 0
+			CALL SETFLAG, "対象指定", CHOICE
+		;今居ないキャラをクリックした場合は、可能なら呼び寄せる
+		ELSEIF CFLAG:睡眠 == 0
+			IF PLACE("自宅")
+				SIF PLACE("居間") == 0
+					RETURN 0
+				PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:CHOICE%を居間に呼んだ。
+				IF CFLAG:CHOICE:睡眠
+					PRINTFORMW ……のだが、反応がない。寝ているのだろうか？
+					RETURN 0
+				ENDIF
+			ELSEIF PLACE("部室")
+				PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:CHOICE%を部室に呼んだ。
+			ELSE
+				RETURN 0
+			ENDIF
+			CFLAG:CHOICE:呼び出された = 1
+			;入室イベント
+			CALL EVENT_ENTER_ROOM
+			CFLAG:CHOICE:呼び出された = 0
+			CALL SETFLAG, "対象指定", CHOICE
+		ENDIF
+	ENDSELECT
+;選択されたキャラをアドバイザーに
+CASE 2002 TO 1999+CHARANUM
+	SELECTCASE CHOICE - 2000
+	;アドバイザーをクリックしたらアドバイザーを外す
+	CASE ASSI, ASSI:1
+		CALL SETFLAG, "助手指定", 0
+	;アドバイザーでない人をクリックしたら、可能ならその人をアドバイザーにする
+	CASEELSE
+		SIF COND("助手可能", CHOICE - 2000)
+			CALL SETFLAG, "助手指定", CHOICE - 2000
+	ENDSELECT
+;選択されたキャラに衣装チェンジしてもらう
+;パンツ取引
+CASE 3001 TO 3005
+	CHOICE = FINDCHARA(CFLAG:優先順位, CHOICE - 3000, 2)
+	SIF CHOICE <= 0 || CFLAG:CHOICE:睡眠 || COND("現在不在", CHOICE) || COND("パンツ没収実行可能", CHOICE) == 0 || COND("合意：パンツ取引", CHOICE) == 0
+		RETURN 0
+
+	MEMO_TARGET = TARGET
+	TARGET = CHOICE
+
+	CALL EVENT_WISH_PANTU
+	;直前行動として記録
+	SIF STR:日常イベント名 != ""
+		CALL SET_PREV_DAILYCOM
+
+	TARGET = MEMO_TARGET
+;全裸化
+CASE 3101 TO 3105
+	CHOICE = FINDCHARA(CFLAG:優先順位, CHOICE - 3100, 2)
+	SIF CHOICE <= 0 || CFLAG:CHOICE:睡眠 || COND("現在不在", CHOICE) || CHECK_CLO("ハダカ", CHOICE) || COND("合意：全裸化", CHOICE) == 0 || CHOSE_DEVENT("裸になった", CHOICE)
+		RETURN 0
+
+	MEMO_TARGET = TARGET
+	TARGET = CHOICE
+
+	CALL EVENT_WISH_HADAKA
+	;直前行動として記録
+	SIF STR:日常イベント名 != ""
+		CALL SET_PREV_DAILYCOM
+
+	TARGET = MEMO_TARGET
+
+;没収済パンツを楽しむ
+CASE 4002 TO 3999+CHARANUM
+	CHOICE = CHOICE - 4000
+	SIF CSTR:CHOICE:没収済パンツ == "" || COND("パンツドーピング", CHOICE)
+		RETURN 0
+
+	SWAP CSTR:CHOICE:パンツ, CSTR:CHOICE:没収済パンツ
+	EQUIP:CHOICE:パンツ = STRLENS(CSTR:CHOICE:パンツ)
+
+	;CHICEのパンツで楽しんでいるあなたに対するTARGETの対応を見るための処理
+	MEMO_DOPING = %SAVESTR:パンツドーピング%
+	SAVESTR:パンツドーピング = %CALLNAME:CHOICE%\/
+
+	SIF CFLAG:睡眠 == 0
+		CALL KOJO_DAILYCOM, "パンツドーピング：地の文前"
+	IF TFLAG:地の文スキップ == 0
+		IF CFLAG:CHOICE:睡眠 && COND("現在存在", CHOICE)
+			IF INSERT("インサート")
+				PRINTFORM %CALLNAME:MASTER%は緩々と腰を動かしながら、先程脱がした%CALLNAME:CHOICE%の
+			ELSE
+				PRINTFORM %CALLNAME:MASTER%は%CALLNAME:CHOICE%の寝顔を横目に見つつ、没収した
+			ENDIF
+			;SIF CHECK_PANTIES("クロッチ染み", CHOICE)
+			;	PRINTFORM 染み付き
+			PRINTFORMW 下着%TEXTR("を鼻に当てて深呼吸し/を手で広げて隅々まで観察し/を広げて汚れの強そうな場所に舌を這わせてみ")%た。
+		ELSE
+			PRINTFORM %CALLNAME:MASTER%はポケットから%CALLNAME:CHOICE%の%PANTIES(CHOICE, "略")%を取り出し、
+			PRINTFORMW %TEXTR("鼻に当てて深呼吸し/手で広げて隅々まで観察し/汚れの強そうな場所に舌を這わせてみ")%た。
+		ENDIF
+		IF CFLAG:睡眠 == 0
+			PRINTL 
+			CALL KOJO_DAILYCOM, "パンツドーピング", "改行無し"
+		ENDIF
+	ENDIF
+
+	IF BASE:MASTER:精力 < MAXBASE:MASTER:精力
+		PRINTFORMW 精力+{MAX(MAXBASE:MASTER:精力/4, 5)}（%CALLNAME:MASTER%）
+		BASE:MASTER:精力 = MIN(BASE:MASTER:精力 + MAX(MAXBASE:MASTER:精力/4, 5), MAXBASE:MASTER:精力)
+	ENDIF
+
+	SWAP CSTR:CHOICE:パンツ, CSTR:CHOICE:没収済パンツ
+	EQUIP:CHOICE:パンツ = STRLENS(CSTR:CHOICE:パンツ)
+
+	SAVESTR:パンツドーピング += @"%MEMO_DOPING%"
+;選択したアイテムを購入
+CASE 9050 TO 9059
+	IF ITEMNAME:(CHOICE - 9000) != "" && ITEM:(CHOICE - 9000) < 99 && MONEY >= ITEMPRICE:(CHOICE - 9000)
+		PRINTFORMW %ITEMNAME:(CHOICE - 9000)%を買い足した。所持金-%MONEY_C(ITEMPRICE:(CHOICE - 9000) )%
+		ITEM:(CHOICE - 9000) += 1
+		MONEY -= ITEMPRICE:(CHOICE - 9000)
+		CLEARLINE LINECOUNT - TFLAG:LINECOUNT_SHOP
+		PRINTFORML %ITEMNAME:(CHOICE - 9000)%を買い足した。所持金-%MONEY_C(ITEMPRICE:(CHOICE - 9000) )%
+	ENDIF
+CASE 0
+	CALL NEW_PRINT_STATE, MASTER, "通常"
+CASE 1 TO 5
+	CHOICE = FINDCHARA(CFLAG:優先順位, CHOICE, 2)
+	;この時間帯には会えないキャラの場合には何もできない
+	SIF CHOICE <= 0 || CFLAG:CHOICE:不在
+		RETURN 0
+	;能力表示をする
+	CALL NEW_PRINT_STATE, CHOICE, "通常"
+CASE 12 TO 15
+	CHOICE = FINDCHARA(CFLAG:優先順位, CHOICE - 10, 2)
+	;この時間帯には会えないキャラの場合には何もできない
+	SIF CHOICE <= 0 || CFLAG:CHOICE:不在
+		RETURN 0
+	IF CHOICE != TARGET && COND("現在不在", CHOICE) == 0
+		CALL SETFLAG, "対象指定", CHOICE
+	;自宅＆現在位置にそのキャラが居ない、ならばその人の部屋に行く
+	ELSEIF PLACE("自宅")
+		SIF COND("現在不在", CHOICE)
+			CALL MOVE_ROOM, CSTR:CHOICE:現在位置
+	;部室＆現在位置にそのキャラが居ない、ならばその人を呼び出す
+	ELSEIF PLACE("部室")
+		IF CFLAG:睡眠 == 0
+			PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:CHOICE%を部室に呼んだ。
+			CFLAG:CHOICE:呼び出された = 1
+			;入室イベント
+			CALL EVENT_ENTER_ROOM
+			CFLAG:CHOICE:呼び出された = 0
+			CALL SETFLAG, "対象指定", CHOICE
+		ENDIF
+	ENDIF
+;[999]休憩
+CASE 999
+	IF TARGET
+		IF COND("デートの予定あり")
+			PRINTFORMW 今日は%NAMES("デート相手")%とのデートの約束があります。
+		;この分岐はUSERSHOPに続く
+		ELSE
+			PRINTFORML %BL(CONFIG("９９９インデント補正") )%時間を進めても大丈夫ですか？
+			PRINTFORML %BL(CONFIG("９９９インデント補正") )%[0]ＯＫ！
+			PRINTFORML %BL(CONFIG("９９９インデント補正") )%[1]やっぱやめる
+			FLAG:SELECT_USERSHOP = CHOICE
+			RETURN 1
+		ENDIF
+	ELSEIF TARGET == 0
+		PRINTW 相手が選ばれていません
+	ENDIF
+;[100]ベッドに誘う
+CASE 100
+	IF TARGET
+		IF COND("デートの予定あり")
+			PRINTFORMW 今日は%NAMES("デート相手")%とのデートの約束があります。
+		ELSEIF CFLAG:睡眠
+			PRINTW 相手が眠ってます
+		;この分岐はUSERSHOPに続く
+		ELSE
+			IF CFLAG:ご褒美権
+				PRINTFORML %CALLNAME:TARGET%からＨなご褒美を貰いますか？
+				CALL PRINT_STRL, "黄色_※実行値に+15＆初期ムード+_HH_HH_HH_黄色_＆危険日以外の中出し＆写真撮影許可、等のボーナスが貰えます"
+			ELSEIF FLAG:呼び出しＨ中
+				IF CFLAG:ちょっかい数
+					PRINTFORML そろそろ%CALLNAME:TARGET%とエッチしますか？
+				ELSE
+					PRINTFORML さっそく%CALLNAME:TARGET%とエッチしますか？
+				ENDIF
+			ELSEIF CFLAG:コスプレ中
+				PRINTFORML %CLO("現在の格好＆の")%%CALLNAME:TARGET%をエッチに誘います。
+			ELSE
+				PRINTFORML %TEXTS("間柄の")%%CALLNAME:TARGET%をエッチに誘います。
+			ENDIF
+			IF CFLAG:ご褒美権
+				PRINTFORML [0]貰う\@ DAYEV("文化祭") ? (これを選択すると文化祭はＨしている内に閉会式を迎えます) # \@
+				PRINTFORML [1]まだいいや
+			ELSEIF FLAG:呼び出しＨ中
+				PRINTFORML [0]する\@ DAYEV("文化祭") ? (これを選択すると文化祭はＨしている内に閉会式を迎えます) # \@
+				PRINTFORML [1]もう少しいちゃつく
+			ELSE
+				PRINTFORML [0]ＯＫ！\@ DAYEV("文化祭") ? (これを選択すると文化祭はＨしている内に閉会式を迎えます) # \@
+				PRINTFORML [1]やっぱやめる
+			ENDIF
+			FLAG:SELECT_USERSHOP = CHOICE
+			RETURN 1
+		ENDIF
+	ELSE
+		PRINTW 相手が居ません
+	ENDIF
+;[101]デートに誘う
+CASE 101
+	;只今デートのお時間
+	IF DAYEV("デートタイム")
+		SIF PLACE("自宅") == 0
+			RETURN 0
+		CALL EVENT_DATE_MAIN
+		;この分岐はUSERSHOPに続く
+		IF COND("デート中")
+			IF STR:Ｈする場所 != ""
+				PRINTFORML  [ 0] 一緒に%STR:Ｈする場所%に行く
+			ELSEIF TFLAG:文化祭デート
+				PRINTFORML  [ 0] 人気のない教室に誘う
+			ELSE
+				PRINTFORML  [ 0] ラブホテルに誘う
+			ENDIF
+			IF COND("同棲中")
+				PRINTFORML  [ 1] 一緒に家に帰る
+			ELSE
+				PRINTFORML  [ 1] 名残惜しいけどデートを終える
+			ENDIF
+			FLAG:SELECT_USERSHOP = CHOICE
+			RETURN 1
+		ENDIF
+	;休日のデートに誰かを誘う？
+	ELSE
+		IF TARGET == 0
+			PRINTW 相手がいません。
+		ELSEIF CFLAG:睡眠
+			PRINTW 相手が眠ってます。
+		ELSE
+			IF CHARA_NUM("デートの約束")
+				PRINTFORMW 既に%NAMES("デート相手")%をデートに誘い済みです。
+			ELSEIF COND("デート可能")
+				CALL KOJO_DATE, "デートに誘われた"
+				IF COND("デートお誘い済み")
+					PRINTFORMW %CALLNAME:TARGET%からのデートのお誘いを受ける事にしました。
+				ELSE
+					PRINTFORMW %CALLNAME:TARGET%をデートに誘いました。
+				ENDIF
+				;お弁当頼む？
+				CALL SETFLAG, "デートのお弁当"
+				PRINTFORMW それでは次の日曜日のお昼を楽しみに待ちましょう。
+				CALL SETFLAG, "デートの約束", TARGET
+			ELSE
+				PRINTFORMW ……残念ながら、%CALLNAME:TARGET%はデートの約束を受けてくれなかった。
+				CALL PRINT_STRW, "(※お誘いを受けてもらうには_黄色_[信頼LV3]or[恋慕]or[屈服刻印LV1]_が必要です)"
+			ENDIF
+		ENDIF
+	ENDIF
+
+;[102]ラブホに呼び出す
+CASE 102
+	;この場にいない人をＨに誘う(居間or部室のみ選択可能)
+	SIF PLACE("居間") + PLACE("部室") == 0 || FIND_COND("呼び出しＨ可能") == 0 || COND("デートの予定あり")
+		RETURN 0
+	CALL SELECT_CALLGIRL
+
+;能力の表示
+CASE 103
+	CALL SHOW_CHARADATA
+
+;パートナーの変更
+CASE 104
+	MEMO_TARGET = TARGET
+	IF CHARA_NUM("控えキャラ") || TARGET <= 0
+		CALL CHANGE_TARGET
+	ENDIF
+	;パートナーを変えた＆一度は相手をしたことがある
+	SIF TARGET && TARGET != MEMO_TARGET && EXP:Ｈ回数
+		CALL KOJO_GUEST, "調教相手に選ばれた", TARGET
+;アドバイザー変更
+CASE 105
+	MEMO_ASSI = ASSI
+	IF CHARA_NUM("助手可能")
+		CALL SELECT_ASSI
+	ELSEIF CHARA_NUM("助手可能") == 0
+		PRINTFORMW %TEXTS("助手の名称")%が居ません
+	ENDIF
+	IF ASSI && ASSI != MEMO_ASSI
+		CALL KOJO_GUEST, "助手に抜擢", ASSI
+		SIF EXP:ASSI:助手経験 == 0
+			EXP:ASSI:助手経験 += 1
+	ENDIF
+
+;[110]身嗜み変更
+CASE 110
+	CALL SET_MIDASHINAMI, MASTER
+CASE 111
+	INVERTBIT FLAG:自動進行停止, 0
+	;アニメーション用変数のリセット
+	VARSET ANIME_CHARA
+	VARSET ANIME_FCOUNT
+	CLEARLINE LINECOUNT - TFLAG:LINECOUNT_SHOP
+CASE 112
+
+;トーク等のデイリーイベント
+CASE 200 TO 207
+	SELECTCASE DAILYCOMNAME(CHOICE)
+	CASE ""
+	;性処理は合意が無いとダメ
+	CASE "性処理を頼む"
+		CALL EVENT_DAILY, DAILYNUM(DAILYCOMNAME(CHOICE) ), DAILYCOMNAME(CHOICE)
+	CASEELSE
+		CALL EVENT_DAILY, DAILYNUM(DAILYCOMNAME(CHOICE) ), DAILYCOMNAME(CHOICE)
+	ENDSELECT
+;特殊なイベント用
+CASE 250
+	RETURN 0
+;取引する
+CASE 300
+	IF TARGET && CFLAG:睡眠 == 0
+		;現実時間フラグ取得
+		CALL GET_REALTIMEFORFLAG
+		LOCAL = FLAG:現実時間
+
+		CALL EVENT_WISH
+		;取引したら時間経過
+		IF FLAG:現実時間 != LOCAL
+			;入室イベント
+			CALL EVENT_ENTER_ROOM
+		ENDIF
+	ENDIF
+;キャラを増やす
+CASE 301
+	IF FLAG:勧誘可能 && CHARA_NUM("勧誘可能") && CFLAG:睡眠 == 0 && PLACE("出先") == 0
+		;現実時間フラグ取得
+		CALL GET_REALTIMEFORFLAG
+		TFLAG:フィルタ = 0
+		CALL SHOP_CHARA
+	ENDIF
+;買い物する
+CASE 302
+	IF CFLAG:睡眠 == 0
+		MEMO_ITEM = NUM("所持アイテム")
+
+		;現実時間フラグ取得
+		CALL GET_REALTIMEFORFLAG
+		CALL EVENT_SHOP
+
+		;お買い物したら時間経過
+		IF NUM("所持アイテム") != MEMO_ITEM
+			CALL SETFLAG_DAILY, "汗を拭く", MASTER
+			CALL SETFLAG_DAILY, "汗を拭く"
+			;入室イベント
+			CALL EVENT_ENTER_ROOM
+		ENDIF
+	ENDIF
+;密会する
+CASE 303
+	IF COND("デートの予定あり")
+		PRINTFORMW そんな事してると、%NAMES("デート相手")%とのデートに遅れちゃいますよ。
+	ELSEIF COND("場所移動可能")
+		IF PLACE("野外")
+			CALL MOVE_ROOM, "居間"
+		ELSE
+			TFLAG:アドバイザー同行 = 0
+			;パートナーorアドバイザーが反応
+			IF ASSI && COND("現在存在", ASSI) && RAND:2
+				CALL KOJO_GREETING, "場所を変える", ASSI
+			ELSE
+				CALL KOJO_GREETING, "場所を変える", TARGET
+			ENDIF
+			CALL MOVE_ROOM
+		ENDIF
+	ENDIF
+;[333]セーブ
+CASE 333
+	LOADGLOBAL
+	SELECTCASE GLOBAL:最新ＳＬ番号
+	CASE 0 TO 98
+		CALL SAVEGAME_EX, GLOBAL:最新ＳＬ番号/20
+	CASEELSE
+		CALL SAVEGAME_EX
+	ENDSELECT
+;[444]ロード
+CASE 444
+	LOADGLOBAL
+	SELECTCASE GLOBAL:最新ＳＬ番号
+	CASE 0 TO 98
+		CALL LOADGAME_EX, GLOBAL:最新ＳＬ番号/20
+	CASEELSE
+		CALL LOADGAME_EX
+	ENDSELECT
+;[555]コンフィグ
+CASE 555
+	CALL SET_CONFIGURE
+;[666]写真の閲覧
+CASE 666
+	SIF NUM("写真")
+		CALL VIEW_PHOTO
+
+;[777]エンディングを迎える
+CASE 777
+	SIF STR:エンディング == ""
+		RETURN 0
+
+	CALL SELECT_ENDING
+
+;[888]マリーちゃんの中の人さんイベントなど
+CASE 888
+	SELECTCASE TEXTS("季節")
+	CASE "夏"
+		IF GETBIT(FLAG:季節イベントフラグ, 10) == 0 && COND("昼") && TEXTS("曜日") == "土"
+			PRINTFORML これは、勧誘していないキャラも登場してしまうお遊びイベントです！
+			PRINTFORMW ……本当に見ますか？
+			CALL PRINT_SELECT, "見る/見ない"
+			IF RESULT == 0
+				TRYCALL EVENT_TEST
+				SETBIT FLAG:季節イベントフラグ, 10
+			ENDIF
+		ELSEIF GETBIT(FLAG:季節イベントフラグ, 11) == 0 && COND("昼") && TEXTS("曜日") == "土"
+			PRINTFORML 前回に引き続いてこれも、勧誘していないキャラも登場してしまうお遊びイベントです！
+			PRINTFORMW ……本当に見ますか？
+			CALL PRINT_SELECT, "見る/見ない"
+			IF RESULT == 0
+				TRYCALL EVENT_TESTNISE
+				SETBIT FLAG:季節イベントフラグ, 11
+			ENDIF
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "冬"
+		IF GETBIT(FLAG:季節イベントフラグ, 30) == 0 && COND("夜") && TEXTS("日付対応イベント") == "クリスマス"
+			PRINTFORML これは、勧誘していないキャラも登場してしまうお遊びイベントです！
+			PRINTFORMW ……本当に見ますか？
+			CALL PRINT_SELECT, "見る/見ない"
+			IF RESULT == 0
+				TRYCALL EVENT_TESTCHRISTMAS
+				SETBIT FLAG:季節イベントフラグ, 30
+			ENDIF
+		ELSE
+			RETURN 0
+		ENDIF
+	CASEELSE
+		RETURN 0
+	ENDSELECT
+
+;イベントテスト
+CASE 884
+	SIF FINDCHARA(NO, 1) <= 0
+		RETURN 0
+	IF 1 || DAYEV("バレンタイン翌日", "リアル日時") || DAYEV("バレンタイン", "リアル日時")
+		CALL EVENT_TESTVALENTINE1
+	ELSE
+		IF COND("昼") && TEXTS("曜日") != "日"
+			CALL PRINT_STR, "黄色_- フェリシエル（制服） -_L_"
+		ELSE
+			CALL PRINT_STR, "黄色_- フェリシエル（メイド服） -_L_"
+		ENDIF
+		PRINTFORMW 「バレンタインまで待ってくださいね、ご主人様」
+	ENDIF
+CASE 885
+	SIF FINDCHARA(NO, 1) <= 0
+		RETURN 0
+	IF 1 || DAYEV("バレンタイン翌日", "リアル日時") || DAYEV("バレンタイン", "リアル日時")
+		CALL EVENT_TESTVALENTINE2
+	ELSE
+		IF COND("昼") && TEXTS("曜日") != "日"
+			CALL PRINT_STR, "黄色_- フェリシエル（制服） -_L_"
+		ELSE
+			CALL PRINT_STR, "黄色_- フェリシエル（メイド服） -_L_"
+		ENDIF
+		PRINTFORMW 「バレンタインになったら使わせてあげますからね、ご主人様」
+	ENDIF
+CASE 886
+	SIF FINDCHARA(NO, 5) <= 0
+		RETURN 0
+
+	IF TEXTS("日付対応イベント") == "お正月" && DEVENT("社修繕完了", FINDCHARA(NO, 5))
+		TRYCALL EVENT_TESTOMIKUJI
+	ELSEIF COND("昼") && TEXTS("曜日") != "日"
+		;20%でフェリシエル
+		IF RAND:5 == 0 && (FIND_COND("フェリシエル", "現在存在") || NO:TARGET == 1)
+			CALL PRINT_MAIDFACE, FINDCHARA(NO, 1)
+			CALL PRINT_STR, @"「%TEXTR("じゃ～ん、あなたの/聞こえますか…聞こえますか……/ふふふっ、隙ありっ、どーも")%_"
+			PRINTFORMW フェリシエルです。今、ご主人様の目の前にいますね。学校をサボるのは許しませんよ。どうしてもサボって行くなら私も連れていってください」
+			IF NO:TARGET == 1
+				TRYCALL EVENT_TESTOMIKUJI
+			ENDIF
+		;80%で六華
+		ELSE
+			CALL PRINT_MAIDFACE, FINDCHARA(NO, 5)
+			IF RAND:3 == 0
+				PRINTFORMW （六華じゃ……神通力を送って直接話しておるのじゃ……学校をサボると、主様の妹様が心配するのじゃ……）
+			ELSEIF RAND:2 == 0
+				PRINTFORMW （六華じゃ…今、貴方の心に直接話しかけておるのじゃ……昼間は学校をサボらずちゃんと通うのじゃ……）
+			ELSE
+				PRINTFORMW （昼間はちゃんと学校に通うのじゃ……実母殿に告げ口されたくなかったらちゃんと通うのじゃ……）
+			ENDIF
+		ENDIF
+	ELSE
+		TRYCALL EVENT_TESTOMIKUJI
+	ENDIF
+
+;[88224646]デバッグ
+CASE 88224646
+	SIF TARGET <= 0
+		TARGET = 1
+	TRYCALL DEBUG_MODE
+
+	TARGET = FINDCHARA(CFLAG:優先順位, 1, 2)
+	;3サイズと身長
+	FOR LOCAL, 1, CHARANUM
+		CALL SET_3SIZE, LOCAL
+	NEXT
+ENDSELECT
+
+RETURN 0
+
+;移動場所は今のところヤリ部屋、体育倉庫、更衣室、保健室
+;ARGSに文字列が入っている場合は、選択肢無しでそこへの移動となる（主に、今居ない人の部屋への移動）
+@MOVE_ROOM, ARGS
+#DIM LCOUNT
+#DIM MEMO_TARGET
+#DIM MEMO_LINECOUNT
+;起きうるイベントの判定に使う
+#DIMS EVENT_TABLE
+#DIMS SELECT_TARGET
+#DIMS SELECT_ASSI
+#DIMS SELECT_NOBUTTON
+#DIMS CHOICES
+
+SELECT_TARGET = 
+SELECT_ASSI = 
+SELECT_NOBUTTON = 
+EVENT_TABLE = 
+STR:選択肢 = 
+
+MEMO_LINECOUNT = LINECOUNT
+
+;場所指定なしなら選択肢
+IF ARGS == ""
+	IF PLACE("自宅")
+		;パートナーが寝ている場合
+		IF CFLAG:睡眠
+			EVENT_TABLE += "居間/"
+			SELECT_NOBUTTON = -%CALLNAME:MASTER%一人で移動します-_NOBUTTON
+		ELSE
+			IF TFLAG:アドバイザー同行
+				PRINTFORML -%CALLNAME:TARGET%と%CALLNAME:ASSI%を連れて移動します-
+				SELECT_NOBUTTON = -%CALLNAME:ASSI%のみを連れて移動します-_NOBUTTON
+			ELSE
+				PRINTFORML -%CALLNAME:TARGET%と一緒に移動します-
+				SELECT_NOBUTTON = -%CALLNAME:MASTER%一人で移動します-_NOBUTTON
+			ENDIF
+
+			STR:選択肢 = 
+			SIF MONEY >= 700
+				STR:選択肢 += @"ラブホテル（要%MONEY_C(700)%。実行値とムードにボーナス有り）\/"
+
+			STR:選択肢 += "公園/"
+			SIF PLACE("居間") == 0
+				STR:選択肢 += "居間/"
+			;MASTER,TARGET,ASSIの３人の部屋を上位に表示
+			SIF PLACE(@"%CSVCALLNAME(NO:MASTER)%の部屋") == 0
+				STR:選択肢 += @"%CSVCALLNAME(NO:MASTER)%の部屋/"
+			SIF PLACE(@"%CSVCALLNAME(NO:TARGET)%の部屋") == 0
+				STR:選択肢 += @"%CSVCALLNAME(NO:TARGET)%の部屋/"
+			IF PLACE(@"%CSVCALLNAME(NO:ASSI)%の部屋") == 0
+				SIF TFLAG:アドバイザー同行
+					STR:選択肢 += @"%CSVCALLNAME(NO:ASSI)%の部屋/"
+			ENDIF
+		ENDIF
+		;口上側で選択肢を自由に作ることができる
+		TRYCALLFORM MOVE_K{NO:TARGET}_ADDSELECT
+
+		;それ以外の人の部屋を下位に表示
+		FOR LCOUNT, 2, CHARANUM
+			SIF CFLAG:LCOUNT:不在
+				CONTINUE
+			SELECTCASE LCOUNT
+			CASE MASTER, TARGET
+				CONTINUE
+			CASEELSE
+				SIF PLACE(@"%CSVCALLNAME(NO:LCOUNT)%の部屋") == 0 && CSTR:LCOUNT:現在位置 == @"%CSVCALLNAME(NO:LCOUNT)%の部屋"
+					EVENT_TABLE += @"%CSVCALLNAME(NO:LCOUNT)%の部屋/"
+			ENDSELECT
+		NEXT
+
+		SIF EVENT_TABLE != ""
+			STR:選択肢 += @"%SELECT_NOBUTTON%\/%EVENT_TABLE%"
+	ELSEIF PLACE("野外")
+		IF COND("夜") || TEXTS("曜日") == "日"
+			CHOICES = 居間
+		ELSE
+			CHOICES = 部室
+		ENDIF
+	ELSE
+		IF TFLAG:アドバイザー同行
+			PRINTFORML %CALLNAME:TARGET%と%CALLNAME:ASSI%を連れて場所を移します。
+		ELSE
+			PRINTFORML %CALLNAME:TARGET%を連れて場所を移します。
+		ENDIF
+		STR:選択肢 = ヤリ部屋/体育倉庫/更衣室/保健室/
+	ENDIF
+
+	IF ASSI && ASSI != TARGET && COND("現在不在", ASSI) == 0 && CHARA_NUM("集合予定") != 2
+		IF TFLAG:アドバイザー同行 == 0
+			SELECT_ASSI = %CALLNAME:ASSI%も連れていく
+		ELSE
+			SELECT_ASSI = %CALLNAME:ASSI%は連れて行かない
+		ENDIF
+		STR:選択肢 = %STR:選択肢%%SELECT_ASSI%\/
+	ENDIF
+
+	SIF CEVENT("槞彁：ビザ取得デートのお誘い", MASTER) && !CEVENT("槞彁：ビザ発行不可", MASTER) && TEXTS("曜日") == "日" && NO:TARGET == 15
+		STR:選択肢 += "_太字_斜体_黄色_就労ビザを申請しに行く_色変更解除_斜体解除_太字解除_\/"
+
+	STR:選択肢 += "やっぱやめる/"
+	VARSET LOCALS
+	SPLIT STR:選択肢, "/", LOCALS
+
+	CALL PRINT_SELECT_EX, STR:選択肢
+
+	CHOICES = %EXTSTR(LOCALS:RESULT, "", "（")%
+ELSE
+	CHOICES = %ARGS%
+ENDIF
+
+SELECTCASE CHOICES
+CASE "_太字_斜体_黄色_就労ビザを申請しに行く_色変更解除_斜体解除_太字解除_"
+	CALL CALL_LIB("入界管理局イベント：移動中")
+	CALL PRINT_SELECT("手をつなぐ/つながない")
+	SELECTCASE RESULT
+		CASE 0
+			PRINTFORMW 槞彁の手をそっと握りしめた。
+			PRINTFORMW その手は少し小さく暖かかった。
+			PRINTFORMW 「えへへ...」
+		CASE 1
+			PRINTFORMW %CALLNAME:TARGET%はしょんぼりしながら前を歩いて行った。
+	ENDSELECT
+	CALL CALL_LIB("入界管理局イベント：佐藤田中：選択まで")
+	CALL PRINT_SELECT("お願いします/お断りします")
+	SELECTCASE RESULT
+		CASE 0
+			CALL ENDING_K15("HappyEnd")
+		CASE 1
+			CALL CALL_LIB("入界管理局イベント：佐藤田中：選択後")
+	ENDSELECT
+	
+	CALL SET_CEVENT, "槞彁：ビザ発行不可", MASTER
+	;本当ならここに追加する予定じゃなかったんだけどとりあえず先行公開するために入れておくですわ
+	CALL SET_CEVENT, "槞彁：Demsolaviya20XX呼び出し可", MASTER
+	HTML_PRINT @"<p align='left'><font color = 'Yellow'><b>ミニゲーム：Demoslaviya20XXが解放されました</b></font></p>"
+	WAIT
+	HTML_PRINT @"<p align='left'><font color = 'Yellow'>%CALLNAME:TARGET%のお願いから開始する事が出来ます。</font></p>"
+	RETURN 0
+CASE "やっぱやめる"
+	TFLAG:アドバイザー同行 = 0
+	RETURN 0
+CASE SELECT_NOBUTTON
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+CASE SELECT_ASSI
+	INVERTBIT TFLAG:アドバイザー同行, 0
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+CASEELSE
+	MEMO_TARGET = TARGET
+
+	IF PLACE("野外")
+		STR:日常イベント名 = 外から戻った
+		SAVESTR:現在位置 = %CHOICES%
+	ELSE
+		SAVESTR:現在位置 = %CHOICES%
+
+		SELECTCASE SAVESTR:現在位置
+		CASE @"%CSVCALLNAME(NO:MASTER)%の部屋"
+			STR:日常イベント名 = あなたの部屋に連れ込まれた
+		CASE "居間"
+			IF CFLAG:睡眠
+				STR:日常イベント名 = 居間へ
+			ELSE
+				STR:日常イベント名 = 帰還
+			ENDIF
+		CASEELSE
+			STR:日常イベント名 = 抜け出す
+		ENDSELECT
+	ENDIF
+
+	FOR LCOUNT, 2, CHARANUM
+		SELECTCASE CFLAG:LCOUNT:不在
+		CASE 2
+			SIF STR:日常イベント名 == "外から戻った"
+				CFLAG:LCOUNT:不在 = 0
+			CONTINUE
+		CASE IS >= 1
+			CONTINUE
+		ENDSELECT
+
+		SELECTCASE LCOUNT
+		CASE TARGET
+			;移動先が自分の部屋？
+			SELECTCASE SAVESTR:現在位置
+			CASE @"%CSVCALLNAME(NO:TARGET)%の部屋"
+				STR:日常イベント名 = 自室に招待
+				CALL SET_DEVENT, "自室訪問"
+			CASE @"%CSVCALLNAME(NO:TARGET)%の家"
+				STR:日常イベント名 = 自宅に招待
+				CALL SET_DEVENT, "自宅訪問"
+			;移動先が同行するアドバイザーの部屋？
+			CASE @"%CSVCALLNAME(NO:ASSI)%の部屋"
+				IF TFLAG:アドバイザー同行
+					STR:日常イベント名 = アドバイザー部屋訪問
+					CALL SET_DEVENT, "自室訪問", ASSI
+				ENDIF
+			ENDSELECT
+		CASE ASSI
+			SIF ASSI == TARGET
+				CONTINUE
+			IF TFLAG:アドバイザー同行 == 0
+				IF PLACE("自宅")
+					;移動先が自分の部屋ならパートナーになる
+					IF SAVESTR:現在位置 == @"%CSVCALLNAME(NO:ASSI)%の部屋"
+						CALL SETFLAG, "対象指定", ASSI
+						IF CSTR:ASSI:現在位置 == @"%CSVCALLNAME(NO:ASSI)%の部屋"
+							STR:日常イベント名 = 自室に訪問された
+						ELSE
+							STR:日常イベント名 = 自室に招待
+						ENDIF
+						CALL SET_DEVENT, "自室訪問", ASSI
+					ENDIF
+				ELSEIF COND("現在存在", LCOUNT)
+					CFLAG:LCOUNT:不在 = 2
+				ELSE
+					CFLAG:LCOUNT:不在 = 1
+				ENDIF
+				CONTINUE
+			ENDIF
+		CASEELSE
+			IF PLACE("自宅")
+				;移動先が自分の部屋ならパートナーになる
+				IF SAVESTR:現在位置 == @"%CSVCALLNAME(NO:LCOUNT)%の部屋" && CSTR:LCOUNT:現在位置 == @"%CSVCALLNAME(NO:LCOUNT)%の部屋"
+					CALL SETFLAG, "対象指定", LCOUNT
+					STR:日常イベント名 = 自室に訪問された
+					CALL SET_DEVENT, "自室訪問", LCOUNT
+				ENDIF
+			ELSEIF COND("現在存在", LCOUNT)
+				CFLAG:LCOUNT:不在 = 2
+			ELSE
+				CFLAG:LCOUNT:不在 = 1
+			ENDIF
+		ENDSELECT
+	NEXT
+
+	;場所を変えた人たちのフラグを弄る
+	CALL SETFLAG_DAILY, "場所を変える", MASTER
+	;パートナーのフラグなど
+	IF CFLAG:睡眠
+		TARGET = 0
+		CALL SETFLAG, "対象指定", FIND_COND("現在存在")
+	ELSE
+		CALL SETFLAG_DAILY, "場所を変える", TARGET
+	ENDIF
+	;同行したアドバイザーのフラグなど
+	SIF TFLAG:アドバイザー同行
+		CALL SETFLAG_DAILY, "場所を変える", ASSI
+
+	SELECTCASE STR:日常イベント名
+	CASE "自宅に招待"
+		CALL BLANK_DRAWLINE
+		IF TFLAG:アドバイザー同行
+			PRINTFORMW %CALLNAME:MASTER%と%CALLNAME:ASSI%は%CALLNAME:TARGET%の自宅を訪れた。
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%は%SAVESTR:現在位置%に足を運んだ。
+		ENDIF
+		;部屋の描写
+		MEMO_LINECOUNT = LINECOUNT
+;		IF STR:日常イベント名 == "アドバイザーの自宅に招待
+;			SIF DEVENT("自宅訪問", ASSI) == 0
+;				CALL EVENT_PROFILE, "自宅描写", ASSI
+;		ELSEIF STR:日常イベント名 == "自宅に招待
+			SIF DEVENT("自室訪問") == 0
+				CALL EVENT_PROFILE, "自宅描写", TARGET
+;		ENDIF
+		SIF LINECOUNT > MEMO_LINECOUNT
+			WAIT
+	CASE "自室に招待", "自室に訪問された", "アドバイザー部屋訪問"
+		CALL BLANK_DRAWLINE
+		IF CFLAG:睡眠
+			SIF CHECK_CLO("ＣＩＰ発生")
+				CALL PRINT_CUTIN, "アウター", TARGET
+			PRINTFORM %CALLNAME:MASTER%が%SAVESTR:現在位置%に入ると、部屋の主である%CALLNAME:TARGET%が
+			IF CHECK_CLO("ＣＩＰ発生")
+				IF CHECK_CLO("パンツが見える格好")
+					IF CHECK_PANTIES("ブルマ")
+						PRINTFORM 体操服姿で
+					ELSE
+						PRINTFORM パンツ丸出しの格好で
+					ENDIF
+				ELSEIF CHECK_CLO("水着姿")
+					PRINTFORM 水着姿で
+				ELSE
+					PRINTFORM だらしない格好で
+				ENDIF
+			ENDIF
+			PRINTFORMW 寝息を立てていた。
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%は%SAVESTR:現在位置%に赴いた。
+		ENDIF
+
+		;部屋の描写
+		MEMO_LINECOUNT = LINECOUNT
+		IF STR:日常イベント名 == "アドバイザー部屋訪問"
+			SIF DEVENT("自室訪問", ASSI) == 0
+				CALL EVENT_PROFILE, "自室描写", ASSI
+		ELSE
+			SIF DEVENT("自室訪問") == 0
+				CALL EVENT_PROFILE, "自室描写", TARGET
+		ENDIF
+		SIF LINECOUNT > MEMO_LINECOUNT
+			WAIT
+
+		;服装の解説
+		IF COND("部屋着に着替えた") && DEVENT("部屋着解説") == 0 && STR:日常イベント名 == "自室に訪問された" && CSTR:移動履歴 == @"\/%CSVCALLNAME(NO:TARGET)%の部屋\/"
+			MEMO_LINECOUNT = LINECOUNT
+			IF CHECK_CLO("ハダカ")
+				PRINTFORMW ……中に入って一番に目に入ってきたのは%CALLNAME:TARGET%の裸体だった！
+				PRINTFORMW どうやら%CALLNAME:TARGET%は自分の部屋だと何も身に着けない主義らしい
+			ELSEIF CHECK_CLO("ボトムレス")
+				PRINTFORMW ……驚いたことに%CALLNAME:TARGET%は下半身にパンツすら穿いていない
+				PRINTFORMW いくら自分の部屋とはいえ開放的すぎないだろうか？
+			ELSEIF CHECK_CLO("トップレス")
+				PRINTFORMW ……驚いたことに%CALLNAME:TARGET%は上半身に何も着けていない
+				PRINTFORMW 自分の部屋とはいえ開放的すぎないだろうか？
+			ELSEIF CHECK_CLO("下着姿")
+				PRINTFORMW ……%CALLNAME:TARGET%は自分の部屋だと楽な格好を好むようで、下着以外は全部脱いでしまっているようだ
+			ELSEIF CHECK_CLO("パンツが見える格好")
+				PRINTFORMW %CALLNAME:TARGET%は自分の部屋だと楽な格好を好むようで、スカートやズボンを脱いで下半身はパンツだけしか穿いていない……
+			ELSEIF CHECK_CLO("ブラが見える格好")
+				PRINTFORMW %CALLNAME:TARGET%は自分の部屋だと楽な格好を好むようで、上着を脱いで上半身は下着だけしか身に着けていない様子だ
+			ENDIF
+			SIF LINECOUNT > MEMO_LINECOUNT
+				CALL SET_DEVENT, "部屋着解説", TARGET
+		;ELSEIF STR:日常イベント名 == "自室に招待"
+		;	CALL EVENT_ACADEMY, "秘密のお願い"
+		ENDIF
+
+		CALL TEXT, "出会いざまの格好所感", TARGET
+	CASE "外から戻った"
+		CALL BLANK_DRAWLINE
+		PRINTFORMW %CALLNAME:MASTER%は%SAVESTR:現在位置%に戻った。
+	CASEELSE
+		;移動前の場所に居た人の中から代表で一人が台詞
+		SIF FIND_COND("抜け出された")
+			CALL KOJO_GREETING, "抜け出された", FIND_COND("抜け出された")
+
+		CALL BLANK_DRAWLINE
+		IF PLACE("自室")
+			PRINTFORMW %CALLNAME:MASTER%は自分の部屋に%CALLNAME:TARGET%\@ TFLAG:アドバイザー同行 ? 達 # \@を誘った。
+		ELSEIF PLACE("野外")
+			CALL SETFLAG, "ＴＰＯによる外見変更"
+			CALL SET_COORDINATE, "外出着"
+			PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%\@ TFLAG:アドバイザー同行 ? 達 # \@を連れて%SAVESTR:現在位置%に赴いた。
+		ELSEIF PLACE("ラブホテル")
+			CALL SETFLAG, "ＴＰＯによる外見変更"
+			CALL SET_COORDINATE, "外出着"
+			MONEY -= 700
+			ITEM:ローション += 1
+			ITEM:コンドーム += 5
+			PRINTFORMW %CALLNAME:MASTER%は%SAVESTR:現在位置%に%CALLNAME:TARGET%\@ TFLAG:アドバイザー同行 ? 達 # \@を誘った。
+			PRINTFORML ＜%CALLNAME:MASTER%は部屋に備え付けのローションを１つと、コンドームを５つ手に入れた＞
+			PRINTFORMW 所持金‐%MONEY_C(700)%
+		ELSEIF PLACE("個室")
+			PRINTFORMW %CALLNAME:MASTER%は%SAVESTR:現在位置%に%CALLNAME:TARGET%\@ TFLAG:アドバイザー同行 ? 達 # \@を誘った。
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%は%SAVESTR:現在位置%に戻った。
+		ENDIF
+
+		;邪魔されない場所に連れて来た
+		;SIF PLACE("個室")
+		;	CALL EVENT_ACADEMY, "秘密のお願い"
+	ENDSELECT
+
+	CALL KOJO_DAILYCOM, "場所を変える", "改行無し"
+
+	;前回行動フラグを一回リセット
+	CVARSET CSTR, GETNUM(CSTR, "PREV_DAILYCOM")
+	CVARSET CFLAG, GETNUM(CFLAG, "PREV_DAILYCATE")
+
+	CALL SET_PREV_DAILYCOM
+
+	SIF PLACE("学園内")
+		CALL TALK_OTHER
+
+	RETURN 1
+ENDSELECT
+
+@SELECT_CALLGIRL
+#DIM LCOUNT
+#DIM CHOICE
+
+IF PLACE("居間")
+	PRINTFORML 誰をラブホテルに呼び出しますか？（要%MONEY_C(700)%。実行値とムードにボーナス有り）
+ELSE
+	PRINTFORML 誰をヤリ部屋に呼び出してＨしますか？
+ENDIF
+CALL SHOW_CHARA_LIST, "呼び出しＨ"
+
+$INPUT_LOOP
+INPUT
+
+CHOICE = RESULT
+
+SELECTCASE CHOICE
+CASE 100
+	RETURN 0
+CASE IS < MASTER, IS >= CHARANUM
+	GOTO INPUT_LOOP
+CASEELSE
+	SIF COND("呼び出しＨ可能", CHOICE) == 0
+		GOTO INPUT_LOOP
+ENDSELECT
+
+;現実時間フラグ取得
+CALL GET_REALTIMEFORFLAG
+
+;前回行動フラグを一回リセット
+CVARSET CSTR, GETNUM(CSTR, "PREV_DAILYCOM")
+CVARSET CFLAG, GETNUM(CFLAG, "PREV_DAILYCATE")
+
+FLAG:呼び出しＨ中 = 1
+CALL SETFLAG, "対象指定", CHOICE
+;トイレに行ってから来ます
+BASE:尿意 /= 5
+;呼び出しＨはパンツを穿き変える
+SIF CFLAG:不在
+	CALL RAND_PANTU, TARGET
+CFLAG:不在 = 0
+CFLAG:入室までの所要時間 = 0
+
+IF PLACE("居間")
+	SAVESTR:現在位置 = ラブホテル
+ELSE
+	SAVESTR:現在位置 = ヤリ部屋
+ENDIF
+CALL MOVE_PLACE, SAVESTR:現在位置, TARGET
+
+;服装はデートや日常の衣装が良いかも？あとＨな下着とかどうしよ
+SIF PLACE("ラブホテル")
+	CALL SET_COORDINATE, "外出着"
+
+;アドバイザーは…いない方が自然か
+FOR LCOUNT, 2, CHARANUM
+	SIF LCOUNT == TARGET
+		CONTINUE
+	IF COND("現在存在", LCOUNT)
+		CFLAG:LCOUNT:不在 = 2
+	ELSE
+		CFLAG:LCOUNT:不在 = 1
+	ENDIF
+NEXT
+
+TFLAG:地の文スキップ = 0
+STR:日常イベント名 = Ｈ目的で呼び出された
+CALL KOJO_DAILYCOM, STR:日常イベント名, "改行無し"
+
+IF TFLAG:地の文スキップ == 0
+	;移動前の場所に居た人の中から代表で一人が台詞
+	SIF PLACE("ヤリ部屋") && FIND_COND("抜け出された")
+		CALL KOJO_GREETING, "抜け出された", FIND_COND("抜け出された")
+	CALL BLANK_DRAWLINE
+	IF PLACE("ラブホテル")
+		PRINTFORMW %CALLNAME:MASTER%が%SAVESTR:現在位置%横の路地裏で待っていると、%CLO_ABOUT(TARGET, "姿")%の%CALLNAME:TARGET%が現れた。
+	;ヤリ部屋
+	ELSE
+		PRINTFORMW %CALLNAME:MASTER%が%SAVESTR:現在位置%で待っていると、%CLO("現在の格好＆の")%%CALLNAME:TARGET%が挨拶しながら現れた。
+	ENDIF
+ENDIF
+CFLAG:挨拶した = 1
+
+;二人きりイベント
+CALL EVENT_ACADEMY, "二人きり"
+
+IF PLACE("ラブホテル")
+	MONEY -= 700
+	ITEM:ローション += 1
+	ITEM:コンドーム += 5
+	CALL BLANK_DRAWLINE
+	PRINTFORML ＜%CALLNAME:MASTER%は部屋に備え付けのローションを１つと、コンドームを５つ手に入れた＞
+	PRINTFORMW 所持金‐%MONEY_C(700)%
+ENDIF
+
+CALL SET_PREV_DAILYCOM
+
+RETURN 1

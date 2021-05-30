@@ -1,0 +1,113 @@
+@COM263
+;絆創膏
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+;-------------------------------------------------
+;実行できるかの判定
+;-------------------------------------------------
+;CALL SHOW_COM_ORDER_COM, 263
+
+;-------------------------------------------------
+;実行決定
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+
+IF TEQUIP:絆創膏
+	TEQUIP:絆創膏 = 0
+	CFLAG:絆創膏装着 = 0
+ELSE
+	TEQUIP:絆創膏 = 1
+	ITEM:絆創膏 -= 1
+	CFLAG:絆創膏装着 = 1
+ENDIF
+
+
+RETURN 1
+
+
+@FLAG_COM263, ARG
+;剥がすときに垂れてきた精液でＶに精液汚れ発生
+SIF TEQUIP:絆創膏 && COND("胎内の精液量")
+	STAIN:Ｖ = SET_STAIN(STAIN:Ｖ, "精液")
+
+
+@SOURCE_COM263, ARG
+
+
+
+@EQUIP_COM263
+SIF TEQUIP:絆創膏 == 0
+	RETURN 0
+SIF SELECTCOM == 263
+	RETURN 0
+CALL SOURCE_COM263, 20
+
+RETURN 1
+
+
+@TRAIN_MESSAGE_COM263
+
+IF TEQUIP:絆創膏
+	PRINTFORM %CALLNAME:TARGET%の
+	SELECTCASE AGE(TARGET)
+	CASE IS >= 4
+		PRINTFORM 成熟した%TEXTR("アソコ/割れ目")%
+	CASE 3
+		PRINTFORM 大人びた%TEXTR("縦スジ/アソコ/割れ目")%
+	CASE 2
+		PRINTFORM 子供っぽさの残る%TEXTR("縦スジ/アソコ/割れ目")%
+	CASEELSE
+		PRINTFORM %TEXTR("幼さの残る/ピッタリと閉じた")%%TEXTR("縦スジ/アソコ/割れ目")%
+	ENDSELECT
+	PRINT から
+	SIF CFLAG:絆創膏装着 > 7
+		PRINT 、ふやけて剥がれかけの
+	PRINTW 絆創膏をゆっくりと剥がした。
+
+	IF CFLAG:絆創膏装着 >= 2 && COND("胎内の精液量") >= 10000
+		PRINTFORM 絆創膏を剥がされた%CALLNAME:TARGET%の%TEXTR("股間/アソコ/割れ目")%から
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORMW は、精液と愛液が混ざりあって濃縮された%TEXTR("むせかえるような/刺激的な")%%TEXTS("匂い")%が漂っている…
+		CASEELSE
+			PRINTFORMW 漏れ出た泡立つ%TEXTR("蜜/液体")%が、太ももを伝って滴り落ちる…
+		ENDSELECT
+	ENDIF
+ELSE
+	PRINTFORM %CALLNAME:PLAYER%は
+	;PRINTFORM %CONDS("精液の優勢")%に
+	IF EX:Ｖ中出し
+		SIF EX:Ｖ中出し量 >= 50
+			PRINTFORM %TEXTR("溢れんばかりの/大量の")%
+		PRINTFORM 精液を%TEXTR("注ぎ込まれた/流し込まれた")%
+	ENDIF
+
+	PRINTFORM %CALLNAME:TARGET%の
+	SELECTCASE AGE(TARGET)
+	CASE IS >= 4
+		PRINTFORM 成熟した%TEXTR("アソコ/割れ目")%
+	CASE 3
+		PRINTFORM 大人びた%TEXTR("縦スジ/アソコ/割れ目")%
+	CASE 2
+		PRINTFORM %TEXTR("子供っぽさの残る/僅かに綻んだ")%%TEXTR("縦スジ/アソコ/割れ目")%
+	CASEELSE
+		PRINTFORM %TEXTR("幼さの残る/ピッタリと閉じた")%%TEXTR("縦スジ/アソコ/割れ目")%
+	ENDSELECT
+
+	IF EX:Ｖ中出し
+		PRINTFORMW を絆創膏でふさいだ。
+	ELSE
+		PRINTFORMW に絆創膏を貼りつけた。
+	ENDIF
+ENDIF
+
+
+@COM_ORDER_COM263, ARG
+
+

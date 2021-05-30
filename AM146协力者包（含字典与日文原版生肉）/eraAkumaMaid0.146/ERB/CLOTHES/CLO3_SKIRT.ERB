@@ -1,0 +1,99 @@
+﻿;-------------------------------------------------
+;キャラARGにスカートARGSを着せる。ARGS == ""なら脱がす
+;-------------------------------------------------
+@SET_SKIRT, ARGS, ARG
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+
+CALL PALAM_SKIRT, ARGS, ARG
+
+EQUIP:ARG:スカート = STRLENS(CSTR:ARG:スカート)
+TFLAG:着替えた = 1
+
+;-------------------------------------------------
+;ARGのスカートの名前。ARGSに"略"と入れると略称になる
+;-------------------------------------------------
+@SKIRT(ARG, ARGS)
+#FUNCTIONS
+
+VARSET LOCALS
+SELECTCASE ARGS
+CASE "略"
+	IF CHECK_SKIRT("鎧", ARG)
+		LOCALS = 垂れ
+	ELSEIF CHECK_SKIRT("ベビードール", ARG)
+		LOCALS = 裾
+	ELSEIF CHECK_SKIRT("シャツ", ARG)
+		LOCALS = 裾
+	ELSEIF CHECK_SKIRT("袴", ARG)
+		LOCALS = 袴
+	ELSEIF CHECK_SKIRT("和服", ARG) || CHECK_SKIRT("振袖", ARG) || CHECK_SKIRT("着物", ARG) || CHECK_SKIRT("浴衣", ARG)
+		LOCALS = 裾
+	ELSEIF CHECK_SKIRT("巻きスカート", ARG)
+		LOCALS = 腰布
+	ELSEIF CHECK_SKIRT("裾", ARG)
+		LOCALS = 裾
+	ELSE
+		LOCALS = スカート
+	ENDIF
+CASEELSE
+	;LOCALSに名称が入る
+	SPLIT CSTR:ARG:スカート, "/", LOCALS
+ENDSELECT
+RETURNF LOCALS
+
+;-------------------------------------------------
+;ARG番のスカートの名称(基本的には用いない)
+;-------------------------------------------------
+@NAME_SKIRT(ARG)
+#FUNCTIONS
+
+RETURNF LOCALS
+
+;-------------------------------------------------
+;キャラARGにスカートARGSを着せた場合のCSTR処理
+;-------------------------------------------------
+@PALAM_SKIRT, ARGS, ARG
+;追加で記述された属性を一時的に保管する
+#DIMS STR_ADD
+
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+
+STR_ADD = %EXTSTR(ARGS, "/")%
+ARGS = %EXTSTR(ARGS, "", "/")%
+
+SELECTCASE ARGS
+CASE ""
+	CSTR:ARG:スカート = 
+CASE "パニエ入りサーキュラスカート"
+	CSTR:ARG:スカート = パニエ入りサーキュラスカート/フリル/
+CASEELSE
+	CSTR:ARG:スカート = %ARGS%\/
+ENDSELECT
+
+CSTR:ARG:スカート = %MERGE_STR(CSTR:ARG:スカート, STR_ADD)%
+
+;-------------------------------------------------
+;ARGのスカートが条件ARGSを満たすか確認する
+;-------------------------------------------------
+@CHECK_SKIRT(ARGS, ARG)
+#FUNCTION
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+SIF EQUIP:ARG:スカート == 0
+	RETURNF 0
+
+SELECTCASE ARGS
+CASE "超ミニ"
+	SIF STRCOUNTS(CSTR:ARG:スカート, "超ミニ", "マイクロ")
+		RETURNF 1
+CASE "ミニ"
+	SIF STRCOUNTS(CSTR:ARG:スカート, "ミニ", "マイクロ")
+		RETURNF 1
+CASEELSE
+	SIF STRCOUNT(CSTR:ARG:スカート, ARGS)
+		RETURNF 1
+ENDSELECT
+RETURNF 0
+

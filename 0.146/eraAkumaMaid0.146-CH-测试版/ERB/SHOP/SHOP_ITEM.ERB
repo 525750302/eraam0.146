@@ -1,0 +1,773 @@
+;-------------------------------------------------
+;アイテム出現条件
+;-------------------------------------------------
+@SALEITEM_CHECK
+#DIM LCOUNT
+#DIM NEXT_LINE
+#DIMS NAME_ITEM
+
+CALL SETFLAG, "アイテムフラグ調整"
+
+DRAWLINE
+IF GETBIT(FLAG:ITEM_SHOP, 0) == 0
+	PRINTL □ 大人のおもちゃ □
+ELSE
+	CALL PRINT_STR, "□ 大人のおもちゃ … _黄色_お得意様には更に気持ち良い品をお売りします_ □_L_"
+ENDIF
+NEXT_LINE = 0
+FOR LCOUNT, 0, 30
+	SIF ITEMNAME:LCOUNT == ""
+		CONTINUE
+	IF ITEMSALES:LCOUNT == 0
+		SETCOLOR DEF_COLOR("灰色")
+	ELSEIF ITEM:LCOUNT
+		SETCOLOR DEF_COLOR("水色")
+	ENDIF
+	IF ITEM:LCOUNT
+		NAME_ITEM = %ITEMNAME:LCOUNT% +{ITEM:LCOUNT}
+	ELSE
+		NAME_ITEM = %ITEMNAME:LCOUNT%
+	ENDIF
+
+	PRINTFORMLC  [{LCOUNT, 2}]%TEXT_LJ(NAME_ITEM, 16)%%TEXT_RJ(MONEY_C(ITEMPRICE:LCOUNT), 9)%
+
+	RESETCOLOR
+
+	NEXT_LINE += 1
+	SIF NEXT_LINE%3 == 0
+		PRINTL 
+NEXT
+SIF NEXT_LINE%3
+	PRINTL 
+
+PRINTL 
+IF GETBIT(FLAG:ITEM_SHOP, 1) == 0
+	PRINTL □ 調教道具 □
+ELSE
+	CALL PRINT_STR, "□ 調教道具 … _黄色_高級品を使う事で不快にさせる事無くプレイを楽しめますよ_ □_L_"
+ENDIF
+NEXT_LINE = 0
+FOR LCOUNT, 30, 50
+	SIF ITEMNAME:LCOUNT == ""
+		CONTINUE
+	IF ITEMSALES:LCOUNT == 0
+		SETCOLOR DEF_COLOR("灰色")
+	ELSEIF ITEM:LCOUNT
+		SETCOLOR DEF_COLOR("水色")
+	ENDIF
+
+	IF ITEM:LCOUNT
+		NAME_ITEM = %ITEMNAME:LCOUNT% +{ITEM:LCOUNT}
+	ELSE
+		NAME_ITEM = %ITEMNAME:LCOUNT%
+	ENDIF
+
+	PRINTFORMLC  [{LCOUNT, 2}]%TEXT_LJ(NAME_ITEM, 16)%%TEXT_RJ(MONEY_C(ITEMPRICE:LCOUNT), 9)%
+
+	RESETCOLOR
+
+	NEXT_LINE += 1
+	SIF NEXT_LINE%3 == 0
+		PRINTL 
+NEXT
+SIF NEXT_LINE%3
+	PRINTL 
+
+PRINTL 
+PRINTL □ 消耗品 … ５個セットでの販売となります □
+NEXT_LINE = 0
+FOR LCOUNT, 50, 60
+	SIF ITEMNAME:LCOUNT == ""
+		CONTINUE
+	IF ITEMSALES:LCOUNT == 0
+		SETCOLOR DEF_COLOR("灰色")
+	ELSEIF ITEM:LCOUNT
+		SETCOLOR DEF_COLOR("水色")
+	ENDIF
+
+	NAME_ITEM = %ITEMNAME:LCOUNT%×５
+
+	PRINTFORMLC  [{LCOUNT, 2}]%TEXT_LJ(NAME_ITEM, 16)%%TEXT_RJ(MONEY_C(ITEMPRICE:LCOUNT*5), 9)%
+
+	RESETCOLOR
+
+	NEXT_LINE += 1
+	SIF NEXT_LINE%3 == 0
+		PRINTL 
+NEXT
+SIF NEXT_LINE%3
+	PRINTL 
+
+@EVENT_SHOP
+;起きうるイベントの判定に使う
+#DIMS EVENT_TABLE
+#DIM CHOICE
+REDRAW 0
+;買い物中フラグON
+SETBIT FLAG:状況判定, 21
+
+;寝てたら連れて行かない
+IF CFLAG:睡眠
+
+;すでに同伴して買い物した場合も連れてかない
+ELSEIF CHOSE_DEVENT("お買い物")
+	PRINTL 
+	PRINTFORMW %CALLNAME:TARGET%は……さっき連れて行ったばかりなので、一人で買い物に赴く事にします。
+;それ以外なら連れていける
+ELSE
+	;買い物同伴中フラグON（続く選択肢で"いいえ"を選ぶとOFFになる）
+	SETBIT FLAG:状況判定, 22
+
+	IF CHECK_CLO("ハダカ") || CHECK_CLO("水着姿") || CHECK_CLO("体操服姿") || CHECK_CLO("下着姿") || CHECK_CLO("パンツが見える格好")
+		IF COND("学園")
+			IF COND("学生")
+				EVENT_TABLE = はい(制服に着替えます)/いいえ/
+			ELSE
+				EVENT_TABLE = はい(学園での衣装に着替えます)/いいえ/
+			ENDIF
+		ELSE
+			EVENT_TABLE = はい(普段着に着替えます)/いいえ/
+		ENDIF
+		IF CHECK_CLO("ハダカ") && COND("認識阻害可能", MASTER)
+			PRINTFORML …現在は外出するには適していない格好ですが、%CALLNAME:TARGET%も連れていきますか？
+			SIF ABL:露出癖 >= 9
+				EVENT_TABLE += "今の格好のまま連れていく/"
+		ELSEIF CHECK_CLO("水着姿")
+			PRINTFORML 現在は水着姿のようですが、%CALLNAME:TARGET%も連れていきますか？
+			SIF ABL:露出癖 >= 3 || TALENT:恥薄い
+				EVENT_TABLE += "今の格好のまま連れていく/"
+		ELSEIF CHECK_CLO("体操服姿")
+			PRINTFORML 現在は体操服姿のようですが、%CALLNAME:TARGET%も連れていきますか？
+			EVENT_TABLE += "今の格好のまま連れていく/"
+		ELSEIF CHECK_CLO("下着姿")
+			PRINTFORML 現在は下着姿のようですが、%CALLNAME:TARGET%も連れていきますか？
+			SIF ABL:露出癖 >= 7
+				EVENT_TABLE += "今の格好のまま連れていく/"
+		ELSEIF CHECK_CLO("パンツが見える格好")
+			PRINTFORML 現在はパンツ丸出し状態のようですが、%CALLNAME:TARGET%も連れていきますか？
+			SIF ABL:露出癖 >= 5
+				EVENT_TABLE += "今の格好のまま連れていく/"
+		ENDIF
+	;ELSEIF CHECK_CLO("ノーパン") && COND("パンツ形状確認") && (CSVCSTR(NO:TARGET, GETNUM(CSTR, "パンツ") ) != "" || CFLAG:パンツ没収)
+	;	PRINTFORML 現在は\@ CHECK_SKIRT("ミニ") ? ミニ # \@スカートにも関わらずノーパンのようですが、%CALLNAME:TARGET%も連れていきますか？
+	;	IF CFLAG:パンツ没収
+	;		EVENT_TABLE = はい/いいえ/没収したパンツを穿かせて連れていく/
+	;	ELSE
+	;		EVENT_TABLE = はい/いいえ/パンツを穿かせて連れていく/
+	;	ENDIF
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%も連れていきますか？
+		EVENT_TABLE = はい/いいえ/
+		SIF COND("パンツ没収実行可能") && COND("合意：パンツ取引")
+			EVENT_TABLE += "パンツを没収して連れていく/"
+		;2020/1/31　マリーちゃんの中の人加筆　
+		SIF COND("合意：露出プレイ") && ABL:露出癖 >= 7 && EQUIP:パンツ
+			EVENT_TABLE += "下着姿で同行してもらう/"
+		SIF COND("合意：露出プレイ") && COND("合意：全裸化") && ABL:露出癖 >= 9 && COND("認識阻害可能", MASTER)
+			EVENT_TABLE += "全裸で同行してもらう/"
+	ENDIF
+
+	VARSET LOCALS
+	SPLIT EVENT_TABLE, "/", LOCALS
+	CALL PRINT_SELECT, EVENT_TABLE
+	CHOICE = RESULT
+
+	SELECTCASE LOCALS:CHOICE
+	CASE "いいえ"
+		CALL KOJO_SHOP, "お見送り"
+		;買い物同伴中フラグOFF
+		CLEARBIT FLAG:状況判定, 22
+	CASE "パンツを没収して連れていく"
+		PRINTL 
+		PRINTFORMW %CALLNAME:MASTER%は外出に際し、パンツを預けてから行くように%CALLNAME:TARGET%に要求した。
+		CALL KOJO_SHOP, "パンツ没収して出発"
+
+		PRINTL 
+		IF EQUIP:パンツ
+			SIF COND("パンツ形状確認") == 0
+				CALL TEXT_PANTU_CHECK_SHORT
+			CALL SETFLAG, "パンツ没収", TARGET
+			;買い物パンツ没収中フラグON
+			SETBIT FLAG:状況判定, 23
+		ELSE
+			CALL TEXT_PANTU_CHECK, SKIRT(TARGET)
+		ENDIF
+		PRINTL 
+	CASE "下着姿で同行してもらう"
+		PRINTL 
+		PRINTFORMW %CALLNAME:MASTER%は入店に際し、服を脱いで下着姿になるように%CALLNAME:TARGET%に要求した。
+		CALL SETFLAG, "薄着化：下着姿", TARGET
+		;買い物下着姿フラグON
+		SETBIT FLAG:状況判定, 27
+	CASE "全裸で同行してもらう"
+		PRINTL 
+		PRINTFORMW %CALLNAME:MASTER%は入店に際し、服を脱いで全裸になるように%CALLNAME:TARGET%に要求した。
+		CALL SETFLAG, "全裸化", TARGET
+		;買い物全裸フラグON
+		SETBIT FLAG:状況判定, 28
+	CASE "パンツを穿かせて連れていく", "没収したパンツを穿かせて連れていく"
+		CALL KOJO_SHOP, "パンツ穿かせて出発"
+		IF CFLAG:パンツ没収
+			CALL SETFLAG, "パンツ返却", TARGET
+			;買い物パンツ返却中フラグON
+			SETBIT FLAG:状況判定, 24
+		ELSE
+			CALL SET_PANTIES, "自分の下着"
+		ENDIF
+	CASE "今の格好のまま連れていく"
+		CALL KOJO_SHOP, "今の格好のまま出発"
+	;"はい"はココ。変な格好なら着替えます
+	CASEELSE
+		CALL KOJO_SHOP, "一緒に出発"
+		IF CHECK_CLO("ハダカ") || CHECK_CLO("水着姿") || CHECK_CLO("体操服姿") || CHECK_CLO("下着姿") || CHECK_CLO("パンツが見える格好")
+			IF COND("学園")
+				CALL SET_COORDINATE, "制服"
+			ELSE
+				CALL SET_COORDINATE, "外出着"
+			ENDIF
+			PRINTFORMW %CALLNAME:TARGET%は手早く着替えて%CALLNAME:MASTER%に着いて来た。
+		ENDIF
+	ENDSELECT
+ENDIF
+PRINTL 
+IF COND("買い物同伴中")
+	;同伴して買い物したフラグON
+	CSTR:DAILYCOM履歴 += "＠お買い物/"
+
+	IF CHECK_CLO("ハダカ")
+		PRINTFORML 「いらっ！？ しゃ……いませー……？」
+		PRINTFORMW 店員は%CALLNAME:TARGET%の姿にギョッとしたが、特に何も言ってはこなかった
+	ELSEIF CHECK_CLO("水着姿") || CHECK_CLO("体操服姿")
+		PRINTFORML 「いらっしゃいませー」
+		PRINTFORMW 店員はチラリと%CALLNAME:TARGET%を一瞥したが、特に何も言ってはこなかった
+	ELSEIF CHECK_CLO("下着姿") || CHECK_CLO("パンツが見える格好")
+		PRINTFORML 「いらっしゃいませー」
+		PRINTFORMW 店員はチラチラっと%CALLNAME:TARGET%を二度見したが、特に何も言ってはこなかった
+	ELSEIF CHECK_SKIRT("ミニ")
+		PRINTFORML 「いらっしゃいませー」
+		PRINTFORMW 店員はミニスカート姿の%CALLNAME:TARGET%の太もも付近を軽くチラ見したが、特に何も言ってはこなかった
+	ELSE
+		PRINTFORMW 「いらっしゃいませー」
+	ENDIF
+ELSE
+	PRINTFORMW 「いらっしゃいませー」
+ENDIF
+CALL EVENT_SHOP_BUY, MASTER
+
+@EVENT_SHOP_BUY, ARG
+#DIM MEMO_LINECOUNT
+#DIM MEMO_LINECOUNT2
+#DIM EXIST_KOJO
+#DIM CHOICE
+
+MEMO_LINECOUNT = LINECOUNT
+PRINTL 
+DRAWLINE
+
+SELECTCASE ARG
+CASE MASTER
+	PRINTFORML 購入者は%CALLNAME:ARG%です　(所持金：%MONEY_C(MONEY)%)
+	CALL PRINT_STRL, "どれを買いますか？１つ以上持っているものは_水色_この色_に変わります"
+CASE TARGET
+	IF CHECK_CLO("ハダカ")
+		CALL PRINT_STR, @"購入者は%CALLNAME:TARGET%_ハートピンク_(ハダカ)_です_L"
+	ELSEIF CHECK_CLO("水着姿")
+		CALL PRINT_STR, @"購入者は%CALLNAME:TARGET%_黄色_(水着姿)_です_L"
+	ELSEIF CHECK_CLO("体操服姿")
+		CALL PRINT_STR, @"購入者は%CALLNAME:TARGET%_黄色_(体操服姿)_です_L"
+	ELSEIF CHECK_CLO("下着姿")
+		CALL PRINT_STR, @"購入者は%CALLNAME:TARGET%_黄色_(下着姿)_です_L"
+	ELSEIF CHECK_CLO("ノーパン") && COND("パンツ形状確認")
+		CALL PRINT_STR, @"購入者は%CALLNAME:TARGET%_黄色_(ノーパン)_です_L"
+	ELSE
+		PRINTFORML 購入者は%CALLNAME:TARGET%です
+	ENDIF
+	PRINTFORML どれを買ってもらいますか？　(所持金：%MONEY_C(MONEY)%)
+ENDSELECT
+
+CALL SALEITEM_CHECK
+PRINTL 
+CALL SHOW_ITEM_HAVE
+DRAWLINE
+
+IF COND("買い物同伴中") && COND("買い物同伴相手が購入") == 0
+	IF ARG != TARGET
+		PRINTFORML [100]%CALLNAME:TARGET%に会計してもらう（ただし、各時間帯に１回だけ！）
+	ELSE
+		PRINTFORML [100]やっぱり自分で会計する
+	ENDIF
+ENDIF
+
+;2020/1/31　マリーちゃんの中の人加筆　
+EXIST_KOJO = 0
+MEMO_LINECOUNT2 = LINECOUNT
+TRYCALLFORM KOJO_SHOP_K{NO:TARGET}, "欲しい物を聞く"
+SIF LINECOUNT > MEMO_LINECOUNT2
+	EXIST_KOJO = 1
+CLEARLINE LINECOUNT - MEMO_LINECOUNT2
+
+IF EXIST_KOJO && COND("買い物同伴中") && COND("買い物欲しい物を聞く") == 0
+	PRINTFORML [101]%CALLNAME:TARGET%に欲しい物を聞く（ただし、各時間帯に１回だけ！）
+ENDIF
+
+;何を買ったか、管理するのが面倒なので未実装
+;IF COND("買い物同伴中") && COND("購入物をお試し") == 0
+;	PRINTFORML [101]%CALLNAME:TARGET%に買った物を使ってもらう（ただし、各時間帯に１回だけ！）
+;ENDIF
+DRAWLINE
+
+IF CEVENT("槞彁：バイト探し", MASTER) && !CEVENT("槞彁：就労ビザ取得命令", MASTER)
+	SIF COND("買い物同伴中") && COND("買い物同伴相手が購入") == 0
+		CLEARLINE 1;DRAWLINEを削除しますわよ(これ絶対もっといい方法有るでしょ)
+	HTML_PRINT @"<button value='200'><p align='left'><font color = 'Yellow'><b>[200] アルバイト募集について聞く</b></font></p></button>"
+	DRAWLINE
+ENDIF
+
+PRINTFORML [999] 店を出る
+
+CALL INPUT_SELECT, 100, 100, 101, 200, 999
+
+CHOICE = RESULT
+
+SELECTCASE CHOICE
+CASE 999
+	IF COND("買い物同伴中")
+		IF CHECK_CLO("ハダカ") || CHECK_CLO("下着姿")
+			PRINTFORMW 「ありがとうございました。またのお越しをー」
+		ELSEIF CHECK_SKIRT("ミニ")
+			PRINTFORML 「ありがとうございましたー」
+			PRINTFORMW 店員は深々とお辞儀して%CALLNAME:TARGET%を見送った。
+		ELSE
+			PRINTFORMW 「ありがとうございましたー」
+		ENDIF
+	ELSE
+		PRINTFORMW 「ありがとうございましたー」
+	ENDIF
+	IF COND("買い物同伴中")
+		IF COND("買い物全裸中")
+			PRINTL 
+			PRINTFORMW 店を出た%CALLNAME:MASTER%は%CALLNAME:TARGET%に着ていた物を返しました。
+			CALL SET_MEMO_DRESS, "脱いだ服一式", TARGET
+		ELSEIF COND("買い物下着姿")
+			PRINTL 
+			PRINTFORMW 店を出た%CALLNAME:MASTER%は%CALLNAME:TARGET%に着ていた物を返しました。
+			CALL SET_MEMO_DRESS, "脱いだ服一式", TARGET
+			CFLAG:薄着になった = 0
+		ELSEIF COND("買い物パンツ没収中")
+			PRINTL 
+			PRINTFORMW 店を出た%CALLNAME:MASTER%は%CALLNAME:TARGET%にパンツを返しました。
+			CALL SETFLAG, "パンツ返却", TARGET
+		ENDIF
+		CALL KOJO_SHOP, "お買い物終了"
+		;何か購入したなら記録
+		IF COND("買上品数") > 0
+			STR:日常イベント名 = 買い物する
+			CALL SET_PREV_DAILYCOM
+		ENDIF
+	ENDIF
+	REDRAW 1
+	RETURN 0
+CASE 200
+	IF CEVENT("槞彁：バイト探し", MASTER) && !CEVENT("槞彁：就労ビザ取得命令", MASTER)
+		;ここに槞彁の就労ビザ発行命令
+		IF COND("買い物同伴中") && NO:TARGET == 15
+			;PRINTFORMW 槞彁同伴時メッセージ
+			IF CEVENT("槞彁：槞彁を連れてきて", MASTER) == 0
+				;初手で槞彁を連れて店に来た場合
+				PRINTFORMW 「いらっしゃいませー」
+				PRINTFORMW 「ん？アルバイト欲しくないかだって？」
+				PRINTFORMW 「そうだねぇ、ちょっとそろそろアルバイトの一人でも雇っても良いかもしれんねぇ」
+				PRINTFORMW 「じゃあ...って、もう来てるのか、話が早いね」
+				PRINTL 
+				PRINTFORMW 「はは、安心しなよこの子を襲ったりなんてしないよ」
+				PRINTFORMW 槞彁はあなたの後ろに隠れて様子を見ている
+				PRINTFORMW 「おや、お嬢ちゃん悪魔かい？珍しいねぇ、職業悪魔として来たわけじゃないのかい？」
+				PRINTFORMW 店員はやけに悪魔の事について詳しい...
+				PRINTFORMW 「このお店には色々な人が来るからねぇ、殺人鬼が来ようが創造主が来ようが気にしなくなっちゃったよ。ハハハ」
+				PRINTFORMW 「ところで...職業悪魔じゃないということは就労ビザはちゃんと発行してもらってるかい？」
+
+				CALL CALL_LIB("アルバイト探しイベント：店員との会話")
+			ELSE
+				;連れてこいと言われたので連れてきた
+				PRINTFORMW 「お、その子が話に出てたアルバイト希望の子かい？」
+				PRINTFORMW 「はは、安心しなよこの子を襲ったりなんてしないよ」
+				PRINTFORMW 槞彁はあなたの後ろに隠れて様子を見ている
+				PRINTFORMW 「おや、お嬢ちゃん悪魔かい？珍しいねぇ、職業悪魔として来たわけじゃないのかい？」
+				PRINTFORMW 店員はやけに悪魔の事について詳しい...
+				PRINTFORMW 「このお店には色々な人が来るからねぇ、殺人鬼が来ようが創造主が来ようが気にしなくなっちゃったよ。ハハハ」
+				PRINTFORMW 「ところで...職業悪魔じゃないということは就労ビザはちゃんと発行してもらってるかい？」
+				
+				CALL CALL_LIB("アルバイト探しイベント：店員との会話")
+			ENDIF
+			CALL SET_CEVENT, "槞彁：就労ビザ取得命令", MASTER
+		ELSEIF CEVENT("槞彁：槞彁を連れてきて", MASTER)
+			PRINTFORMW 「アルバイトの子、楽しみにしてるよ」
+			;HTML_PRINT @"<p align='left'><font color = 'Yellow'>%CNAME("槞彁")%を連れてこのお店に来よう...</font></p>"
+			HTML_PRINT @"<p align='left'><font color = 'Yellow'>%NAME:FINDCHARA(NO, 15)%を連れてこのお店に来よう...</font></p>";槞彁をさん付けしたくないのでこちらを使うわよ
+			WAIT
+		ELSE
+			PRINTFORMW 「いらっしゃいませー」
+			PRINTFORMW 「ん？アルバイト欲しくないかだって？」
+			PRINTFORMW 「そうだねぇ、ちょっとそろそろアルバイトの一人でも雇っても良いかもしれんねぇ」
+			PRINTFORMW 「じゃあ、今度アルバイト希望の子連れきてよ」
+			;HTML_PRINT @"<p align='left'><font color = 'Yellow'>%CNAME("槞彁")%を連れてこのお店に来よう...</font></p>"
+			HTML_PRINT @"<p align='left'><font color = 'Yellow'>%NAME:FINDCHARA(NO, 15)%を連れてこのお店に来よう...</font></p>";槞彁をさん付けしたくないのでこちらを使うわよ
+			WAIT
+			CALL SET_CEVENT, "槞彁：槞彁を連れてきて", MASTER
+		ENDIF
+	ENDIF
+CASE 101
+	IF COND("買い物同伴中") && COND("買い物欲しい物を聞く") == 0
+		CALL KOJO_SHOP, "欲しい物を聞く"
+		CLEARLINE 1
+		WAIT
+		;パートナーに欲しい物を聞けるのは一回だけ
+		;買い物同伴相手の欲しい物フラグON
+		SETBIT FLAG:状況判定, 29
+	ENDIF
+CASE 100
+	IF COND("買い物同伴中") && COND("買い物同伴相手が購入") == 0
+		IF ARG != TARGET
+			ARG = TARGET
+			CALL KOJO_SHOP, "会計交代"
+		ELSE
+			ARG = MASTER
+		ENDIF
+	ENDIF
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+CASEELSE
+	;売ってない番号を選択したらやり直し
+	IF ITEMSALES:CHOICE == 0
+		SELECTCASE ITEMNAME:CHOICE
+		CASE "極太バイブ", "腕型バイブ", "馬型バイブ"
+			SIF ITEM:バイブセット == 0
+				PRINTFORMW 大型のバイブは基本の『バイブセット』を購入済みのお客にだけ販売するそうだ。
+		ENDSELECT
+
+		CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	ELSE
+		;今買った物
+		STR:購入アイテム = %ITEMNAME:CHOICE%
+
+		IF ARG == TARGET
+			CALL KOJO_SHOP, "商品購入"
+			;何を買わされたかフラグON
+			CALL SET_SEVENT, ITEMNAME:CHOICE
+		ENDIF
+
+		SELECTCASE CHOICE
+		;大人のおもちゃ
+		CASE 0 TO 29
+			IF ITEM:CHOICE
+				PRINTFORMW ＜%ITEMNAME:CHOICE% +{ITEM:CHOICE}を購入しました＞
+			ELSE
+				PRINTFORMW ＜%ITEMNAME:CHOICE%を購入しました＞
+
+				;補足があるならここで
+				SELECTCASE ITEMNAME:CHOICE
+				CASE "バイブセット"
+					PRINTFORMW 通常の大きさ、少し大きめのもの、双頭バイブの３点のセットとなってます。
+				CASE "拘束具"
+					PRINTFORMW 各種拘束セット、縄、口枷、アイマスクの詰め合わせとなっています。
+				CASE "尿道ブジー"
+					PRINTFORML □ 補足 □---------------------------------------------------------------------
+					PRINTFORM 尿道を拡張する際には、
+					CALL PRINT_COLORTEXT, "[性器拡張知識]", DEF_COLOR("黄色")
+					PRINTFORM や
+					CALL PRINT_COLORTEXT, "[拡張適性]", DEF_COLOR("黄色")
+					PRINTFORML があると捗ります
+					PRINTFORM 拡張のしやすさには影響のない素質ですが、
+					CALL PRINT_COLORTEXT, "[倒錯的]", DEF_COLOR("黄色")
+					PRINTFORML が有ると反感を抑えられる事でしょう
+					PRINTFORML 
+					PRINTFORML 尿道での快感は、初期は痛みが強く殆ど快楽を得られません
+					PRINTFORML 経験を積ませて痛みを減らし、尿道を弄られる事に慣れさせる事が重要となります
+					PRINTFORM 尿道を責められながらの絶頂を経験させる事で、
+					CALL PRINT_COLORTEXT, "[尿道性感]", DEF_COLOR("黄色")
+					PRINTFORML に目覚めさせる事が出来ます
+					CALL PRINT_COLORTEXT, "[尿道性感]", DEF_COLOR("黄色")
+					PRINTFORMW 無しだと基本的には気持ちの良くない調教なので、早めの取得が重要でしょう
+				ENDSELECT
+			ENDIF
+
+			ITEM:CHOICE += 1
+			MONEY -= ITEMPRICE:CHOICE
+
+			IF GETBIT(FLAG:ITEM_SHOP, 0) == 0
+				PRINTL 
+				PRINTFORMW ……店員は奥から『%ITEMNAME:CHOICE% +{ITEM:CHOICE}』と札の貼られた商品を出して同じ場所に陳列した。
+				PRINTFORMW どうやら、買うほどに質の良い品物を出してくれるらしい(不要になった物は引き取り)。
+				CALL PRINT_STR, "詳しく聞いてみたところ、_黄色_+XのおもちゃはだいたいX割増の気持ち良さ_だそうだ。_W_"
+				SETBIT FLAG:ITEM_SHOP, 0
+			ENDIF
+		;調教道具
+		CASE 30 TO 49
+			IF ITEM:CHOICE
+				PRINTFORMW ＜%ITEMNAME:CHOICE% +{ITEM:CHOICE}を購入しました＞
+			ELSE
+				PRINTFORMW ＜%ITEMNAME:CHOICE%を購入しました＞
+			ENDIF
+
+			ITEM:CHOICE += 1
+			MONEY -= ITEMPRICE:CHOICE
+
+			IF GETBIT(FLAG:ITEM_SHOP, 1) == 0
+				PRINTL 
+				PRINTFORMW ……店員は奥から『%ITEMNAME:CHOICE% +{ITEM:CHOICE}』と札の貼られた商品を出して同じ場所に陳列した。
+				PRINTFORMW どうやら、買うほどに質の良い品物を出してくれるらしい(不要になった物は引き取り)。
+				CALL PRINT_STR, "詳しく聞いてみたところ、_黄色_+Xの調教道具はXの値に応じて反感が減る_そうだ。_W_"
+				SETBIT FLAG:ITEM_SHOP, 1
+			ENDIF
+		;ローションなど、消耗品
+		CASE 50 TO 59
+			PRINTFORMW ＜%ITEMNAME:CHOICE%を５つ購入しました＞
+
+			ITEM:CHOICE += 5
+			MONEY -= ITEMPRICE:CHOICE * 5
+		;使用アイテム、素質アイテム
+		CASEELSE
+			CALL USE_ITEM
+		ENDSELECT
+
+		IF COND("買い物同伴中")
+			;今買った物を記録
+			SIF CSTR:SHOP_BUY履歴 == ""
+				CSTR:SHOP_BUY履歴 = /
+			CSTR:SHOP_BUY履歴 = %CSTR:SHOP_BUY履歴%%ITEMNAME:CHOICE%\/
+
+			;キャラ同伴なら反応あったり
+			SIF ARG != TARGET
+				CALL KOJO_SHOP, "店内待機"
+
+			;パートナーが買ってくれるのは一回だけ
+			IF ARG == TARGET
+				PRINTL 
+				PRINTFORMW あとは%CALLNAME:MASTER%が買い物を続ける事にします。
+				ARG = MASTER
+				;買い物同伴相手が購入フラグON
+				SETBIT FLAG:状況判定, 25
+			ENDIF
+		ENDIF
+	ENDIF
+ENDSELECT
+
+RESTART
+
+;-------------------------------------------------
+;複数個所持可能なアイテムについて、同時購入個数を選択
+;-------------------------------------------------
+@BUY_PLURAL
+#DIM MEMO
+
+;買う前の所持数を記録
+MEMO = ITEM:BOUGHT
+
+DRAWLINE
+CALL SHOW_BUY_ITEM, BOUGHT
+
+;１０個以上買った？
+IF ITEM:BOUGHT - MEMO >= 10
+	LOCAL = (ITEM:BOUGHT - MEMO)/10
+	PRINTFORMW いっぱい買ってくれたお礼に、と道具屋の主人が{LOCAL}個おまけしてくれました
+	ITEM:BOUGHT += LOCAL
+ENDIF
+PRINTL 
+
+;-------------------------------------------------
+;所持金に対応して、ITEM:ARGを何個買うかの選択肢を表示する関数
+;-------------------------------------------------
+@SHOW_BUY_ITEM, ARG
+#DIM LCOUNT
+#DIM MEMO_MAX
+
+;買える最大個数
+MEMO_MAX = MIN(99 - ITEM:ARG, MONEY/ITEMPRICE:ARG)
+
+PRINTFORML %ITEMNAME:ARG%をいくつ買いますか？　(持っている数：{ITEM:ARG}　%MONEY_C(MONEY)%)
+PRINTFORML （買いたい数を直接入力でも購入可能。0or999で戻る）
+
+FOR LCOUNT, 1, MEMO_MAX+1
+	SIF MONEY < ITEMPRICE:ARG * LCOUNT
+		BREAK
+	SELECTCASE LCOUNT
+	CASE IS <= 5, 10, 20, 50, MEMO_MAX
+		PRINTFORML  [{LCOUNT, 2}] {LCOUNT, 2}個　(%MONEY_C(ITEMPRICE:ARG * LCOUNT)%)
+	ENDSELECT
+NEXT
+PRINTFORML [999] 戻る
+
+$INPUT_LOOP
+INPUT
+
+IF RESULT == 0 || RESULT == 999
+	RETURN 0
+ELSEIF ITEMPRICE:ARG * RESULT > MONEY
+	PRINTL お金が足りません
+	GOTO INPUT_LOOP
+ELSEIF RESULT > MEMO_MAX
+	PRINTL そんなに持てません
+	GOTO INPUT_LOOP
+ELSEIF RESULT >= 1 && RESULT <= MEMO_MAX
+	PRINTFORMW ＜%ITEMNAME:ARG%を\@ RESULT > 1 ? {RESULT}個  # \@購入しました＞
+ELSE
+	GOTO INPUT_LOOP
+ENDIF
+
+ITEM:ARG += RESULT
+MONEY -= ITEMPRICE:ARG * RESULT
+
+RETURN RESULT
+
+;-------------------------------------------------
+;アイテム使用
+;-------------------------------------------------
+@USE_ITEM, ARGS
+#DIM LCOUNT
+#DIM CHOICE, 2
+#DIM MEMO, 10
+
+DRAWLINE
+;アイテムの効果を表示する。
+SELECTCASE ITEMNAME:BOUGHT
+CASE "脱毛剤"
+	PRINTFORML %ITEMNAME:BOUGHT%(%MONEY_C(ITEMPRICE:BOUGHT)%):アソコ\@ CONFIG("陰毛") ? や%TEXTS("腋")% # \@の毛を急速に生やします
+	PRINTFORML 誰に使いますか？　(%MONEY_C(MONEY)%)
+CASE "毛生え薬"
+	PRINTFORML %ITEMNAME:BOUGHT%(%MONEY_C(ITEMPRICE:BOUGHT)%):アソコ\@ CONFIG("陰毛") ? や%TEXTS("腋")% # \@の毛を脱毛します
+	PRINTFORML 誰に使いますか？　(%MONEY_C(MONEY)%)
+CASE "避妊の護符"
+	PRINTFORML %ITEMNAME:BOUGHT%(%MONEY_C(ITEMPRICE:BOUGHT)%):避妊の魔法がかけられたＴ字型の小さな護符です
+	SETCOLOR DEF_COLOR("ハートピンク")
+	PRINTFORML ※効果は永続的ですが、子宮の中に装着します※
+	RESETCOLOR
+	PRINTFORML 既に装着済みのキャラを選択すると、避妊の護符を破壊します
+	PRINTFORML 誰に使いますか？　(%MONEY_C(MONEY)%)
+ENDSELECT
+
+VARSET LOCAL
+FOR LCOUNT, 1, CHARANUM
+	LOCAL:LCOUNT = 0
+
+	;登録番号・名前・体力・その他ステータスをまとめて表示
+	SELECTCASE ITEMNAME:BOUGHT
+	CASE "脱毛剤"
+		SIF COND("陰毛", LCOUNT) <= 2 && COND("腋毛", LCOUNT) <= 2
+			CONTINUE
+		CALL PRINT_NUM_NAME, "陰毛＆腋毛", LCOUNT
+	CASE "毛生え薬"
+		SIF (COND("陰毛", LCOUNT) == 0 || COND("陰毛", LCOUNT) >= 7) && (COND("腋毛", LCOUNT) == 0 || COND("腋毛", LCOUNT) >= 7)
+			CONTINUE
+		CALL PRINT_NUM_NAME, "陰毛＆腋毛", LCOUNT
+	CASE "避妊の護符"
+		SIF TALENT:LCOUNT:妊娠 || TALENT:LCOUNT:処女 || COND("着床確認", LCOUNT)
+			CONTINUE
+		;妊娠できない身体
+		IF COND("本来は妊娠不可能", LCOUNT)
+			SIF TALENT:LCOUNT:妊娠可能 == 0
+				CONTINUE
+		ENDIF
+		CALL PRINT_NUM_NAME, "避妊措置", LCOUNT
+	CASEELSE
+		CALL PRINT_NUM_NAME, "能力表示", LCOUNT
+	ENDSELECT
+
+	LOCAL:LCOUNT = 1
+NEXT
+PRINTL  [100]戻る
+
+$INPUT_LOOP
+INPUT
+
+IF RESULT == 100
+	RETURN 0
+ELSEIF RESULT < MASTER || RESULT >= CHARANUM
+	GOTO INPUT_LOOP
+ELSEIF LOCAL:RESULT == 0
+	GOTO INPUT_LOOP
+ENDIF
+
+;選択キャラをCHOICEに保存
+CHOICE = RESULT
+
+
+;お会計はSELECTCASEの終了後なので、RESTARTさせる場合にはその前に代金を頂くこと
+SELECTCASE ITEMNAME:BOUGHT
+;陰毛を生やす
+CASE "毛生え薬"
+	IF COND("陰毛", CHOICE) == 0 || COND("陰毛", CHOICE) >= 7
+		RESULT = 1
+	ELSEIF COND("腋毛", CHOICE) == 0 || COND("腋毛", CHOICE) >= 7
+		RESULT = 0
+	ELSE
+		PRINTFORML 陰毛と%TEXTS("腋")%毛のどちらを育毛しますか？
+		PRINTFORML [ 0] 陰毛
+		PRINTFORML [ 1] %TEXTS("腋")%毛
+		CALL INPUT_SELECT, 2
+	ENDIF
+	IF RESULT == 0
+		PRINTFORMW ＜%CALLNAME:CHOICE%のアソコの毛を伸ばしました＞
+		SELECTCASE COND("陰毛", CHOICE)
+		CASE IS <= 5
+			BASE:CHOICE:陰毛 = 600
+		CASE 6
+			BASE:CHOICE:陰毛 = 700
+		ENDSELECT
+	ELSE
+		PRINTFORMW ＜%CALLNAME:CHOICE%の%TEXTS("腋")%毛を伸ばしました＞
+		BASE:CHOICE:腋毛 = 700
+	ENDIF
+	SIF COND("種族：人形", CHOICE)
+		PRINTFORMW ただし、%CALLNAME:CHOICE%は人形のため伸びたりはしません。自発的にお手入れもしません。
+;陰毛を失くす
+CASE "脱毛剤"
+	IF COND("陰毛", CHOICE) <= 2
+		RESULT = 1
+	ELSEIF COND("腋毛", CHOICE) <= 2
+		RESULT = 0
+	ELSE
+		PRINTFORML 陰毛と%TEXTS("腋")%毛のどちらを脱毛しますか？
+		PRINTFORML [ 0] 陰毛
+		PRINTFORML [ 1] %TEXTS("腋")%毛
+		CALL INPUT_SELECT, 2
+	ENDIF
+	IF RESULT == 0
+		PRINTFORMW ＜%CALLNAME:CHOICE%のアソコの毛を脱毛しました＞
+		BASE:CHOICE:陰毛 = 200
+		;人形なら、パイパン化
+		SIF COND("種族：人形", CHOICE)
+			BASE:CHOICE:陰毛 = 100
+	ELSE
+		PRINTFORMW ＜%CALLNAME:CHOICE%の%TEXTS("腋")%毛を脱毛しました＞
+		BASE:CHOICE:腋毛 = 200
+		SIF COND("種族：人形", CHOICE)
+			BASE:CHOICE:腋毛 = 100
+	ENDIF
+;避妊の護符
+CASE "避妊の護符"
+	;付けている場合には外す
+	IF TALENT:CHOICE:避妊の護符
+		PRINTFORMW ＜%CALLNAME:CHOICE%の子宮口から垂れている紐を引っ張って、避妊の護符を破壊しました＞
+		TALENT:CHOICE:避妊の護符 = 0
+	ELSE
+		PRINTFORML ＜%CALLNAME:CHOICE%の子宮内に避妊の護符を装着しました＞
+		PRINTFORMW 子宮口からは、引っぱる事で護符を取り除く事が出来る柔らかい紐が垂れています…
+		;即座に避妊の効果が出る
+		CALL SETFLAG, "避妊", CHOICE
+		TALENT:CHOICE:避妊の護符 = 1
+		MONEY -= ITEMPRICE:BOUGHT
+	ENDIF
+
+	SWAP TARGET, CHOICE
+	CALL KOJO_EVENT, "避妊の護符"
+	SWAP TARGET, CHOICE
+
+	IF MONEY >= ITEMPRICE:BOUGHT
+		RESTART
+	ELSE
+		RETURN 0
+	ENDIF
+ENDSELECT
+
+;代金はここで支払う（一部例外あり）
+MONEY -= ITEMPRICE:BOUGHT
+

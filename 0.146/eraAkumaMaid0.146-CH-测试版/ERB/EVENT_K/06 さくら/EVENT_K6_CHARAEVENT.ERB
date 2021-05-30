@@ -1,0 +1,211 @@
+;-------------------------------------------------
+;健康度がどこまで進んでいるかを見るだけの関数
+;-------------------------------------------------
+@SAKURA_HEALTH_M(ARG)
+#FUNCTION
+
+SIF ARG == 0
+	ARG = TARGET
+
+RETURNF (CFLAG:ARG:健康度 / 100)
+
+@SAKURA_HEALTH_S(ARG)
+#FUNCTION
+
+SIF ARG == 0
+	ARG = TARGET
+
+RETURNF (CFLAG:ARG:健康度 % 100)
+
+
+;-------------------------------------------------
+;ネタバレ回避のためイベント部分を分離
+;今のところ調教開始前からの呼び出しのみ
+;-------------------------------------------------
+@CHARAEVENT_K6
+
+;イベント（健康度） 
+;健康度の仕様
+;健康度 / 100 = イベント区分（Main）
+;健康度 % 100 = イベント区分（Sub）　上限99個
+
+
+;段階0
+IF SAKURA_HEALTH_M(TARGET) == 0
+	;0-0　調教3回目以降かつ魂1以上　M0　S0
+	IF SAKURA_HEALTH_S(TARGET) == 0 && EXP:Ｈ回数 >= 2 && BASE:魂 >= 1
+		PRINTFORMW 「%CNAME("二人称")%とその……するようになってからですね」
+		PRINTFORMW 「なんと、学校に行っても保健室に行かなくてよくなったんです」
+		PRINTFORMW 「すごいですよね、びっくりですよ」
+		PRINTFORMW 興奮した様子の%CALLNAME:TARGET%は、楽しそうに%CALLNAME:MASTER%に話しかけている。
+		CFLAG:健康度 ++
+		
+	;0-1　魂5以上　M0　S1
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 1 && BASE:魂 >= 5
+		PRINTFORMW 「最近いつも体調がよくって……」
+		PRINTFORMW 「夜眠るときも寝付きがいいんです。怖くないんですよ」
+		PRINTFORMW 「明日もちゃんと目が覚めるかなって心配しなくていいんです」
+		PRINTFORMW %CALLNAME:TARGET%は穏やかな笑みを浮かべながら、遠くを見るような目をしている。
+		CFLAG:健康度 ++
+		
+	;0-2　魂10以上　M0　S2
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 2 && BASE:魂 >= 10
+		PRINTFORMW 「この前病院に行ったんですけど、先生驚いてました」
+		PRINTFORMW 「しばらく様子をみて、それでもこのままなら薬も少し軽めのものに変わるみたいで」
+		PRINTFORMW 「ふふ、みんな%CNAME("二人称")%のおかげですね……」
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%に、安心しきった笑みを向けている……。
+		CFLAG:健康度 ++
+		
+	;0-3　魂15以上　M0　S3
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 3 && BASE:魂 >= 15
+		PRINTFORMW 「そうそう、このまま調子が良くなったら体育の授業に出てもいいですよって言われたんです」
+		PRINTFORMW 「ふふ、楽しみです」
+		PRINTFORMW 「運動はほとんどしたことがないので、上手くはできないと思いますけど……」
+		PRINTFORMW 苦笑いを浮かべながらも、%CALLNAME:TARGET%はどこか楽しそうな雰囲気だ。
+		CFLAG:健康度 ++
+		
+	;0-4-1　恋慕なし　M0　S4
+	;進行なし
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 4 && TALENT:恋慕 == 0
+		IF RAND:3 == 0
+			PRINTFORMW 「聞いてください%CNAME("二人称")%、今日はですね――」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「\@ TEXTS("曜日") != "日" ? 今日は # \@授業中、こんなことがあったんですよ」
+		ELSE
+			PRINTFORMW 「移動教室があったんですけど、あやうく学校で迷子になりかけました……」
+		ENDIF
+		PRINTFORMW %CALLNAME:TARGET%は\@ TEXTS("曜日") != "日" ? 今日も # \@学校で起きた出来事を楽しそうに話している……。
+
+	;0-4-2　恋慕あり　M0　S4
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 4 && TALENT:恋慕
+		PRINTFORMW 「…………」
+		PRINTFORMW いつも学校での出来事を楽しそうに話している%CALLNAME:TARGET%だが、今日は静かに黙っている。
+		PRINTFORMW 身体の調子が悪いのだろうか……。
+		PRINTFORMW 今日は多めに精液を与えた方がいいのかもしれない。
+		CFLAG:健康度 ++
+		
+	;0-5　条件なし　M0　S5
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 5 && TALENT:恋慕
+		PRINTFORMW 「はぁ……」
+		PRINTFORMW %CALLNAME:TARGET%は今日も相変わらず静かだ。
+		PRINTFORMW よく見てみると顔が赤く上気しているようだし、息も荒いように思える。
+		PRINTFORMW 体調が悪いのであれば、多めに魂を分けるべきだろうか……。
+		CFLAG:健康度 ++
+		
+	;0-6-1　魂50未満　M0　S6
+	;進行なし
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 5 && BASE:魂 < 50
+		PRINTFORMW 「……んっ」
+		PRINTFORMW %CALLNAME:TARGET%の様子は相変わらずのままだ。
+		PRINTFORMW しかし上気した頬や吐息の色はむしろますます艶めいてきているように思える……。
+	
+	;0-6-2　魂50以上　M0　S6
+	;メインイベント　M段階1に進行
+	ELSEIF SAKURA_HEALTH_S(TARGET) == 6 && BASE:魂 >= 50
+		PRINTFORMW あなたがさくらをベッドに誘ったときから遡ること数十分前。
+		PRINTFORML
+		PRINTFORMW （ああ……まただ）
+		PRINTFORML
+		PRINTFORMW 顔が燃えるように熱い。心臓が激しく早鐘を打っているのを感じる。
+		PRINTFORMW どくどくと鳴る鼓動はまるで嵐のようで、ただでさえ穏やかならぬ胸中をさらに激しくかき乱す。
+		PRINTFORMW 私の身体はこのところいつもこうだ。少し前までは調子よく動いていたのに、突然へそを曲げてしまうことがある。
+		PRINTFORML
+		PRINTFORMW 昼休みの直前あたりが特にひどい。
+		PRINTFORMW 体育でもなんでもない普通の授業なのに、息が荒くなって、頭がぼーっとして、顔が茹で上がったように真っ赤になる。
+		PRINTFORML
+		PRINTFORMW 「はぁ……っ」
+		PRINTFORML
+		PRINTFORMW そしてもうひとつ。
+		PRINTFORMW ぼーっとするだけでなく、すこし変な気分になってしまうのだ。今のように。
+		PRINTFORML
+		PRINTFORMW 胸の奥がむずむずする。心臓がどくんと大きく血液を送り出すたびに、先端にじわじわと熱が集まってくる。
+		PRINTFORMW こうなってしまうとつらい。意識しないようにしようと思えば思うほど敏感になる。
+		PRINTFORML
+		PRINTFORMW まるで虫さされを見つけてしまったときのようだ、と思う。
+		PRINTFORMW 気づくまでの間はなんとも感じなかったはずなのに、意識したとたんに痒みが気になって止まらなくなる。
+		PRINTFORMW 意識してしまうことで感覚が研ぎ澄まされる、敏感になったことでさらに気になってしまう。そんな堂々巡り。
+		PRINTFORML
+		PRINTFORMW さらさらとしたブラの裏地が乳首をこする感覚。小さく収まっていた乳首がむくむくと頭をもたげて、ブラの布地にくっきりと浮かび上がる。敏感になった乳首から快感があふれ出て、胸全体がじわりと火照ったように暖かくなる。
+		PRINTFORMW 気持ちよさに思わず指が伸びて、ぴたりと止まる。はしたないと思う心がブレーキをかける。けれども今は誰にも見られていない。授業中とは違う。とがめられることも、恥ずかしい思いをすることもない……。
+		PRINTFORML
+		PRINTFORMW 「……んぅっ」
+		PRINTFORMW 気づいたときには胸がすっぽりと両手に収まっていた。固く突き出ている乳首を人差し指と親指でくりくりとつまむ。ときにはぐにぐにと押し潰すように揉み、またあるときには牛の乳搾りのようにしごき上げる。
+		PRINTFORML
+		PRINTFORMW 「はぁっ、んく、はぁっ、はぁ……っ」
+		PRINTFORMW 胸の鼓動はもはや離れていても聞こえてしまうのではないかというほどに激しい。荒くなった呼吸の音がうるさいほどに頭に響く。乳首をしごく指が止まらない。気持ちいい、気持ちいい、気持ちいい――けど。
+		PRINTFORML
+		PRINTFORMW 「\@ TRUE_SEX(MASTER) == "オトコ" ? にい # ねえ \@、さん……っ」
+		PRINTFORMW 情欲で染まった脳裏に%CONDS("関係", MASTER)%の顔が浮かぶ。
+		PRINTFORMW 「足りないですっ、こんなのじゃぜんぜん、足りない……っ」
+		PRINTFORMW %CNAME("二人称")%にしてもらわないとイけない。事情をすべて打ち明けて、%CNAME("二人称")%にイかせてもらいたい……。
+		PRINTFORML
+		PRINTFORMW どんなときでもどこかに%CNAME("二人称")%がいないか探してしまう。
+		PRINTFORMW %CNAME("二人称")%と会えない時間が続くだけで、こんなにも身体が火照ってしまう。
+		PRINTFORMW ずっと%CNAME("二人称")%を見ていたい。%CNAME("二人称")%と一緒にいたい。%CNAME("二人称")%とキスしたい。%CNAME("二人称")%とえっちなことをしたい。そんな風に思ってしまう気持ちを抑えられない。
+		PRINTFORML
+		PRINTFORMW （そんなの、だめ……）
+		PRINTFORMW ……そんないやらしい子は嫌われてしまう。%CNAME("二人称")%に迷惑をかける子なんて嫌われても仕方がない。
+		PRINTFORML
+		PRINTFORMW 「我慢、しないと」
+		PRINTFORMW 名残惜しさをこらえて指を離す。
+		PRINTFORMW 乱れた着衣を整える。ずれたブラを元通りにして上着のボタンを留める。
+		PRINTFORMW 固くなった乳首が浮き出てしまっているのは……どうにもできないので我慢する。
+		PRINTFORML
+		PRINTFORMW （いつも通りの、%CNAME("二人称")%の妹の私に戻らないと……）
+		PRINTFORML
+		;段階進行
+		CFLAG:健康度 = (CFLAG:健康度 / 100 + 1) * 100
+	ENDIF
+	
+;段階1
+ELSEIF SAKURA_HEALTH_M(TARGET) == 1
+	;1-0　魂500以上　M1　S0
+	IF SAKURA_HEALTH_S(TARGET) == 0 && BASE:魂 >= 500
+		IF COND("昼")
+			PRINTFORMW 部活が始まるより少し前、普通の学生はまず寄りつかない空き教室にすべりこんだ。
+			PRINTFORMW これがあと少し遅かったら、廊下のど真ん中で「やらかして」しまっていたかもしれない。
+			PRINTFORMW 「うぅぅ……んんっ、んくぅっ……んっ、はぁ……っ」
+			PRINTFORMW 声を抑えないと見つかってしまう――そんな思いとは裏腹に、隠しきれない発情の色はするすると口から漏れてしまう。
+		ELSE
+			PRINTFORMW 「うぅぅ……んんっ、んくぅっ……んっ、はぁ……っ」
+			PRINTFORMW 夜、鍵のかかった薄暗い部屋の中。なぜ明かりがついていないのかといえば、それはもちろん、恥ずかしいから。
+			PRINTFORMW こんな姿、誰にも見せられない――頭ではそう思っていても、身体は素直に反応する。
+			PRINTFORMW どんなに抑えようとしていても、口からは艶めいた声があふれてしまう……。
+		ENDIF
+		PRINTFORML
+		PRINTFORMW 「%CNAME("二人称")%っ、はぁっ……あぁっ、いい……そこいいよぉっ、そこ、好き……っ」
+		PRINTFORMW 「好き……%CNAME("二人称")%好きです……っ、あぁっ……%CNAME("二人称")%……」
+		PRINTFORMW 「んぅっ！　んんっ、んぅぅぅぅぅーーっっ！！」
+		PRINTFORMW 脳を蕩かす絶頂の予感に、いけない、と反射的に手が動く。しかし両手でぐっと口をふさぐものの、抑えきれない嬌声はどうしてもあふれ出てしまう。
+		PRINTFORMW 全身に電流のように痺れが走るのを感じる。腰が大きく跳ねあがり、勢いよく潮を吹いてしまっているのが感覚的にわかった。
+		PRINTFORMW まるで釣り上げられた魚のように全身がびくびくと震えて止まらない。
+		PRINTFORML
+		PRINTFORMW 「はぁ……はぁっ、はぁ……はぁ……」
+		PRINTFORMW さっきまでが嘘のように全身がぐったりしている。身体はまるで糸の切れた人形のようで、動かそうとするたびに今だるいと返事が返ってくる気がした。
+		PRINTFORMW 「はぁぁ……またやっちゃった……」
+		PRINTFORML
+		PRINTFORMW 重たい身体に鞭打って起き上がる。大きくはだけた胸元が目に入り、口からは自然とため息がこぼれ出た。
+		IF COND("昼")
+			PRINTFORMW 「はぁ、もう……学校でこんなことしたらいけないのに……」
+			PRINTFORMW そう呟きながら、乱れた着衣を整える。
+			PRINTFORMW （あ、でもよく考えたらいつも部室で似たようなことしてると言えなくも……）
+			PRINTFORMW 「……いやいや、やっぱりダメですし」
+		ELSE
+			PRINTFORMW 「つい盛り上がっちゃったけど、大丈夫かな今の……」
+			PRINTFORMW 乱れた着衣を整える間、つい独り言が出てしまう。
+			PRINTFORMW （うぅ……%CNAME("二人称")%に聞こえてないといいんですけど……）
+			PRINTFORMW 「……いや、%CNAME("二人称")%以外もダメでしょ%CNAME("一人称")%」
+		ENDIF
+		PRINTFORML
+		PRINTFORMW \@ COND("昼") ? 隣の鞄から # 部屋のタンスから\@新しい下着を取り出す。今まで履いていたパンツはぐっしょりと濡れてしまっていて、とても履けるような状態ではなかった。
+		PRINTFORMW 「はぁ……でも%CNAME("二人称")%にしてもらってるって思うと、なんだかすごくすっきりするんですよね……」
+		PRINTFORMW 「最近はむしろ、%CNAME("二人称")%にされてる設定じゃないと全然収まらないっていうか……」
+		PRINTFORMW 「うぅ、悪化してるなぁ、%CNAME("一人称")%……」
+		PRINTFORML
+		PRINTFORMW 「……ってダメダメ、%CNAME("二人称")%のことばっかり考えてるとまたしたくなっちゃうっ」
+		PRINTFORMW 「今度……この身体のこと、フェリシエルさんに相談してみようかな……」
+		CFLAG:健康度 ++
+		
+	ENDIF
+ENDIF
+

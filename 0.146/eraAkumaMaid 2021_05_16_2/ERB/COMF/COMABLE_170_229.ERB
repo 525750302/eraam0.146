@@ -1,0 +1,204 @@
+;-------------------------------------------------
+;170～199番,～プレイ等舞台作成コマンド
+;-------------------------------------------------
+@COM_ABLE170
+;ビデオ撮影実行判定
+SIF COMABLE_DEF(170)
+	RETURN 0
+;解除はいつでも可能
+SIF TEQUIP:ビデオカメラ
+	RETURN 1
+;初期パートナーのみ
+SIF TARGET != FLAG:調教開始時の対象
+	RETURN 0
+;押し倒しの時には解除のみ可能
+SIF TEQUIP:押し倒し && TEQUIP:ビデオカメラ == 0
+	RETURN 0
+;カメラを持っていないとダメ
+SIF ITEM:撮影機材 == 0
+	RETURN 0
+RETURN 1
+
+@COM_ABLE171
+;仕様が決まるまで封印
+RETURN 0
+;野外プレイ実行判定
+SIF COMABLE_DEF(171)
+	RETURN 0
+;解除はいつでも可能
+SIF TEQUIP:野外プレイ
+	RETURN 1
+;屈服刻印3LVか恋慕でないとダメ
+SIF TALENT:恋慕 == 0 && MARK:屈服刻印 < 3
+	RETURN 0
+;信頼かマゾっ気が3以上ないとダメ
+SIF ABL:信頼 <= 2 && ABL:マゾっ気 <= 2
+	RETURN 0
+;浣腸使用中はプラグがなければ不可
+SIF TEQUIP:浣腸 && COND("アナル栓") == 0
+	RETURN 0
+RETURN 1
+
+@COM_ABLE172
+;お風呂場プレイ実行判定
+SIF COMABLE_DEF(172)
+	RETURN 0
+;解除はいつでも可能
+SIF TEQUIP:お風呂プレイ
+	RETURN 1
+RETURN 1
+
+@COM_ABLE173
+;新妻プレイ実行判定
+SIF COMABLE_DEF(173)
+	RETURN 0
+;解除はいつでも可能
+SIF TEQUIP:新妻プレイ
+	RETURN 1
+;助手じゃダメ
+SIF ASSIPLAY
+	RETURN 0
+;信頼が3以上ないとダメ
+SIF ABL:信頼 < 3
+	RETURN 0
+RETURN 1
+
+@COM_ABLE174
+;室内露出プレイ
+SIF COMABLE_DEF(174)
+	RETURN 0
+;解除はいつでも可能
+SIF TEQUIP:室内露出プレイ
+	RETURN 1
+;露出プレイの合意がないとダメ
+SIF COND("合意：露出プレイ") == 0
+	RETURN 0
+;調教対象、助手以外の部員がいないとダメ
+SIF FIND_COND("現在存在", "助手ではない") == 0
+	RETURN 0
+RETURN 1
+
+@COM_ABLE175
+;着せ替え実行判定
+SIF COMABLE_DEF(175)
+	RETURN 0
+;恍惚状態だとダメ
+SIF STATE("恍惚", PLAYER)
+	RETURN 0
+;通常状態以外は脱ぐことのみ可能
+IF TEQUIP:押し倒し || TEQUIP:拘束
+	SIF CHECK_CLO("ハダカ") == 0
+		RETURN 1
+	RETURN 0
+ELSEIF TEQUIP:室内露出プレイ || TEQUIP:野外プレイ
+	SIF CHECK_CLO("ハダカ")
+		RETURN 0
+ENDIF
+;ズレ不可のパンツを穿いている場合はそれを脱がすだけは出来る
+SIF CHECK_PANTIES("ずれ不可")
+	RETURN 1
+;野外プレイor室内露出プレイ中は、露出癖3Lvか信頼4Lvが無いとダメ
+SIF (TEQUIP:室内露出プレイ || TEQUIP:野外プレイ) && ABL:信頼 < 4 && ABL:露出癖 < 3
+	RETURN 0
+
+CALL COM_ORDER_COM175, 1
+RETURN LIMIT(RESULT, 0, 1)
+
+
+@COM_ABLE176
+;押し倒されるコマンド実行判定
+SIF COMABLE_DEF(176)
+	RETURN 0
+;疲れていると奉仕精神がないとダメ
+SIF COND("疲労") && ABL:奉仕精神 < 5
+	RETURN 0
+;バイブ挿入中はダメ
+SIF TEQUIP:バイブ || TEQUIP:アナルバイブ
+	RETURN 0
+;精液中毒か奉仕精神が無いとダメ
+SIF ABL:精液中毒 == 0 && ABL:奉仕精神 < 5
+	RETURN 0
+
+CALL COM_ORDER_COM176, 1
+RETURN LIMIT(RESULT, 0, 1)
+
+
+@COM_ABLE177
+RETURN 0
+
+@COM_ABLE178
+;二人に押し倒されるコマンド実行判定
+SIF COMABLE_DEF(178)
+	RETURN 0
+;助手が居ないとダメ
+SIF ASSI == 0
+	RETURN 0
+;MASTER調教中で無いとダメ
+SIF ASSIPLAY
+	RETURN 0
+SIF COND("疲労")
+	RETURN 0
+;バイブ挿入中はダメ
+SIF TEQUIP:バイブ || TEQUIP:アナルバイブ
+	RETURN 0
+;以下、助手の条件など
+SIF COND("Ｈはあなたとだけ") || COND("Ｈはあなたとだけ", ASSI)
+	RETURN 0
+;恋慕、淫乱、相思相愛状態ならＯＫとする
+IF TALENT:ASSI:恋慕 || TALENT:ASSI:淫乱 || TALENT:ASSI:相思相愛
+;それ以外なら、助手とTARGETが仲良くないとダメ。
+ELSE
+	SIF RELATION:(NO:ASSI) < 120
+		RETURN 0
+ENDIF
+
+CALL COM_ORDER_COM178, 1
+RETURN LIMIT(RESULT, 0, 1)
+
+
+@COM_ABLE179
+RETURN 0
+
+@COM_ABLE200
+;具現実行判定
+SIF COMABLE_DEF(200)
+	RETURN 0
+;誰かが具現持ちで無いとダメ
+IF TALENT:MASTER:具現 || TALENT:具現 || (ASSI && STATE("撃沈", ASSI) == 0 && TALENT:ASSI:具現)
+	SIF TALENT:MASTER:オンナ || TALENT:MASTER:ふたなり
+		RETURN 1
+	SIF TALENT:オンナ || TALENT:ふたなり
+		RETURN 1
+	SIF ASSI && STATE("撃沈", ASSI) == 0 && (TALENT:ASSI:オンナ || TALENT:ASSI:ふたなり)
+		RETURN 1
+ENDIF
+RETURN 0
+
+
+@COM_ABLE201
+RETURN 0
+
+@COM_ABLE202
+RETURN 0
+
+@COM_ABLE203
+RETURN 0
+
+@COM_ABLE204
+RETURN 0
+
+@COM_ABLE205
+RETURN 0
+
+@COM_ABLE206
+RETURN 0
+
+@COM_ABLE207
+RETURN 0
+
+@COM_ABLE208
+RETURN 0
+
+@COM_ABLE209
+RETURN 0
+

@@ -1,0 +1,422 @@
+﻿;--------------------------------------------------
+;キャラを勧誘した時などの台詞
+;--------------------------------------------------
+@EVENT_PROFILE, ARGS, ARG
+#DIM MEMO_LINECOUNT
+#DIM MEMO_TARGET
+SIF ARG <= 0 && TARGET > 0
+	ARG = TARGET
+
+MEMO_TARGET = TARGET
+TARGET = ARG
+
+;口上があるかどうかを行数でチェック
+MEMO_LINECOUNT = LINECOUNT
+TRYCALLFORM EVENT_PROFILE_K{NO:TARGET}, ARGS
+
+;何かしゃべったら１行開ける
+SELECTCASE ARGS
+CASE "紹介文", "自室描写"
+CASEELSE
+	SIF LINECOUNT > MEMO_LINECOUNT
+		PRINTL 
+ENDSELECT
+
+TARGET = MEMO_TARGET
+
+;--------------------------------------------------
+;日常の台詞。ＳＨＯＰ画面の下に出力されるやつです
+;--------------------------------------------------
+@KOJO_DAILY
+#DIM MEMO_LINECOUNT
+#DIMS SHOW_ACT
+
+SIF TARGET <= 1
+	RETURN 0
+
+;KOJO_DAILY台詞中フラグON
+SETBIT FLAG:状況判定, 33
+
+;再描画をしても同じセリフが出るように乱数調整
+CALL RESET_RANDOMIZE
+
+;何をやるのか行動決定
+CALL CHECK_MESSAGE_DAILY
+
+;名前とだいたいの服装を表示
+CALL PRINT_NAME_CLO
+
+MEMO_LINECOUNT = LINECOUNT
+;これは優先度が高いセリフ群
+TRYCALLFORM KOJO_DAILY_K{NO:TARGET}, STR:イベント名
+
+;特に台詞が無いなら表示した名前を消しておく
+SIF LINECOUNT == MEMO_LINECOUNT
+	CLEARLINE 1
+
+;何かしたなら前回コマンドを表示する
+SHOW_ACT = 
+IF CSTR:PREV_DAILYCOM != ""
+	SHOW_ACT = < \@ COND("直前行動") ? 直前行動 # 前回行動 \@：%CSTR:PREV_DAILYCOM% >
+	PRINTL 
+ELSEIF SAVESTR:PREV_直前行動 != ""
+	SHOW_ACT = %EXTSTR(SAVESTR:PREV_直前行動, "", "/")%
+	PRINTL 
+ENDIF
+
+IF CONFIG("オートちょっかいＯＮ") || (CONFIG("顔グラＯＮ") && CONFIG("顔グラアニメＯＮ") )
+	IF FLAG:自動進行停止 == 0
+		PRINTFORML %SHOW_ACT%%BL(NUM("折り返し文字数") - STRLENS(SHOW_ACT) - 23)%[111]pause
+	ELSE
+		PRINTFORML %SHOW_ACT%%BL(NUM("折り返し文字数") - STRLENS(SHOW_ACT) - 23)%[111]pause解除
+	ENDIF
+ELSE
+	PRINTFORML %SHOW_ACT%
+ENDIF
+
+CFLAG:KOJO_DAILY済 = 1
+
+;KOJO_DAILY台詞中フラグOFF
+CLEARBIT FLAG:状況判定, 33
+
+;--------------------------------------------------
+;早朝の台詞。主に挨拶。あとでイベント増やしたい
+;--------------------------------------------------
+@KOJO_GREETING, ARGS, ARG
+#DIM MEMO_LINECOUNT
+#DIM MEMO_LINECOUNT2
+#DIM MEMO_TARGET
+#DIM MEMO_CFLAG31
+
+SIF STRCOUNT(ARGS, "地の文前")
+	TFLAG:地の文スキップ = 0
+
+MEMO_TARGET = TARGET
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+TARGET = ARG
+
+MEMO_CFLAG31 = CFLAG:睡眠
+CFLAG:睡眠 = 0
+
+MEMO_LINECOUNT2 = LINECOUNT
+TFLAG:顔グラ表示中 = 0
+
+;改行がデフォで付くかどうかなど
+SELECTCASE ARGS
+CASE "挨拶返し"
+	TFLAG:交流中 = 1
+CASE "既に入室"
+	SIF COND("コート脱衣発生")
+		CALL RESET_OTHER, "外套", TARGET
+	TFLAG:交流中 = 1
+	SIF TFLAG:地の文スキップ == 0
+		PRINTL 
+CASE "一番乗り", "既に入室", "入室挨拶", "簡易入室挨拶"
+	TFLAG:交流中 = 1
+	SIF TFLAG:地の文スキップ == 0
+		PRINTL 
+CASE "全裸化への反応", "他の人がＨ開始", "抜け出された", "朝駆け"
+
+CASEELSE
+	SIF TFLAG:地の文スキップ == 0
+		PRINTL 
+ENDSELECT
+
+SELECTCASE ARGS
+CASE "朝駆け"
+CASE "朝拘束"
+	CALL EMOTION_PLUS, "ムラムラ", TARGET
+CASE "挨拶する"
+	CALL EMOTION_PLUS, "甘い言葉", TARGET
+CASEELSE
+	CALL PRINT_MAIDFACE, TARGET
+ENDSELECT
+
+MEMO_LINECOUNT = LINECOUNT
+TRYCALLFORM KOJO_GREETING_K{NO:TARGET}, ARGS
+
+SELECTCASE ARGS
+CASE "挨拶する"
+	CALL SETFLAG_DAILY, "挨拶", TARGET
+CASE "挨拶返し", "全裸化への反応", "他の人がＨ開始"
+
+CASEELSE
+	CFLAG:挨拶した = 1
+ENDSELECT
+SIF LINECOUNT == MEMO_LINECOUNT
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT2
+
+;	PRINTFORMW ARGS = %ARGS%, CSTR:現在位置 = %CSTR:現在位置%
+
+;もしも特殊な事が起きていたら
+SELECTCASE ARGS
+CASE "既に入室"
+	CALL TEXT, "出会いざまの格好所感", TARGET
+CASE "一番乗り", "入室挨拶", "簡易入室挨拶"
+	IF COND("コート脱衣発生")
+		SIF OTHER(CSTR:アクセサリ, "外套") != ""
+			PRINTFORMW %CALLNAME:TARGET%は%OTHER(CSTR:アクセサリ, "外套")%を脱いでコートハンガーにかけた。
+		CALL RESET_OTHER, "外套", TARGET
+	ENDIF
+	CALL TEXT, "出会いざまの格好所感", TARGET
+ENDSELECT
+
+TFLAG:交流中 = 0
+
+CFLAG:睡眠 = MEMO_CFLAG31
+
+TARGET = MEMO_TARGET
+
+;--------------------------------------------------
+;@KOJO_GREETINGの複数版
+;--------------------------------------------------
+@KOJO_GREETINGS, ARGS, ARG, ARG:1, ARG:2, ARG:3
+#DIM LCOUNT
+#DIM MEMO_TARGET
+
+MEMO_TARGET = TARGET
+
+FOR LCOUNT, 0, 4
+	SIF ARG:LCOUNT == 0
+		BREAK
+	TARGET = ARG:LCOUNT
+	CALL KOJO_GREETING, ARGS, ARG:LCOUNT
+NEXT
+TARGET = MEMO_TARGET
+
+;--------------------------------------------------
+;日常イベントの台詞。セクハラしたりした反応です
+;--------------------------------------------------
+@KOJO_DAILYCOM, ARGS, ARGS:1
+#DIM MEMO_LINECOUNT
+#DIM MEMO_LINECOUNT2
+#DIM MEMO_BLANKLINE
+SIF TARGET <= 1
+	RETURN 0
+SIF STRCOUNT(ARGS, "地の文前")
+	TFLAG:地の文スキップ = 0
+
+MEMO_LINECOUNT2 = LINECOUNT
+
+MEMO_BLANKLINE = TFLAG:BLANKLINE
+SIF ARGS:1 != "改行無し"
+	CALL BLANKLINE
+
+TFLAG:顔グラ表示中 = 0
+
+SELECTCASE STR:日常イベント名
+CASE "トーク"
+	IF FLAG:対複数
+		TFLAG:交流中 = 1
+		CALL PRINT_MAIDFACE, TARGET
+	ENDIF
+CASE "パンツ見せ"
+	;複数の場合にはパンツを表示
+	IF FLAG:対複数
+		CALL PRINT_NAME_PANTU
+		CALL PRINT_CUTIN, "パンツ", TARGET
+	ENDIF
+CASE "Ｈ目的で呼び出された"
+	CUSTOMDRAWLINE ━
+	IF COND("顔グラ表示中")
+		CALL PRINT_MAIDFACE, TARGET
+	ELSE
+		CALL PRINT_NAME
+	ENDIF
+CASEELSE
+	SELECTCASE ARGS
+	CASE "性処理：前", "休憩", "特殊イベント", "おやつを用意した", "放課後Ｈのお誘い"
+		CALL PRINT_MAIDFACE, TARGET
+	CASE "連れ見抜き"
+		CALL EMOTION_PLUS, "恥じらい", TARGET
+	CASE "連れ見抜きに誘われた"
+		CALL PRINT_MAIDFACE, TARGET
+	CASE "特殊イベント"
+		CALL BLANK_DRAWLINE
+	CASE "お昼ご飯のお誘い"
+		CUSTOMDRAWLINE ━
+	CASEELSE
+		IF FLAG:対複数
+			TFLAG:交流中 = 1
+			CALL PRINT_MAIDFACE, TARGET
+		ENDIF
+	ENDSELECT
+ENDSELECT
+
+MEMO_LINECOUNT = LINECOUNT
+TRYCALLFORM KOJO_DAILYCOM_K{NO:TARGET}, ARGS
+
+IF LINECOUNT > MEMO_LINECOUNT
+	;喋った口上のフラグを記録
+	IF CFLAG:睡眠 == 0
+		IF STR:日常イベント名 != ""
+			CALL SET_DEVENT, STR:日常イベント名
+		ELSE
+			CALL SET_DEVENT, ARGS
+		ENDIF
+	ENDIF
+ENDIF
+
+SELECTCASE STR:日常イベント名
+CASE "Ｈ目的で呼び出された", "お昼ご飯のお誘い"
+	SIF LINECOUNT > MEMO_LINECOUNT
+		CUSTOMDRAWLINE ━
+CASEELSE
+	SELECTCASE ARGS
+	CASE "お昼ご飯のお誘い"
+		SIF LINECOUNT > MEMO_LINECOUNT
+			CUSTOMDRAWLINE ━
+	ENDSELECT
+ENDSELECT
+
+IF LINECOUNT == MEMO_LINECOUNT
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT2
+	TFLAG:BLANKLINE = MEMO_BLANKLINE
+	;SIF STRCOUNTS(ARGS, "地の文前", "特殊イベント") == 0
+	;	CALL BLANKLINE
+ELSEIF ARGS:1 != "改行無し"
+	CALL BLANKLINE
+ENDIF
+
+TFLAG:交流中 = 0
+
+
+;--------------------------------------------------
+;@KOJO_DAILY で何について喋るかの判定。上の分岐が優先度が高い。
+;一部イベントはフラグ変動有り（ここでフラグ自体弄ります）
+;--------------------------------------------------
+@CHECK_MESSAGE_DAILY
+#DIM LCOUNT
+
+STR:イベント名 = 
+
+;-------------------------------------------------
+;寝ている時は寝言とか寝こけてる描写
+;-------------------------------------------------
+IF CFLAG:睡眠
+	STR:イベント名 = 睡眠
+	RETURN 1
+ENDIF
+;-------------------------------------------------
+;初回台詞。仲間になった際に最初にＳＨＯＰ画面で喋ることです。挨拶も兼ねる
+;-------------------------------------------------
+IF DEVENT("初回台詞") == 0 && COND("朝") == 0
+	STR:イベント名 = 初回台詞
+	CALL SET_DEVENT, STR:イベント名
+	RETURN 1
+ENDIF
+
+;その他
+IF COND("汗だく")
+	STR:イベント名 = 汗だく
+	RETURN 1
+ELSEIF CFLAG:寝起き
+	STR:イベント名 = 寝起き
+	RETURN 1
+ELSEIF CFLAG:ちょっかい数 == 0
+	SIF CFLAG:コスプレ中
+		STR:イベント名 = コスプレ中
+ENDIF
+SIF STR:イベント名 != ""
+	RETURN 1
+
+IF COND("おやつあり") && DEVENT("おやつの感想") == 0 && (COND("手作りおやつ") || RANDC(5) == 0)
+	STR:イベント名 = おやつの感想
+	CALL SET_DEVENT, "おやつの感想"
+	SIF COND("手作りおやつ")
+		CALL SET_DEVENT, @"%TEXTS("おやつ当番")%の手作り"
+ENDIF
+
+RETURN 1
+
+;--------------------------------------------------
+;デートの台詞
+;--------------------------------------------------
+@KOJO_DATE, ARGS
+#DIM MEMO_LINECOUNT
+
+TFLAG:地の文スキップ = 0
+MEMO_LINECOUNT = LINECOUNT
+TRYCALLFORM KOJO_DATE_K{NO:TARGET}, ARGS
+;地の文を飛ばす指定がない場合には汎用の反応を出す
+SIF TFLAG:地の文スキップ == 0
+	CALL DAILY_MESSAGE, ARGS
+SIF LINECOUNT > MEMO_LINECOUNT
+	CALL BLANKLINE
+
+;--------------------------------------------------
+;取引での台詞。
+;--------------------------------------------------
+@KOJO_WISH, ARGS, ARGS:1
+#DIM MEMO_LINECOUNT
+SIF TARGET <= 1
+	RETURN 0
+
+SIF STRCOUNT(ARGS, "地の文前")
+	TFLAG:地の文スキップ = 0
+
+MEMO_LINECOUNT = LINECOUNT
+
+TRYCALLFORM KOJO_WISH_K{NO:TARGET}, ARGS
+
+;何かしゃべったら１行開ける
+IF LINECOUNT > MEMO_LINECOUNT
+	SIF ARGS:1 != "改行無し"
+		PRINTL 
+	;喋った口上のフラグを記録
+	CALL SET_DEVENT, ARGS
+ENDIF
+
+;--------------------------------------------------
+;お買い物での台詞。
+;--------------------------------------------------
+@KOJO_SHOP, ARGS
+#DIM MEMO_LINECOUNT
+SIF TARGET <= 1
+	RETURN 0
+
+SIF STRCOUNT(ARGS, "地の文前")
+	TFLAG:地の文スキップ = 0
+
+MEMO_LINECOUNT = LINECOUNT
+CALL BLANKLINE
+
+TRYCALLFORM KOJO_SHOP_K{NO:TARGET}, ARGS
+
+;何かしゃべった
+IF LINECOUNT > MEMO_LINECOUNT
+	;喋った口上のフラグを記録
+	CALL SET_SEVENT, ARGS
+ENDIF
+CALL BLANKLINE
+
+;--------------------------------------------------
+;ロード直後の台詞。不在関係なく、現在勧誘済みの全キャラから一人選ばれて発言する。
+;ARGにはTARGETが記録されている
+;--------------------------------------------------
+@KOJO_LOAD, ARG
+#DIM MEMO_LINECOUNT
+#DIM LCOUNT
+#DIM ACTOR
+
+;現在は封印
+RETURN 0
+
+SIF FLAG:ロード時台詞
+	RETURN 0
+
+DRAWLINE
+MEMO_LINECOUNT = LINECOUNT
+
+;万が一誰も喋る人がいない時のために１００回を試行上限とする
+FOR LCOUNT, 0, 100
+	ACTOR = RAND:(CHARANUM - 1) + 1
+	TRYCALLFORM KOJO_LOAD_K{NO:ACTOR}, ACTOR
+
+	SIF LINECOUNT > MEMO_LINECOUNT
+		BREAK
+NEXT
+
+TARGET = ARG
+FLAG:ロード時台詞 = 1

@@ -1,0 +1,142 @@
+﻿;-------------------------------------------------
+;アニメーションを描画する関数群。ギンギー料理様のMAIDFACE.ERBを改変
+;-------------------------------------------------
+;-------------------------------------------------
+;キャラARGのアニメーションを描画する関数。ARG:1には何人目の位置かが入っている
+;SAVEFACE_BACK:ARGとSAVEFACE_FRONT:ARGは既に@MAIDFACEで設定された値をそのまま使う
+;表情はSAVEFACE_FACE_(MOUTH, EYES, MAYU):ARGをベースに変化させる
+;-------------------------------------------------
+@MAIDFACE_ANIME(ARG, ARG:1)
+#FUNCTIONS
+#DIM FSIZE
+#DIM FPOS
+#DIMS MOUTH
+#DIMS NUM_FANG
+#DIMS LEYE
+#DIMS REYE
+#DIMS EYES
+#DIMS MAYU
+
+MOUTH = 
+LEYE = 
+REYE = 
+EYES = 
+MAYU = 
+IF COND("種族：獣人", ARG)
+	NUM_FANG = 2
+ELSEIF COND("種族：吸血鬼", ARG) + COND("種族：竜人", ARG)
+	NUM_FANG = 1
+ELSE
+	NUM_FANG = 0
+ENDIF
+
+SIF CFLAG:ARG:顔グラ == 0
+	RETURNF ""
+
+FSIZE = 100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")
+FPOS = (ARG:1 - 1) * (FSIZE + 30)
+
+;口
+IF CFLAG:ARG:睡眠
+	SELECTCASE ANIME_FCOUNT:(ARG:1 - 1)
+	CASE 40 TO 70
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9半開き%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	CASEELSE
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9無口系' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	ENDSELECT
+ELSEIF CFLAG:ARG:寝起き || STATE("眠気", ARG)
+	SELECTCASE ANIME_FCOUNT:(ARG:1 - 1)
+	CASE 81 TO 109
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9あくび大' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	CASE 78 TO 80, 110
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9あくび小' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	CASEELSE
+		MOUTH = <nonbutton pos='{FPOS}'><img src='9半開き%NUM_FANG%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+	ENDSELECT
+ENDIF
+
+;目
+IF STRCOUNTS(SAVEFACE_EYES:ARG, "三白眼")
+	IF CFLAG:ARG:睡眠
+	ELSEIF CFLAG:ARG:寝起き || STATE("眠気", ARG)
+		SELECTCASE ANIME_FCOUNT:(ARG:1 - 1)
+		CASE 76 TO 110
+			LEYE = <nonbutton pos='{FPOS}'><img src='11糸目左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11糸目右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CASEELSE
+			LEYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		ENDSELECT
+	;まばたき
+	ELSE
+		SELECTCASE ANIME_FCOUNT:(ARG:1 - 1)
+		CASE 39, 41
+			LEYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11ジト三白眼%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CASE 40, 70
+			LEYE = <nonbutton pos='{FPOS}'><img src='11瞑り三白眼左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11瞑り三白眼右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		ENDSELECT
+	ENDIF
+ELSEIF STRCOUNTS(SAVEFACE_EYES:ARG, "糸目", "にっこり", "瞑り", "〇〇", "＞＜") == 0
+	IF CFLAG:ARG:睡眠
+	ELSEIF CFLAG:ARG:寝起き || STATE("眠気", ARG)
+		SELECTCASE ANIME_FCOUNT:(ARG:1 - 1)
+		CASE 76 TO 110
+			LEYE = <nonbutton pos='{FPOS}'><img src='11糸目左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11糸目右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CASEELSE
+			LEYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		ENDSELECT
+	;まばたき
+	ELSE
+		SELECTCASE ANIME_FCOUNT:(ARG:1 - 1)
+		CASE 39, 41
+			LEYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		CASE 40, 70
+			LEYE = <nonbutton pos='{FPOS}'><img src='11瞑り左' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+			REYE = <nonbutton pos='{FPOS}'><img src='11瞑り右' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		;よそ見は保留
+		;CASE 55 TO 68, 72 TO 79
+		;	SELECTCASE CFLAG:ARG:不機嫌
+		;	CASE IS > 0
+		;		LEYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%よそ見' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		;		REYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%よそ見' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		;	CASEELSE
+		;		LEYE = <nonbutton pos='{FPOS}'><img src='11%CONDS("左目の形", ARG)%%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%よそ見' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		;		REYE = <nonbutton pos='{FPOS}'><img src='11%CONDS("右目の形", ARG)%%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%よそ見' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		;	ENDSELECT
+		;CASE 69, 71
+		;	LEYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%よそ見' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		;	REYE = <nonbutton pos='{FPOS}'><img src='11ジト目%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%よそ見' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+		ENDSELECT
+	ENDIF
+ENDIF
+
+;目の形に２とかをその都度付けるのがバグの元なので最後に一回だけ見る
+SELECTCASE CHECK_TYPE(REYE)
+CASE "通常目", "ツリ目", "たれ目", "ジト目"
+	SIF STRCOUNT(CONDS("右目の形", ARG), "２")
+		REYE = <nonbutton pos='{FPOS}'><img src='11%CHECK_TYPE(REYE)%２%CONDS("右目の色", ARG)%右%CONDS("右白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+ENDSELECT
+SELECTCASE CHECK_TYPE(LEYE)
+CASE "通常目", "ツリ目", "たれ目", "ジト目"
+	SIF STRCOUNT(CONDS("左目の形", ARG), "２")
+		LEYE = <nonbutton pos='{FPOS}'><img src='11%CHECK_TYPE(LEYE)%２%CONDS("左目の色", ARG)%左%CONDS("左白目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>
+ENDSELECT
+
+SIF MOUTH == ""
+	MOUTH = %SAVEFACE_MOUTH:ARG%
+EYES = %LEYE%%REYE%
+SIF EYES == ""
+	EYES = %SAVEFACE_EYES:ARG%
+SIF MAYU == ""
+	MAYU = %SAVEFACE_MAYU:ARG%
+
+
+LOCALS = %SAVEFACE_BACK:ARG%%MOUTH%%EYES%%SAVEFACE_FRONT:ARG%%MAYU%%SAVEFACE_OVER:ARG%
+
+
+RETURNF LOCALS

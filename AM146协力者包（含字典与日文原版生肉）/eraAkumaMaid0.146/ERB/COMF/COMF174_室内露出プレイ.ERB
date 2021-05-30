@@ -1,0 +1,365 @@
+﻿@COM174
+;室内露出プレイ
+;館内露出プレイの改変
+;露出プレイの合意がないとダメ
+;恥情・欲望があがりやすい。反感もやや高め。
+
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+;-------------------------------------------------
+;実行できるかの判定
+;-------------------------------------------------
+;CALL SHOW_COM_ORDER_COM, 174
+;
+;実行できない
+;SIF TCVAR:やる気 == 0
+;	RETURN 0
+;-------------------------------------------------
+;実行決定
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+;終了時は修正なし
+IF TEQUIP:室内露出プレイ
+	TEQUIP:室内露出プレイ = 0
+	SIF ASSI
+		TEQUIP:ASSI:室内露出プレイ = 0
+ELSE
+	TEQUIP:室内露出プレイ = 1
+	SIF ASSI
+		TEQUIP:ASSI:室内露出プレイ = 1
+ENDIF
+
+RETURN 1
+
+@TRAIN_MESSAGE_COM174
+;是より居間を一般的洋風リビングと仮定。ソファでのプレイをもって公開プレイとする！！
+;近くのソファで家族（兄or姉と妹、母と息子or娘）が性行為しているのを見せつけられる家庭……
+;最大10人が収容できるリビングとは一体……
+IF PLACE("居間")
+	IF TEQUIP:室内露出プレイ
+		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%とソファへと戻った…
+	ELSEIF ASSI > 0
+		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:ASSI%にソファへと移動する準備を指示した…
+	ELSE
+		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%の痴態を見せつけるためにソファへ移動した…
+	ENDIF
+ELSE
+	IF TEQUIP:室内露出プレイ
+		PRINTFORMW パーティションを元に戻した…
+	ELSEIF ASSI > 0
+		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:ASSI%にパーティションを開放するよう指示した…
+	ELSE
+		PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%の痴態を見せつけるためにパーティションを開放した…
+	ENDIF
+ENDIF
+
+
+@EQUIP_COM174_2
+;室内露出プレイ
+SIF TEQUIP:室内露出プレイ == 0
+	RETURN 0
+SIF SELECTCOM == 174
+	RETURN 0
+PRINTL 
+PRINTL ＜室内露出プレイ＞
+
+SETCOLOR DEF_COLOR("黄色")
+
+CALL AUDIENCE_CHOICE
+
+RESETCOLOR
+
+CALL SOURCE_COM174, 100
+
+EXP:露出経験 += TEQUIP:室内露出プレイ
+PRINTFORML 露出経験＋{TEQUIP:室内露出プレイ}
+
+RETURN 1
+
+@FLAG_COM174, ARG
+
+@SOURCE_COM174, ARG
+CALL VARSET_COMF
+
+;観客の数による補正あり
+SOURCE:0:露出 = 1000 + TEQUIP:室内露出プレイ * 500
+SOURCE:0:逸脱 = TEQUIP:室内露出プレイ * 200
+
+IF CHECK_CLO("ハダカ")
+	;種族衣装がハダカでない
+	IF CLO_ORI(TARGET, "服", "ボディスーツ", "アウター", "パンツ")
+		SOURCE:0:露出 += 2000
+		SOURCE:0:逸脱 += 500
+	ENDIF
+ELSEIF CHECK_CLO("下着姿")
+	;種族衣装が服orボディスーツorアウターを含む
+	IF CLO_ORI(TARGET, "服", "ボディスーツ", "アウター")
+		SOURCE:0:露出 += 1000
+		SOURCE:0:逸脱 += 200
+	ENDIF
+ELSEIF CHECK_CLO("ノーパン")
+	;種族衣装に下着あり
+	IF CLO_ORI(TARGET, "パンツ")
+		SOURCE:0:露出 += 600
+		SOURCE:0:逸脱 += 100
+	ENDIF
+ENDIF
+SIF TALENT:内気
+	TIMES SOURCE:0:逸脱, 2.00
+SIF TALENT:恥じらい
+	TIMES SOURCE:0:逸脱, 2.00
+
+SOURCE:0:恐れ += SOURCE:0:逸脱 / 2
+
+CALL CALC, "調教ソース", ARG
+
+
+;反応するキャラを選出
+@AUDIENCE_CHOICE
+#DIM ACTOR
+
+;室内の人数
+IF ASSI > 0
+	TEQUIP:室内露出プレイ = CHARA_NUM("室内の邪魔者") - 1
+ELSE
+	TEQUIP:室内露出プレイ = CHARA_NUM("室内の邪魔者")
+ENDIF
+;室内の人数が多すぎる場合は制限
+SIF TEQUIP:室内露出プレイ > 10
+	TEQUIP:室内露出プレイ = 10
+
+;室内のキャラから一人選出
+ACTOR = FIND_COND("現在存在", "助手ではない")
+
+;簡易な地の文
+;CALL AUDIENCE_MESSAGE_SIMPLE, ACTOR
+;地の文+口上
+CALL AUDIENCE_MESSAGE, ACTOR
+
+
+RETURN 1
+
+;観客の反応　簡易な地の文
+@AUDIENCE_MESSAGE_SIMPLE, ARG
+
+	PRINTFORM %CALLNAME:ARG%
+		SIF (ASSI > 0 && CHARA_NUM("室内の邪魔者") > 3) || (ASSI == 0 && CHARA_NUM("室内の邪魔者") > 2)
+			PRINT 達
+	PRINT は
+
+SELECTCASE FLAG:ムード
+CASE IS < 30
+	PRINTFORM %CALLNAME:PLAYER%と%CALLNAME:TARGET%のプレイ
+		IF (ASSI > 0 && CHARA_NUM("室内の邪魔者") > 3) || (ASSI == 0 && CHARA_NUM("室内の邪魔者") > 2)
+			PRINTFORML %TEXTR("を見ながら軽く談笑している/内容について語りあっている/を横目で眺めている/をお茶を飲みながら眺めている")%…
+		ELSE
+			PRINTFORML %TEXTR("にあまり関心がないようだ/を横目で眺めている/をお茶を飲みながら眺めている")%…
+		ENDIF
+CASE IS >= 120
+	PRINTFORML %TEXTR("痴態をさらす/乱れる")%%CALLNAME:TARGET%を%TEXTR("食い入るように見つめている/見て気持ちを高ぶらせている/見て息を荒げている")%…
+CASEELSE
+	PRINTFORML %CALLNAME:PLAYER%と%CALLNAME:TARGET%のプレイを%TEXTR("興味深く眺めている/見て軽い興奮状態にあるようだ/楽しそうに深く眺めている")%…
+ENDSELECT
+
+
+RETURN 1
+
+;観客の反応　地の文
+@AUDIENCE_MESSAGE, ARG
+
+IF FLAG:ムード < 30
+	LOCALS = 室内露出：余裕
+ELSEIF TEQUIP:押し倒し
+	LOCALS = 室内露出：押し倒し
+ELSEIF TRAIN_GENRE("挿入", SELECTCOM) || INSERT("インサート")
+	LOCALS = 室内露出：挿入
+ELSEIF SELECTCOM >= 90 && SELECTCOM <= 119
+	LOCALS = 室内露出：奉仕
+ELSE
+	LOCALS = 室内露出：通常
+ENDIF
+
+SELECTCASE LOCALS
+CASE "室内露出：余裕"
+	PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%と%CALLNAME:TARGET%のプレイ%TEXTR("にあまり関心がないようだ/を横目で眺めている/をお茶を飲みながら眺めている")%…
+CASE "室内露出：押し倒し"
+	SELECTCASE FLAG:ムード
+	CASE IS >= 120
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORM %CALLNAME:ARG%は%CALLNAME:PLAYER%を%TEXTR("夢中で/情熱的に/熱に浮かされるように")%%TEXTR("責め立て/可愛が")%る%CALLNAME:TARGET%
+			IF (ABL:ARG:サドっ気 >= 4 || TALENT:ARG:小悪魔 || TALENT:ARG:意地悪) && RAND:2
+				PRINTFORML %TEXTR("に羨望の視線を送って/を見て自分も参加したがって/を見て嗜虐的な笑みを浮かべて")%いる…
+			ELSE
+				PRINTFORML %TEXTR("を見て熱っぽい息を漏らして/を見て胸を高鳴らせて/に心を揺さぶられて")%いる…
+			ENDIF
+		CASEELSE
+			PRINTFORM %CALLNAME:ARG%は%CALLNAME:TARGET%に%TEXTR("責め立てられ/可愛がられ")%、%TEXTR("翻弄される/快楽に溺れる/弄ばれる")%%CALLNAME:PLAYER%
+			IF (ABL:ARG:サドっ気 >= 4 || TALENT:ARG:小悪魔 || TALENT:ARG:意地悪) && RAND:2
+				PRINTFORML %TEXTR("に嗜虐心を煽られて/に情欲を剥きだしにして/を見て嗜虐的な笑みを浮かべてに/に恍惚のまなざしを向けて")%いる…
+			ELSE
+				PRINTFORML %TEXTR("を見て熱っぽい息を漏らして/を見てひどく興奮して/に庇護欲を掻き立てられて")%いる…
+			ENDIF
+		ENDSELECT
+	CASEELSE
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%を%TEXTR("責め立て/可愛が")%る%CALLNAME:TARGET%を%TEXTR("羨ましそうに見つめ/見て興奮し/見て体を火照らせ")%ている…
+		CASEELSE
+			PRINTFORM %CALLNAME:ARG%は%CALLNAME:TARGET%に%TEXTR("責められ/可愛がられ/弄ばれ")%る%CALLNAME:PLAYER%
+			IF (ABL:ARG:サドっ気 >= 4 || TALENT:ARG:小悪魔 || TALENT:ARG:意地悪) && RAND:2
+				PRINTFORML %TEXTR("をうっとりと見つめ/に劣情を煽られ/を見て嗜虐的に笑っ")%ている…
+			ELSE
+				PRINTFORML を%TEXTR("恥ずかしげに見つめ/見て体を火照らせ/見てにやにやと笑っ")%ている…
+			ENDIF
+		ENDSELECT
+	ENDSELECT
+CASE "室内露出：挿入"
+	SELECTCASE FLAG:ムード
+	CASE IS >= 120
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORM %CALLNAME:ARG%は%CALLNAME:PLAYER%%TEXTR("の激しいピストンに翻弄さ/に何度も突き上げら/に激しく責め立てら")%れ
+			IF NOWEX:Ｃ絶頂 || NOWEX:尿道絶頂 || NOWEX:Ｖ絶頂 || NOWEX:Ａ絶頂 || NOWEX:Ｂ絶頂 || NOWEX:Ｍ絶頂
+				PRINT 絶頂する
+			ELSE
+				PRINTFORM %TEXTR("嬌声を上げる/快楽に溺れる")%
+			ENDIF
+			IF ABL:ARG:欲望 >= 4 && RAND:2
+				IF TALENT:ARG:オトコ
+					PRINTFORML %CALLNAME:TARGET%を見て%TEXTR("自分が犯されるのが待ちきれないようだ/ガチガチにペニスを勃起させている/無意識にペニスをしごいている/先走り汁で股間に染みを作っている")%…
+				ELSE
+					PRINTFORML %CALLNAME:TARGET%を見て%TEXTR("自分が犯されるのが待ちきれないようだ/股間を濡らしている/子宮を疼かせている/股間から雫を滴らせている")%…
+				ENDIF
+			ELSE
+				PRINTFORML %CALLNAME:TARGET%%TEXTR("に羨望の視線を送って/を見て熱っぽい息を漏らして/を食い入るように見つめて")%いる…
+			ENDIF
+		CASEELSE
+			PRINTFORM %CALLNAME:ARG%は%CALLNAME:TARGET%を激しく責め立てる%CALLNAME:PLAYER%の\@ SIZE("ペニス", PLAYER) >= 2 ? 立派な # \@ペニス
+			IF ABL:ARG:欲望 >= 4 && RAND:2
+				IF TALENT:ARG:オトコ
+					PRINTFORML を見て%TEXTR("自分が犯される事を想像しているようだ/ガチガチにペニスを勃起させている/無意識にペニスをしごいている/先走り汁で股間に染みを作っている")%…
+				ELSE
+					PRINTFORML を見て%TEXTR("自分が犯される事を想像しているようだ/股間を濡らしている/子宮を疼かせている/股間から雫を滴らせている")%…
+				ENDIF
+			ELSE
+				PRINTFORML %TEXTR("から目が離せないようだ/を見て熱っぽい息を漏らしている/を食い入るように見つめている/を見て淫靡に微笑んでいる")%…
+			ENDIF
+		ENDSELECT
+	CASEELSE
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORM %CALLNAME:ARG%は%CALLNAME:PLAYER%%TEXTR("のピストンに翻弄さ/に突き上げら/に責めら")%れ
+			IF NOWEX:Ｃ絶頂 || NOWEX:尿道絶頂 || NOWEX:Ｖ絶頂 || NOWEX:Ａ絶頂 || NOWEX:Ｂ絶頂 || NOWEX:Ｍ絶頂
+				PRINT 絶頂する
+			ELSE
+				PRINT 嬌声を上げる
+			ENDIF
+			PRINTFORML %CALLNAME:TARGET%を%TEXTR("羨ましそうに見つめ/見て興奮し/見て胸を高鳴らせ")%ている…
+		CASEELSE
+			PRINTFORML %CALLNAME:ARG%は%CALLNAME:TARGET%を%TEXTR("責め立て/突き上げ")%る%CALLNAME:PLAYER%の\@ SIZE("ペニス", PLAYER) >= 2 ? 立派な # \@ペニスを%TEXTR("うっとりと見つめ/恥ずかしげに見つめ/見て体を火照らせ")%ている…
+		ENDSELECT
+	ENDSELECT
+CASE "室内露出：奉仕"
+	SELECTCASE FLAG:ムード
+	CASE IS >= 120
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORM %CALLNAME:ARG%は%CALLNAME:PLAYER%に
+			SIF ABL:技巧 < 3
+				PRINT 拙いながらも
+			IF TALENT:恋慕 || ABL:奉仕精神 >= 4
+				PRINTFORM %TEXTR("一心不乱に/愛情溢れる/献身的な/情熱的な")%奉仕をする%CALLNAME:TARGET%
+			ELSE
+				PRINTFORM %TEXTR("一生懸命/積極的に/夢中で")%奉仕する%CALLNAME:TARGET%
+			ENDIF
+			IF TALENT:ARG:恋慕 || ABL:ARG:奉仕精神 >= 4
+				PRINTFORML を見て%TEXTR("奉仕欲を強く刺激され/羨望の視線を送っ/対して対抗意識を燃やし")%ている…
+			ELSE
+				PRINTFORML %TEXTR("を見て自分も参加したがっ/を見て気持ちを高ぶらせ/を強く興奮しながら見つめ")%ている…
+			ENDIF
+		CASEELSE
+			PRINTFORM %CALLNAME:ARG%は%CALLNAME:TARGET%から
+			SIF ABL:技巧 < 3
+				PRINT 拙いながらも
+			IF TALENT:恋慕 || ABL:奉仕精神 >= 4
+				PRINTFORM %TEXTR("愛情ある/熱心な/情熱的な")%奉仕を受ける%CALLNAME:PLAYER%
+			ELSE
+				PRINTFORM 積極的な奉仕を受ける%CALLNAME:PLAYER%
+			ENDIF
+			IF TALENT:ARG:恋慕 || ABL:ARG:奉仕精神 >= 4
+				PRINTFORML %TEXTR("を愛おしそうな目で見つめ/に奉仕欲を強く刺激され/を見て自分も参加したがっ/に母性本能を刺激され")%ている…
+			ELSE
+				PRINTFORML %TEXTR("を食い入るように見つめ/に熱い視線を送っ/を見て熱っぽい息を漏らし")%ている…
+			ENDIF
+		ENDSELECT
+	CASEELSE
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORM %CALLNAME:ARG%は
+			SIF ABL:技巧 < 3
+				PRINT 拙いながらも
+			IF TALENT:恋慕 || ABL:奉仕精神 >= 4
+				PRINTFORM %TEXTR("一生懸命/慈しむよう/献身的")%に奉仕する%CALLNAME:TARGET%
+			ELSE
+				PRINTFORM %CALLNAME:PLAYER%に奉仕する%CALLNAME:TARGET%
+			ENDIF
+			IF ABL:技巧 < 3 && RAND:2
+				PRINTFORML %TEXTR("にアドバイスを送っ/を応援し")%ている…
+			ELSEIF (TALENT:恋慕 || ABL:奉仕精神 >= 4) && RAND:3 == 0
+				PRINTFORML %TEXTR("を微笑ましく見つめ/の姿に感心し")%ている…
+			ELSE
+				PRINTFORML %TEXTR("を楽しげに見つめ/に好奇心に満ちた視線を送っ/を見て興奮し")%ている…
+			ENDIF
+		CASEELSE
+			PRINTFORM %CALLNAME:ARG%は%CALLNAME:TARGET%に奉仕される%CALLNAME:PLAYER%の%TEXTR("姿/表情")%
+			IF TALENT:ARG:恋慕 || ABL:ARG:奉仕精神 >= 4
+				PRINTFORML %TEXTR("をうっとりと見つめ/を見て目を細め/に頬を染め/を見て体を火照らせ")%ている…
+			ELSE
+				PRINTFORML を%TEXTR("楽しそうに見つめ/恥ずかしげに見つめ/見て体を火照らせ")%ている…
+			ENDIF
+		ENDSELECT
+	ENDSELECT
+CASE "室内露出：通常"
+	SELECTCASE FLAG:ムード
+	CASE IS >= 120
+		PRINTFORM %CALLNAME:ARG%は%TEXTR("痴態をさらす/激しく乱れる")%%CALLNAME:TARGET%
+		IF TALENT:ARG:恥じらい && RAND:2
+			PRINTFORML に%TEXTR("手で顔を覆い/羞恥で顔を真っ赤にし/恥ずかしそうに頬を染め")%ながら、%TEXTR("食い入るように見つめている/目を離すことができないようだ/熱っぽい息を漏らしている")%…
+		ELSEIF (ABL:ARG:欲望 >= 4 || ABL:ARG:マゾっ気 >= 3) && RAND:3 == 0
+			IF TALENT:ARG:オトコ
+				PRINTFORML のように責められる事を%TEXTR("想像/期待")%して%TEXTR("ペニスを勃起させ/無意識にペニスをしごい/股間に染みを作っ")%ている…
+			ELSE
+				PRINTFORML のように責められる事を%TEXTR("想像/期待")%して%TEXTR("股間を濡らし/股間から雫を垂らし/自らの股間を弄って慰め")%ている…
+			ENDIF
+		ELSEIF ABL:ARG:サドっ気 >= 4 && RAND:3 == 0
+			PRINTFORML %TEXTR("の姿に嗜虐心をそそられ/の姿に劣情を煽られ/を見て嗜虐的な笑みを浮かべ")%ている…
+		ELSE
+			PRINTFORML %TEXTR("を食い入るように見つめている/から目を離すことができないようだ/に熱い視線を送っている/を見て息を荒げている/に熱っぽい息を漏らしている/を見て淫靡に微笑んでいる")%…
+		ENDIF
+	CASEELSE
+		IF TALENT:ARG:恥じらい && RAND:2
+			PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%と%CALLNAME:TARGET%の%TEXTR("痴態/プレイ")%を見て%TEXTR("手で顔を覆っ/羞恥に頬を火照らせ/恥ずかしそうに頬を染め")%ている…
+		ELSEIF ABL:ARG:マゾっ気 >= 3 && RAND:2
+			PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%に%TEXTR("責め/可愛が")%られる%CALLNAME:TARGET%に自らを重ねて%TEXTR("体を火照らせ/興奮し/頬を染め")%ている…
+		ELSEIF (ABL:ARG:サドっ気 >= 3 || TALENT:ARG:小悪魔 || TALENT:ARG:意地悪) && RAND:2
+			PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%に%TEXTR("責め/可愛が")%られる%CALLNAME:TARGET%%TEXTR("をうっとりと見つめ/を見て興奮し/を見て体を火照らせ")%ている…
+		ELSE
+			PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%と%CALLNAME:TARGET%の%TEXTR("痴態/プレイ")%%TEXTR("を楽しそうに見つめ/を見て興奮し/を見て体を火照らせ")%ている…
+		ENDIF
+	ENDSELECT
+ENDSELECT
+
+;口上呼び出し
+CALL KOJO_GUEST, LOCALS, ARG
+
+PRINTL 　
+
+
+RETURN 1

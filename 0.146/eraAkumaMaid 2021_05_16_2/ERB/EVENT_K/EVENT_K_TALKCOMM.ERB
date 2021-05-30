@@ -1,0 +1,42 @@
+;基本的には@TaiTaChara_KXXシリーズと同じ処理(TaiTaってなんの略称なの...)
+;何が違うかというとSHOP画面でトークを選んだ時に表示する
+;つまり長い会話でもWAITを使う会話でも大丈夫！やったね！
+@CtoC_Comm_K15
+;イベントが起きるキャラの名前を/区切りでこれに突っ込み、TEXTRで取り出す
+#DIMS EVENT_TABLE
+;イベント発生中のキャラ
+#DIM ACTOR
+;イベント発生中のキャラのデフォのCALLNAME
+#DIMS CALLNAME_ACTOR
+
+#DIM CHOICE
+
+;現在この場にいる、自分以外の全キャラの名前を取得する
+EVENT_TABLE = %NAMES("現在存在キャラ一覧", TARGET)%
+;誰も居ないなら終わり
+SIF EVENT_TABLE == ""
+	RETURN 0
+
+;このキャラのイベントが起きる
+CALLNAME_ACTOR = %TEXTR(EVENT_TABLE)%
+ACTOR = FIND_COND(CALLNAME_ACTOR)
+
+SELECTCASE CALLNAME_ACTOR
+	CASE "ツェツィーリア"
+		IF CEVENT("ツェツィーリア初会話") == 0
+			CALL EVENT_槞彁COMM_LIBRARY("日常トーク：ツェツィーリア：初めまして")
+			CALL SET_CEVENT, "ツェツィーリア初会話"
+		ELSE
+			CALL EVENT_槞彁COMM_LIBRARY("日常トーク：ツェツィーリア：挨拶：お誘い")
+			CALL PRINT_SELECT("はい/いいえ")
+
+			CHOICE = RESULT
+			SELECTCASE CHOICE
+				CASE 0
+					CALL EVENT_槞彁COMM_LIBRARY("日常トーク：ツェツィーリア：挨拶：勉強")
+				CASE 1
+					PRINTFORMW %CALLNAME:TARGET%はしょぼんとしながら戻っていった。
+			ENDSELECT
+		ENDIF
+	CASEELSE
+ENDSELECT

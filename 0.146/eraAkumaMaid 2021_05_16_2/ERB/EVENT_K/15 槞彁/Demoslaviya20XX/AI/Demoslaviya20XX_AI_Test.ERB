@@ -1,0 +1,143 @@
+;とりあえずのテスト用AI
+;動き方：動かない
+;攻撃：隣に居る、最も指揮統制率の低いユニット
+@Demoslaviya20XX_AI_Test
+	#DIM DYNAMIC LCount
+	#DIM DYNAMIC TargetSelectLoopCount
+	#DIM DYNAMIC TargetUnitID
+	#DIM DYNAMIC Y_SelectUnit
+	#DIM DYNAMIC X_SelectUnit
+	#DIMS DYNAMIC WeaponList
+
+
+	FOR LCount,1,10000
+		SIF Demoslaviya20XX_Unit:LCount:0 == "None"
+			BREAK
+		IF Demoslaviya20XX_Unit:LCount:0 == "敵"
+			CALL Demoslaviya20XX_UnitSearch(LCount) 
+			IF RESULT:0 == 1
+				Y_SelectUnit = RESULT:1
+				X_SelectUnit = RESULT:2
+				Demoslaviya20XX_SelectCommandMode = 攻撃
+				Demoslaviya20XX_SelectWeapon = None
+				
+				;まず、ユニットを選択する
+				Demoslaviya20XX_SelectUnit = LCount
+
+				CALL Demoslaviya20XX_EnemyTarnViewer
+
+				;武器を選択する
+				;とりあえず今回はテスト用なので射撃対象の事を考えず1番目の武器を使う
+				VARSET WeaponList:0 ,"None"
+				SPLIT Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:6,",",WeaponList
+				Demoslaviya20XX_SelectWeapon = %WeaponList:0%
+
+				CALL Demoslaviya20XX_EnemyTarnViewer
+
+				;攻撃対象ユニットを選ぶわよ
+				Demoslaviya20XX_SelectCommandMode = 攻撃
+				CALL Demoslaviya20XX_EnemyWithinRangeSearch
+				;#region 攻撃対象選択 (多分これ別メソッドとして独立させるべきな気がするワ...)
+					PRINTFORML {TargetUnitID}
+					TargetUnitID = 0
+					FOR TargetSelectLoopCount,0,10000
+						IF Demoslaviya20XX_CandidateList:TargetSelectLoopCount:0 > 0
+							IF Demoslaviya20XX_Unit:(Demoslaviya20XX_CandidateList:TargetSelectLoopCount:0):0 == "味方"
+								IF TargetUnitID == 0
+									PRINTFORML {TargetUnitID}
+									TargetUnitID = Demoslaviya20XX_CandidateList:TargetSelectLoopCount:0
+									PRINTFORML {TargetUnitID}
+								ENDIF
+								;指揮統制率が低い方のユニットを優先的に攻撃するわよ
+								IF TOINT(Demoslaviya20XX_Unit:TargetUnitID:4) > TOINT(Demoslaviya20XX_Unit:(Demoslaviya20XX_CandidateList:TargetSelectLoopCount:0):4)
+									TargetUnitID = TOINT(Demoslaviya20XX_Unit:(Demoslaviya20XX_CandidateList:TargetSelectLoopCount:0):4)
+								ENDIF
+							ENDIF
+						ENDIF
+					NEXT
+				;#endregion 
+				PRINTFORML {TargetUnitID}
+				;#region攻撃対象を表示する
+					IF TargetUnitID > 0
+						Demoslaviya20SXX_EnemyTargetMode = True
+						CALL Demoslaviya20XX_EnemyTargetSelectMap_Constructor
+						CALL Demoslaviya20XX_UnitSearch(TargetUnitID) 
+						Demoslaviya20XX_EnemyTargetSelectMap:(RESULT:1):(RESULT:2) = 0
+						Demoslaviya20XX_SelectCommandMode = 攻撃
+						CALL Demoslaviya20XX_EnemyTarnViewer
+					ENDIF
+				;#endregion
+
+				;#region 
+					IF TargetUnitID > 0
+						CALL Demoslaviya20XX_UnitSearch(TargetUnitID)
+						CALL Demoslaviya20XX_EnemyHitCalc(RESULT:1,RESULT:2)
+					ENDIF
+				;#endregion
+			ENDIF
+		ENDIF
+	Demoslaviya20XX_SelectWeapon = None
+	Demoslaviya20XX_SelectUnit = 0
+	Demoslaviya20XX_SelectCommandMode = 移動
+	Demoslaviya20SXX_EnemyTargetMode = False
+	NEXT
+;射程内の敵を探すわよ
+@Demoslaviya20XX_EnemyWithinRangeSearch
+	#DIM DYNAMIC X_Range
+	#DIM DYNAMIC Y_Range
+	#DIM DYNAMIC LCount
+
+	CALL Demoslaviya20XX_CandidateList_Constructor
+	FOR Y_Range,0,200
+		FOR X_Range,0,200
+			;射程内かつ、ユニットが居るヘクスをCandidateListに追加するわよ
+			;PRINTFORMW Debug!! {TOINT(Demoslaviya20XX_MAP:Y_Range:X_Range:1)}
+			;PRINTFORML Debug!!!{Demoslaviya20XX_AttackRangeMap:Y_Range:X_Range}
+			IF Demoslaviya20XX_AttackRangeMap:Y_Range:X_Range >= 0 && TOINT(Demoslaviya20XX_MAP:Y_Range:X_Range:1) >= 1
+				FOR LCount,0,10000
+					IF Demoslaviya20XX_CandidateList:LCount:0 < 0
+						Demoslaviya20XX_CandidateList:LCount:0 = TOINT(Demoslaviya20XX_MAP:Y_Range:X_Range:1)
+						Demoslaviya20XX_CandidateList:LCount:1 = Y_Range
+						Demoslaviya20XX_CandidateList:LCount:2 = X_Range
+						BREAK
+					ENDIF
+					IF LCount == 10000
+						PRINTFORML デバッグメッセージ：エラー！
+						PRINTFORML 発生メソッド : Demoslaviya20XX_EnemyWithinRangeSearch
+						PRINTFORML 射程内の敵リストに入りきらなかったわよ
+						PRINTFORMW でも射程内に10000もユニットが居る事って無いはずだから多分バグだと思うわ
+					ENDIF
+				NEXT
+			ENDIF
+		NEXT
+	NEXT
+
+@Demoslaviya20XX_EnemyTarnViewer
+	#DIM CONST TWaitTimer = 500
+	#DIM DYNAMIC Y_ViewPoint
+	#DIM DYNAMIC X_ViewPoint
+
+		CALL Demoslaviya20XX_UnitSearch(Demoslaviya20XX_SelectUnit)
+		IF RESULT == 1
+			IF RESULT:1 < 6
+				Y_ViewPoint = 0
+			ELSE
+				Y_ViewPoint = RESULT:1 -6
+			ENDIF
+
+			IF RESULT:2 < 11
+				X_ViewPoint = 0
+			ELSE
+				X_ViewPoint = RESULT:2 - 11
+			ENDIF
+			
+		ENDIF
+		IF MESSKIP()
+			CALL Demoslaviya20XX_GenerateHTML(X_ViewPoint,Y_ViewPoint)
+			CALL Demoslaviya20XX_ViewHTML_Enemy
+			WAIT
+		ELSE
+			CALL Demoslaviya20XX_GenerateHTML(X_ViewPoint,Y_ViewPoint)
+			CALL Demoslaviya20XX_ViewHTML_Enemy
+			TWAIT TWaitTimer,1
+		ENDIF

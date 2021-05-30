@@ -1,0 +1,223 @@
+;-------------------------------------------------
+;キャラARGのパンツを変更する。ARG == 0 の場合はドッペルあなたを使ってのシミュレーションモード
+;-------------------------------------------------
+@SIMULATE_CUTIN, ARG
+STR:顔グラ衣装 = 
+SELECTCASE ARG
+CASE 0
+	ADDCHARA 99
+	ARG = CHARANUM - 1
+	TALENT:ARG:肌の色 = 0
+	CALL SET_PANTIES, "ショーツ", ARG
+	CALL SIMULATE_CUTIN_MAIN, ARG
+	CALL DELETE_CHARA, CHARANUM - 1
+
+ENDSELECT
+STR:顔グラ衣装 = 
+
+;-------------------------------------------------
+;ARGSで現在設定しているものの種類を管理する
+;-------------------------------------------------
+@SIMULATE_CUTIN_MAIN, ARG, ARGS
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIMS CHOICES
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE PANTIES(ARG, "CIPバック")
+CASE "Ｇストリング"
+	IF OUTER(ARG, "CIP種類") == ""
+		CALL PRINT_CUTIN, "パンツ前後", ARG
+	ELSE
+		CALL PRINT_CUTIN, "アウター", ARG
+	ENDIF
+CASEELSE
+	CALL PRINT_CUTIN, "アウター", ARG
+ENDSELECT
+
+SELECTCASE ARGS
+CASEELSE
+	IF NO:ARG  == 99
+		CALL PRINT_STRL, @"　肌の色:%TEXT_LJ(CONDS("肌の色", ARG), 17)%_BUTTON_[普通]_BUTTON_[褐色肌]_BUTTON_[色白]_BUTTON_[青肌]"
+		PRINTL 
+		CALL PRINT_STRL, @"　　淫紋:%TEXT_LJ(@"{MARK:ARG:淫紋}LV", 17)%_BUTTON_[0LV]_BUTTON_[1LV]_BUTTON_[2LV]_BUTTON_[3LV]_BUTTON_[4LV]"
+	ENDIF
+	PRINTL 
+	;大まかな分類
+	IF EQUIP:ARG:ボディスーツ
+		CALL PRINT_STR, @"　　種類:%TEXT_LJ(BODYS(ARG, "CIP種類"), 17)%"
+	ELSEIF EQUIP:ARG:アウター
+		CALL PRINT_STR, @"　　種類:%TEXT_LJ(OUTER(ARG, "CIP種類"), 17)%"
+	ELSE
+		CALL PRINT_STR, @"　　種類:%TEXT_LJ(PANTIES(ARG, "CIPフロント"), 17)%"
+	ENDIF
+	CALL PRINT_STRL, @"BUTTON_[ショーツ]_BUTTON_[パンティ]_BUTTON_[フリルのパンツ]_BUTTON_[縞々パンツ]_BUTTON_[レースのパンツ]"
+	CALL PRINT_STRL, @"　　　　　　　　　　　　　_BUTTON_[ハイレグパンツ]_BUTTON_[ローライズパンツ]_BUTTON_[ローレグパンツ]_BUTTON_[Ｔバック]"
+	CALL PRINT_STRL, @"　　　　　　　　　　　　　_BUTTON_[子供パンツ]_BUTTON_[褌]_BUTTON_[前貼り]_BUTTON_[ボーイレッグ]_BUTTON_[ドロワーズ]_BUTTON_[葉っぱパンツ]"
+	CALL PRINT_STRL, @"　　　　　　　　　　　　　_BUTTON_[マイクロショーツ]_BUTTON_[マイクロビキニ]_BUTTON_[ティアドロップビキニ]"
+	CALL PRINT_STRL, @"　　　　　　　　　　　　　_BUTTON_[ハイレグブルマ]_BUTTON_[ブルマ]_BUTTON_[バニースーツ]_BUTTON_[競泳水着]"
+	PRINTL 
+	;色
+	IF CHECK_BODYS("バニー", ARG)
+		CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:ボディスーツ, "色のみ"), 17)%_BUTTON_[黒]_BUTTON_[紫]_BUTTON_[青]_BUTTON_[赤]_BUTTON_[白]"
+		PRINTL 
+	ELSEIF CHECK_BODYS("競泳水着", ARG)
+		CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:ボディスーツ, "色のみ"), 17)%_BUTTON_[黒]_BUTTON_[青]_BUTTON_[赤]_BUTTON_[緑色]"
+		PRINTL 
+	ELSEIF CHECK_OUTER("ブルマ", ARG)
+		CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:アウター, "色のみ"), 17)%_BUTTON_[紺色]_BUTTON_[赤]_BUTTON_[水色]_BUTTON_[緑色]"
+		PRINTL 
+	ELSE
+		SELECTCASE PANTIES(ARG, "CIPフロント")
+		CASE "ハイレグブルマ"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[紺色]_BUTTON_[赤]_BUTTON_[水色]_BUTTON_[緑色]"
+			PRINTL 
+		CASE "Ｔバック"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[黄色]_BUTTON_[黒]_BUTTON_[紫]_BUTTON_[真紅]_BUTTON_[赤]_BUTTON_[青]_BUTTON_[紺色]_BUTTON_[白]_BUTTON_[純白]_BUTTON_[灰色]_BUTTON_[緑色]_BUTTON_[薄緑]"
+			CALL PRINT_STRL, @"　　　　　　　　　　　　　_BUTTON_[豹柄]_BUTTON_[水玉ピンク]_BUTTON_[水玉黒]_BUTTON_[水玉黄色]_BUTTON_[水玉水色]"
+		CASE "褌"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[黒]_BUTTON_[赤]_BUTTON_[薄桃色]_BUTTON_[白]"
+			PRINTL 
+		CASE "子供パンツ"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[白]_BUTTON_[いちご柄]_BUTTON_[くま柄]_BUTTON_[さかな柄]"
+			CALL PRINT_STRL, @"　　　　　　　　　　　　　_BUTTON_[ねこ柄]_BUTTON_[ひよこ柄]_BUTTON_[りぼん柄]_BUTTON_[水玉模様]_BUTTON_[緑色]"
+		CASE "Ｇストリング", "マイクロ", "ティアドロップ"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[黒]_BUTTON_[紫]_BUTTON_[真紅]_BUTTON_[赤]_BUTTON_[青]_BUTTON_[紺色]_BUTTON_[白]_BUTTON_[純白]_BUTTON_[豹柄]"
+			PRINTL 
+		CASE "マイクロショーツ"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[黒]_BUTTON_[紫]_BUTTON_[真紅]_BUTTON_[赤]_BUTTON_[青]_BUTTON_[紺色]_BUTTON_[白]_BUTTON_[純白]"
+			PRINTL 
+		CASE "ローレグ"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[黒]_BUTTON_[紫]_BUTTON_[真紅]_BUTTON_[赤]_BUTTON_[緑色]_BUTTON_[青]_BUTTON_[黄色]_BUTTON_[薄緑]_BUTTON_[薄青色]_BUTTON_[白]_BUTTON_[純白]"
+			PRINTL 
+		CASE "ローライズ", "フリル", "ボーイレッグ"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[黒]_BUTTON_[紫]_BUTTON_[薄桃色]_BUTTON_[緑色]_BUTTON_[青]_BUTTON_[黄色]_BUTTON_[薄緑]_BUTTON_[薄青色]_BUTTON_[白]_BUTTON_[純白]"
+			PRINTL 
+		CASE "縞パン"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[紅白]_BUTTON_[緑と白]_BUTTON_[青と白]_BUTTON_[黄色と白]_BUTTON_[黒と白]"
+			PRINTL 
+		CASE "前貼り", "ドロワーズ"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[黒]_BUTTON_[白]"
+			PRINTL 
+		CASE "葉っぱパンツ"
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%"
+			PRINTL 
+		CASEELSE
+			CALL PRINT_STRL, @"　色＆柄:%TEXT_LJ(CLOCOLOR(CSTR:ARG:パンツ, "色のみ"), 17)%_BUTTON_[黄色]_BUTTON_[橙色]_BUTTON_[黒]_BUTTON_[紫]_BUTTON_[青]_BUTTON_[紺色]_BUTTON_[薄青色]"
+			CALL PRINT_STRL, @"　　　　　　　　　　　　　_BUTTON_[真紅]_BUTTON_[赤]_BUTTON_[薄桃色]_BUTTON_[白]_BUTTON_[純白]_BUTTON_[緑色]_BUTTON_[薄緑]"
+		ENDSELECT
+	ENDIF
+	PRINTL 
+	;オプション
+	SELECTCASE PANTIES(ARG, "CIPフロント")
+	CASE "パンティ"
+		CALL PRINT_STRL, @"　リボン:%TEXT_LJ(PANTIES(ARG, "リボン"), 17)%_BUTTON_[三角黄]_BUTTON_[三角黒]_BUTTON_[三角青]_BUTTON_[三角赤]_BUTTON_[三角白]"
+		CALL PRINT_STRL, @"　　　　　　　　　　　　　_BUTTON_[紐黄]_BUTTON_[紐黒]_BUTTON_[紐青]_BUTTON_[紐赤]_BUTTON_[紐白]"
+	CASE "フリル"
+		CALL PRINT_STRL, @"　リボン:%TEXT_LJ(PANTIES(ARG, "リボン"), 17)%_BUTTON_[紐黄]_BUTTON_[紐黒]_BUTTON_[紐青]_BUTTON_[紐赤]_BUTTON_[紐白]"
+		PRINTL 
+	CASEELSE
+		CALL PRINT_STRL, @"　　上着:%TEXT_LJ(CLO("顔グラ衣装", ARG), 17)%_BUTTON_[上着なし]_BUTTON_[ジャージ黒]_BUTTON_[ジャージ青]_BUTTON_[ジャージ赤]_BUTTON_[ジャージ緑色]"
+		PRINTL 
+	ENDSELECT
+	CALL PRINT_STRL, "　これでよい？　　　　　　_BUTTON_[ＯＫ！]"
+ENDSELECT
+
+INPUTS
+CHOICES = %EXTSTR(RESULTS, "[", "]")%
+CLEARLINE 1
+
+SELECTCASE CHOICES
+CASE "ＯＫ！"
+	PRINTL 
+	IF NO:ARG  == 99
+		IF EQUIP:ARG:ボディスーツ
+			PRINTFORML このボディスーツに対応するCSTRは
+			PRINTFORML %EXTSTR(CSTR:ARG:ボディスーツ, "", "共通属性追加済/")%%EXTSTR(CSTR:ARG:ボディスーツ, "共通属性追加済/")%
+		ELSEIF EQUIP:ARG:アウター
+			PRINTFORML このアウターに対応するCSTRは
+			PRINTFORML %EXTSTR(CSTR:ARG:アウター, "", "共通属性追加済/")%%EXTSTR(CSTR:ARG:アウター, "共通属性追加済/")%
+		ELSE
+			PRINTFORML このパンツに対応するCSTRは
+			PRINTFORML %EXTSTR(CSTR:ARG:パンツ, "", "共通属性追加済/")%%EXTSTR(CSTR:ARG:パンツ, "共通属性追加済/")%
+		ENDIF
+		PRINTFORMW です。
+	ENDIF
+	RETURN 1
+CASE "普通"
+	TALENT:ARG:肌の色 = 0
+CASE "褐色肌"
+	TALENT:ARG:肌の色 = 1
+CASE "色白"
+	TALENT:ARG:肌の色 = 2
+CASE "青肌"
+	TALENT:ARG:肌の色 = 3
+;種類
+CASE "バニースーツ", "競泳水着"
+	CALL SET_BODYS, CHOICES, ARG
+	CALL SET_OUTER, "", ARG
+CASE "ブルマ"
+	CALL SET_OUTER, CHOICES, ARG
+	SIF CHECK_PANTIES("ハイレグブルマ", ARG)
+		CSTR:ARG:アウター = %MERGE_STR(CSTR:ARG:アウター, CLOCOLOR(CSTR:ARG:パンツ, "色のみ") )%
+	CALL SET_BODYS, "", ARG
+CASE "ハイレグブルマ"
+	CALL SET_PANTIES, CHOICES, ARG
+	SIF CHECK_OUTER("ブルマ", ARG)
+		CSTR:ARG:パンツ = %MERGE_STR(CSTR:ARG:パンツ, CLOCOLOR(CSTR:ARG:アウター, "色のみ") )%
+	CALL SET_OUTER, "", ARG
+CASE "ショーツ", "パンティ", "Ｔバック", "縞々パンツ", "レースのパンツ", "フリルのパンツ", "ハイレグパンツ", "ローライズパンツ", "ローレグパンツ", "ボーイレッグ"
+	CALL SET_OUTER, "", ARG
+	CALL SET_PANTIES, CHOICES, ARG
+CASE "子供パンツ", "褌", "前貼り", "マイクロショーツ", "マイクロビキニ", "ティアドロップビキニ", "葉っぱパンツ", "ドロワーズ"
+	CALL SET_OUTER, "", ARG
+	CALL SET_PANTIES, CHOICES, ARG
+;柄＆色
+CASE "いちご柄", "くま柄", "さかな柄", "ねこ柄", "ひよこ柄", "りぼん柄", "水玉模様"
+	CSTR:ARG:パンツ = %MERGE_STR(CSTR:ARG:パンツ, CHOICES)%
+CASE "紅白", "緑と白", "青と白", "黄色と白", "黒と白"
+	CSTR:ARG:パンツ = %MERGE_STR(CSTR:ARG:パンツ, CHOICES)%
+CASE "水玉ピンク", "水玉黒", "水玉黄色", "水玉水色"
+	CSTR:ARG:パンツ = %MERGE_STR(CSTR:ARG:パンツ, @"%EXTSTR(CHOICES, "水玉")%/水玉模様")%
+CASE "黄色", "橙色", "黒", "紫", "青", "紺色", "薄青色", "真紅", "赤", "薄桃色", "桃", "白", "純白", "緑色", "薄緑", "灰色", "水色", "豹柄"
+	IF EQUIP:ARG:ボディスーツ
+		CSTR:ARG:ボディスーツ = %MERGE_STR(CSTR:ARG:ボディスーツ, CHOICES)%
+	ELSEIF EQUIP:ARG:アウター
+		CSTR:ARG:アウター = %MERGE_STR(CSTR:ARG:アウター, CHOICES)%
+	ELSE
+		CSTR:ARG:パンツ = %MERGE_STR(CSTR:ARG:パンツ, CHOICES)%
+	ENDIF
+;オプション
+CASE "三角黄", "三角黒", "三角青", "三角赤", "三角白", "紐黄", "紐黒", "紐青", "紐赤", "紐白"
+	VARSET LOCALS
+	SPLIT CSTR:ARG:パンツ, "/", LOCALS
+	CSTR:ARG:パンツ = 
+	FOR LCOUNT, 0, 100
+		SIF LOCALS:LCOUNT == ""
+			BREAK
+
+		IF STRCOUNT(LOCALS:LCOUNT, "フロントリボン")
+			CSTR:ARG:パンツ += @"フロントリボン%CHOICES%\/"
+		ELSE
+			CSTR:ARG:パンツ += @"%LOCALS:LCOUNT%\/"
+		ENDIF
+	NEXT
+;段階
+CASE "0LV"
+	MARK:ARG:淫紋 = 0
+CASE "1LV"
+	MARK:ARG:淫紋 = 1
+CASE "2LV"
+	MARK:ARG:淫紋 = 2
+CASE "3LV"
+	MARK:ARG:淫紋 = 3
+CASE "4LV"
+	MARK:ARG:淫紋 = 4
+CASE "上着なし"
+	STR:顔グラ衣装 = 
+CASE "ジャージ黒", "ジャージ青", "ジャージ赤", "ジャージ緑色"
+	STR:顔グラ衣装 = %CHOICES%
+ENDSELECT
+
+CLEARLINE LINECOUNT - MEMO_LINECOUNT
+RESTART

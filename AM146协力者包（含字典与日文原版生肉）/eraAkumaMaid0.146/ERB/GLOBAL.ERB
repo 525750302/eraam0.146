@@ -1,0 +1,47 @@
+﻿@SAVE_CONFIGURE
+#DIM LCOUNT
+;まずは読み込んでおく
+LOADGLOBAL
+
+;既にセーブされている場合、上書きするかどうかチェック
+IF GLOBAL:コンフィグ保存の日時
+	PRINTL 既にコンフィグデータが存在します。上書きしますか？
+	PRINTLC [0] はい
+	PRINTLC [1] いいえ
+	PRINTL 
+	CALL INPUT_SELECT, 2
+	SIF RESULT == 1
+		RETURN 0
+ENDIF
+
+;コンフィグ保存の日時
+GETTIME
+RESULT /= 1000000000
+RESULT %= 1000000
+GLOBAL:コンフィグ保存の日時 = RESULT
+
+;FLAG:50～FLAG:99を同じ番号のGLOBALに保存
+FOR LCOUNT, 50, 100
+	GLOBAL:LCOUNT = FLAG:LCOUNT
+NEXT
+;以上設定をセーブする
+SAVEGLOBAL
+
+PRINTW コンフィグをセーブしました
+
+
+@LOAD_CONFIGURE
+#DIM LCOUNT
+
+;まずは読み込む
+LOADGLOBAL
+
+;FLAG:50～FLAG:99を同じ番号のGLOBALにする
+FOR LCOUNT, 50, 100
+	FLAG:LCOUNT = GLOBAL:LCOUNT
+NEXT
+
+;使用中のコンフィグのVERをFLAGに保存
+FLAG:VER_コンフィグ = GLOBAL:コンフィグ保存の日時
+
+PRINTW コンフィグをロードしました

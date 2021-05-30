@@ -1,0 +1,1061 @@
+;-------------------------------------------------
+;デートだ！デートに行くぞ！！
+;-------------------------------------------------
+@EVENT_DATE_MAIN
+#DIM MEMO_REALTIMEFORFLAG
+#DIM LCOUNT
+;着せ替え前の衣装の記録
+#DIMS MEMO_CLO, 50
+#DIM MEMO_EQUIP, 50
+#DIM MEMO_STAIN, 20
+
+SIF CHARA_NUM("デート可能") == 0
+	RETURN 0
+;とりあえずは日曜の昼のみ
+SIF DAYEV("デートタイム") == 0
+	RETURN 0
+
+MEMO_REALTIMEFORFLAG = FLAG:現実時間
+;現実時間フラグ取得
+CALL GET_REALTIMEFORFLAG
+
+REDRAW 0
+
+;約束があるならば既に相手は決まっている
+IF COND("デートの予定あり")
+	TARGET = TO_NUMBER(CFLAG:MASTER:デートの約束)
+	PRINTFORMW %CALLNAME:MASTER%は%NAMES("デート相手")%と約束したデートの待ち合わせ場所に向かった。
+;約束していないなら相手選び
+ELSE
+	CALL SELECT_DATE
+	;やっぱやーめた
+	IF RESULT == 0
+		PRINTFORMW デートに行くのをやめました。
+		FLAG:現実時間 = MEMO_REALTIMEFORFLAG
+		RETURN 0
+	ENDIF
+
+	CVARSET CFLAG, GETNUM(CFLAG, "睡眠")
+	CVARSET CFLAG, GETNUM(CFLAG, "寝起き")
+
+	CALL BLANKLINE
+	;まずは誘った際の反応
+	CALL KOJO_DATE, "デートに誘う"
+
+	IF TFLAG:地の文スキップ == 0
+		;この場に居ない相手を選んだのなら、呼び出したりなんなり
+		IF COND("同棲中")
+			PRINTFORMW せっかくのデートという事で、%CALLNAME:MASTER%達はお互いに準備をしてから敢えて玄関外で合流して出かける事にした。
+		ELSE
+			PRINTFORMW %CALLNAME:TARGET%を誘うことに成功した%CALLNAME:MASTER%は、デートを楽しむために外で待ち合わせをする事にした。
+		ENDIF
+	ENDIF
+ENDIF
+
+;デート中フラグON
+SETBIT FLAG:状況判定, 40
+FLAG:ムード = 30
+
+;デートの行き先初期化
+SAVESTR:デート = 
+STR:Ｈする場所 = 
+
+CFLAG:睡眠 = 0
+CFLAG:寝起き = 0
+;パンツなどのCFLAGは謎にする
+CVARSET CFLAG, GETNUM(CFLAG, "下着確認済")
+CVARSET CFLAG, GETNUM(CFLAG, "股間確認済")
+CVARSET CFLAG, GETNUM(CFLAG, "アソコチェック")
+CVARSET CFLAG, GETNUM(CFLAG, "スカートめくり")
+
+;デートで使うTFLAG初期化
+TFLAG:手繋ぎ = 0
+TFLAG:キス = 0
+TFLAG:手淫 = 0
+TFLAG:フェラ = 0
+TFLAG:お尻を触る = 0
+TFLAG:セックス = 0
+TFLAG:デート手つなぎ可能 = 0
+TFLAG:デートエロ可能 = 0
+TFLAG:下着チラ見え可能 = 0
+TFLAG:水着デート = 0
+TFLAG:文化祭デート = 0
+TFLAG:衣装解説済み = 0
+TFLAG:イベント回数 = 0
+
+CALL EVENT_DATE, "デート衣装に着替える"
+DRAWLINE
+DRAWLINE
+;デートプラン羅列
+CALL EVENT_DATE, "待ち合わせ"
+
+;着ていた服と汚れを記憶する
+FOR LCOUNT, 40, 50
+	MEMO_CLO:LCOUNT = %CSTR:LCOUNT%
+NEXT
+FOR LCOUNT, 40, 50
+	MEMO_EQUIP:LCOUNT = EQUIP:LCOUNT
+NEXT
+FOR LCOUNT, 10, 20
+	MEMO_STAIN:LCOUNT = STAIN:LCOUNT
+NEXT
+
+CALL EVENT_DATE, "行先決定"
+CALL EVENT_DATE, "下着チラ見え"
+
+;ここから先は行き先次第で変化がある
+SELECTCASE SAVESTR:デート
+CASE "文化祭"
+	;制服に着替える
+	FOR LCOUNT, 2, CHARANUM
+		SIF LCOUNT == TARGET
+			CONTINUE
+		SIF COND("学園在籍", LCOUNT)
+			CALL SET_COORDINATE, "制服", LCOUNT
+	NEXT
+	;文化祭のCEVENTフラグリセット
+	FOR LCOUNT, 1, CHARANUM
+		CALL DEL_CEVENT_GROUP, "学園祭", LCOUNT
+	NEXT
+	CALL EVENT_DATE, "文化祭"
+	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "手繋ぎ"
+	CALL EVENT_DATE, "文化祭"
+	CALL EVENT_DATE, "デートエロ"
+	CALL EVENT_DATE, "文化祭"
+CASE "泳ぎに行く"
+	CALL EVENT_DATE, "着替えて合流"
+	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "手繋ぎ"
+	CALL EVENT_DATE, "デートエロ"
+CASE "映画館に行く"
+	CALL EVENT_DATE, "手繋ぎ"
+	CALL EVENT_DATE, "デートエロ"
+	CALL EVENT_DATE, "お弁当"
+CASE "図書館に行く"
+	CALL EVENT_DATE, "お弁当"
+	CALL BLANK_DRAWLINE
+	CALL SETFLAG_DAILY, "勉強"
+	CALL EVENT_DATE, "デートエロ"
+CASE "食べ歩き"
+	CALL EVENT_DATE, "手繋ぎ"
+	;水着を買いに行った場合など
+	CALL EVENT_DATE, "お買い物"
+	CALL EVENT_DATE, "デートエロ"
+CASEELSE
+	CALL EVENT_DATE, "お弁当"
+	CALL EVENT_DATE, "手繋ぎ"
+	;水着を買いに行った場合など
+	CALL EVENT_DATE, "お買い物"
+	CALL EVENT_DATE, "デートエロ"
+ENDSELECT
+;水着デートは日焼けも起きる
+SIF TFLAG:水着デート
+	CALL EVENT_DATE, "日焼け"
+
+;着ていた服と汚れを戻す
+FOR LCOUNT, 40, 50
+	CSTR:LCOUNT = %MEMO_CLO:LCOUNT%
+NEXT
+FOR LCOUNT, 40, 50
+	EQUIP:LCOUNT = MEMO_EQUIP:LCOUNT
+NEXT
+FOR LCOUNT, 10, 20
+	STAIN:LCOUNT = MEMO_STAIN:LCOUNT
+NEXT
+
+;デートも終わり。さて……
+CALL BLANK_DRAWLINE
+IF TFLAG:文化祭デート
+	PRINTFORMW 気が付くと出し物の大半が撤収の準備を始めており、文化祭も終わりに近づいていた。
+ELSE
+	PRINTFORMW 楽しかったデートも、そろそろ終わりの時間だ。
+ENDIF
+CALL BLANKLINE
+CALL KOJO_DATE, "帰り際"
+
+RETURN 1
+
+;-------------------------------------------------
+;デートのお相手を選ぶ
+;-------------------------------------------------
+@SELECT_DATE
+#DIM CHOICE
+#DIM MEMO_LINECOUNT
+MEMO_LINECOUNT = LINECOUNT
+
+REDRAW 0
+
+PRINTL ……誰をデートに誘いますか？
+CALL PRINT_STRL, "ちなみに、お誘いを受けてもらうには_黄色_[信頼LV3]or[恋慕]or[屈服刻印LV1]_が必要となります"
+CALL SHOW_CHARA_LIST, "デート"
+
+$INPUT_LOOP
+INPUT
+
+CHOICE = RESULT
+
+SELECTCASE CHOICE
+CASE 100
+	RETURN 0
+CASE IS < MASTER, IS >= CHARANUM
+	GOTO INPUT_LOOP
+CASEELSE
+	SIF COND("デート可能", CHOICE) == 0
+		GOTO INPUT_LOOP
+ENDSELECT
+
+;この場に居ない相手を選んだのなら、優先順位は変動させない
+IF COND("現在不在", CHOICE)
+	TARGET = CHOICE
+ELSE
+	CALL SETFLAG, "対象指定", CHOICE
+ENDIF
+
+RETURN 1
+
+
+;-------------------------------------------------
+;デートのイベント管理
+;-------------------------------------------------
+@EVENT_DATE, ARGS
+;起きうるイベントの判定に使う
+#DIMS EVENT_TABLE
+#DIMS CHOICES
+#DIM ACTOR
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIM MEMO_MOOD
+#DIM MEMO_EJECT
+;着せ替え前の衣装の記録
+#DIMS BEFORE_CLO
+#DIMS AFTER_CLO
+
+TFLAG:地の文スキップ = 0
+MEMO_MOOD = FLAG:ムード
+
+SELECTCASE ARGS
+CASE "デート衣装に着替える"
+	;デート用の髪型など変更
+	CALL SETFLAG, "ＴＰＯによる外見変更"
+
+	STR:変更衣装 = デート衣装
+
+	;着ていた服を記憶する。一致するかを見るだけなので文字列コピーで良い
+	BEFORE_CLO = %CSTR:パンツ%%CSTR:ブラ%%CSTR:服%%CSTR:スカート%%CSTR:ボディスーツ%%CSTR:アウター%%CSTR:靴下%%CSTR:靴%%CSTR:手袋%%CSTR:アクセサリ%
+
+	CALL KOJO_DATE, "デート衣装に着替える"
+
+	AFTER_CLO = %CSTR:パンツ%%CSTR:ブラ%%CSTR:服%%CSTR:スカート%%CSTR:ボディスーツ%%CSTR:アウター%%CSTR:靴下%%CSTR:靴%%CSTR:手袋%%CSTR:アクセサリ%
+
+	;着替えた場合はフラグON
+	SIF BEFORE_CLO != AFTER_CLO
+		CALL SETFLAG, "着替えをした"
+
+	;口上などで着替えていないなら(あるなら)デート衣装になる
+	SIF COND("デート衣装に着替えた") == 0
+		CALL SETFLAG, "デート衣装に着替える"
+	;デート用の衣装で登場したならムードアップ
+	SIF COND("デート衣装に着替えた")
+		FLAG:ムード += 30
+CASE "待ち合わせ"
+	CALL PRINT_MAIDFACE, TARGET
+	CALL KOJO_DATE, "待ち合わせ"
+	;もしも衣装の解説が無いならここでしておく
+	IF TFLAG:衣装解説済み == 0
+		IF COND("デート衣装に着替えた") && TFLAG:地の文スキップ == 0
+			CALL PRINT_STRW, @"今日の%CALLNAME:TARGET%の格好は、_ハートピンク_%CLO_ABOUT(TARGET)%_だ。"
+			PRINTFORM %TEXTR("普段とは一味違う/いつもとは異なる気合の入った/デートに備えておめかしして来た様子の")%%CONDS("間柄")%の姿に、
+			PRINTFORMW 否応なくテンションが高まる……
+		ELSE
+
+		ENDIF
+		TFLAG:衣装解説済み = 1
+	ENDIF
+CASE "行先決定"
+	;相手が行きたい場所あったらそっち優先
+	IF SAVESTR:デート == ""
+		;初めてのおデート！
+		IF EXP:MASTER:デート経験 == 0
+			PRINTFORML 記念すべき初めてのデートは一体全体、何をして過ごすとしよう？
+		;この相手とは初めて
+		ELSEIF EXP:デート経験 == 0
+			PRINTFORML 今回は%CALLNAME:TARGET%との初デートだ。何をしようか？
+		ELSE
+			PRINTFORML 今回のデートは、どのようなプランで行くとしようか？
+		ENDIF
+		SIF COND("夏") && CSTR:今年の水着 != "" && COND("今年の水着選択済")
+			CALL PRINT_STRL, @"（※プールや海に備えて_黄色_今年の水着(%SWIM(CSTR:今年の水着, "種類")%)_を購入済みです）"
+
+		;起きうるイベントの判定に使う
+		STR:選択肢 = 
+
+		;口上側で選択肢を自由に作ることができる
+		TRYCALLFORM DATE_K{NO:TARGET}_ADDSELECT
+
+		SIF DAYEV("文化祭")
+			STR:選択肢 += "文化祭/"
+
+		SELECTCASE TEXTS("季節詳細")
+		CASE "春", "初夏", "夏"
+			SIF COND("今年の水着選択済") == 0
+				STR:選択肢 += "水着を買いに行く/"
+		ENDSELECT
+
+		;季節イベント。特殊な行先は作りかけなので自重して封印
+		IF COND("春")
+	;		STR:選択肢 += "お花見/"
+		ELSEIF COND("夏")
+			STR:選択肢 += "泳ぎに行く/"
+	;		STR:選択肢 += "山に行く/"
+		ELSEIF COND("秋")
+	;		STR:選択肢 += "紅葉狩りに行く/"
+		ELSEIF COND("冬")
+	;		STR:選択肢 += "スケート/"
+		ENDIF
+
+
+		;慣れた相手となら身近な場所を選べる
+		SIF EXP:デート経験
+			STR:選択肢 += "散歩/"
+
+		;通年ＯＫなスポット
+		STR:選択肢 += "食べ歩き/街でお買い物/水族館に行く/遊園地に行く/映画館に行く/"
+
+		;図書館は学生限定
+		SIF STRCOUNTS(CSTR:学年, "年生", "初等部", "中等部")
+			STR:選択肢 += "図書館に行く/"
+
+		VARSET LOCALS
+		SPLIT STR:選択肢, "/", LOCALS
+		CALL PRINT_SELECT, STR:選択肢
+		SAVESTR:デート = %LOCALS:RESULT%
+	ENDIF
+
+	MEMO_LINECOUNT = LINECOUNT
+	;口上で作った選択肢を選んだならここで地の文と台詞が出る
+	TRYCALLFORM KOJO_DATE_K{NO:TARGET}_ADDSELECT
+
+	;口上で作った選択肢を選んでいない場合
+	SIF LINECOUNT == MEMO_LINECOUNT
+		CALL KOJO_DATE, "デート本番"
+
+	CALL BLANKLINE
+
+	;ムードのボーナス計算
+	SIF TFLAG:手繋ぎ
+		FLAG:ムード += 15
+
+	;デート場所によっていくつかのフラグが立つ
+	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+	SELECTCASE SAVESTR:デート
+	;高ムード＆エロ可能
+	CASE "水族館に行く", "遊園地に行く"
+		FLAG:ムード += 60
+		TFLAG:デートエロ可能 = 1
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	;2019/10 hokaguru 追記 映画館で下着は見えへんやろう……
+	CASE "映画館に行く"
+		FLAG:ムード += 60
+		TFLAG:デートエロ可能 = 1
+		TFLAG:デート手つなぎ可能 = 1
+	CASE "泳ぎに行く"
+		FLAG:ムード += 30
+		TFLAG:デートエロ可能 = 1
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:水着デート = 1
+
+		;もしも水着の設定が無い場合にはビキニ
+		IF CSTR:今年の水着 == ""
+			SELECTCASE COND("陰毛")
+			CASE IS >= 7
+				IF RAND:3 == 0
+					CSTR:今年の水着 = %PALAM_SWIM("ビキニ＆パレオ", CSTR:好きな色)%
+				ELSEIF RAND:2
+					CSTR:今年の水着 = %PALAM_SWIM("ビキニ＆ショートパンツ", CSTR:好きな色)%
+				ELSE
+					CSTR:今年の水着 = %PALAM_SWIM("ビキニ＆ミニスカート", CSTR:好きな色)%
+				ENDIF
+			CASEELSE
+				CSTR:今年の水着 = %PALAM_SWIM("ビキニ", CSTR:好きな色)%
+			ENDSELECT
+		ENDIF
+	;並ムード＆エロ可能
+	CASE "文化祭"
+		FLAG:ムード += 30
+		TFLAG:文化祭デート = 1
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:デートエロ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	CASE "水着を買いに行く"
+		FLAG:ムード += 30
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:デートエロ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	;低ムードだけどエロ可能
+	CASE "図書館に行く"
+		FLAG:ムード += 30
+		TFLAG:デートエロ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	CASE "散歩"
+		TFLAG:デートエロ可能 = 1
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	;その他。一般にエロいことは出来ない
+	CASE "食べ歩き", "街でお買い物"
+		FLAG:ムード += 30
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	;未設定
+	CASE "お花見", "山に行く", "紅葉狩りに行く", "スケート"
+		FLAG:ムード += 30
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	CASEELSE
+		FLAG:ムード += 30
+		TFLAG:デート手つなぎ可能 = 1
+		TFLAG:下着チラ見え可能 = 1
+	ENDSELECT
+CASE "下着チラ見え"
+	SIF TFLAG:下着チラ見え可能 == 0
+		RETURN 0
+	CALL BLANK_DRAWLINE
+	MEMO_LINECOUNT = LINECOUNT
+	CALL EVENT_ACADEMY, "チラ見え"
+
+	SIF LINECOUNT == MEMO_LINECOUNT
+		CLEARLINE 1
+CASE "着替えて合流"
+	SELECTCASE SAVESTR:デート
+	CASE "泳ぎに行く"
+		STR:選んだ水着 = %CSTR:今年の水着%
+		CALL SET_COORDINATE, "今年の水着"
+		CALL BLANK_DRAWLINE
+		PRINTFORMW 目的地に着いた%CALLNAME:MASTER%達は、一旦分かれて更衣室で着替えた後に合流する事にした。
+		PRINTW ………
+		PRINTW ……
+		PRINTW …
+		CALL KOJO_DATE, "水着に着替えた"
+		PRINTFORMW %CALLNAME:MASTER%に遅れること数分、%SWIM(CSTR:今年の水着)%に着替えた%CALLNAME:TARGET%が姿を現した！
+		IF COMMENT_SWIM(CSTR:今年の水着, "単独文") != ""
+			SIF EQUIP:パンツ
+				CALL PRINT_CUTIN, "パンツ", TARGET
+			PRINTFORMW %COMMENT_SWIM(CSTR:今年の水着, "単独文")%
+		ENDIF
+		FLAG:ムード += 30
+	ENDSELECT
+CASE "お弁当"
+	SIF CEVENT("デートのお弁当") == 0
+		RETURN 0
+	CALL BLANK_DRAWLINE
+	IF RAND:4 == 0
+		SELECTCASE SAVESTR:デート
+		CASE "映画館に行く"
+			PRINTFORM 映画館から出ながら%CALLNAME:TARGET%と雑談しているうちに、話題が自然と食べる事にシフトしてきた
+		CASEELSE
+			PRINTFORM 移動しながら%CALLNAME:TARGET%と雑談しているうちに、話題が自然と食べる事にシフトしてきた
+		ENDSELECT
+	ELSE
+		PRINTFORM 不意に%CALLNAME:MASTER%のお腹が%TEXTR("獣のような唸り声をあげた/グゥ～と鳴ってしまった/お昼を告げた")%のを受けて、%CALLNAME:TARGET%が
+		IF TALENT:素直 + TALENT:陽気 && TALENT:力持ち + TALENT:粗野 + TALENT:愚か
+			PRINTFORM %TEXTR("プッと吹き出した/楽しそうにからかってきた/ニッと微笑んだ")%
+		ELSEIF TALENT:素直 + TALENT:陽気 + TALENT:優しい + TALENT:献身 + TALENT:冷静
+			PRINTFORM %TEXTR("笑みをこぼした/優しく微笑んだ/笑顔で身を寄せてきた")%
+		ELSEIF TALENT:強気 + TALENT:高慢
+			PRINTFORM %TEXTR("我慢できないといった様子で笑い声を漏らした/ヤレヤレとジェスチャーしながら優しく微笑みかけてきた/忍び笑いを漏らしながら脇腹を肘でつついてきた")%
+		ELSE
+			PRINTFORM %TEXTR("吹き出した/ニコッと微笑んだ/呆れながらの笑顔を見せた")%
+		ENDIF
+	ENDIF
+	PRINTFORMW ……そろそろお昼ごはんの時間のようだ。
+	PRINTL 
+	IF COND("夏")
+		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%がクーラーボックスから取り出したお弁当を、
+	ELSE
+		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%が用意してくれた手作りのお弁当を、
+	ENDIF
+	IF COND("冬")
+		PRINTFORMW 事前に目星をつけておいた屋内の広場に腰を落ち着けて一緒に食べた。
+	ELSE
+		SELECTCASE SAVESTR:デート
+		CASE "水族館に行く", "遊園地に行く", "映画館に行く", "スケート", "泳ぎに行く", "水着を買いに行く"
+			PRINTFORMW ベンチに座って一緒に食べた。
+		CASE "図書館に行く"
+			PRINTFORMW 館外のベンチに座って一緒に食べた。
+		CASE "散歩", "食べ歩き", "街でお買い物"
+			PRINTFORMW %TEXTR("公園のベンチに座って/カフェのオープンスペースで/ショッピングモールのオープンスペースで")%一緒に食べた。
+		CASE "お花見", "山に行く", "紅葉狩りに行く"
+			PRINTFORMW レジャーシートに腰を下ろして一緒に食べた。
+		CASEELSE
+			PRINTFORMW ベンチに座って一緒に食べた。
+		ENDSELECT
+	ENDIF
+	CALL KOJO_DATE, "お弁当"
+	FLAG:ムード += 30
+CASE "手繋ぎ"
+	SIF TFLAG:手繋ぎ || TFLAG:デート手つなぎ可能 == 0
+		RETURN 0
+	CALL BLANK_DRAWLINE
+	PRINTFORMW ところで。
+	IF COND("合意：手繋ぎ")
+		PRINTFORMW 今日はまだ%CALLNAME:TARGET%の手を握っていない事に気づきました。
+	ELSEIF TALENT:相思相愛
+		PRINTFORMW 恋人同士だと言うのに、%CALLNAME:TARGET%の手を握っていない事に気づきました。
+	ELSE
+		PRINTFORMW 仮にもデートだと言うのに、%CALLNAME:TARGET%の手を握っていない事に気づきました。
+	ENDIF
+	PRINTFORMW ……どうする？
+	IF COND("合意：手繋ぎ") || TALENT:恋慕
+		CALL PRINT_SELECT, "手をつなぐ/やめておく"
+	ELSE
+		CALL PRINT_SELECT, "手をつなぐ/嫌がられるかもしれないし、やめておく"
+	ENDIF
+
+	;手をつないだ
+	IF RESULT == 0
+		TFLAG:手繋ぎ = 1
+		FLAG:ムード += 30
+
+		CALL KOJO_DATE, "手をつなぐ"
+	ELSE
+		CALL KOJO_DATE, "手をつながない"
+	ENDIF
+CASE "お買い物"
+	SELECTCASE SAVESTR:デート
+	CASE "水着を買いに行く"
+		CALL EVENT_SHOP_SWIM
+	ENDSELECT
+CASE "デートエロ"
+	;ムードが高まって来たらエロい事もできるよ
+	EVENT_TABLE = 
+	IF TFLAG:デートエロ可能 && (COND("発情期") || MOOD_HEART() >= 2 || SAVESTR:デート == "図書館に行く")
+		SELECTCASE SAVESTR:デート
+		CASE "水着を買いに行く"
+			;SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && COND("女性主導生セックス") && COND("性処理可能") && CANTRAIN("正常位")
+			;	EVENT_TABLE += "前の穴を貸してもらう/"
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("フェラチオ")
+				EVENT_TABLE += "こっそり口で抜いてもらう/"
+			SIF EVENT_TABLE != ""
+				EVENT_TABLE += "我慢する/"
+		;2019/10 hokaguru 追記
+		CASE "映画館に行く"
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:手淫経験 > 5 && COND("性処理可能") && CANTRAIN("手淫")
+				EVENT_TABLE += "こっそり手コキしてもらう/"
+			SIF EVENT_TABLE != ""
+				EVENT_TABLE += "映画に集中する/"
+		;2020/02/24　マリーちゃんの中の人　追記　雑に分岐を増やす
+		CASE "図書館に行く"
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("フェラチオ")
+				EVENT_TABLE += "こっそり口で抜いてもらう/"
+			;内容を考えるのが面倒なので一旦封印
+;			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:手淫経験 > 5 && COND("性処理可能") && CANTRAIN("手淫")
+;				EVENT_TABLE += "こっそり手コキしてもらう/"
+			SIF EVENT_TABLE != ""
+				EVENT_TABLE += "真面目に勉強する/"
+		CASEELSE
+			SIF PENIS(MASTER) &&  BASE:MASTER:精力 >= 30 && BASE:MASTER:魂 >= 100 && EXP:性処理経験 && EXP:精飲経験 > 5 && COND("性処理可能") && CANTRAIN("フェラチオ")
+				EVENT_TABLE += "ちょっと物陰へ……/"
+			SIF COND("合意：キス")
+				EVENT_TABLE += "キスする/"
+			SIF CHECK_SKIRT("ミニ") || EQUIP:スカート == 0 || TFLAG:水着デート
+				EVENT_TABLE += "お尻を触る/"
+			SIF EVENT_TABLE != ""
+				EVENT_TABLE += "次は何処に行こうか？と話を振る/"
+		ENDSELECT
+	ENDIF
+
+	SIF EVENT_TABLE == ""
+		RETURN 0
+
+	CALL BLANK_DRAWLINE
+	SELECTCASE SAVESTR:デート
+	CASE "水族館に行く"
+		PRINTFORMW ……薄暗い水族館を\@ TFLAG:手繋ぎ ? 手をつないで # \@回っているうちに、お互いの口数が減って距離が縮まってきた気がする。
+	CASE "遊園地に行く"
+		PRINTFORMW ……賑やかすぎるテーマパークを\@ TFLAG:手繋ぎ ? 手をつないで # \@回っているうちに、お互いの口数が減って距離が縮まってきた気がする。
+	CASE "泳ぎに行く"
+		PRINTFORMW ……水着姿で\@ TFLAG:手繋ぎ ? 手をつないで # \@楽しんでいるうちに、お互いの口数が減って距離が縮まってきた気がする。
+	CASE "水着を買いに行く"
+		PRINTFORMW ……狭い部屋の中、至近距離での水着選びを終えた%CALLNAME:MASTER%は股間が大きくなっている事に気がついた。
+	CASE "映画館に行く"
+		PRINTFORMW ……薄暗い館内で\@ TFLAG:手繋ぎ ? 手をつないで # \@映画を観賞している内、%CALLNAME:TARGET%が熱っぽくこちらを見ている事に気がつく。
+	CASE "図書館に行く"
+		PRINTFORMW 集中力が切れた%CALLNAME:MASTER%が本から顔を上げると、先に一区切りつけていたらしい%CALLNAME:TARGET%と目が合った。
+		PRINTFORMW %CALLNAME:TARGET%は恥ずかしそうに目を逸らしたが、すぐまたチラリと熱の籠った眼差しを%CALLNAME:MASTER%に向けてきた……
+	CASEELSE
+		PRINTFORMW ……\@ TFLAG:手繋ぎ ? 手をつないで # \@一緒に行動しているうちに、お互いの口数が減って距離が縮まってきた気がする。
+	ENDSELECT
+
+	VARSET LOCALS
+	SPLIT EVENT_TABLE, "/", LOCALS
+	CALL PRINT_SELECT, EVENT_TABLE
+	CHOICES = %LOCALS:RESULT%
+
+	SELECTCASE CHOICES
+	CASE "真面目に勉強する"
+		PRINTFORMW %CALLNAME:MASTER%達は軽い休憩を挟んだのちに、再び勉強を再開する事にした。
+		CALL SETFLAG_DAILY, "勉強"
+	CASE "ちょっと物陰へ……", "こっそり口で抜いてもらう"
+		CALL KOJO_DATE, CHOICES
+		CLEARLINE 1
+
+		CALL SIMULATE_TRAIN_FIRST
+		MEMO_EJECT = EXP:MASTER:射精経験
+		FOR LCOUNT, 0, 10
+			CALL SIMULATE_TRAIN_COM, 91, 1
+			;すでに射精済みならここでおしまい
+			SIF EXP:MASTER:射精経験 > MEMO_EJECT
+				BREAK
+		NEXT
+		CALL SIMULATE_TRAIN_CALC
+		CALL SIMULATE_TRAIN_SHOW
+		WAIT
+
+		PRINTFORM %CALLNAME:TARGET%は
+		SELECTCASE SAVESTR:デート
+		CASE "水着を買いに行く"
+			PRINTFORM 会計前の水着が汚れない様にと、
+		CASE "泳ぎに行く"
+			PRINTFORM 水着だから多少の汚れは大丈夫そうにもかかわらず、
+		CASEELSE
+			IF COND("デート衣装に着替えた")
+				PRINTFORM せっかくデート用にと着てきた
+			ENDIF
+			PRINTFORM 服が汚れない様にと、
+		ENDSELECT
+		PRINTFORMW %CALLNAME:MASTER%の射精を口で受け止めた。
+
+		IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色 || COND("自発フェラ可能") || ABL:精液中毒 >= 3
+			PRINTFORM ゴクリと喉を動かして%TEXTR("美味しそうに/なんて事のない様子で/そうするのが当然と言った態度で")%精液を飲み干した%CALLNAME:TARGET%は、
+			;ハンカチで口元を拭きながら
+			PRINTFORM %TEXTR("ほんのり上気した顔で/行為の前よりも魅力的に見える笑顔で/かきたての汗の良い匂いを漂わせながら")%
+
+			FLAG:ムード += 30
+		ELSE
+			PRINTFORM %TEXTR("んっんっ……と/出された物の/相変わらずの")%味と粘りに苦労しながらもなんとか口の中の精液を飲み干した%CALLNAME:TARGET%は
+			PRINTFORM %TEXTR("、少し疲れた様子で/コホンと一度咳払いして喉の調子を整えると、/鞄から出した飲み物で喉を潤し、")%
+
+			FLAG:ムード -= 30
+		ENDIF
+		SELECTCASE SAVESTR:デート
+		CASE "水着を買いに行く"
+			PRINTFORMW 店員に気づかれる前に清算してお店を出ようと%CALLNAME:MASTER%に話を振ってきた……
+		CASE "泳ぎに行く"
+			PRINTFORMW %TEXTR("次の行き先について/もう一回泳ぎに行こうかと/賑やかなおかげで誰も気づいていないようだと/汚れを気にしなくていいのは良いところだなどと")%%CALLNAME:MASTER%に話を振ってきた……
+		CASE "図書館に行く"
+			PRINTFORMW %TEXTR("物音を立てない様に細心の注意を払いながら終わりを告げてきた……/小さな声で終わりにしようと話を振ってきた……")%
+		CASEELSE
+			PRINTFORMW 次の行き先について%CALLNAME:MASTER%に話を振ってきた……
+		ENDSELECT
+
+		TFLAG:フェラ = 1
+
+	;2019/10 hokaguru 追記　CALL SIMULATE_TRAIN_COMの指定コマンドを手淫に変えて↑を丸パク　一部地の文もパクパク美味しい
+	CASE "こっそり手コキしてもらう"
+		CALL KOJO_DATE, CHOICES
+		CLEARLINE 1
+
+		CALL SIMULATE_TRAIN_FIRST
+		MEMO_EJECT = EXP:MASTER:射精経験
+		FOR LCOUNT, 0, 10
+			CALL SIMULATE_TRAIN_COM, 90, 1
+			;すでに射精済みならここでおしまい
+			SIF EXP:MASTER:射精経験 > MEMO_EJECT
+				BREAK
+		NEXT
+		CALL SIMULATE_TRAIN_CALC
+		CALL SIMULATE_TRAIN_SHOW
+		WAIT
+
+		IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色 || ABL:精液中毒 >= 3
+			PRINTFORMW %CALLNAME:TARGET%の手の中にあるモノが痙攣すると、%TEXTR("粘りのある/クセのある匂いの")%液体が吐き出された。
+			PRINTFORM %TEXTR("危なげない手つきでそれを空いた手で受け止めた/吐き出させるままにした")%%CALLNAME:TARGET%は、
+			PRINTFORM 手に付着したそれを%TEXTR("舌先で舐め上げる/唇で拭うようにする/見て喉を鳴らす")%と、
+			;手コキなのでフェラに比べて低ムード補正で良いかな、と愚考。いや、どっちも公共の場でやるにはやべえけどね？
+			FLAG:ムード += 15
+		ELSE
+			PRINTFORM 場所を選ばず吐き出された%TEXTR("濁汁に/白濁に")%一瞬顔を%TEXTR("呆けさせた/しかめた")%%CALLNAME:TARGET%は
+			PRINTFORM %TEXTR("微妙な顔をしながら/しょうがないと言った風に/慌てて")%ハンカチでそれを拭うと、
+			;同上 フェラよりましだ、ならムードの下がり幅は狭いはずだ（などと供述
+			FLAG:ムード -= 15
+		ENDIF
+		SELECTCASE SAVESTR:デート
+		CASE "映画館に行く"
+			IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色
+				PRINTFORMW %TEXTR("続きはどこで？/これで終わり？/また後でね、")%と耳元で囁いてきた……
+			;精液中毒持ちかつ喉を鳴らすとこんなこと言いながら拭ってません、どうしたのでしょうか。安らかに息を引き取る。
+			ELSEIF TALENT:恥じらい
+				PRINTFORMW %TEXTR("せめて映画に集中して欲しい/こんな所で何をやらせるんだ")%、と顔を赤くしたまま呆れ顔で溜息を吐いた……
+			ELSE
+				PRINTFORMW 丁度上映も終わりだ、と%CALLNAME:MASTER%に耳打ちした……
+			ENDIF
+		CASEELSE
+			IF COND("欲求不満") || TALENT:淫乱 || TALENT:好色
+				PRINTFORMW %TEXTR("どこか満足そうな顔で/手についた残り香を楽しむようにして")%次はどこに行こうかなどと話を振ってきた……
+			ELSEIF TALENT:恥じらい
+				PRINTFORMW %TEXTR("赤面した表情のまま/視線を方々へ忙しくするとやがて")%無言で%CALLNAME:MASTER%の手を掴むとその場を後にした……
+			ELSE
+				PRINTFORMW 次の行き先について%CALLNAME:MASTER%に話を振ってきた……
+			ENDIF
+		ENDSELECT
+
+		TFLAG:手淫 = 1
+
+	CASE "キスする"
+		PRINTFORMW %CALLNAME:MASTER%は%TEXTR("顔が自然と近づくのを見計らって/不意に訪れた沈黙の隙に/無防備な")%%CALLNAME:TARGET%にキスをした。
+		;汎用地の文が無いのでMEMO_LINECOUNTで台詞の有無を見る
+		MEMO_LINECOUNT = LINECOUNT
+		CALL KOJO_DATE, CHOICES
+		SIF LINECOUNT != MEMO_LINECOUNT
+			CLEARLINE 1
+		FLAG:ムード += 30
+
+		TFLAG:キス = 1
+	CASE "お尻を触る"
+		SIF EQUIP:パンツ && CHECK_OUTER("ズボン") == 0
+			CALL PRINT_CUTIN, "バックパンツ", TARGET
+		PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%の
+		IF TFLAG:水着デート
+			IF CHECK_SWIM("スカート") || CHECK_SWIM("パレオ")
+				PRINTFORM %SWIM(CSTR:今年の水着, "ボトム")%の下に手を忍ばせ、%TEXTS("お尻：感触")%を掌で味わいながら
+			ELSE
+				PRINTFORM %TEXTS("お尻：感触")%を
+				IF CHECK_SWIM("パンツ")
+					PRINTFORM %SWIM(CSTR:今年の水着, "ボトム")%越しに
+				ELSEIF CHECK_SWIM("Ｔバック")
+					PRINTFORM 直に
+				ELSE
+					PRINTFORM 水着越しに
+				ENDIF
+				PRINTFORM 手の平で味わいながら、
+			ENDIF
+			IF CHECK_SWIM("Ｔバック") && CHECK_SWIM("パンツ") == 0
+				PRINTFORMW 指先%TEXTR("で食い込んだ紐越しにアナルに悪戯した/で細い股布が密着する股間を撫でさすった")%。
+			ELSEIF TALENT:オトコ
+				PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でお尻の穴から会陰にかけてを撫でさすった")%。
+			ELSEIF CHECK_SWIM("スカート") || CHECK_SWIM("パレオ")
+				PRINTFORMW 指先%TEXTR("で股布越しに柔らかなアソコを弄って楽しんだ/で股間に密着した布地とその下の柔らかなアソコを撫でさすった")%。
+			ELSE
+				PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でアソコからお尻の穴にかけてを撫でさすった")%。
+			ENDIF
+		ELSE
+			;スカートならばミニのみ
+			IF CHECK_SKIRT("ミニ")
+				PRINTFORM ミニスカートの下に手を忍ばせ、%TEXTS("お尻：感触")%を掌で味わいながら
+			ELSE
+				PRINTFORM %TEXTS("お尻：感触")%を
+				IF EQUIP:アウター
+					PRINTFORM %OUTER(TARGET, "略")%越しに
+				ELSEIF EQUIP:ボディスーツ
+					PRINTFORM %BODYS(TARGET, "略")%越しに
+				ELSEIF EQUIP:パンツ
+					PRINTFORM %PANTIES(TARGET, "パンツ")%越しに
+				ENDIF
+				PRINTFORM 手の平で味わいながら、
+			ENDIF
+			IF COND("パンツ形状確認")
+				IF EQUIP:パンツ == 0 || CHECK_PANTIES("Ｖ露出")
+					IF TALENT:オトコ
+						PRINTFORMW 指先%TEXTR("で剥き出しの股間をぐにぐにと弄った/でお尻の穴から会陰にかけてを撫でさすった")%。
+					ELSE
+						PRINTFORMW 指先%TEXTR("で剥き出しの股間をぐにぐにと弄った/でアソコからお尻の穴にかけての粘膜を撫でさすった")%。
+					ENDIF
+				ELSEIF CHECK_PANTIES("Ｔバック") && CHECK_SKIRT("ミニ")
+					PRINTFORMW 指先%TEXTR("でＴバックの紐越しにアナルに悪戯した/で細い股布が密着する股間を撫でさすった")%。
+				ELSEIF TALENT:オトコ
+					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でお尻の穴から会陰にかけてを撫でさすった")%。
+				ELSEIF CHECK_SKIRT("ミニ")
+					PRINTFORMW 指先%TEXTR("でクロッチ越しに柔らかなアソコを弄って楽しんだ/でパンツとその下の柔らかなアソコを撫でさすった")%。
+				ELSE
+					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でアソコからお尻の穴にかけてを撫でさすった")%。
+				ENDIF
+			ELSE
+				IF TALENT:オトコ
+					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った")%。
+				ELSE
+					PRINTFORMW 指先%TEXTR("を股間の隙間に滑り込ませた/で股間をぐにぐにと弄った/でアソコからお尻の穴にかけてを撫でさすった")%。
+				ENDIF
+				IF EQUIP:スカート && CHECK_CLO("パンツ視認可能")
+					PRINTFORM 感触から察するに、今日の%CALLNAME:TARGET%は……
+					IF EQUIP:パンツ == 0
+						PRINTFORMW なんと、パンツを穿いていないようです！
+					ELSEIF CHECK_PANTIES("前貼り")
+						PRINTFORMW 前貼りを股間に貼り付けているようだ。
+					ELSEIF CHECK_PANTIES("褌")
+						PRINTFORMW 褌を締めているようだ。
+					ELSE
+						PRINTFORMW %DETAIL_PANTIES(TARGET, "感触")%を穿いているようだ。
+					ENDIF
+				ENDIF
+			ENDIF
+		ENDIF
+		CALL KOJO_DATE, CHOICES
+		CLEARLINE 1
+		FLAG:ムード += 15
+
+		TFLAG:お尻を触る = 1
+	CASE "我慢する"
+		PRINTFORMW ここで色々するのは流石に不味いので我慢しました。
+	CASEELSE
+		CALL KOJO_DATE, CHOICES
+		IF TFLAG:地の文スキップ == 0
+			SELECTCASE CHOICES
+			CASE "映画に集中する"
+				PRINTFORMW %CALLNAME:TARGET%はスクリーンに見入る%CALLNAME:MASTER%の横顔を暫し眺めた後に、居住まいを正して映画に集中し直した……
+			CASEELSE
+				PRINTFORMW %CALLNAME:TARGET%は思いのほか%CALLNAME:MASTER%とのデートがお気に召したようで、特に何も言わずに体をくっつけて笑顔を向けてきた……
+			ENDSELECT
+		ENDIF
+		FLAG:ムード += 15
+	ENDSELECT
+	CALL BLANKLINE
+CASE "日焼け"
+	SIF TFLAG:水着デート == 0
+		RETURN 0
+
+	CALL BLANK_DRAWLINE
+	PRINTFORMW 水着姿でデートした%CALLNAME:MASTER%\@ COND("日焼け対策") ? # 達 \@は、すっかり日焼けしてしまった。
+
+	IF COND("日焼け対策") == 0
+		CFLAG:日焼け強度 = CALCF("日焼け強度")
+		CSTR:日焼け = %SWIM(CSTR:今年の水着, "種類")%
+	ENDIF
+
+	CFLAG:MASTER:日焼け強度 = CALCF("日焼け強度")
+	IF TALENT:MASTER:オトコ
+		CSTR:MASTER:日焼け = 海パン
+	ELSEIF TALENT:MASTER:ふたなり
+		CSTR:MASTER:日焼け = ワンピース水着
+	ELSE
+		CSTR:MASTER:日焼け = ビキニ
+	ENDIF
+CASE "文化祭"
+	CALL BLANK_DRAWLINE
+
+	SELECTCASE TFLAG:イベント回数
+	CASE 0
+		PRINTFORMW さてとそれでは……記念すべき一発目はどこへ行こうか？
+	CASE 1
+		PRINTFORMW ……次はどの出し物を見に行こうか？
+	CASE 2
+		PRINTFORMW ……道行く人々の数がだいぶ減ってきた。最後はどこへ行こうか？
+	ENDSELECT
+
+	STR:選択肢 = %SHOP_BUNKASAI()%
+	VARSET LOCALS
+	SPLIT STR:選択肢, "/", LOCALS
+	CALL PRINT_SELECT, STR:選択肢
+	CHOICES = %LOCALS:RESULT%
+
+	PRINTFORM %CALLNAME:MASTER%と%CALLNAME:TARGET%は%CHOICES%を見に行くことにした
+	;人いるかチェック
+	ACTOR = FIND_COND(CHOICES)
+	IF ACTOR
+		PRINTFORMW ……%CALLNAME:ACTOR%発見！
+
+		;パートナーをリセット＆設定
+		CALL RESET_SET_PARTNER, ACTOR
+		;本来のTARGETをパートナー、ACTORをTARGETとしてイベント進行させる
+		CALL SWAP_PARTNER_TARGET
+		;ふさわしい服装に着替えさせる
+		CALL SET_COORDINATE_BUNKASAI, CHOICES, TARGET
+		CALL PRINT_MAIDFACE, TARGET
+		CALL MESSAGE_BUNKASAI, CHOICES
+		;出演済みフラグを立てる
+		CALL SET_CEVENT, "学園祭：出演済"
+		CALL SWAP_PARTNER_TARGET
+
+		;パートナーを再セット
+		CALL SET_PARTNER
+	ELSE
+		PRINTFORMW ……どんなもんだろう？
+	ENDIF
+
+	;この場所を巡ったフラグを立てる
+ 	CALL SET_CEVENT, @"学園祭：%CHOICES%", MASTER
+	TFLAG:イベント回数 += 1
+ENDSELECT
+
+IF FLAG:ムード > MEMO_MOOD
+	CALL TEXT, "ムード変化＆ハート個数表示", FLAG:ムード - MEMO_MOOD
+	WAIT
+ENDIF
+
+
+;-------------------------------------------------
+;水着屋
+;-------------------------------------------------
+@EVENT_SHOP_SWIM
+
+STR:選んだ水着 = 
+STR:試着履歴 = /
+
+CALL BLANK_DRAWLINE
+PRINTFORMW そろそろ本日のメインイベント、%CALLNAME:TARGET%の水着選びを始めます。
+CALL BLANKLINE
+CALL KOJO_DATE, "水着選び開始"
+IF CSTR:今年の水着 != ""
+	PRINTFORM 現在%CALLNAME:TARGET%が持っている物は%SWIM(CSTR:今年の水着)%ですが、
+ELSE
+	PRINTFORM 二人で店内を物色して候補は以下の物に絞られましたが……
+ENDIF
+PRINTW どれにしますか？
+;外見特徴を羅列
+PRINTFORM ちなみに%CALLNAME:TARGET%は
+CALL PRINT_LIST, SWIM_APP(TARGET), "拡大表示"
+PRINTFORMW です。
+
+;水着を選ぶ
+CALL EVENT_SHOP_SWIM_MAIN
+CALL BLANKLINE
+CALL KOJO_DATE, "水着決定"
+CLEARLINE 1
+
+CSTR:今年の水着 = %STR:選んだ水着%
+CFLAG:水着選び = FLAG:年
+FLAG:ムード += 30
+
+
+@EVENT_SHOP_SWIM_MAIN
+#DIM MEMO_LINECOUNT
+#DIMS EVENT_TABLE_SWIM
+#DIMS EVENT_TABLE_BOTTOM
+#DIMS EVENT_TABLE_ACT
+#DIMS CHOICES_SWIM
+#DIMS CHOICES_BOTTOM
+#DIMS CHOICES_ACT
+#DIMS SWIM_SELECTED
+#DIM CHANGE_BOTTOM
+
+VARSET EVENT_TABLE_SWIM
+VARSET EVENT_TABLE_BOTTOM
+VARSET EVENT_TABLE_ACT
+VARSET SWIM_SELECTED
+VARSET CHANGE_BOTTOM
+VARSET CHOICES_SWIM
+
+MEMO_LINECOUNT = LINECOUNT
+SIF STR:試着履歴 != "/"
+	PRINTL 次はどれを試してみますか？
+
+SIF TALENT:オトコ
+	EVENT_TABLE_SWIM += "メンズビキニ/サーフパンツ/"
+
+IF TALENT:オトコ == 0 || COND("男の娘")
+	EVENT_TABLE_SWIM += "ビキニ/ワンピース水着/競泳水着/"
+	SELECTCASE COND("Ｈな水着選択可能")
+	CASE 1
+		EVENT_TABLE_SWIM += "マイクロビキニ/ハイレグワンピ/"
+	CASE IS >= 2
+		EVENT_TABLE_SWIM += "マイクロビキニ/ハイレグワンピ/ティアドロップ/スリングショット/"
+	ENDSELECT
+ENDIF
+
+;水着選びの選択肢
+VARSET LOCALS
+SPLIT EVENT_TABLE_SWIM, "/", LOCALS
+CALL PRINT_SELECT, EVENT_TABLE_SWIM
+CHOICES_SWIM = %LOCALS:RESULT%
+
+;水着ごとの属性追加
+STR:選んだ水着 = %PALAM_SWIM(CHOICES_SWIM, "色以外")%
+
+VARSET CHOICES_BOTTOM
+$SELECT_BOTTOM
+
+SELECTCASE SWIM(STR:選んだ水着, "種類")
+;競泳水着や男物には合わせなくていいだろう
+CASE "メンズビキニ", "サーフパンツ", "競泳水着"
+
+CASEELSE
+	IF CHOICES_BOTTOM != ""
+		PRINTFORML どれを%CHOICES_SWIM%に合わせますか？
+	ELSE
+		PRINTL どれかを合わせますか？
+	ENDIF
+	IF STRCOUNT(STR:選んだ水着, "ワンピース")
+		EVENT_TABLE_BOTTOM = パレオ/ミニスカート/合わせない
+	ELSE
+		EVENT_TABLE_BOTTOM = パレオ/ショートパンツ/ミニスカート/合わせない
+	ENDIF
+
+	;ボトムオプションの選択
+	VARSET LOCALS
+	SPLIT EVENT_TABLE_BOTTOM, "/", LOCALS
+	CALL PRINT_SELECT, EVENT_TABLE_BOTTOM
+	CHOICES_BOTTOM = %LOCALS:RESULT%
+ENDSELECT
+
+SELECTCASE CHOICES_BOTTOM
+CASE "", "合わせない"
+	SWIM_SELECTED = %CHOICES_SWIM%
+CASEELSE
+	SWIM_SELECTED = %CHOICES_SWIM%＆%CHOICES_BOTTOM%
+ENDSELECT
+
+;ボトムごとの属性追加
+STR:選んだ水着 = %PALAM_SWIM(SWIM_SELECTED, "色以外")%
+
+;色の決定
+IF CSTR:好きな色 != "" && RAND:5
+	STR:選んだ水着 = %PALAM_SWIM(SWIM_SELECTED, CSTR:好きな色)%
+ELSE
+	STR:選んだ水着 = %PALAM_SWIM(SWIM_SELECTED, SET_CLOCOLOR("ランダムカラー") )%
+ENDIF
+
+CALL SET_COORDINATE, "今年の水着"
+IF EQUIP:ボディスーツ
+	CALL PRINT_CUTIN, "アウター", TARGET
+ELSEIF EQUIP:パンツ
+	CALL PRINT_CUTIN, "パンツ前後", TARGET
+ENDIF
+
+;試着済み？
+IF STRCOUNT(STR:試着履歴, @"\/%SWIM_SELECTED%\/")
+	PRINTFORMW %SWIM_SELECTED%に決めますか？
+
+	EVENT_TABLE_ACT = はい/別の水着を試してもらう
+ELSE
+	;合わせるものを変えただけの場合
+	IF CHANGE_BOTTOM
+		SELECTCASE CHOICES_BOTTOM
+		CASE "", "合わせない"
+			CALL PRINT_STRW, @"今度は%COMMENT_SWIM(STR:選んだ水着)%_黄色_%CHOICES_SWIM%_だけの格好になってもらった。"
+		CASEELSE
+			CALL PRINT_STRW, @"%COMMENT_SWIM(STR:選んだ水着)%_黄色_%CHOICES_SWIM%と%CHOICES_BOTTOM%を組み合わせた格好_になってもらった。"
+		ENDSELECT
+	ELSE
+		CALL PRINT_STRW, @"%COMMENT_SWIM(STR:選んだ水着)%_黄色_%SWIM_SELECTED%_姿になってもらった。"
+	ENDIF
+
+	STR:試着履歴 += @"%SWIM_SELECTED%\/"
+
+	SELECTCASE SWIM(STR:選んだ水着, "種類")
+	CASE "メンズビキニ", "サーフパンツ", "競泳水着"
+		EVENT_TABLE_ACT = これに決める/別の水着を試してもらう
+	CASEELSE
+		EVENT_TABLE_ACT = これに決める/合わせるものを変える/別の水着を試してもらう
+	ENDSELECT
+ENDIF
+
+;水着選択後の行動の選択肢
+VARSET LOCALS
+SPLIT EVENT_TABLE_ACT, "/", LOCALS
+CALL PRINT_SELECT, EVENT_TABLE_ACT
+CHOICES_ACT = %LOCALS:RESULT%
+
+SELECTCASE CHOICES_ACT
+CASE "はい", "これに決める"
+
+CASE "合わせるものを変える"
+	CHANGE_BOTTOM = 1
+	GOTO SELECT_BOTTOM
+CASE "別の水着を試してもらう"
+	PRINTFORMW もう少し水着選びを楽しむとします。
+	CALL BLANKLINE
+	;CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+ENDSELECT
+
+CALL PRINT_STRW, @"%CALLNAME:MASTER%と%CALLNAME:TARGET%は試着と話し合いの末、_黄色_%SWIM(STR:選んだ水着)%_を今年の水着として選んだ。"

@@ -1,0 +1,314 @@
+;-------------------------------------------------
+;画像をカットインする関数群。製作者　ギンギー料理
+;-------------------------------------------------
+;カットインする画像の種類ARGSをARG:0～ARG:{X-1}のX人分並べて表示する関数。横長なので3人まで。
+;画像のピクセル数はとりあえず自動的に縦100が選択される。
+;ARGSに"パンツ前後"を使った場合は一人だけにすること。
+;-------------------------------------------------
+@PRINT_CUTIN, ARGS, ARG:0, ARG:1, ARG:2
+#DIM LCOUNT
+#DIM ACTOR, 5
+#DIM NUM_ACTOR
+#DIM MEMO_REDRAW
+
+SIF CONFIG("カットインＯＦＦ")
+	RETURN 0
+
+MEMO_REDRAW = CURRENTREDRAW()
+REDRAW 0
+
+NUM_ACTOR = 0
+VARSET ACTOR
+FOR LCOUNT, 0, 3
+	SIF LCOUNT >= 1 && ARG:LCOUNT <= 0
+		BREAK
+
+	ACTOR:NUM_ACTOR = ARG:LCOUNT
+	NUM_ACTOR += 1
+	CFLAG:(ARG:LCOUNT):ＣＩＰ発生済 = 1
+NEXT
+
+LOCALS = <nobr>
+SELECTCASE ARGS
+CASE "パンツ前後"
+	LOCALS += @"%CUTIN("パンツ", ACTOR, 1)%"
+	LOCALS += @"%CUTIN("バックパンツ", ACTOR, 2)%"
+CASEELSE
+	FOR LCOUNT, 0, 3
+		SIF ACTOR:LCOUNT <= 0
+			BREAK
+
+		LOCALS += @"%CUTIN(ARGS, ACTOR:LCOUNT, LCOUNT + 1)%"
+	NEXT
+ENDSELECT
+
+IF LOCALS != "<nobr>"
+	HTML_PRINT LOCALS
+
+	SELECTCASE ARGS
+	CASE "淫紋"
+		FOR LCOUNT, 1, 100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")/100
+			PRINTL 
+		NEXT
+	CASEELSE
+		FOR LCOUNT, 1, 100*PICSIZE(100)/GETCONFIG("フォントサイズ")/100
+			PRINTL 
+		NEXT
+	ENDSELECT
+ENDIF
+REDRAW MEMO_REDRAW
+
+;-------------------------------------------------
+;出してしまったカットインを消す関数
+;突然出現した100は、このバリアントだとカットインのサイズが縦100ピクセルのため
+;もしも前提が異なる場合は数字を変える事
+;-------------------------------------------------
+@CLEAR_CUTIN
+CLEARLINE 100*PICSIZE(100)/GETCONFIG("フォントサイズ")/100
+
+
+;-------------------------------------------------
+;キャラARGのカットインARGSを描画する関数。ARG:1には何人目の位置かが入っている。ARG:2はyposの位置。
+;ピクセル数は選べるようにしようと思ったがパンツカットインは300*100固定。淫紋は150*150。
+;-------------------------------------------------
+@CUTIN(ARGS, ARG, ARG:1, ARG:2)
+#FUNCTIONS
+#DIM FSIZE
+#DIM FPOS
+#DIMS BG
+#DIMS CUTIN_MAIN
+#DIMS CUTIN_CHANGE
+#DIMS CUTIN_OTHER
+#DIMS CUTIN_INMON
+#DIMS CUTIN_INMON_H
+#DIMS TYPE_INMON
+
+BG = 
+CUTIN_MAIN = 
+CUTIN_CHANGE = 
+CUTIN_OTHER = 
+CUTIN_INMON = 
+CUTIN_INMON_H = 
+TYPE_INMON = 
+
+SELECTCASE ARGS
+CASE "淫紋"
+	FSIZE = 100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")
+	FPOS = (ARG:1 - 1) * (FSIZE + 30)
+	;背景
+	BG = <nonbutton pos='{FPOS}'><img src='CIP背景ピンク' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+CASEELSE
+	;IF COND("キャラ紹介中")
+	;	FSIZE = 100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")
+	;	FPOS = FSIZE*2 + 30
+	;ELSE
+		FSIZE = 100*PICSIZE(100)/GETCONFIG("フォントサイズ")
+		FPOS = (ARG:1 - 1) * (FSIZE*3 + 30)
+	;ENDIF
+	;背景
+	BG = <nonbutton pos='{FPOS}'><img src='CIP背景ピンク' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+ENDSELECT
+
+
+;カットイン
+SELECTCASE ARGS
+CASE "淫紋"
+	;まずは肌の状態
+	CUTIN_MAIN = <nonbutton pos='{FPOS}'><img src='CIP腹%CONDS("肌の色", ARG)%%CONDS("お腹の見た目", ARG)%' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+
+	TYPE_INMON = %CONDS("淫紋の種類", ARG)%
+	IF MARK:ARG:淫紋
+		SELECTCASE TYPE_INMON
+		CASE "基本"
+			CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋基本黒{MARK:ARG:淫紋}' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+			CUTIN_INMON_H = <nonbutton pos='{FPOS}'><img src='CIP淫紋基本黒おめでた' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+
+			SELECTCASE CONDS("淫紋の様子", ARG)
+			CASE "満足"
+				CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋基本ピンク{MARK:ARG:淫紋}' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+				CUTIN_INMON_H = <nonbutton pos='{FPOS}'><img src='CIP淫紋基本ピンクおめでた' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+			CASE "欲求不満"
+				CUTIN_INMON = %CUTIN_INMON%<nonbutton pos='{FPOS}'><img src='CIP淫紋基本ピンク1' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+				CUTIN_INMON_H = %CUTIN_INMON_H%<nonbutton pos='{FPOS}'><img src='CIP淫紋基本ピンクおめでた' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+			ENDSELECT
+		CASEELSE
+			IF COND("淫紋おめでた", ARG)
+				CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋%TYPE_INMON%黒おめでた' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+			ELSE
+				CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋%TYPE_INMON%黒{MARK:ARG:淫紋}' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+			ENDIF
+
+			SELECTCASE CONDS("淫紋の様子", ARG)
+			CASE "満足"
+				IF COND("淫紋おめでた", ARG)
+					CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋%TYPE_INMON%ピンクおめでた' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+				ELSE
+					CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋%TYPE_INMON%ピンク{MARK:ARG:淫紋}' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+				ENDIF
+			CASE "欲求不満"
+				CUTIN_INMON = %CUTIN_INMON%<nonbutton pos='{FPOS}'><img src='CIP淫紋%TYPE_INMON%ピンク1' height = '{FSIZE}' width = '{FSIZE}' ypos = '{ARG:2}'></nonbutton>
+			ENDSELECT
+		ENDSELECT
+	ENDIF
+CASE "バニーチップ"
+	CUTIN_MAIN = <nonbutton pos='{FPOS}'><img src='CIOバニー%CONDS("おっぱい", ARG)%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+CASE "アウター"
+	;まずはボディスーツかを見る
+	SELECTCASE BODYS(ARG, "CIP種類")
+	CASE ""
+		SELECTCASE OUTER(ARG, "CIP種類")
+		CASE ""
+			SIF EQUIP:ARG:ボディスーツ
+				RETURNF ""
+			SIF EQUIP:ARG:アウター && CHECK_OUTER("パンスト", ARG) == 0
+				RETURNF ""
+			ARGS = パンツ
+			RESTART
+		CASEELSE
+			IF CHECK_CLO("CIP汎用正面アウター", ARG)
+				ARGS = 汎用正面アウター
+				RESTART
+			ENDIF
+			CUTIN_MAIN = <nonbutton pos='{FPOS}'><img src='CIP%OUTER(ARG, "CIP種類")%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		ENDSELECT
+	CASEELSE
+		IF CHECK_CLO("CIP汎用正面ボディスーツ", ARG)
+			ARGS = 汎用正面ボディスーツ
+			RESTART
+		ENDIF
+	ENDSELECT
+CASE "バックパンツ"
+	SELECTCASE PANTIES(ARG, "CIPバック")
+	CASE ""
+		RETURNF ""
+	CASEELSE
+		CUTIN_MAIN = <nonbutton pos='{FPOS}'><img src='CIP%PANTIES(ARG, "CIPバック")%%CONDS("肌の色", ARG)%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		SIF PANTIES(ARG, "CIPカラー：バック") != ""
+			CUTIN_CHANGE = <nonbutton pos='{FPOS}'><img src='CIP%PANTIES(ARG, "CIPバック")%%PANTIES(ARG, "CIPカラー：バック")%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+	ENDSELECT
+;"汎用正面アウター"はアウターが描写される場合に来る。"汎用正面パンツ"はパンツが見えるまでは着ている物を省いて描写する(ブルマ等を穿いていても無視する)。
+CASE "汎用正面パンツ", "汎用正面パンツのみ", "汎用正面アウター", "汎用正面ボディスーツ"
+	CUTIN_MAIN = <nonbutton pos='{FPOS}'><img src='CIP汎用正面%CONDS("CIP肌の色", ARG)%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+
+	SELECTCASE ARGS
+	CASE "汎用正面ボディスーツ"
+		IF CHECK_SOCKS("ストッキング", ARG) && CHECK_BODYS("バニー", ARG)
+			SELECTCASE CLOCOLOR_MAIDFACE("バニースーツ", CHECK_CLOCOLOR(CSTR:ARG:ボディスーツ), ARG)
+			CASE "黒"
+				CUTIN_CHANGE = <nonbutton pos='{FPOS}'><img src='CIPバニータイツ赤' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+			CASEELSE
+				CUTIN_CHANGE = <nonbutton pos='{FPOS}'><img src='CIPバニータイツ黒' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+			ENDSELECT
+		ENDIF
+		CUTIN_CHANGE = %CUTIN_CHANGE%<nonbutton pos='{FPOS}'><img src='CIP%BODYS(ARG, "CIP種類")%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+	CASE "汎用正面アウター"
+		CUTIN_CHANGE = <nonbutton pos='{FPOS}'><img src='CIP%OUTER(ARG, "CIP種類")%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+	CASEELSE
+		;パンツ画像が無い場合は描画しない
+		SIF PANTIES(ARG, "CIPカラー：フロント") == ""
+			RETURNF ""
+
+		CUTIN_CHANGE = <nonbutton pos='{FPOS}'><img src='CIP%PANTIES(ARG, "CIPフロント")%%PANTIES(ARG, "CIPカラー：フロント")%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		SIF PANTIES(ARG, "リボン") != "" && CHECK_OUTER("ブルマ", ARG) == 0
+			CUTIN_CHANGE = %CUTIN_CHANGE%<nonbutton pos='{FPOS}'><img src='CIPパンティリボン%PANTIES(ARG, "リボン")%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+	ENDSELECT
+
+	;"汎用正面パンツのみ"は上着はめくったりしたと仮定して、パンツ以外は描写しない
+	SELECTCASE ARGS
+	CASE "汎用正面パンツのみ"
+	CASEELSE
+		SIF CHECK_OUTER("パンスト", ARG)
+			CUTIN_OTHER = %CUTIN_OTHER%<nonbutton pos='{FPOS}'><img src='CIPパンスト%OUTER(ARG, "CIPカラー：種類")%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		SELECTCASE CLO("顔グラ衣装", ARG)
+		CASE "ジャージ黒", "ジャージ青", "ジャージ赤", "ジャージ緑色"
+			CUTIN_OTHER = %CUTIN_OTHER%<nonbutton pos='{FPOS}'><img src='CIP%CLO("顔グラ衣装", ARG)%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		CASEELSE
+			SIF CFLAG:ARG:スカートめくり == 0 && CHECK_CLO("学生服姿", ARG) && CHECK_SKIRT("スカート", ARG) && CHECK_SKIRT("チェック", ARG) == 0
+				CUTIN_OTHER = %CUTIN_OTHER%<nonbutton pos='{FPOS}'><img src='CIPプリーツスカート' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		ENDSELECT
+	ENDSELECT
+
+	;淫紋
+	IF MARK:ARG:淫紋 && CONDS("淫紋の種類", ARG) == "基本"
+		CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋汎用正面黒{MARK:ARG:淫紋}' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		CUTIN_INMON_H = <nonbutton pos='{FPOS}'><img src='CIP淫紋汎用正面黒おめでた' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+
+		SELECTCASE CONDS("淫紋の様子", ARG)
+		CASE "満足"
+			CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋汎用正面ピンク{MARK:ARG:淫紋}' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+			CUTIN_INMON_H = <nonbutton pos='{FPOS}'><img src='CIP淫紋汎用正面ピンクおめでた' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		CASE "欲求不満"
+			CUTIN_INMON = %CUTIN_INMON%<nonbutton pos='{FPOS}'><img src='CIP淫紋汎用正面ピンク1' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+			CUTIN_INMON_H = %CUTIN_INMON_H%<nonbutton pos='{FPOS}'><img src='CIP淫紋汎用正面ピンクおめでた' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		ENDSELECT
+	ENDIF
+CASE "すじ"
+	CUTIN_MAIN = <nonbutton pos='{FPOS}'><img src='CIPすじ%CONDS("肌の色", ARG)%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+
+	IF CHECK_PANTIES("前貼り", ARG)
+		CUTIN_CHANGE = <nonbutton pos='{FPOS}'><img src='CIP前貼り%PANTIES(ARG, "CIPカラー：フロント")%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+	ELSEIF TEQUIP:ARG:絆創膏 || CFLAG:ARG:絆創膏装着
+		CUTIN_CHANGE = <nonbutton pos='{FPOS}'><img src='CIP絆創膏' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+	ENDIF
+	;淫紋
+	IF MARK:ARG:淫紋 && CONDS("淫紋の種類", ARG) == "基本"
+		CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋すじ黒{MARK:ARG:淫紋}' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		CUTIN_INMON_H = <nonbutton pos='{FPOS}'><img src='CIP淫紋すじ黒おめでた' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+
+		SELECTCASE CONDS("淫紋の様子", ARG)
+		CASE "満足"
+			CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋すじピンク{MARK:ARG:淫紋}' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+			CUTIN_INMON_H = <nonbutton pos='{FPOS}'><img src='CIP淫紋すじピンクおめでた' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		CASE "欲求不満"
+			CUTIN_INMON = %CUTIN_INMON%<nonbutton pos='{FPOS}'><img src='CIP淫紋すじピンク1' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+			CUTIN_INMON_H = %CUTIN_INMON_H%<nonbutton pos='{FPOS}'><img src='CIP淫紋すじピンクおめでた' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+		ENDSELECT
+	ENDIF
+CASE "パンツ", "パンツのみ"
+	SELECTCASE PANTIES(ARG, "CIPフロント")
+	CASE ""
+		RETURNF ""
+	CASEELSE
+		;いくつかのパンツは汎用正面
+		IF CHECK_CLO("CIP汎用正面パンツ", ARG)
+			ARGS = 汎用正面%ARGS%
+			RESTART
+		ELSEIF CHECK_CLO("CIPすじ", ARG)
+			ARGS = すじ
+			RESTART
+		ENDIF
+	ENDSELECT
+
+	CUTIN_MAIN = <nonbutton pos='{FPOS}'><img src='CIP%PANTIES(ARG, "CIPフロント")%%CONDS("肌の色", ARG)%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+
+	SIF PANTIES(ARG, "CIPカラー：フロント") != ""
+		CUTIN_CHANGE = <nonbutton pos='{FPOS}'><img src='CIP%PANTIES(ARG, "CIPフロント")%%PANTIES(ARG, "CIPカラー：フロント")%' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+	;淫紋
+	IF MARK:ARG:淫紋 && CONDS("淫紋の種類", ARG) == "基本"
+		SELECTCASE PANTIES(ARG, "CIPフロント")
+		CASE "ティアドロップ", "マイクロ", "レース"
+			CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋%PANTIES(ARG, "CIPフロント")%黒{MARK:ARG:淫紋}' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+			CUTIN_INMON_H = <nonbutton pos='{FPOS}'><img src='CIP淫紋%PANTIES(ARG, "CIPフロント")%黒おめでた' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+
+			SELECTCASE CONDS("淫紋の様子", ARG)
+			CASE "満足"
+				CUTIN_INMON = <nonbutton pos='{FPOS}'><img src='CIP淫紋%PANTIES(ARG, "CIPフロント")%ピンク{MARK:ARG:淫紋}' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+				CUTIN_INMON_H = <nonbutton pos='{FPOS}'><img src='CIP淫紋%PANTIES(ARG, "CIPフロント")%ピンクおめでた' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+			CASE "欲求不満"
+				CUTIN_INMON = %CUTIN_INMON%<nonbutton pos='{FPOS}'><img src='CIP淫紋%PANTIES(ARG, "CIPフロント")%ピンク1' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+				CUTIN_INMON_H = %CUTIN_INMON_H%<nonbutton pos='{FPOS}'><img src='CIP淫紋%PANTIES(ARG, "CIPフロント")%ピンクおめでた' height = '{FSIZE}' width = '{FSIZE*3}' ypos = '{ARG:2}'></nonbutton>
+			ENDSELECT
+		ENDSELECT
+	ENDIF
+ENDSELECT
+
+SIF CUTIN_MAIN == ""
+	RETURNF ""
+SIF COND("淫紋おめでた", ARG) == 0
+	CUTIN_INMON_H = 
+
+LOCALS = %BG%%CUTIN_MAIN%%CUTIN_INMON%%CUTIN_INMON_H%%CUTIN_CHANGE%%CUTIN_OTHER%
+
+
+RETURNF LOCALS
+

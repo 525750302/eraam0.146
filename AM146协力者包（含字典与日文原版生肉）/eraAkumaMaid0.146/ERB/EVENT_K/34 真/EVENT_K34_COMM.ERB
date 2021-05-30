@@ -1,0 +1,83 @@
+﻿;-------------------------------------------------
+;部員同士での交流。自分はTARGETとして呼ばれ、話相手の部員はPARTNER()として呼ばれる
+;話相手への呼びかけはCNAME("パートナー")で出来る
+;TFLAG:台詞スキップ = 1で話している相手のセリフのスキップ、TFLAG:地の文スキップ = 1で続く地の文のスキップをする事が出来る
+;-------------------------------------------------
+@KOJO_COMM_K34, ARGS
+#DIM MEMO_LINECOUNT
+;対話相手にしたいキャラの名前を/区切りでこれに突っ込んでFIND_TaiTa(EVENT_TABLE)とするとそのうち一人が選ばれる
+#DIMS EVENT_TABLE
+
+EVENT_TABLE = 
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+;話しかける側のセリフ。COND("対話可能")を満たす相手を選んでPARTNER()にする事で、特定の相手に話しかけることもできる
+CASE "お誘いする"
+	;特定の相手に話しかける場合はEVENT_TABLEに対話相手の呼び名(CALLNAME)を / 区切りで並べて ; を消す
+	;例１）フェリシエルor濡烏の君orあんずから一人選ぶ場合
+	EVENT_TABLE = 灯/莉
+	;例２）部員全てから一人選ぶ場合
+	;EVENT_TABLE = 全員
+
+	IF FIND_TaiTa(EVENT_TABLE)
+		;話し相手をパートナーにする
+		CALL SET_PARTNER, FIND_TaiTa(EVENT_TABLE)
+		CALL EMOTION_PLUS, "交流中", TARGET, PARTNER()
+	ENDIF
+
+	IF NO:PARTNER() == 35
+		IF CALCF("試験の予想点数") <= 30
+			PRINTFORMW 「兄さ～ん…今ヒマ？」
+			PRINTFORMW 『自分で勉強しろ』
+			PRINTFORMW 「やだ！ お願い本当に助けて！！ 次の試験なんにもわかんないの～！！」
+			PRINTFORMW 『お前そうやって泣きつくの何回目だよ！ 他の奴に頼めばいいだろ！』
+			PRINTFORMW 「無理ぃ～、兄さん助けてよ～……うっうっ」
+		ELSEIF COND("成績：学年上位") && CEVENT("成績自慢：学年上位") == 0
+			PRINTFORMW 「どーよ兄さん！ これが私の実力よ！」
+			PRINTFORMW 『…………』
+			PRINTFORMW 真が見せびらかした試験順位を見て、灯は押し黙っている……
+			PRINTFORMW 『お前……』
+			PRINTFORMW 「な、なに？」
+			PRINTFORMW 『……とうとう悪魔の取引したんか』
+			PRINTFORMW 「しーてーなーいー！」
+			CALL SET_CEVENT, "成績自慢：学年上位"
+		;上のイベントを見た後に下のイベントが発生するのもちょっと変かナーと思うので、敢えてこういう条件で
+		ELSEIF COND("成績：優秀") && CEVENT("成績自慢：優秀") == 0 && CEVENT("成績自慢：学年上位") == 0
+			PRINTFORMW 「見て見て兄さん！ 私の試験順位！ ねえねえ凄くない！？」
+			PRINTFORMW 『んー？ あぁ、凄い凄い』
+			PRINTFORMW 「ちょっとー、リアクション薄くない？ 私頑張ったんだよ？」
+			PRINTFORMW 『別に頑張んなくたっていけるだろ、それぐらい……』
+			PRINTFORMW 「はーっ！ これだから天才は！ いいもん次は学年上位獲ってきてやるんだから」
+			PRINTFORMW 『おぉ、あっそ』
+			PRINTFORMW 「ぐぎぎ……！」
+			CALL SET_CEVENT, "成績自慢：優秀"
+		;機能するかよくわからないしテストもやりにくいのでコメントアウトしておく
+		; ELSEIF FLAG:にわか雨判定 == 0
+		; 	PRINTFORMW 「あ、雨降ってる……兄さん傘持ってる？」
+		; 	PRINTFORMW 『いや？』
+		; 	PRINTFORMW 「なーんでいっつも持ってこないの兄さん……」
+		; 	PRINTFORMW 『だって傘邪魔じゃん。誰かに入れてもらえばいいし』
+		; 	PRINTFORMW 「こぉの悪女め……」
+		ELSE
+			PRINTFORMW 「兄さん、今日の晩ご飯どうする？」
+			PRINTFORMW 『あ～……なんでもいいよ』
+			PRINTFORMW 「……じゃあ天ぷらにする？」
+			PRINTFORMW 『えぇ～、天ぷらぁ？』
+			PRINTFORMW 「じゃあちゃんと考えてよ～……」
+		ENDIF
+	ELSEIF NO:PARTNER() == 48
+		PRINTFORMW 「ねえ、莉ちゃん……その。いまヒマ？」
+		PRINTFORMW 『ヒマ』
+		PRINTFORMW 「ほんとに？ それじゃ……その。ゲームでもする？」
+		PRINTFORMW 『いい』
+		PRINTFORMW 「……ほんとに？」
+		PRINTFORMW 『うん』
+		PRINTFORMW 「そっかぁ……」
+	ENDIF
+
+;話しかけられる側のセリフ。括弧は『』を使うのが望ましい
+CASE "誘われた"
+
+
+ENDSELECT

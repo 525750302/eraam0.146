@@ -1,0 +1,218 @@
+﻿;-------------------------------------------------
+;SHOP.ERBのTINPUT関連の処理を関数化
+;-------------------------------------------------
+;-------------------------------------------------
+;顔グラのアニメのフレーム周りの処理
+;-------------------------------------------------
+@FLIRT_AND_ANIMATION
+#DIM LCOUNT
+#DIM PRANK
+#DIM PRANK_COUNT
+
+PRANK = 0
+PRANK_COUNT = 1
+
+;アニメーションONの場合のオートちょっかい初期設定
+IF CONFIG("オートちょっかい動作中")
+	SELECTCASE CONFIG("オートちょっかい")
+	CASE 0
+		PRANK = 201
+	CASEELSE
+		IF FLAG:なんかして欲しい
+			SELECTCASE FLAG:なんかして欲しい
+			CASE 3
+				PRANK = CONFIG("オートちょっかい")*2 + 1
+			CASE 2
+				PRANK = CONFIG("オートちょっかい")*3 + 1
+			CASEELSE
+				PRANK = CONFIG("オートちょっかい")*5 + 1
+			ENDSELECT
+		ELSEIF STATE("酔い", MASTER) || STATE("酔い", TARGET)
+			PRANK = CONFIG("オートちょっかい")*(RAND:6 + 5) + 1
+		ELSE
+			PRANK = CONFIG("オートちょっかい")*10 + 1
+		ENDIF
+	ENDSELECT
+ENDIF
+
+;フレーム数カウント初期値
+FOR LCOUNT, 0, NUM_ANIME
+	ANIME_FCOUNT:LCOUNT = RAND:20
+NEXT
+
+CALL FLIRT_AND_ANIMATION_MAIN, PRANK, PRANK_COUNT
+
+@FLIRT_AND_ANIMATION_MAIN, PRANK, PRANK_COUNT
+#DIM LCOUNT
+#DIM PRANK
+#DIM PRANK_COUNT
+#DIM CHOICE
+#DIM DRAW_ANIME
+
+SELECTCASE NUM_ANIME
+CASE 1
+	TINPUT 60, 9999, 0, ""
+CASE IS > 1
+	TINPUT 30, 9999, 0, ""
+;ここには来ないが念のため
+CASEELSE
+	INPUT
+ENDSELECT
+
+CHOICE = RESULT
+
+SELECTCASE CHOICE
+CASE 9999
+	CLEARLINE 1
+	SELECTCASE PRANK_COUNT
+	CASE PRANK
+		CALL EVENT_FLIRT
+	CASEELSE
+		DRAW_ANIME = 0
+		FOR LCOUNT, 0, NUM_ANIME
+			IF CFLAG:(ANIME_CHARA:LCOUNT):睡眠
+				SELECTCASE ANIME_FCOUNT:LCOUNT
+				CASE 40, 71
+					DRAW_ANIME = 1
+					BREAK
+				ENDSELECT
+			ELSEIF CFLAG:(ANIME_CHARA:LCOUNT):寝起き || STATE("眠気", ANIME_CHARA:LCOUNT)
+				SELECTCASE ANIME_FCOUNT:LCOUNT
+				CASE 76, 78, 81, 110, 111
+					DRAW_ANIME = 1
+					BREAK
+				ENDSELECT
+			ELSE
+				SELECTCASE ANIME_FCOUNT:LCOUNT
+				;まばたき
+				CASE 39, 40, 41, 42
+					DRAW_ANIME = 1
+					BREAK
+				;よそ見は保留
+				;CASE 55, 69, 70, 71, 72, 80
+				;	DRAW_ANIME = 1
+				;	BREAK
+				ENDSELECT
+			ENDIF
+		NEXT
+		IF DRAW_ANIME
+			CLEARLINE 1
+			CALL REPRINT_SHOP_ANIME
+		ENDIF
+		;フレームカウント処理
+		FOR LCOUNT, 0, NUM_ANIME
+			IF CFLAG:(ANIME_CHARA:LCOUNT):睡眠
+				SELECTCASE ANIME_FCOUNT:LCOUNT
+				CASE IS >= 71
+					ANIME_FCOUNT:LCOUNT = RAND:20
+				CASEELSE
+					ANIME_FCOUNT:LCOUNT += 1
+				ENDSELECT
+			ELSEIF CFLAG:(ANIME_CHARA:LCOUNT):寝起き || STATE("眠気", ANIME_CHARA:LCOUNT)
+				SELECTCASE ANIME_FCOUNT:LCOUNT
+				CASE IS >= 111
+					ANIME_FCOUNT:LCOUNT = RAND:20
+				CASEELSE
+					ANIME_FCOUNT:LCOUNT += 1
+				ENDSELECT
+			ELSE
+				SELECTCASE ANIME_FCOUNT:LCOUNT
+				CASE IS >= 80
+					ANIME_FCOUNT:LCOUNT = RAND:20
+				CASEELSE
+					ANIME_FCOUNT:LCOUNT += 1
+				ENDSELECT
+			ENDIF
+		NEXT
+
+		;オートちょっかいしない場合に放置しているとカウントが無限に増加するので１万毎にリセットする
+		;（PRANKの最大値は6001）
+		PRANK_COUNT = PRANK_COUNT%10000 + 1
+		RESTART
+	ENDSELECT
+CASE IS >= 0
+	FLAG:なんかして欲しい = 0
+	CALL USERSHOP_PRE, CHOICE
+ENDSELECT
+
+
+;-------------------------------------------------
+;オートちょっかいのTINPUT関連の処理を関数化
+;-------------------------------------------------
+@FLIRT
+#DIM CHOICE
+IF CONFIG("オートちょっかい動作中")
+	SELECTCASE CONFIG("オートちょっかい")
+	CASE 0
+		TINPUT 20000, 9999, 0, ""
+	CASEELSE
+		IF FLAG:なんかして欲しい
+			SELECTCASE FLAG:なんかして欲しい
+			CASE 3
+				TINPUT CONFIG("オートちょっかい")*200, 9999, 0, ""
+			CASE 2
+				TINPUT CONFIG("オートちょっかい")*350, 9999, 0, ""
+			CASEELSE
+				TINPUT CONFIG("オートちょっかい")*500, 9999, 0, ""
+			ENDSELECT
+		ELSEIF STATE("酔い", MASTER) || STATE("酔い", TARGET)
+			TINPUT CONFIG("オートちょっかい")*(RAND:501 + 500), 9999, 0, ""
+		ELSE
+			TINPUT CONFIG("オートちょっかい")*1000, 9999, 0, ""
+		ENDIF
+	ENDSELECT
+ELSE
+	INPUT
+ENDIF
+CHOICE = RESULT
+
+SELECTCASE CHOICE
+CASE 9999
+	CLEARLINE 1
+	SIF CONFIG("オートちょっかい動作中")
+		CALL EVENT_FLIRT
+CASE IS >= 0
+	FLAG:なんかして欲しい = 0
+	CALL USERSHOP_PRE, CHOICE
+ENDSELECT
+
+
+;-------------------------------------------------
+;オートちょっかい関連の処理を関数化
+;-------------------------------------------------
+@EVENT_FLIRT
+#DIM MEMO_TARGET
+#DIM MEMO_LINECOUNT
+
+MEMO_TARGET = TARGET
+
+MEMO_LINECOUNT = LINECOUNT
+;特定行動後の派生イベントなど(パートナー以外のイベントが起きる事もある)
+IF RAND:2
+	SETBIT FLAG:状況判定, 38
+	CALL EVENT_DAILY_EX, DAILYNUM("隙を見せる"), "隙を見せる"
+	CLEARBIT FLAG:状況判定, 38
+ENDIF
+
+IF LINECOUNT == MEMO_LINECOUNT
+	PRINTL 
+	TARGET = 0
+	;発情期やムラムラしている人優先
+	SIF RAND:3 == 0
+		TARGET = FIND_COND("発情期", "現在存在")
+	SIF TARGET == 0 && RAND:3 == 0
+		TARGET = FIND_COND("ムラムラ", "現在存在")
+	SIF TARGET == 0
+		TARGET = FIND_COND("現在存在")
+	SETBIT FLAG:状況判定, 39
+	CALL USERSHOP_PRE, 202
+	CLEARBIT FLAG:状況判定, 39
+ENDIF
+;パートナーがイベントで居なくなった場合を除いて、パートナーを復帰させる
+SIF COND("現在存在", MEMO_TARGET) && FLAG:SELECT_USERSHOP == 0
+	TARGET = MEMO_TARGET
+
+FLAG:なんかして欲しい += 1
+SIF FLAG:なんかして欲しい >= 4
+	FLAG:なんかして欲しい = RAND:4
+CVARSET CFLAG, GETNUM(CFLAG, "KOJO_DAILY済")

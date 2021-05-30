@@ -1,0 +1,222 @@
+﻿;-------------------------------------------------
+;ここに記述する事で各コマンドの選択肢を増やすことができる
+;X1はキャラ番号に置換してください
+;-------------------------------------------------
+;お願い・取引での選択肢を追加。番号は60～89を使ってよい
+@WISH_K50_ADDSELECT
+IF CEVENT("購入：だてめがね")
+	IF CEVENT("眼鏡ＯＮ") == 0
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("眼鏡を掛けて", 16)% … %CALLNAME:TARGET%に眼鏡を掛けてもらいます/
+	ELSE
+		STR:選択肢 = %STR:選択肢% [60] %TEXT_LJ("眼鏡を外して", 16)% … %CALLNAME:TARGET%に眼鏡を外してもらいます/
+	ENDIF
+ENDIF
+STR:選択肢 = %STR:選択肢% [80] %TEXT_LJ("フォントカラー", 16)% … %CALLNAME:TARGET%のセリフの色を変えます/
+STR:選択肢 = %STR:選択肢% [81] %TEXT_LJ("男性器の呼び方", 16)% … %CALLNAME:TARGET%の男性器の呼び方を変えます/
+STR:選択肢 = %STR:選択肢% [82] %TEXT_LJ("女性器の呼び方", 16)% … %CALLNAME:TARGET%の女性器の呼び方を変えます/
+;お願い・取引で増やした選択肢の地の文と台詞
+@KOJO_WISH_K50_ADDSELECT, ARGS
+#DIM MEMO_LINECOUNT
+SELECTCASE ARGS
+CASE "眼鏡を掛けて"
+	CALL SET_OTHER, "眼鏡"
+	CALL SET_CEVENT, "眼鏡ＯＮ"
+	PRINTL
+	CALL EMOTION_PLUS, "リセット"
+	PRINTFORMDW %CALLNAME:TARGET%に眼鏡を掛けてもらいました。
+CASE "眼鏡を外して"
+	CALL RESET_OTHER, "眼鏡"
+	CALL DEL_CEVENT, "眼鏡ＯＮ"
+	PRINTL
+	CALL EMOTION_PLUS, "リセット"
+	PRINTFORMDW %CALLNAME:TARGET%に眼鏡を外してもらいました。
+CASE "フォントカラー"
+	MEMO_LINECOUNT = LINECOUNT
+	PRINTFORMDL %CALLNAME:TARGET%のセリフのフォントカラーを設定します
+	CALL CHANGE_OFC, "セット"
+	GETCOLOR
+	PRINTFORML 今はこの色です：%TOSTR(RESULT, "X")%
+	CALL CHANGE_OFC, "リセット"
+	CALL PRINT_SELECT, "設定なし/標準設定/カスタム", "設定をやめる"
+	IF RESULT == 100
+		RETURN 1
+	ELSEIF RESULT == 0
+		CFLAG:OFC = 0
+	ELSEIF RESULT == 1
+		CFLAG:OFC = 0x90AAFF
+	ELSE
+		PRINTFORML "FFFFFF"の形式で指定してください。"000000"は指定できません。
+		CALL INPUTS_SELECT, 6
+		CALL COLOR_CODE_CHECK, RESULTS
+		IF RESULT == 0
+			PRINTFORMW エラー：半角数字、半角英字の6桁で入力してください
+		ELSE
+			CFLAG:OFC = RESULT
+		ENDIF
+	ENDIF
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+CASE "男性器の呼び方"
+	CALL GENITALNAME_CONVERT, "男性器"
+CASE "女性器の呼び方"
+	CALL GENITALNAME_CONVERT, "女性器"
+ENDSELECT
+;16進数変換
+@COLOR_CODE_CHECK, ARGS
+#DIM COLOR_NUM
+#DIMS COLOR_STR
+
+COLOR_STR = 0x%ARGS%
+
+SIF ISNUMERIC(COLOR_STR) == 0
+	RETURN 0
+
+COLOR_NUM = TOINT(COLOR_STR)
+
+RETURN COLOR_NUM
+
+@GENITALNAME_CONVERT, ARGS
+#DIMS MEMO_RESULTS
+PRINTL 
+PRINTFORMDL %CALLNAME:TARGET%の%ARGS%の呼び方（現在は%CNAME(ARGS)%)を変更します
+PRINTFORMDL 全角10文字(半角なら20文字)以内で入力してください
+PRINTFORMDL 何も入力しない場合は変更しません
+CALL PRINT_STRL, "_また、もともとの呼び方に戻したい場合には_黄色_もとにもどす_と入力してください"
+CALL INPUTS_SELECT, 20
+PRINTL 
+SELECTCASE RESULTS
+CASE "", CEVENTS(ARGS)
+	PRINTFORMW 変更しませんでした
+CASE "もとにもどす"
+	CALL DEL_CEVENT_GROUP, @"%ARGS%呼"
+	PRINTFORMW 設定を初期化しました
+CASEELSE
+	CALL DEL_CEVENT_GROUP, @"%ARGS%呼"
+	MEMO_RESULTS = %RESULTS%
+	PRINTFORMW %CALLNAME:TARGET%の%ARGS%の呼び方を、%MEMO_RESULTS%にしました
+	PRINTL 
+	PRINTFORML 続けて、この呼び方のふりがなを決めます。
+	PRINTFORML （何も入力しない場合は%MEMO_RESULTS%がふりがなとなります）
+	PRINTL 
+	PRINTFORML 全角20文字(半角なら40文字)以内で入力してください
+	CALL INPUTS_SELECT, 40
+	SELECTCASE RESULTS
+	CASE ""
+		CALL SET_CEVENT, @"%ARGS%呼：%MEMO_RESULTS%_%MEMO_RESULTS%"
+	CASEELSE
+		CALL SET_CEVENT, @"%ARGS%呼：%MEMO_RESULTS%_%RESULTS%"
+	ENDSELECT
+		CALL PRINT_STRL, @"%CALLNAME:TARGET%の%ARGS%の呼び方を、_黄色_%CNAME(ARGS)%_"
+		CALL PRINT_STRW, @"そのふりがなを_黄色_%CNAME(ARGS, "かな")%_に変更しました"
+ENDSELECT
+;-------------------------------------------------
+;トークコマンドの選択肢を追加
+@DAILY1_K50_ADDSELECT
+[IF_DEBUG]
+	STR:選択肢 += "セリフチェック/"
+	STR:選択肢 += "動作チェック/"
+
+[ENDIF]
+;トークコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY1_K50_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "セリフチェック"
+	INPUTS
+	PRINTL
+	SELECTCASE RESULTS
+	CASE ""
+		RETURN 1
+	CASEELSE
+		CALL CHANGE_OFC, "セット"
+		CALL OFC_PRINT_STRL, @"%RESULTS%"
+		CALL CHANGE_OFC, "リセット"
+	ENDSELECT
+	RESTART
+CASE "動作チェック"
+	INPUTS
+	PRINTL
+	SELECTCASE RESULTS
+	CASE ""
+		RETURN 1
+	CASEELSE
+		CALL KOJOTEST_K50, RESULTS
+	ENDSELECT
+	RESTART
+ENDSELECT
+
+@KOJOTEST_K50, ARGS
+
+VARSET LOCALS
+
+DRAWLINE
+SPLIT ARGS, ", ", LOCALS
+IF LOCALS:1 != ""
+	LOCALS:1 = %SUBSTRING(LOCALS:1, 1, (STRLENS(LOCALS:1) - 2))%
+	TRYCALLFORM %LOCALS:0%, LOCALS:1
+ELSE
+	TRYCALLFORM %LOCALS:0%
+ENDIF
+DRAWLINE
+;-------------------------------------------------
+;もてなすコマンドの選択肢を追加
+@DAILY2_K50_ADDSELECT
+;STR:選択肢 += @"%CALLNAME:TARGET%と遊ぶ/"
+;STR:選択肢 += "追加選択肢その２/"
+
+;もてなすコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY2_K50_ADDSELECT, ARGS
+#DIMS GAMES
+#DIM LCOUNT
+
+SELECTCASE ARGS
+CASE @"%CALLNAME:TARGET%と遊ぶ"
+
+
+CASE "追加選択肢その２"
+	PRINTFORMW %CALLNAME:MASTER%は%ARGS%をした。
+	PRINTL 
+	PRINTFORMW 「台詞」
+	PRINTL 
+	PRINTFORMW %ARGS%を受けての%CALLNAME:TARGET%の反応
+ENDSELECT
+
+;デート行き先の選択肢を追加。
+@DATE_K50_ADDSELECT
+;ここで増やした選択肢を選ぶと、それがSAVESTR:デート に代入される仕組みです
+;STR:選択肢 += "追加選択肢その１/"
+;STR:選択肢 += "追加選択肢その２/"
+
+;増やした行先での地の文と台詞。起きうるイベントのフラグもここで決める
+@KOJO_DATE_K50_ADDSELECT
+SELECTCASE SAVESTR:デート
+CASE "追加選択肢その１"
+	PRINTFORMW 「台詞」
+	;地の文
+	PRINTFORMW %SAVESTR:デート%での%CALLNAME:TARGET%の反応
+	;地の文を用意していない場合には汎用のものを使う
+	;CALL DAILY_MESSAGE, "デート本番"
+	PRINTL 
+	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+	FLAG:ムード += 30
+	;それぞれ可能なもののコメントアウトを外す
+	;TFLAG:デートエロ可能 = 1
+	;TFLAG:デート手つなぎ可能 = 1
+	;TFLAG:下着チラ見え可能 = 1
+	;TFLAG:水着デート = 1
+CASE "追加選択肢その２"
+	PRINTFORMW 「台詞」
+	;地の文
+	PRINTFORMW %SAVESTR:デート%での%CALLNAME:TARGET%の反応
+	;地の文を用意していない場合には汎用のものを使う
+	;CALL DAILY_MESSAGE, "デート本番"
+	PRINTL 
+	;ムードボーナスが高い場所でFLAG:ムード+60、普通ならFLAG:ムード+30、デートっぽくない場所だと修正なし
+	FLAG:ムード += 30
+	;それぞれ可能なもののコメントアウトを外す
+	;TFLAG:デートエロ可能 = 1
+	;TFLAG:デート手つなぎ可能 = 1
+	;TFLAG:下着チラ見え可能 = 1
+	;TFLAG:水着デート = 1
+ENDSELECT
+
+

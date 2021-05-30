@@ -1,0 +1,508 @@
+;-------------------------------------------------
+;口上で使う乱数やテキストを詰め込むための場所
+;-------------------------------------------------
+;CNAMEの詳細を書く場所
+;ARGに呼びたい相手の番号を入れておく
+;細かく設定しようとすると全体的にややこしく、かつ複雑になりがちなので、ここで一括で設定できるようにする
+;もちろん個別でも対応できるように
+@C_DETAIL, ARG
+#FUNCTIONS
+
+SELECTCASE CALLNAME:TARGET
+CASE "ノノ"
+	IF ARG == MASTER
+		IF NAME:ARG == "あなた"
+			LOCALS = 先輩_せんぱい
+		ELSE
+			LOCALS = %CALLNAME:ARG%先輩_%CSTR:ARG:ふりがな%先輩
+		ENDIF
+	ELSEIF COND("ノイ", ARG)
+		IF (COND("夜") || DAYEV("日曜", "ゲーム内")) && CEVENT("家族関係")
+			LOCALS = %CALLNAME:ARG%伯父さん_%CSTR:ARG:ふりがな%おじさん
+		ELSE
+			LOCALS = %CALLNAME:ARG%先生_%CSTR:ARG:ふりがな%せんせい
+		ENDIF
+	ELSEIF COND("白い死神", ARG) && CEVENT("名前のある死神", ARG) == 0
+		LOCALS = 死神さん_しにがみさん
+	ELSEIF COND("学生", ARG)
+		SELECTCASE SOME_CLASS(TARGET, ARG)
+		CASE "年下"
+			IF TALENT:ARG:オトコ
+				IF TALENT:ARG:性反転 || TALENT:ARG:男の娘 || TRUE_SEX(ARG) == "ふたなり"
+					LOCALS = %CALLNAME:ARG%ちゃん_%CSTR:ARG:ふりがな%ちゃん
+				ELSE
+					LOCALS = %CALLNAME:ARG%くん_%CSTR:ARG:ふりがな%くん
+				ENDIF
+			ELSE
+				IF TALENT:ARG:性反転　&& GETBIT(CFLAG:ARG:性転換, 10) == 0
+					LOCALS = %CALLNAME:ARG%くん_%CSTR:ARG:ふりがな%くん
+				ELSE
+					LOCALS = %CALLNAME:ARG%ちゃん_%CSTR:ARG:ふりがな%ちゃん
+				ENDIF
+			ENDIF
+		CASEELSE
+			LOCALS = %CALLNAME:ARG%さん_%CSTR:ARG:ふりがな%さん
+		ENDSELECT
+	ELSEIF COND("教員", ARG)
+		LOCALS = %CALLNAME:ARG%先生_%CSTR:ARG:ふりがな%せんせい
+	ELSE
+		LOCALS = %CALLNAME:ARG%さん_%CSTR:ARG:ふりがな%さん
+	ENDIF
+CASE "ノイ"
+	IF ARG == MASTER
+		IF NAME:ARG == "あなた"
+			LOCALS = あなた_あなた
+		ELSE
+			SELECTCASE TONE_K46()
+			CASE "穏やか"
+				LOCALS = %CALLNAME:ARG%さん_%CSTR:ARG:ふりがな%さん
+			CASE "丁寧"
+				LOCALS = %CALLNAME:ARG%様_%CSTR:ARG:ふりがな%さま
+			CASEELSE
+				LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+			ENDSELECT
+		ENDIF
+	ELSEIF TEQUIP:新妻プレイ
+		IF TRUE_SEX(ARG) == "オトコ"
+			LOCALS = ダーリン_だーりん
+		ELSE
+			LOCALS = ハニー_はにー
+		ENDIF
+	ELSEIF COND("白い死神", ARG) && CEVENT("名前のある死神", ARG) == 0
+		LOCALS = 『死神』_もり
+	ELSEIF COND("ノノ", ARG)
+		LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+	ELSE
+		SELECTCASE TONE_K46(TARGET)
+		CASE "穏やか"
+			LOCALS = %CALLNAME:ARG%さん_%CSTR:ARG:ふりがな%さん
+		CASE "丁寧"
+			LOCALS = %CALLNAME:ARG%様_%CSTR:ARG:ふりがな%さま
+		CASE "甘えんぼ"
+			IF TRUE_SEX(ARG) == "オトコ" && TALENT:ARG:男の娘 == 0
+				LOCALS = %CALLNAME:ARG%くん_%CSTR:ARG:ふりがな%くん
+			ELSE
+				LOCALS = %CALLNAME:ARG%ちゃん_%CSTR:ARG:ふりがな%ちゃん
+			ENDIF
+		CASE "ツンデレ"
+			LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+		CASEELSE
+			IF COND("学生", ARG)
+				LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+			ELSEIF COND("教師", ARG)
+				IF COND("相性◎", ARG)
+					LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+				ELSE
+					LOCALS = %CALLNAME:ARG%先生_%CSTR:ARG:ふりがな%せんせい
+				ENDIF
+			ELSE
+				IF COND("相性◎", ARG)
+					LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+				ELSE
+					LOCALS = %CALLNAME:ARG%さん_%CSTR:ARG:ふりがな%さん
+				ENDIF
+			ENDIF
+		ENDSELECT
+	ENDIF
+;新キャラ予定
+CASE "遥"
+	IF ARG == MASTER
+		IF NAME:MASTER == "あなた"
+			IF CEVENT("師匠フラグ")
+				LOCALS = 師匠_ししょー
+			ELSE
+				LOCALS = 先輩_せんぱい
+			ENDIF
+		ELSE
+			IF CEVENT("師匠フラグ")
+				LOCALS = %CALLNAME:MASTER%師匠_%CSTR:ARG:ふりがな%ししょー
+			ELSE
+				LOCALS = %CALLNAME:MASTER%先輩_%CSTR:ARG:ふりがな%せんぱい
+			ENDIF
+		ENDIF
+	ELSEIF COND("莉", ARG)
+		LOCALS = %CALLNAME:ARG%ちゃん_%CSTR:ARG:ふりがな%ちゃん
+	ELSEIF COND("学生", ARG)
+		SELECTCASE SOME_CLASS(TARGET, ARG)
+		CASE "同級生"
+			IF TALENT:ARG:男の娘 || TRUE_SEX(ARG) == "オンナ" || TRUE_SEX(ARG) == "ふたなり"
+				IF COND("相性◎", ARG)
+					LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+				ELSE
+					LOCALS = %CALLNAME:ARG%さん_%CSTR:ARG:ふりがな%さん
+				ENDIF
+			ELSE
+				LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+			ENDIF
+		CASE "年下"
+			IF TALENT:ARG:男の娘 || TRUE_SEX(ARG) == "オンナ" || TRUE_SEX(ARG) == "ふたなり"
+				IF COND("相性◎", ARG)
+					LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+				ELSE
+					LOCALS = %CALLNAME:ARG%ちゃん_%CSTR:ARG:ふりがな%ちゃん
+				ENDIF
+			ELSE
+				IF COND("相性◎", ARG)
+					LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+				ELSE
+					LOCALS = %CALLNAME:ARG%くん_%CSTR:ARG:ふりがな%くん
+				ENDIF
+			ENDIF
+		CASE "年上"
+			LOCALS = %CALLNAME:ARG%先輩_%CSTR:ARG:ふりがな%せんぱい
+		ENDSELECT
+	ELSEIF COND("教員", ARG)
+		LOCALS = %CALLNAME:ARG%先生_%CSTR:ARG:ふりがな%せんせい
+	ELSE
+		LOCALS = %CALLNAME:ARG%さん_%CSTR:ARG:ふりがな%さん
+	ENDIF
+CASEELSE
+	IF COND("学生", ARG)
+		SELECTCASE SOME_CLASS(TARGET, ARG)
+		CASE "年下"
+			IF TRUE_SEX(ARG) == "オトコ" && TALENT:ARG:男の娘 == 0
+				LOCALS = %CALLNAME:ARG%くん_%CSTR:ARG:ふりがな%くん
+			ELSE
+				LOCALS = %CALLNAME:ARG%ちゃん_%CSTR:ARG:ふりがな%ちゃん
+			ENDIF
+		CASE "同級生"
+			IF COND("相性◎", ARG)
+				LOCALS = %CALLNAME:ARG%_%CSTR:ARG:ふりがな%
+			ELSE
+				LOCALS = %CALLNAME:ARG%さん_%CSTR:ARG:ふりがな%さん
+			ENDIF
+		CASE "年上"
+			LOCALS = %CALLNAME:ARG%先輩_%CSTR:ARG:ふりがな%せんぱい
+		ENDSELECT
+	ELSEIF COND("教師", ARG)
+		LOCALS = %CALLNAME:ARG%先生_%CSTR:ARG:ふりがな%せんせい
+	ELSE
+		LOCALS = %CALLNAME:ARG%さん_%CSTR:ARG:ふりがな%さん
+	ENDIF
+ENDSELECT
+
+RETURNF LOCALS
+
+
+;自分と相手の年齢が同じかどうかを判別する
+;とはいえ厳密にはできないので、その他＝教師(6)＞研究生(5)＞３年生(4)＞２年生(3)＞１年生(2)＞中等部(1)＞初等部(0)の順で年を計算する
+@SOME_CLASS, ARG, ARG:1
+#FUNCTIONS
+#DIM CLASS, 2
+#DIM LCOUNT
+
+FOR LCOUNT, 0, 2
+	IF COND("教員", ARG:LCOUNT)
+		CLASS:LCOUNT = 6
+	ELSE
+		SELECTCASE CSTR:(ARG:LCOUNT):学年
+		CASE "初等部"
+			CLASS:LCOUNT = 0
+		CASE "中等部"
+			CLASS:LCOUNT = 1
+		CASE "１年生"
+			CLASS:LCOUNT = 2
+		CASE "２年生"
+			CLASS:LCOUNT = 3
+		CASE "３年生"
+			CLASS:LCOUNT = 4
+		CASE "研究生"
+			CLASS:LCOUNT = 5
+		CASEELSE
+			CLASS:LCOUNT = 6
+		ENDSELECT
+	ENDIF
+NEXT
+
+IF CLASS > CLASS:1
+	RETURNF "年下"
+ELSEIF CLASS == CLASS:1
+	RETURNF "同級生"
+ELSE
+	RETURNF "年上"
+ENDIF
+
+
+;精液やペニスなどについてランダムで異なる名称をしゃべるようになる関数
+;そのつど書くのも若干面倒なので追加
+;2020/11/22から改装
+;シュトリーちゃんの性器の呼称変更をパク……参考にさせて頂いています
+;2020/12/10再びの改装
+;役割を大幅に変更し、前口上生成ジェネレータに変化しました
+@ADANA, ARGS, ARG, ARG:1, ARGS:1
+#FUNCTIONS
+#DIMS 名称
+#DIMS TABLE
+#DIMS HURIGANA, 2
+
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+SIF ARG:1 == 0 && PLAYER > 0
+	ARG:1 = PLAYER
+
+SELECTCASE ARGS
+CASE "ペニス"
+	TABLE = %CNAMET(ARG, "男性器")%
+	HURIGANA:1 = %CNAMET(ARG, "男性器", "かな")%
+CASE "ヴァギナ"
+	TABLE = %CNAMET(ARG, "女性器")%
+	HURIGANA:1 = %CNAMET(ARG, "女性器", "かな")%
+CASEELSE
+	TABLE = %CNAMET(ARG, ARGS)%
+	HURIGANA:1 = %CNAMET(ARG, ARGS, "かな")%
+ENDSELECT
+
+名称 = 
+IF RAND:3 == 0 && ARG:1 && MARK:ARG:屈服刻印 >= 2
+	SELECTCASE ARGS
+	CASE "ペニス"
+		IF TALENT:(ARG:1):ペニス == 0
+			名称 = かわいい/子ども/赤ちゃん/
+		ELSEIF TALENT:(ARG:1):ペニス >= 2
+			名称 = 真っ黒/極太/太い/おまんこ特攻/
+		ENDIF
+		SIF 名称 != ""
+			名称 = %TEXTR(@"%名称%")%
+		IF TALENT:(ARG:1):包茎
+			IF RAND:2
+				名称 += "包茎"
+			ELSE
+				名称 += "皮被り"
+			ENDIF
+		ENDIF
+	CASE "精液"
+		名称 = 黄ばんだ/濃厚/
+		SIF TALENT:(ARG:1):孕ませ男
+			名称 += "百発百中/"
+		名称 = %TEXTR(@"%名称%")%
+	CASE "ヴァギナ"
+		IF TALENT:(ARG:1):性器年齢 >= 4
+			名称 = 淫水焼けした
+		ELSEIF TALENT:(ARG:1):処女
+			名称 = 処女
+		ENDIF
+	ENDSELECT
+ENDIF
+
+;前の段階がなく、かつtnkの呼び方が「マラ」なら、自動で凶悪を前に着けるようにする
+SIF 名称 == "" && TABLE == "マラ"
+	名称 = 凶悪
+
+;一回目のフリガナ探索
+;前口上（？）のフリガナを探す
+HURIGANA = %RUBY_GENERATE(名称)%%HURIGANA:1%
+
+IF ARGS:1 == "ふりがな" || ARGS:1 == "かな" || PALAM:ARG:欲情 >= PALAMLV:5
+	名称 = %HURIGANA%
+ELSE
+	名称 = %TABLE%
+ENDIF
+
+RETURNF 名称
+
+
+@RUBY_GENERATE, ARGS
+#FUNCTIONS
+
+SELECTCASE ARGS
+CASE "かわいい"
+	RETURNF "かわいい"
+CASE "子ども"
+	RETURNF "こども"
+CASE "赤ちゃん"
+	RETURNF "あかちゃん"
+CASE "真っ黒"
+	RETURNF "まっくろ"
+CASE "極太"
+	RETURNF "ごくぶと"
+CASE "太い"
+	RETURNF "ふとい"
+CASE "おまんこ特攻"
+	RETURNF "おまんことっこう"
+CASE "包茎"
+	RETURNF "ほうけい"
+CASE "皮被り"
+	RETURNF "かわかぶり"
+CASE "黄ばんだ"
+	RETURNF "きばんだ"
+CASE "濃厚"
+	RETURNF "のうこう"
+CASE "百発百中"
+	RETURNF "ひゃっぱつひゃくちゅう"
+CASE "淫水焼けした"
+	RETURNF "いんすいやけした"
+CASE "凶悪"
+	RETURNF "きょうあく"
+ENDSELECT
+
+
+;欲望に正直になるかを判定する関数
+;従来の『MARK:屈服刻印 == 3』に相当する
+@YOKUBO, ARG
+#FUNCTION
+#DIM DYNAMIC 判定
+
+;対象に何も入っていなかった場合はTARGETに変更する
+SIF ARG == 0
+	ARG = TARGET
+
+IF MARK:ARG:屈服刻印 == 3 || TALENT:ARG:淫乱
+	判定 = 1
+	SIF COND("欲求不満", ARG) >= 2 || CFLAG:ARG:ムラムラ
+		判定 += 1
+ENDIF
+
+RETURNF 判定
+
+;-------------------------------------------------
+;以降は喘ぎ声を生成するための関数
+;六華口上やハナ口上の汎用喘ぎ声を参考、また一部流用、改変させていただいて製作しています
+;-------------------------------------------------
+
+;喘ぎ声をランダムで発声させる関数。インサートなどの条件があればいくつかの喘ぎ声を混ぜ合わせる
+;回数上限、ループ、ハート要不要は共通になる
+;現状加える予定の喘ぎ声は、1.通常(製作済)、2.Ｍ異物（製作済）、3Ｖ異物（製作前、男の娘に膣がつけられるようにならない限り作らない予定）4Ａ異物（製作済）5挿入(製作前)
+@MIX_AEGI, 回数上限, 対象, ARGS
+#FUNCTIONS
+#DIMS DYNAMIC 喘ぎ
+#DIMS ハート;ARGSを直接いじってしまうとハートが不要になって以後出なくなるので、そうしないための一時的な変数
+#DIM 回数上限
+#DIM ループ
+#DIM 対象
+#DIMS 連続フィルタ;あまり繰り返させたくない言葉にフィルタを掛ける
+
+連続フィルタ = 無
+ハート = %ARGS%
+FOR ループ, 0, 回数上限
+	
+	;アナルに挿入されていた場合
+	IF (TEQUIP:対象:アナルバイブ || TEQUIP:対象:浣腸 || INSERT("Ａインサート", 対象) || GROUPMATCH(SELECTCOM, 2, 9, 14, 33, 70, 71, 72, 73, 74, 75, 136, 142, 143)) && RAND:7 == 0 && 連続フィルタ != "Ａ異物"
+		喘ぎ += @"%AEGI(対象, ハート, "Ａ異物")%"
+		;アナルを連続して話さないためにフィルタをかける
+		連続フィルタ = Ａ異物
+	;尿道に挿入されていた場合
+	ELSEIF (INSERT("尿道インサート", 対象) || GROUPMATCH(SELECTCOM, 15, 83, 84, 85, 86, 87, 88, 149, 151)) && RAND:6 == 0 && 連続フィルタ != "尿道異物"
+		喘ぎ += @"%AEGI(対象, ハート, "尿道異物")%"
+		;尿道を連続して話さないためにフィルタをかける
+		連続フィルタ = 尿道異物
+	;口に何か入っていた場合
+	ELSEIF (TEQUIP:対象:キス || TEQUIP:対象:ディープスロート || TEQUIP:対象:シックスナイン || GROUPMATCH(SELECTCOM, 6, 91, 96, 98, 99, 135, 148)) && RAND:5 == 0
+		喘ぎ += @"%AEGI(対象, ハート, "Ｍ異物")%"
+	;Ｍ異物と条件が被るものの、キスの時限定
+	ELSEIF (TEQUIP:対象:キス || SELECTCOM == 6) && RAND:4 == 0
+		喘ぎ += @"%AEGI(対象, ハート, "キス")%"
+	;膣やアナルに挿入していた場合
+	ELSEIF (INSERT("インサート", PLAYER, 対象) || (ASSI && INSERT("インサート", ASSI, 対象)) || GROUPMATCH(SELECTCOM, 120, 121, 122, 125, 126, 127)) && RAND:3 == 0 && 連続フィルタ != "挿入"
+		喘ぎ += @"%AEGI(対象, ハート, "挿入")%"
+		;挿入を連続して話さないためにフィルタをかける
+		連続フィルタ = 挿入
+	;オナホに挿入していた場合
+	ELSEIF SELECTCOM == 37 && RAND:2 && 連続フィルタ != "オナホ挿入"
+		喘ぎ += @"%AEGI(対象, ハート, "オナホ挿入")%"
+		;オナホ挿入を連続して話さないためにフィルタをかける
+		連続フィルタ = オナホ挿入
+	;条件に引っかからなければ汎用を呼び出す
+	ELSE
+		喘ぎ += @"%AEGI(対象, ハート, "通常")%"
+	ENDIF
+	
+	;連続して指定されなかった場合、フィルタを解除する
+	IF 連続フィルタ != "無"
+		IF LOCAL == 3
+			連続フィルタ = 無
+			LOCAL = 0
+		ELSE
+			LOCAL++
+		ENDIF
+	ENDIF
+	
+	;ハートが必要なときはランダムでどちらにするのか指定する
+	IF ARGS == "要" && (ループ == 0 || RAND:2)
+		ハート = %ARGS%
+	;ハートが不要な場合
+	;回数を繰り返したときはランダムでこちらの方を選択する
+	ELSEIF ARGS == "不要" || ループ >= 1
+		ハート = 不要
+	;今のところは完全に不要だが後の拡張のため＆構文ミスに気付くためにその他にはエラーをだす
+	ELSE
+		喘ぎ += "指定の範囲外です"
+	ENDIF
+NEXT
+
+RETURNF 喘ぎ
+
+;喘ぎ声を生成する関数。ハートを加えるか否かをARGSで指定する。
+;喘ぎは使う度に空白にしていくので動的変数として指定
+;それぞれのパターンを変数パターンに指定し、そのCASEにあわせて喘ぎ方を変えて行く(予定)
+@AEGI, 対象, ARGS, パターン, 回数
+#FUNCTIONS
+#DIM ループ
+#DIMS パターン
+#DIM 対象
+#DIMS DYNAMIC 喘ぎ
+#DIM 回数
+
+FOR ループ, 0, MAX(回数, 1)
+	SELECTCASE パターン
+	;汎用パターン
+	CASE "通常"
+		IF PALAM:対象:欲情 >= PALAMLV:5 && RAND:3
+			喘ぎ += @"%TEXTR("あ゛/お゛/あ゛あっ/お゛ほっ/あ゛へっ/はっあ゛っ/これしゅきぃ！/あ゛ー")%"
+		ELSEIF PALAM:対象:欲情 >= PALAMLV:3 && RAND:2
+			喘ぎ += @"%TEXTR("あはっ/んはぁっ/はんっ/んんっ/あんっ/あっ/はぁんっ/はぅっ/んあっ/ひゃっ/ああっ")%"
+		ELSE
+			喘ぎ += @"%TEXTR("あっ……/ヒィン/んあっ……/あんっ/ひゃぅ……/ふぁ……/はぅん……/んっ……/ひゃっ……/ふぅんっ……/っ……")%"
+		ENDIF
+	;口に何か入っているとき
+	CASE "Ｍ異物"
+		;長くなるのでいくつかに分割
+		IF RAND:2
+			喘ぎ += @"%TEXTR("ふむぅ……/んむっ……/はむぁ……/チュパ……/ペロ……/ジュル……/ん……/んっ、れろ…/れろ…ぁむ…んっ/んっ…、れろ……/ちゅっ、れろっ…ちゅぷっ/んんっ……れろ…/れろ、はむ……んっ")%"
+		ELSE
+			喘ぎ += @"%TEXTR("んっ、んぐっ…/んん…んぅ……っ/んっ…、んん……/んぐっ、んっ…んっ/んむっ……んっ/んむっ、んん…っ/ふむぁ……")%"
+		ENDIF
+	;キスしているとき
+	CASE "キス"
+		喘ぎ += @"%TEXTR("ちゅ……/ちゅぷ……/んむっ……/ん……/ちゅっ、ちゅっ…/ちゅ…ちゅ……っ/ちゅっ…、ちゅ……/ちゅっ、ちゅっ…ちゅっ/ちゅぅ……ちゅっ/んちゅっ、ちゅ……っ")%"
+	;アナルに何か入っているとき
+	CASE "Ａ異物"
+		喘ぎ += @"%TEXTR("おしりがぁ/んはっ/はぁんっ")%"
+	;尿道に何か入っているとき
+	CASE "尿道異物"
+		喘ぎ += @"%TEXTR("おしっこの穴がぁ")%"
+	;何かに挿入しているとき
+	CASE "挿入"
+		IF RAND:2
+			喘ぎ += @"%CNAMET(対象, "二人称")%の"
+			IF RAND:2
+				IF GROUPMATCH(SELECTCOM, 120, 121, 122)
+					喘ぎ += @"%ADANA("ヴァギナ")%"
+				ELSEIF GROUPMATCH(SELECTCOM, 125, 126, 127)
+					喘ぎ += @"%CNAME("アナル")%"
+				ENDIF
+			ELSE
+				喘ぎ += "ナカ"
+			ENDIF
+			喘ぎ += "気持ちいいです……"
+		ELSE
+			喘ぎ += "オチンチンきもちいいっ！"
+		ENDIF
+	;オナホに挿入しているとき
+	CASE "オナホ挿入"
+		喘ぎ += @"%TEXTR("オナホにジュプジュプされちゃってるぅっ/あっ……ナカがトロトロしてて……")%"
+	ENDSELECT
+	;ハートが必要な場合
+	IF ARGS == "要"
+		喘ぎ += "_H_"
+	;ハートが不要な場合
+	ELSEIF ARGS == "不要"
+	;今のところは完全に不要だが後の拡張のため＆構文ミスに気付くためにその他にはエラーをだす
+	ELSE
+		喘ぎ = "AEGIに問題があります"
+		RETURNF 喘ぎ
+	ENDIF
+	;読みやすいように半角スペースをくわえる
+	喘ぎ += " "
+NEXT
+
+RETURNF 喘ぎ

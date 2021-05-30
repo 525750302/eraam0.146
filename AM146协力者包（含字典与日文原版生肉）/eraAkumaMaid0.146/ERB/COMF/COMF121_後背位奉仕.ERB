@@ -1,0 +1,156 @@
+﻿@COM121
+;後背位奉仕
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+;-------------------------------------------------
+;実行できるかの判定
+;-------------------------------------------------
+CALL SHOW_COM_ORDER_COM, 121
+
+;実行できない
+SIF TCVAR:やる気 == 0
+	RETURN 0
+;-------------------------------------------------
+;実行決定
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+;-------------------------------------------------
+;射精チェック
+;-------------------------------------------------
+CALL SAMEN_CHECK
+
+RETURN 1
+
+@FLAG_COM121, ARG
+CALL FLAG_INSERTION, "Ｖ逆インサート", ARG, 100
+
+@SOURCE_COM121, ARG
+CALL VARSET_COMF
+
+CALL SOURCE_DOWNBASE_HP, 121
+
+SOURCE:0:情愛 = 1000
+SOURCE:0:性行動 = 2000
+SOURCE:0:達成感 = 1200
+
+SOURCE:0:情愛 += CALCF("実行値による欲情追加")
+
+;オトコかふたなり
+IF PENIS(TARGET)
+	;ABL:Ｃ感覚をみる
+	SOURCE:0:Ｃ快楽 = CALCF("Ｃ刺激", 3)
+	SOURCE:0:Ｃ快楽 = SOURCE_EXABL(SOURCE:0:Ｃ快楽, "腰使い", PLAYER)
+ENDIF
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM121
+CALL SETFLAG, "下半身を脱がす", PLAYER
+CALL SETFLAG, "ボトムを露出：テキスト無し", TARGET
+;前回と今回の調教者が同じで、前回の調教が後背位であり、抜かないフラグがある場合
+IF INSERT("Ｖ後背位", PLAYER) && COND("前Ｔ調教者") == PLAYER
+	PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%の腰を掴んで、
+	;恋慕で追加
+	SIF TALENT:恋慕 && RAND:3 >= 1
+		PRINTFORM 首筋やうなじに舌を這わせながら
+	IF ABL:サドっ気 >= 3 && RAND:3 == 0
+		PRINTFORMW 立体的に腰をグラインドさせ、%CALLNAME:PLAYER%ごと体を揺らした…
+	ELSEIF ABL:サドっ気 >= 3 && RAND:2 == 0
+		PRINTFORMW 獣のように激しく腰を振りたてた…
+	ELSE
+		PRINTFORMW 再び腰を前後に動かした…
+	ENDIF
+;同様に前回の調教が正常位か騎乗位、逆レイプの場合
+ELSEIF INSERT("Ｖインサート", PLAYER) && COND("前Ｔ調教者") == PLAYER
+	PRINTFORMW %CALLNAME:TARGET%は、膣内から抜き去ることなく%CALLNAME:PLAYER%をうつ伏せに寝かせ、再び腰を動かし始めた…
+ELSEIF INSERT("Ａインサート", PLAYER) && COND("前Ｔ調教者") == PLAYER
+	PRINTFORMW %CALLNAME:TARGET%はアナルから抜いたモノを%CALLNAME:PLAYER%の膣に直接挿入して、再び腰を動かし始めた…
+ELSE
+	PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%の前で四つん這いになり、
+	IF TALENT:PLAYER:処女 == 1
+		PRINTFORMW 男を受け入れた事のない自らのヴァギナへの挿入をせがんだ…
+	ELSEIF RAND:2 == 0
+		PRINTFORMW %TEXTS("アソコ：視覚", PLAYER)%を広げておねだりした！
+	ELSE
+		IF RAND:3 == 0
+			PRINTFORM お尻を高く上げて
+		ELSEIF TALENT:好色 || TALENT:淫乱
+			PRINTFORM お尻を振って
+		ENDIF
+		PRINTFORMW %CALLNAME:TARGET%を誘った。
+	ENDIF
+	PRINTFORM %CALLNAME:TARGET%は誘われるままに、
+	IF TALENT:PLAYER:処女 == 1
+		PRINTFORMW %CALLNAME:PLAYER%の処女を%NAMES("ペニス")%で貫いた…
+	ELSE
+		PRINTFORM %CALLNAME:PLAYER%の
+		SIF TALENT:恋慕
+			PRINT 顔を見つめながら
+		PRINTFORMW ヴァギナに%NAMES("ペニス")%を埋めて腰を動かし始めた…
+	ENDIF
+ENDIF
+
+
+@COM_ORDER_COM121, ARG
+VARSET LOCAL
+LOCALS = 
+
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
+CALL COM_ORDER, ARG
+
+LOCAL = RESULT
+
+IF PENIS(TARGET)
+	LOCAL += 25
+	LOCALS = %LOCALS% + ペニス有り(25)
+ENDIF
+;貞操観念
+IF TALENT:貞操観念
+	LOCAL -= 10
+	LOCALS = %LOCALS% - 貞操観念(10)
+ENDIF
+;貞操無頓着
+IF TALENT:貞操無頓着
+	LOCAL += 5
+	LOCALS = %LOCALS% + 貞操無頓着(5)
+ENDIF
+;快感に素直
+IF TALENT:快感に素直
+	LOCAL += 2
+	LOCALS = %LOCALS% + 快感に素直(2)
+ENDIF
+;快感の否定
+IF TALENT:快感の否定
+	LOCAL -= 1
+	LOCALS = %LOCALS% - 快感の否定(1)
+ENDIF
+
+;調教者が処女
+IF EXP:PLAYER:Ｖ経験 == 0
+	LOCAL -= 15
+	LOCALS = %LOCALS% - %CALLNAME:PLAYER%が処女(15)
+ENDIF
+
+;汚れあり
+IF COM_ORDER_STAIN("Ｖ", "Ｐ")/2
+	LOCAL -= COM_ORDER_STAIN("Ｖ", "Ｐ")/2
+	LOCALS = %LOCALS% - 汚れあり
+	;汚臭鈍感
+	SIF TALENT:汚臭鈍感 || TALENT:汚臭敏感
+		LOCALS = %LOCALS%、\@TALENT:汚臭鈍感 ? 汚臭鈍感 # 汚臭敏感\@
+	SIF COND("陶酔")
+		LOCALS = %LOCALS%、陶酔で半減
+	LOCALS = %LOCALS%({COM_ORDER_STAIN("Ｖ", "Ｐ")/2})
+ENDIF
+
+;合計を表示(45以上で実行)
+CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 45
+
+RETURN RESULT

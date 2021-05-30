@@ -1,0 +1,1882 @@
+﻿;特殊なギミックなどがないものはここに記述
+;選択肢を内包するなど書くのが困難なものについては、TRAIN_MESSAGE_COM(コマンド番号)を用いて、呼び出すようにすること。
+@TRAIN_MESSAGE_B
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIM MEMO_LINECOUNT_KOJO
+#DIM MEMO_CUP, 20
+#DIM MEMO_HP
+
+;-------------------------------------------------
+;写真撮影コマンドで、メモリに余裕がない場合にはアルバム整理画面へ
+;-------------------------------------------------
+IF SELECTCOM == TNUM("写真撮影") && NUM("写真") >= 300
+	CALL BLANKLINE
+	PRINTFORML 写真を撮ろうと思ったが、これ以上は保存できないようです。
+	PRINTFORMW 写真閲覧画面で不要なものを消してください。
+	CALL VIEW_PHOTO
+	IF NUM("写真") >= 300
+		CALL BLANKLINE
+		PRINTFORMW メモリに空きが無いため写真撮影を止めます。
+		TFLAG:コマンドキャンセル = 1
+		RETURN 0
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;インサートなど、体位を表すフラグの管理
+;-------------------------------------------------
+CALL SETFLAG, "体勢戻し"
+
+;-------------------------------------------------
+;CUPの記録
+;-------------------------------------------------
+FOR LCOUNT, 0, 20
+	MEMO_CUP:LCOUNT = CUP:LCOUNT
+NEXT
+MEMO_HP = DOWNBASE:体力
+
+;-------------------------------------------------
+;ソースの計算(予測値)
+;-------------------------------------------------
+CALL CALC, "調教ソースの試算"
+
+;-------------------------------------------------
+;処女チェック
+;-------------------------------------------------
+;選択肢の表示をチェック
+MEMO_LINECOUNT = LINECOUNT
+IF TEQUIP:押し倒し == 0
+	SELECTCASE SELECTCOM
+	CASE 60 TO 69
+		IF TALENT:処女 == 1 && TEQUIP:押し倒し == 0
+			PRINTFORM %CALLNAME:TARGET%の処女を
+			IF PENIS(PLAYER) && (CHECK_STAIN(STAIN:PLAYER:Ｐ, "Ａ") || (PREVCOM >= 70 && PREVCOM <= 79) || INSERT("Ａインサート") )
+				PRINTFORM アナルで汚れたペニス
+			ELSE
+				PRINTFORM %TRAINNAME:SELECTCOM%
+			ENDIF
+			PRINTFORML で奪って良いですか？
+		;潤滑不足
+		ELSEIF CHOSECOMS("Ｖ挿入") == 0 && COND("Ｖ潤十分") == 0
+			PRINTFORML %CALLNAME:TARGET%のソコは準備が足りていないようですが、挿入してしまって良いですか？
+		ENDIF
+;-------------------------------------------------
+;Ａ処女の喪失チェック
+;-------------------------------------------------
+	CASE 70 TO 79
+		IF TALENT:Ａ処女 && TEQUIP:押し倒し == 0
+			PRINTFORML %CALLNAME:TARGET%の\@ TALENT:Ａ処女 ? お尻の処女を奪って良いですか？ # アナルを犯しますか？ \@
+		;潤滑不足
+		ELSEIF CHOSECOMS("Ａ挿入") == 0 && COND("Ａ潤十分") == 0
+			PRINTFORML %CALLNAME:TARGET%のお尻の穴は準備が足りていないようですが、挿入してしまって良いですか？
+		ENDIF
+;-------------------------------------------------
+;双頭バイブプレイでの処女喪失チェック
+;-------------------------------------------------
+	CASE 80
+		IF TEQUIP:押し倒し == 0 && TALENT:PLAYER:処女 && CHECK_COM("双頭バイブプレイ")
+			PRINTFORML 双頭バイブプレイを行うと%CALLNAME:PLAYER%の処女は失われます
+			PRINTFORML それでも実行しますか？
+		ENDIF
+	CASE 83 TO 88
+		IF EXP:尿道性交経験 == 0
+			IF PENIS(TARGET)
+				PRINTFORML %CALLNAME:TARGET%のペニスの処女を%CALLNAME:PLAYER%のソレで奪っても良いですか？
+			ELSE
+				PRINTFORML %CALLNAME:TARGET%の尿道の処女を奪って本当に良いですか？
+			ENDIF
+		ENDIF
+	ENDSELECT
+
+	IF LINECOUNT > MEMO_LINECOUNT
+		CALL PRINT_SELECT, "はい/やっぱやめる"
+		SIF RESULT == 1
+			TFLAG:コマンドキャンセル = 1
+	ENDIF
+
+
+;-------------------------------------------------
+;コマンドの否定判定
+;-------------------------------------------------
+	SIF REFUSE_CHECK()
+		RETURN 0
+
+
+;-------------------------------------------------
+;サイズチェックと潤滑チェック
+;サイズが大きい場合にはそっち優先
+;-------------------------------------------------
+	VARSET LOCALS
+	SELECTCASE SELECTCOM
+	CASE 60 TO 69
+		;大きすぎる
+		IF EXP_GAIN("Ｖ性交経験") == 0 && PENIS(PLAYER) && SIZE("ペニス", PLAYER) >= ABL:Ｖ拡張 + 3 + (TALENT:拡張適性 > 0) + ( (TALENT:処女 && CALCF("Ｖ拡張の上限：処女無視", TARGET) > 0) > 0)
+			LOCALS:0 = %CALLNAME:PLAYER%のモノは大きすぎて%CALLNAME:TARGET%の身体では受け止めきれないかもしれません
+			LOCALS:2 = 本当に挿入してよいですか？（※[Ｖ損傷]する恐れが有ります！※）
+		ENDIF
+	CASE 70 TO 79
+		IF EXP_GAIN("Ａ性交経験") == 0 && PENIS(PLAYER) && SIZE("ペニス", PLAYER) >= ABL:Ａ拡張 + 3 + (TALENT:拡張適性 > 0)
+			LOCALS:0 = %CALLNAME:PLAYER%のモノは大きすぎて%CALLNAME:TARGET%のお尻の穴では受け止めきれないかもしれません
+			LOCALS:2 = 本当に挿入してよいですか？（※[Ａ損傷]する恐れが有ります！※）
+		ENDIF
+	ENDSELECT
+
+	;助手の助言
+	IF ASSI && ASSI != TARGET
+		;信頼LV減少予定をチェックするのは有りか
+		;IF CALCF("反発刻印獲得", TARGET)
+		;	LOCALS:1 = 「このプレイは%CALLNAME:TARGET%\@ COND("種族：人形", ASSI) ? 様 # \@には早\@ CALCF("反発刻印獲得", TARGET) >= 2 ? すぎる # い \@かも」
+		IF CALCF("苦痛刻印獲得", TARGET)
+			LOCALS:1 = 「このプレイは\@ CALCF("苦痛刻印獲得", TARGET) >= 2 ? 相当な苦痛を伴う # ちょっと痛い \@かも」
+			SELECTCASE SELECTCOM
+			CASE 2, 33
+				SIF PALAM:Ａ潤 < 10000
+					LOCALS:1 = 「%CALLNAME:TARGET%\@ COND("種族：人形", ASSI) ? 様 # \@の未熟なアナルで楽しむのならローションを使った方が…」
+			;Ｖ潤が必要と助言
+			CASE 60 TO 79
+				SELECTCASE GET_PALAMLV(PALAM:Ｖ潤 + PALAM:PLAYER:Ｐ潤) - MAX(SIZE("ペニス", PLAYER) - ABL:Ｖ拡張, 0)
+				CASE 1
+
+				CASE IS <= 0
+
+				ENDSELECT
+			;Ａ潤が必要と助言
+			CASE 70 TO 79
+				SELECTCASE GET_PALAMLV(PALAM:Ａ潤 + PALAM:PLAYER:Ｐ潤) - MAX(SIZE("ペニス", PLAYER) - ABL:Ａ拡張, 0)
+				CASE 1
+					LOCALS:1 = 「%CALLNAME:TARGET%\@ COND("種族：人形", ASSI) ? 様 # \@の未熟なアナルで楽しむのなら、ローションを使うなり口でさせるなりした方が…」
+				CASE IS <= 0
+					LOCALS:1 = 「%CALLNAME:TARGET%\@ COND("種族：人形", ASSI) ? 様 # \@の未熟なアナルで楽しむのならローションを使った方が…」
+				ENDSELECT
+			ENDSELECT
+		ENDIF
+		IF LOCALS:1 != ""
+			IF LOCALS:0 != ""
+				LOCALS:1 = %CALLNAME:ASSI%も%LOCALS:1%と言っています
+			ELSE
+				LOCALS:1 = %CALLNAME:ASSI%が%LOCALS:1%と助言してきました
+			ENDIF
+			SIF LOCALS:2 == ""
+				LOCALS:2 = …それでも実行しますか？
+		ENDIF
+	ENDIF
+
+	MEMO_LINECOUNT = LINECOUNT
+	FOR LCOUNT, 0, 3
+		SIF LOCALS:LCOUNT != ""
+			PRINTFORML %LOCALS:LCOUNT%
+	NEXT
+
+	IF LINECOUNT > MEMO_LINECOUNT
+		CALL PRINT_SELECT, "はい/やっぱやめる"
+		SIF RESULT == 1
+			TFLAG:コマンドキャンセル = 1
+	ENDIF
+;-------------------------------------------------
+;コマンドの否定判定
+;-------------------------------------------------
+	SIF REFUSE_CHECK()
+		RETURN 0
+
+;-------------------------------------------------
+;コンドーム装着イベント(押し倒したら生セックス）
+;-------------------------------------------------
+	CALL BLANKLINE
+	;イベントが起きなかったら改行を消す用
+	MEMO_LINECOUNT = LINECOUNT
+
+	IF TRAIN_GENRE("Ｖ挿入", SELECTCOM) && PENIS(PLAYER) && TEQUIP:PLAYER:コンドーム == 0 && INSERT("Ｖ挿入中", PLAYER) == 0
+		IF TCVAR:Ｖ生挿入許可
+		;生挿入許可になった場合に一回だけ来る
+		ELSEIF COND("特別に生挿入許可")
+			;イベント閲覧フラグON
+			TCVAR:特別に生挿入イベ閲覧済 = 1
+
+			PRINTFORM %CALLNAME:TARGET%は与えられた快楽に溺れ、
+			SIF PREVCOM == TNUM("くぱぁさせる")
+				PRINTFORM 発情したアソコを押し開いて見せつけながら
+			PRINTFORMW 夢見心地な様子で%CALLNAME:PLAYER%を見つめている……
+			MEMO_LINECOUNT_KOJO = LINECOUNT
+			CALL KOJO_EVENT, "特別に生挿入許可"
+			IF LINECOUNT == MEMO_LINECOUNT_KOJO
+				CALL PRINT_STRW, "「…………_H_」"
+				PRINTFORMW 普段ならゴムが無いとさせてくれないはずの%CALLNAME:TARGET%だが、明らかに抵抗が弱い……どころか%CALLNAME:PLAYER%がしやすいようにと腰を動かしてきた。
+				PRINTFORMW ……どうやら、本当は駄目だけど%CALLNAME:PLAYER%さえ良かったら着けずに\@ PREVPLAY("Ｖインサート") ? 続け # し \@ても良いとのことだ。
+				IF CHOSECOMS("Ｖ挿入") == 0
+					IF COND("危険日")
+						PRINTFORM 本日は%CALLNAME:TARGET%の危険日ですが、
+					ELSE
+						PRINTFORM 本日の%CALLNAME:TARGET%は危険日でも安全日でもないようですが、
+					ENDIF
+				ENDIF
+				PRINTL どうしますか？
+				IF ITEM:コンドーム
+					CALL PRINT_SELECT, "お言葉に甘えて生で挿入する/ゴムを着ける"
+					SIF RESULT
+						CALL SETFLAG, "ゴム装着", PLAYER
+				ELSE
+					CALL PRINT_SELECT, "お言葉に甘えて生で挿入する/ゴムが無い事だし挿入は止めておく"
+					IF RESULT
+						TFLAG:コマンドキャンセル = 1
+						RETURN 0
+					ENDIF
+				ENDIF
+				SIF TEQUIP:PLAYER:コンドーム == 0
+					CALL PRINT_STRW, @"ハートピンク_(※[陶酔]中の%CALLNAME:TARGET%から許可が出たので特別にゴム無しで挿入します！)"
+			ELSE
+				IF CHOSECOMS("Ｖ挿入") == 0
+					IF COND("危険日")
+						PRINTFORM 本日は%CALLNAME:TARGET%の危険日ですが、
+					ELSE
+						PRINTFORM 本日の%CALLNAME:TARGET%は危険日でも安全日でもないようですが、
+					ENDIF
+				ENDIF
+				PRINTL どうしますか？
+				IF ITEM:コンドーム
+					CALL PRINT_SELECT, "生で挿入する/ゴムを着ける"
+					SIF RESULT
+						CALL SETFLAG, "ゴム装着", PLAYER
+				ELSE
+					CALL PRINT_SELECT, "生で挿入する/ゴムが無い事だし挿入は止めておく"
+					IF RESULT
+						TFLAG:コマンドキャンセル = 1
+						RETURN 0
+					ENDIF
+				ENDIF
+			ENDIF
+			IF TEQUIP:PLAYER:コンドーム == 0
+				CALL SETFLAG, "Ｖ生挿入許可"
+			ELSE
+				CALL SETFLAG, "Ｖゴム挿入許可"
+			ENDIF
+		ELSEIF TCVAR:Ｖゴム挿入許可
+			IF ITEM:コンドーム
+				CALL SETFLAG, "ゴム装着", PLAYER
+			;以下はゴムが切れた場合
+			ELSEIF COND("ワンモア生挿入可能")
+				IF TCVAR:ゴム切れ交渉
+					PRINTFORMW ……やっぱり生でさせてもらいますか？
+					CALL PRINT_SELECT, "させてもらう/やめておく"
+				ELSE
+					PRINTFORMW 挿入れる前に%CALLNAME:TARGET%に止められてしまった ……いつの間にかコンドームを使いきってしまったようだ。
+					PRINTFORMW ……が、少しだけ思案した%CALLNAME:TARGET%は体の緊張を解いた。
+					PRINTFORMW どうやら、一回だけなら生で\@ PREVPLAY("Ｖインサート") ? 続け # し \@ても良いとのことだ。
+					IF COND("危険日")
+						CALL PRINT_SELECT, "お言葉に甘えて危険日だが生セックスをする/やめておく"
+					ELSE
+						CALL PRINT_SELECT, "お言葉に甘えて生挿入する/やめておく"
+					ENDIF
+				ENDIF
+				IF RESULT == 0
+					TCVAR:ワンモア生挿入中 = 1
+				ELSE
+					TFLAG:コマンドキャンセル = 1
+				ENDIF
+			;ワンモア生挿入後
+			ELSEIF TCVAR:ワンモア生挿入終了
+				PRINTFORMW ……挿入れる前に%CALLNAME:TARGET%に止められてしまった。
+				PRINTFORMW 今日は先程させてあげた分でおしまいとの事だ。
+				TFLAG:コマンドキャンセル = 1
+			ELSE
+				IF TCVAR:ゴム切れ交渉 == 0
+					PRINTFORMW ……いつの間にかコンドームを使いきってしまったようです。
+					;生挿入も受け入れている
+					IF COND("妊娠可能") && (COND("女性主導生セックス") || COND("合意：危険日生セックス") )
+						CALL KOJO_EVENT, "Ｖコンドーム装着"
+						SIF REFUSE_CHECK()
+							RETURN 0
+
+						PRINTFORMW %CALLNAME:TARGET%は着けなくても構わないという態度ですが、生でしますか？
+						IF COND("避妊不要")
+							CALL PRINT_SELECT, "生セックスをする/やめておく"
+						ELSEIF COND("危険日")
+							CALL PRINT_SELECT, "危険日だが生セックスをする/やめておく"
+						ELSEIF COND("安全日")
+							CALL PRINT_SELECT, "安全日だし生セックスをする/やめておく"
+						ELSE
+							CALL PRINT_SELECT, "生セックスをする/やめておく"
+						ENDIF
+						IF RESULT
+							TFLAG:コマンドキャンセル = 1
+							RETURN 0
+						ENDIF
+					ELSE
+						PRINTL どうしますか？
+						CALL PRINT_SELECT, "生でする/ゴムが無い事だし挿入行為は止めておく"
+						IF RESULT
+							TFLAG:コマンドキャンセル = 1
+							RETURN 0
+						ENDIF
+						MEMO_LINECOUNT_KOJO = LINECOUNT
+						CALL KOJO_EVENT, "Ｖコンドーム装着"
+						;セリフ無くても避妊したり
+						SIF LINECOUNT == MEMO_LINECOUNT_KOJO
+							CALL SETFLAG, "生挿入可否判定"
+					ENDIF
+				ELSE
+					PRINTFORMW ゴムを使い切ってしまったので生挿入を試みます。
+					MEMO_LINECOUNT_KOJO = LINECOUNT
+					CALL KOJO_EVENT, "Ｖコンドーム装着"
+					;セリフ無くても避妊したり
+					SIF LINECOUNT == MEMO_LINECOUNT_KOJO
+						CALL SETFLAG, "生挿入可否判定"
+				ENDIF
+
+				CALL SETFLAG, "ゴム切れ交渉"
+
+				SIF REFUSE_CHECK()
+					RETURN 0
+				SIF TEQUIP:PLAYER:コンドーム == 0
+					CALL SETFLAG, "Ｖ生挿入許可"
+			ENDIF
+		ELSE
+			IF CHOSECOMS("Ｖ挿入") == 0
+				IF COND("妊娠可能")
+					IF COND("危険日")
+						PRINTFORMW 本日は%CALLNAME:TARGET%の危険日です。
+					ELSEIF COND("受精確認")
+						PRINTFORMW %CALLNAME:TARGET%は既に受精済みの身です。
+					ELSEIF COND("安全日")
+						PRINTFORMW 今日の%CALLNAME:TARGET%は大丈夫な日のようです。
+					ELSE
+						PRINTFORMW 本日の%CALLNAME:TARGET%は危険日でも安全日でもないようです。
+					ENDIF
+				ELSEIF TALENT:未成熟
+					PRINTFORMW %CALLNAME:TARGET%は中で出しても妊娠する心配がない体です。
+				ENDIF
+			ENDIF
+			IF ITEM:コンドーム
+				IF TCVAR:ご褒美生Ｈ
+					PRINTFORMW 今日はご褒美という事で特別に生でさせてくれるそうですが……どうしますか？
+				ELSE
+					PRINTFORML コンドームを着けますか？
+				ENDIF
+				IF TCVAR:ご褒美生Ｈ
+					CALL PRINT_SELECT, "念のためにゴムを着ける/もちろん着けない"
+				ELSEIF TALENT:未成熟
+					CALL PRINT_SELECT, "念のためにゴムを着ける/着けない"
+				ELSEIF COND("危険日") && COND("合意：危険日生セックス")
+					CALL PRINT_SELECT, "はい/生でして良いと言われているし着けない"
+				ELSE
+					CALL PRINT_SELECT, "はい/着けない"
+				ENDIF
+				;着ける
+				SIF RESULT == 0
+					CALL SETFLAG, "ゴム装着", PLAYER
+			ELSE
+				IF TCVAR:ご褒美生Ｈ
+					PRINTFORMW 今日はご褒美という事で特別に生でさせてくれるそうですが……どうしますか？
+				ELSE
+					PRINTFORML ゴムの備蓄が無いようですが、どうしますか？
+				ENDIF
+				IF TCVAR:ご褒美生Ｈ
+					CALL PRINT_SELECT, "もちろん着けずに生でＨする/ゴムが無い事だし止めておく"
+				ELSEIF TALENT:未成熟
+					CALL PRINT_SELECT, "受精する心配が無いので生で挿入する/念のために挿入は止めておく"
+				ELSEIF COND("危険日") && COND("合意：危険日生セックス")
+					CALL PRINT_SELECT, "許可をもらっているので生でする/ゴムが無い事だし止めておく"
+				ELSE
+					CALL PRINT_SELECT, "生でする/ゴムが無い事だし挿入行為は止めておく"
+				ENDIF
+				IF RESULT
+					TFLAG:コマンドキャンセル = 1
+					RETURN 0
+				ENDIF
+			ENDIF
+
+			MEMO_LINECOUNT_KOJO = LINECOUNT
+			CALL KOJO_EVENT, "Ｖコンドーム装着"
+
+			;セリフ無くても避妊したり
+			SIF LINECOUNT == MEMO_LINECOUNT_KOJO
+				CALL SETFLAG, "生挿入可否判定"
+
+			SIF REFUSE_CHECK()
+				RETURN 0
+			IF TEQUIP:PLAYER:コンドーム
+				CALL SETFLAG, "Ｖゴム挿入許可"
+			ELSE
+				CALL SETFLAG, "Ｖ生挿入許可"
+			ENDIF
+		ENDIF
+	ELSEIF TRAIN_GENRE("Ａ挿入", SELECTCOM) && PENIS(PLAYER) && TEQUIP:PLAYER:コンドーム == 0 && INSERT("Ａ挿入中", PLAYER) == 0
+		;方針決定済み
+		IF TCVAR:Ａ生挿入許可
+		ELSEIF TCVAR:Ａゴム挿入許可
+			IF ITEM:コンドーム
+				CALL SETFLAG, "ゴム装着", PLAYER
+			;ゴムが切れた！
+			ELSE
+				IF TCVAR:ゴム切れ交渉 == 0
+					PRINTFORMW ……いつの間にかコンドームを使いきってしまったようです。
+					PRINTL どうしますか？
+					CALL PRINT_SELECT, "生でする/ゴムが無い事だし止めておく"
+					IF RESULT
+						TFLAG:コマンドキャンセル = 1
+						RETURN 0
+					ENDIF
+				ELSE
+					PRINTFORMW ゴムを使い切ってしまったので生ですることにします。
+				ENDIF
+
+				CALL KOJO_EVENT, "Ａコンドーム装着"
+				CALL SETFLAG, "ゴム切れ交渉"
+
+				SIF REFUSE_CHECK()
+					RETURN 0
+				SIF TEQUIP:PLAYER:コンドーム == 0
+					CALL SETFLAG, "Ａ生挿入許可"
+			ENDIF
+		ELSE
+			IF ITEM:コンドーム
+				PRINTL コンドームを着けますか？
+				CALL PRINT_SELECT, "はい/着けない"
+				;着ける
+				SIF RESULT == 0
+					CALL SETFLAG, "ゴム装着", PLAYER
+			ELSE
+				PRINTL ゴムの備蓄が無いようですが、どうしますか？
+				CALL PRINT_SELECT, "生でする/ゴムが無い事だしアナルセックスは止めておく"
+				IF RESULT
+					TFLAG:コマンドキャンセル = 1
+					RETURN 0
+				ENDIF
+			ENDIF
+
+			CALL KOJO_EVENT, "Ａコンドーム装着"
+
+			SIF REFUSE_CHECK()
+				RETURN 0
+			IF TEQUIP:PLAYER:コンドーム
+				CALL SETFLAG, "Ａゴム挿入許可"
+			ELSE
+				CALL SETFLAG, "Ａ生挿入許可"
+			ENDIF
+		ENDIF
+	ELSEIF TRAIN_GENRE("Ｖ逆挿入", SELECTCOM) && PENIS(TARGET) && TEQUIP:コンドーム == 0 && INSERT("Ｖ挿入中") == 0
+		IF TCVAR:PLAYER:Ｖ生挿入許可
+		ELSEIF TCVAR:PLAYER:Ｖゴム挿入許可
+			IF ITEM:コンドーム
+				CALL SETFLAG, "ゴム装着", TARGET
+			;以下はゴムが切れた場合
+			ELSE
+				IF TCVAR:PLAYER:ゴム切れ交渉 == 0
+					PRINTFORMW ……いつの間にかコンドームを使いきってしまったようです。
+					CALL KOJO_EVENT, "Ｖコンドーム装着"
+					SIF REFUSE_CHECK()
+						RETURN 0
+					PRINTL どうしますか？
+					CALL PRINT_SELECT, "生でする/ゴムが無い事だし挿入行為は止めておく"
+					IF RESULT
+						TFLAG:コマンドキャンセル = 1
+						RETURN 0
+					ENDIF
+				ELSE
+					PRINTFORMW ゴムを使い切ってしまったので生でします。
+					CALL KOJO_EVENT, "Ｖコンドーム装着"
+				ENDIF
+
+				CALL SETFLAG, "ゴム切れ交渉", PLAYER
+
+				SIF REFUSE_CHECK()
+					RETURN 0
+				SIF TEQUIP:コンドーム == 0
+					CALL SETFLAG, "Ｖ生挿入許可", PLAYER
+			ENDIF
+		ELSE
+			IF CHOSECOMS("Ｖ逆挿入") == 0&& COND("妊娠可能", PLAYER)
+				IF COND("危険日", PLAYER)
+					PRINTFORMW 本日は%CALLNAME:PLAYER%の危険日です。
+				ELSEIF COND("受精確認", PLAYER)
+					PRINTFORMW %CALLNAME:PLAYER%は既に受精済みの身です。
+				ELSEIF COND("安全日", PLAYER)
+					PRINTFORMW 今日の%CALLNAME:PLAYER%は大丈夫な日のようです。
+				ELSE
+					PRINTFORMW 本日は危険日でも安全日でもないようです。
+				ENDIF
+			ENDIF
+			IF ITEM:コンドーム
+				PRINTFORML %CALLNAME:TARGET%にコンドームを着けてもらいますか？
+				CALL PRINT_SELECT, "はい/生が良い"
+				;着ける
+				SIF RESULT == 0
+					CALL SETFLAG, "ゴム装着", TARGET
+			ELSE
+				PRINTL ゴムの備蓄が無いようですが、どうしますか？
+				CALL PRINT_SELECT, "生でする/ゴムが無い事だし挿入行為は止めておく"
+				IF RESULT
+					TFLAG:コマンドキャンセル = 1
+					RETURN 0
+				ENDIF
+			ENDIF
+
+			CALL KOJO_EVENT, "Ｖコンドーム装着"
+
+			SIF REFUSE_CHECK()
+				RETURN 0
+
+			IF TEQUIP:コンドーム
+				CALL SETFLAG, "Ｖゴム挿入許可", PLAYER
+			ELSE
+				CALL SETFLAG, "Ｖ生挿入許可", PLAYER
+			ENDIF
+		ENDIF
+	ELSEIF TRAIN_GENRE("Ａ逆挿入", SELECTCOM) && PENIS(TARGET) && TEQUIP:コンドーム == 0 && INSERT("Ａ挿入中") == 0
+
+		IF TCVAR:PLAYER:Ａ生挿入許可
+		ELSEIF TCVAR:PLAYER:Ａゴム挿入許可
+			IF ITEM:コンドーム
+				CALL SETFLAG, "ゴム装着", TARGET
+			;以下はゴムが切れた場合
+			ELSE
+				IF TCVAR:PLAYER:ゴム切れ交渉 == 0
+					PRINTFORMW ……いつの間にかコンドームを使いきってしまったようです。
+					CALL KOJO_EVENT, "Ａコンドーム装着"
+					SIF REFUSE_CHECK()
+						RETURN 0
+					PRINTL どうしますか？
+					CALL PRINT_SELECT, "生でする/ゴムが無い事だし挿入行為は止めておく"
+					IF RESULT
+						TFLAG:コマンドキャンセル = 1
+						RETURN 0
+					ENDIF
+				ELSE
+					PRINTFORMW ゴムを使い切ってしまったので生でします。
+					CALL KOJO_EVENT, "Ａコンドーム装着"
+				ENDIF
+
+				CALL SETFLAG, "ゴム切れ交渉", PLAYER
+
+				SIF REFUSE_CHECK()
+					RETURN 0
+				;Ａゴムフィルタ用のフラグ設定
+				SIF TEQUIP:コンドーム == 0
+					CALL SETFLAG, "Ａ生挿入許可", PLAYER
+			ENDIF
+		ELSE
+			IF ITEM:コンドーム
+				PRINTL コンドームを着けてもらいますか？
+				CALL PRINT_SELECT, "はい/着けない"
+				;着ける
+				SIF RESULT == 0
+					CALL SETFLAG, "ゴム装着", TARGET
+			ELSE
+				PRINTL ゴムの備蓄が無いようですが、どうしますか？
+				CALL PRINT_SELECT, "生でする/ゴムが無い事だしアナルセックスは止めておく"
+				IF RESULT
+					TFLAG:コマンドキャンセル = 1
+					RETURN 0
+				ENDIF
+			ENDIF
+
+			CALL KOJO_EVENT, "Ａコンドーム装着"
+
+			SIF REFUSE_CHECK()
+				RETURN 0
+			IF TEQUIP:コンドーム
+				CALL SETFLAG, "Ａゴム挿入許可", PLAYER
+			ELSE
+				CALL SETFLAG, "Ａ生挿入許可", PLAYER
+			ENDIF
+		ENDIF
+	ENDIF
+	;イベントが起きなかったら改行を消す用
+	SIF MEMO_LINECOUNT == LINECOUNT
+		CLEARLINE 1
+ENDIF
+
+;-------------------------------------------------
+;コマンドの否定判定
+;-------------------------------------------------
+SIF REFUSE_CHECK()
+	RETURN 0
+
+;-------------------------------------------------
+;コマンド実行直前の口上
+;-------------------------------------------------
+CALL KOJO_MESSAGE_BEFORE_COM
+
+;-------------------------------------------------
+;コマンドの否定判定
+;-------------------------------------------------
+SIF REFUSE_CHECK()
+	RETURN 0
+
+;-------------------------------------------------
+;CUPの復元
+;-------------------------------------------------
+FOR LCOUNT, 0, 20
+	CUP:LCOUNT = MEMO_CUP:LCOUNT
+NEXT
+DOWNBASE:体力 = MEMO_HP
+
+
+;-------------------------------------------------
+;ソースの計算(確定値)
+;-------------------------------------------------
+SELECTCASE SELECTCOM
+;例外コマンド
+CASE TNUM("バイブ"), TNUM("アナルバイブ"), TNUM("ピアッシング"), TNUM("尿道ブジー"), TNUM("尿道バイブ")
+
+CASEELSE
+	CALL CALC, "調教ソースの計算"
+ENDSELECT
+
+;-------------------------------------------------
+;調教時メッセージ
+;-------------------------------------------------
+SELECTCASE SELECTCOM
+;選択肢が出てくるコマンドは、ここでなくそのコマンド内部でスキップを行う
+CASE 31, 33
+CASEELSE
+	;地の文を飛ばすフラグを立てている(ターン開始時にOFFになる)
+	SIF TFLAG:地の文スキップ
+		RETURN 0
+ENDSELECT
+
+CALL BLANKLINE
+TRYCALLFORM TRAIN_MESSAGE_COM{SELECTCOM}
+
+
+;以下の追加地の文はどれかひとつしか表示させない
+MEMO_LINECOUNT = LINECOUNT
+
+;調教ごとの初回限定の地の文
+SELECTCASE SELECTCOM
+CASE 60 TO 69
+	CALL TEXT, "追加地の文：Ｖ挿入後"
+CASE 70 TO 79
+	CALL TEXT, "追加地の文：Ａ挿入後"
+CASE 83 TO 88
+	CALL TEXT, "追加地の文：尿道挿入後"
+ENDSELECT
+
+SIF LINECOUNT > MEMO_LINECOUNT || COND("３Ｐ")
+	RETURN 0
+
+;Ａ感覚LV3+絶頂あり+連続アナルセックス
+IF SELECTCOM >= 70 && SELECTCOM <= 79 && SELECTCOM == PREVCOM && TEQUIP:押し倒し == 0 && ABL:Ａ感覚 >= 3 && EX:絶頂数合計 && INSERT("Ａインサート") && COND("前Ｔ調教者") == PLAYER && TALENT:オトコ == 0
+	PRINTFORM %TEXTR("挿抜の激しさに歪む/アナルから響く快楽で、/容赦のない突き込みに、")%%CALLNAME:TARGET%のアソコからは、
+	;今回Ｖ中出しされた
+	IF EXP_GAIN("膣内精液経験")
+		PRINTFORM 中に出された精液まじりの
+	ELSEIF TALENT:処女 && RAND:3 == 0
+		PRINTFORM 処女とは思えない量の
+	ELSE
+		PRINTFORM %TEXTR("触れてもいないのに/だらだらと/恥ずかしい程に/とろとろと")%
+	ENDIF
+	PRINTFORMW 愛液が流れ出ている…
+;騎乗位の追加テキスト
+ELSEIF TRAIN_GENRE("騎乗位", SELECTCOM) && (INSERT("インサート") == 0 || COND("前Ｔ調教者") != PLAYER)
+	CALL TEXT, "追加地の文：騎乗位"
+ELSEIF TRAIN_GENRE("騎乗位", SELECTCOM) && TEQUIP:押し倒し && INSERT("騎乗位") && (PREVPLAY("騎乗位") || RAND:4 == 0)
+	CALL TEXT, "追加地の文：騎乗位"
+;どちらかがそろそろイきそうな状態
+;コマンドごとに固有の追加台詞などはここに書く
+ELSEIF SELECTCOM >= 60 && SELECTCOM <= 89 && PENIS(PLAYER) && COND("イきそう") + COND("イきそう", PLAYER)
+	CALL TEXT, "追加地の文：騎乗位以外のインサート"
+;インサート中の愛撫
+ELSEIF RAND:3 == 0 && SELECTCOM >= 0 && SELECTCOM <= 19 && INSERT("インサート") && (COND("イきそう") || RAND:5 == 0)
+	;ある程度の対応した部分の感度が必要
+	SELECTCASE SELECTCOM
+	CASE 0
+		SIF MAX(ABL:Ｃ感覚, ABL:Ｂ感覚, ABL:Ｍ感覚) < 3
+			RETURN 0
+	CASE 1, 7
+		SIF ABL:Ｃ感覚 < 3
+			RETURN 0
+	CASE 8
+		SIF ABL:Ｖ感覚 < 3
+			RETURN 0
+	CASE 2, 9
+		SIF ABL:Ａ感覚 < 3
+			RETURN 0
+	CASE 5
+		SIF ABL:Ｂ感覚 < 3
+			RETURN 0
+	CASE 6
+		SIF ABL:Ｍ感覚 < 3
+			RETURN 0
+	CASE 12
+		SIF PENIS(TARGET) == 0 && ABL:Ｃ感覚 < 3
+			RETURN 0
+	CASE 15
+		SIF TALENT:尿道性感 == 0
+			RETURN 0
+	ENDSELECT
+
+	PRINTFORM %TEXTR("挿入されながらの愛撫に/敏感な場所を弄られた/気持ちの良い場所を責められた/弱点を突かれた")%%CALLNAME:TARGET%は
+	PRINTFORM %TEXTR("ゾクゾクと染みわたる快楽に全身を震わせ/ビクッと震えたのちに身体を強張らせ/ピクンと肢体を跳ねさせ")%、
+	PRINTFORMW %CALLNAME:PLAYER%のモノを%TEXTR("ざわめく粘膜で意図せず舐め回してきた/無意識に締め付けてしまう/一際強く締め付けてくる")%…
+	CALL SETFLAG, "締め付けフラグ", TARGET
+ENDIF
+
+
+@TRAIN_MESSAGE_A
+#DIM MEMO_LINECOUNT
+#DIM MEMO_LINECOUNT2
+
+;ウェイトの発生判定
+MEMO_LINECOUNT = LINECOUNT
+
+;絶頂
+IF NOWEX:絶頂数合計
+	IF COND("性欲解消実行中") && COND("絶頂", PLAYER) && PENIS(PLAYER) && TEQUIP:PLAYER:コンドーム == 0
+		SELECTCASE NAMES("性処理")
+		CASE "Ｖセックス", "Ａセックス", "尿道セックス"
+			PRINTFORM %CALLNAME:PLAYER%に大量の精液を注ぎ込まれた
+		ENDSELECT
+	ENDIF
+	PRINTFORM %CALLNAME:TARGET%は
+	;浴尿
+	IF COND("飲尿フラグ")
+		PRINTFORM %CALLNAME:PLAYER%の%TEXTR("オシッコを味わい/小便器の役目を果たし")%
+	ELSEIF COND("子宮内浴尿フラグ")
+		PRINTFORM %TEXTR("子宮/大事な場所")%%TEXTR("をトイレ代わりに使われ/に小便を浴びせられ")%
+	ELSEIF COND("膣内浴尿フラグ")
+		IF RAND:3 == 0
+			PRINTFORM 子宮口を小便で刺激され
+		ELSEIF RAND:2
+			PRINTFORM 膣内で小用を足され
+		ELSE
+			PRINTFORM %TEXTR("膣/大事な場所")%をトイレにされ
+		ENDIF
+	ELSEIF COND("温泉浣腸フラグ")
+		IF RAND:3 == 0
+			PRINTFORM 大腸に小便を流し込まれ
+		ELSEIF RAND:2
+			PRINTFORM 排泄するための場所に逆に排泄され
+		ELSE
+			PRINTFORM 腸内をトイレにされ
+		ENDIF
+	ELSEIF COND("乳内浴尿フラグ")
+		IF RAND:3 == 0
+			PRINTFORM 乳房の内部を小便で刺激され
+		ELSEIF RAND:2
+			PRINTFORM おっぱいを小便臭くされ
+		ELSE
+			PRINTFORM おっぱいをトイレにされ
+		ENDIF
+	ELSEIF COND("膀胱内浴尿フラグ")
+		IF RAND:3 == 0
+			PRINTFORM 尿道から逆に小便を流し込まれ
+		ELSEIF RAND:2
+			PRINTFORM 排泄するための場所に逆に排泄され
+		ELSE
+			PRINTFORM 膀胱をトイレにされ
+		ENDIF
+	ELSEIF NOWEX:尿道絶頂 && SELECTCOM != 3 && (NOWEX:尿道絶頂 == EX:尿道絶頂 || RAND:5 == 0)
+		SELECTCASE SELECTCOM
+		CASE 10
+			;尿道インサート中
+			IF INSERT("尿道インサート", TARGET, PLAYER)
+				IF RAND:3 == 0
+					PRINTFORM 性処理の道具のように扱われ
+				ELSEIF RAND:2
+					PRINTFORM ペニスを%CALLNAME:PLAYER%のオナホにされ
+				ELSE
+					PRINTFORM ペニスを内外から気持ちよくされ
+				ENDIF
+			ELSE
+				PRINTFORM ペニスを扱かれ
+			ENDIF
+		CASE 15
+			PRINTFORM 尿道を指で虐められ
+		CASE 83 TO 88
+			IF TEQUIP:押し倒し
+				IF TALENT:尿道狂い
+					PRINTFORM 尿道から湧き上がる快楽で%TEXTR("頭を真っ白にし/涎を垂らし/夢中になって腰を振りたて")%
+				ELSEIF PENIS(TARGET)
+					PRINTFORM ペニスの内部で%CALLNAME:PLAYER%を犯し
+				ELSE
+					PRINTFORM 尿道を使ってのセックスで%CALLNAME:PLAYER%を犯し
+				ENDIF
+			ELSE
+				IF PENIS(TARGET)
+					PRINTFORM ペニスを激しい腰使いで犯され
+				ELSE
+					PRINTFORM 尿道を激しい腰使いで犯され
+				ENDIF
+			ENDIF
+		CASE 151
+			PRINTFORM 敏感な粘膜をブジーで虐められ
+		CASEELSE
+			PRINTFORM 尿道を虐められ
+		ENDSELECT
+		;挿入ボーナス
+		SIF INSERT("尿道インサート") && PENIS(PLAYER)
+			BASE:PLAYER:絶頂 += ABL:尿道名器度 * 50
+	ELSEIF INSERT("インサート") && PENIS(PLAYER) && RAND:3 == 0
+		IF INSERT("対面座位") && RAND:2
+			PRINTFORM %CALLNAME:PLAYER%をぎゅーっと抱きしめ
+		ELSE
+			IF INSERT("二穴挿入")
+				PRINT 両方の穴を
+				LOCAL = MIN(ABL:Ｖ名器度, ABL:Ａ名器度)
+			ELSEIF INSERT("Ｖインサート")
+				PRINT 膣を
+				LOCAL = ABL:Ｖ名器度
+			ELSEIF INSERT("Ａインサート")
+				PRINT アナルを
+				LOCAL = ABL:Ａ名器度
+			ELSEIF INSERT("尿道インサート")
+				PRINT 尿道を
+				LOCAL = ABL:尿道名器度
+			ENDIF
+			IF LOCAL >= 80 && RAND:3 == 0
+				PRINT 絶妙な力加減で
+			ELSEIF LOCAL >= 60 && RAND:2
+				PRINT 凄い力で
+			ELSEIF LOCAL >= 40
+				PRINT きゅうぅっと
+			ENDIF
+			PRINT 締め付け
+			BASE:PLAYER:絶頂 += LOCAL * 50
+		ENDIF
+	ELSEIF NOWEX:射精
+		SELECTCASE SELECTCOM
+		CASE 4
+			PRINTFORM %CALLNAME:PLAYER%の口に\@ NOWEX:射精 >= 2 ? たっぷりと # \@射精し
+		CASE 11
+			PRINTFORM %CALLNAME:PLAYER%の胸に\@ NOWEX:射精 >= 2 ? たっぷりと # \@射精し
+		CASE 12
+			PRINTFORM %CALLNAME:PLAYER%の足で\@ NOWEX:射精 >= 2 ? たっぷりと # \@射精し
+		CASE 37
+			PRINTFORM オナホールの中に\@ NOWEX:射精 >= 2 ? たっぷりと # \@射精し
+		CASEELSE
+			IF INSERT("Ｖインサート", PLAYER, TARGET)
+				PRINTFORM %CALLNAME:PLAYER%の膣に\@ NOWEX:射精 >= 2 ? 大量に # \@中出しし
+			ELSEIF INSERT("Ａインサート", PLAYER, TARGET)
+				PRINTFORM %CALLNAME:PLAYER%の腸内に精液を\@ NOWEX:射精 >= 2 ? 大量に # \@吐き出し
+			;道端のメロンパン加筆分
+			ELSEIF NOWEX:Ｖ絶頂
+				PRINTFORM ペニスから\@ NOWEX:射精 >= 2 ? 大量の # \@精液を%TEXTR("垂れ流し/零し")%
+			ELSEIF NOWEX:Ａ絶頂
+				PRINTFORM ペニスから\@ NOWEX:射精 >= 2 ? 大量の # \@精液を%TEXTR("トロトロ/ダラダラ/ドロドロ")%と垂れ流し
+			;ここまで
+			ELSE
+				PRINTFORM ペニスから\@ NOWEX:射精 >= 2 ? たっぷりと # \@精液を噴き出し
+			ENDIF
+		ENDSELECT
+	ELSEIF NOWEX:噴乳 && (NOWEX:噴乳 == EX:噴乳 || RAND:5 == 0)
+		PRINT 胸の先端から母乳を垂らし
+	ELSEIF TALENT:オトコ == 0
+		;潮噴き
+		IF COND("潮噴き可能") && RAND:3 == 0
+			IF TEQUIP:カテーテル
+				PRINTFORM 尿道に差し込まれた管から
+			ELSEIF PENIS(TARGET)
+				PRINTFORM アソコから
+			ELSE
+				PRINTFORM %TEXTR("アソコ/尿道口/オシッコの穴")%から
+			ENDIF
+			PRINTFORM %TEXTR("透明の液体/透明な潮/熱い飛沫")%を
+			;尿意ゲージを減らす
+			IF MAX(NOWEX:Ｃ絶頂, NOWEX:Ｖ絶頂, NOWEX:尿道絶頂) + TALENT:絶頂失禁体質 >= 5 && BASE:尿意 >= 10000 && RAND:3
+				PRINT 派手に
+				BASE:尿意 -= RAND:5000 + 3000
+			ELSEIF MAX(NOWEX:Ｃ絶頂, NOWEX:Ｖ絶頂, NOWEX:尿道絶頂) + TALENT:絶頂失禁体質 >= 3 && BASE:尿意 >= 6000 && RAND:3
+				PRINT 勢いよく
+				BASE:尿意 -= RAND:3000 + 2000
+			ELSEIF RAND:2
+				PRINT ピシャピシャと
+				BASE:尿意 -= RAND:2000 + 1000
+			ELSE
+				PRINT ピュッピュッと可愛く
+				BASE:尿意 -= RAND:1000 + 500
+			ENDIF
+			IF RAND:2
+				PRINTFORM 迸らせ
+			ELSE
+				PRINTFORM %TEXTR("噴き出し/噴き")%
+			ENDIF
+		ELSE
+			IF NOWEX:絶頂数合計 >= 4 && CHECK_ECST(TARGET) >= 3 && RAND:2
+				PRINT 全身を駆け巡る快感に
+			ELSEIF NOWEX:絶頂数合計 >= 3 && RAND:2
+				PRINT 激しい快感に
+			ELSEIF NOWEX:絶頂数合計 >= 2 && RAND:2
+				PRINT あまりの快感に
+			ELSEIF RAND:2
+				IF COND("ながらオナニーフラグ") || SELECTCOM == 3
+					PRINT 快感に
+				ELSE
+					PRINT 与えられた快感に
+				ENDIF
+			ENDIF
+			IF RAND:3 == 0 && COND("口の使用") && ORAL_PLAY() == 0
+				IF RAND:2
+					IF TALENT:強気 && NOWEX:絶頂数合計 == 1 && VAU_INSERT_PLAY(SELECTCOM)
+						PRINT 歯を食いしばり
+					ELSE
+						PRINT 口をだらしなく開き
+					ENDIF
+				ELSE
+					PRINT 口の端から涎を垂らし
+				ENDIF
+			ELSEIF RAND:2 && COND("口の使用") && ORAL_PLAY() == 0
+				IF NOWEX:絶頂数合計 >= 3 && RAND:3
+					PRINT 我を忘れて絶叫し
+				ELSEIF NOWEX:絶頂数合計 >= 2 && RAND:3
+					IF TALENT:恥じらい
+						PRINT 叫びそうになる口を手で押さえ
+					ELSE
+						PRINT 叫ぶように声をあげ
+					ENDIF
+				ELSE
+					IF RAND:2 && TALENT:好色
+						PRINT 悩ましい喘ぎ声を漏らし
+					ELSEIF TALENT:恥じらい || RAND:3 == 0
+						IF NOWEX:絶頂数合計 >= 2
+							PRINT 思わず嬌声をあげ
+						ELSE
+							PRINT 控えめな喘ぎ声をもらし
+						ENDIF
+					ELSE
+						PRINT 大きな声をあげ
+					ENDIF
+				ENDIF
+			ELSE
+				IF RAND:3 == 0
+					IF ORAL_PLAY() == 0 && RAND:2
+						PRINT 激しく首を振り
+					ELSE
+						PRINTFORM \@ NOWEX:絶頂数合計 <= 2 ? 半ば # \@放心し
+					ENDIF
+				ELSEIF RAND:2 || NOWEX:Ｍ絶頂
+					IF TALENT:強気 && NOWEX:絶頂数合計 == 1
+						PRINT 眉間に皺をよせ
+					ELSEIF TALENT:恥じらい && RAND:2
+						PRINT 瞳をきゅっと閉じ
+					ELSE
+						PRINT 瞳を潤ませ
+					ENDIF
+				ELSE
+					IF NOWEX:Ｃ絶頂 + NOWEX:Ｖ絶頂 + NOWEX:Ａ絶頂 + NOWEX:尿道絶頂 && RAND:2 == 0
+						PRINT お腹をうねらせ
+					ELSE
+						PRINT 背中を大きく反らし
+					ENDIF
+				ENDIF
+			ENDIF
+		ENDIF
+	ELSE
+		PRINT 背中を大きく反らし
+	ENDIF
+	PRINT ながら、
+	LOCAL = 0
+	IF TALENT:巨乳 && RAND:3 == 0
+		IF RAND:3 == 0
+			PRINT 張りのある巨乳を
+		ELSEIF RAND:2
+			PRINT 重そうな胸を
+		ELSE
+			PRINT 豊満な胸を
+		ENDIF
+		LOCAL = TALENT:巨乳
+	ELSEIF RAND:2
+		PRINT 全身を
+	ELSE
+		SIF TALENT:小柄
+			PRINT 小さな
+		PRINT 身体を
+	ENDIF
+
+	IF LOCAL && RAND:2
+		IF RAND:2
+			IF INSERT("騎乗位")
+				PRINT ぶるんっと
+			ELSE
+				PRINT ぷるぷると
+			ENDIF
+		ELSE
+			PRINT 派手に
+		ENDIF
+	ELSEIF RAND:3 == 0 || U
+		PRINT 小刻みに
+	ELSEIF RAND:2 == 0
+		PRINT ビクビクと
+	ELSE
+		PRINT ビクンと
+	ENDIF
+	IF LOCAL && RAND:2
+		PRINT 揺らして
+	ELSEIF RAND:3 == 0 || U
+		PRINT 震わせて
+	ELSEIF RAND:2 == 0
+		PRINT 痙攣させて
+	ELSE
+		PRINT 跳ねさせて
+	ENDIF
+	IF RAND:2
+		PRINTL 絶頂に達した。
+	ELSE
+		PRINTL 絶頂を迎えた。
+	ENDIF
+ENDIF
+
+SIF COND("性欲解消実行中") && LINECOUNT > MEMO_LINECOUNT
+	WAIT
+
+;ウェイトの発生判定その２
+MEMO_LINECOUNT2 = LINECOUNT
+
+;逆レイプで射精
+IF INSERT("インサート", PLAYER, TARGET) && NOWEX:射精
+	PRINTFORM %CALLNAME:PLAYER%の
+	IF INSERT("Ｖインサート", PLAYER, TARGET)
+		PRINT 肉襞は、
+	ELSEIF INSERT("Ａインサート", PLAYER, TARGET)
+		PRINT アナルは、
+	ELSEIF INSERT("尿道インサート", PLAYER, TARGET)
+		PRINT オシッコの穴は、
+	ENDIF
+	SIF ABL:欲望 >= 3 && NOWEX:射精 >= 2
+		PRINT 恍惚の表情を浮かべる
+	PRINTFORML %CALLNAME:TARGET%から精液を搾りとっていった…
+;絶頂
+ELSEIF NOWEX:絶頂数合計
+	LOCAL = 0
+	IF SELECTCOM == 8 && TEQUIP:バイブ == 0
+		SIF RAND:(EXP_GAIN("指舐め経験")*2 + 1) == 0
+			LOCAL = 1
+	ELSEIF INSERT("インサート")
+		SIF RAND:(EXP_GAIN("指舐め経験")*3 + 6) == 0
+			LOCAL = 1
+	ENDIF
+	;指ちゅぱ(指挿入れorインサート)
+	IF COND("口の使用") && ABL:信頼 >= 3 && TEQUIP:押し倒し == 0 && COND("性欲解消実行中") == 0 && LOCAL
+		;LOCAL == 0 なら口に指を入れる。それ以外なら口元に差し出す。
+		LOCAL = RAND:3
+		IF NOWEX:絶頂数合計 >= 4 && RAND:4 == 0
+			PRINTFORM 快感で蕩けている
+		ELSEIF NOWEX:絶頂数合計 >= 2 && RAND:3 == 0
+			PRINTFORM 恍惚としている
+		ELSE
+			PRINTFORM %TEXTR("満足そうな/息を整えている")%
+		ENDIF
+		PRINTFORM %CALLNAME:TARGET%の%TEXTR("口/口元")%に
+		IF CHECK_STAIN(STAIN:PLAYER:手, "精液")
+			PRINT 精液に塗れた
+		ELSEIF CHECK_STAIN(STAIN:PLAYER:手, "Ｖ")
+			PRINT 愛液で汚れた
+		ELSEIF STAIN:PLAYER:手
+			PRINT 体液で汚れた
+		ENDIF
+		PRINTFORM %TEXTR("指/人差し指")%を
+		IF LOCAL == 0
+			IF RAND:2
+				PRINT 咥えさせ
+				LOCALS = る
+			ELSE
+				PRINT 押し込
+				LOCALS = む
+			ENDIF
+		ELSE
+			IF RAND:2
+				PRINT 差し出
+				LOCALS = す
+			ELSE
+				PRINT 近づけ
+				LOCALS = る
+			ENDIF
+		ENDIF
+		IF LOCAL == 0 && RAND:3 == 0
+			PRINTFORM %TEXT_CONJ(LOCALS)%粘膜をくすぐると、
+		ELSEIF STAIN:PLAYER:手 && ABL:奉仕精神 >= 3
+			PRINTFORM %TEXT_CONJ(LOCALS)%綺麗にする様に\@ COND("目上") ? お願いする # 促す \@と、
+		ELSE
+			PRINTFORM %LOCALS%と、
+		ENDIF
+		IF TALENT:内気 + TALENT:清楚 && RANDIF(2, TALENT:好色, TALENT:陽気, TALENT:恥じらい, TALENT:献身)
+			PRINT おずおずと
+		ELSEIF TALENT:好色 && RANDIF(2, TALENT:陽気, TALENT:恥じらい, TALENT:献身)
+			PRINT 楽しそうに
+		ELSEIF TALENT:陽気 && RANDIF(2, TALENT:恥じらい, TALENT:献身)
+			IF LOCAL == 0
+				PRINT ぱくっと
+				LOCAL = 1
+			ELSE
+				PRINT お返しにと
+			ENDIF
+		ELSEIF TALENT:献身 && RANDIF(2, TALENT:恥じらい)
+			PRINT 優しく
+		ELSEIF TALENT:恥じらい && RAND:2
+			PRINT 恥ずかしそうに
+		ELSEIF MARK:屈服刻印 >= 2 && RAND:3 == 0
+			;フェラ経験豊富
+			IF LOCAL == 0 && ABL:欲望 >= 3 && INSERT("インサート") && EXP:フェラ経験 >= 50 && PENIS(PLAYER) && RAND:3
+				PRINT 興奮した様子で
+			ELSE
+				PRINT 慣れた様子で
+			ENDIF
+		ELSEIF RAND:2
+			PRINT 大人しく
+		ELSE
+			IF TALENT:献身
+				PRINT 優しく
+			ELSEIF TALENT:恥じらい
+				PRINT 恥ずかしそうに
+			ELSE
+				PRINT 気だるげに
+			ENDIF
+		ENDIF
+		;指を咥える
+		IF LOCAL
+			PRINT 口に含んで
+			IF COND("視力") && RAND:3 == 0
+				PRINTFORM 、%CALLNAME:PLAYER%を
+				IF MARK:屈服刻印 >= 2
+					PRINT 見つめながら
+				ELSE
+					PRINT 窺いながら
+				ENDIF
+			ENDIF
+		ENDIF
+		;対象の口⇔調教者の指の汚れが移動
+		CALL EQ_STAIN, TARGET, "Ｍ", PLAYER, "手"
+		;お掃除ルート
+		IF STAIN:PLAYER:手 && ABL:奉仕精神 >= 3
+			IF CHECK_STAIN(STAIN:PLAYER:手, "精液")
+				PRINTL 付着した精液を綺麗に舐め取っていった…
+				EXP:精液経験 += 1
+				PRINTFORML 精液経験+1
+			ELSE
+				PRINTL ペロペロと舐め清めてきた…
+			ENDIF
+			STAIN:PLAYER:手 = 0
+		ELSE
+			PRINTFORML %TEXTR("甘噛みしてき/しゃぶり始め/舌を這わせてき")%た…
+		ENDIF
+		;指ちゅぱ経験+1
+		EXP:指舐め経験 += 1
+	ELSEIF NOWEX:絶頂数合計 && (COND("性欲解消実行中") || NOWEX:絶頂数合計 >= 2 || BASE:性欲 >= MAXBASE:性欲)
+		IF COND("性欲解消実行中") && TALENT:絶頂失禁体質 && PENIS(TARGET) == 0 && BASE:尿意 >= MAX(9000 - NOWEX:絶頂数合計*1000, 5000)
+			IF EXP:聖水経験 && SELECTCOM == TNUM("クンニ") && CHECK("口内放尿", MASTER)
+				PRINTFORML その瞬間、%CALLNAME:MASTER%は……
+				CALL PRINT_SELECT, "アソコの前で口を開いて備える/離れて被弾を避ける"
+				SIF RESULT == 0
+					CALL SETFLAG, "飲尿", PLAYER
+			ENDIF
+			IF COND("飲尿フラグ", PLAYER)
+				PRINTFORM %CALLNAME:TARGET%は%TEXTR("満足げな表情で/快楽に蕩けた様子で")%%CALLNAME:MASTER%
+				PRINTFORM %TEXTR("の口にオシッコを遠慮なく排泄し/の口にジョロジョロとおしっこを御馳走し/の開かれた口めがけて気持ちよさそうにオシッコを垂れ流し")%ながら、
+			ELSE
+				PRINTFORM %CALLNAME:TARGET%は%TEXTR("絶頂のはずみ/満足げな表情/快楽に蕩けた様子")%で
+				PRINTFORM %TEXTR("チョロチョロとおしっこを漏らし/だらしなく失禁し/気持ちよさそうにオシッコを垂れ流し")%ながら、
+			ENDIF
+			NOWEX:絶頂お漏らし = NOWEX:絶頂数合計
+		ELSEIF COND("指の使用") && TALENT:オトコ == 0 && RAND:3 == 0
+			PRINTFORM %CALLNAME:TARGET%
+			IF RAND:2
+				PRINT は顔を
+				IF EX:絶頂数合計 >= MAXBASE:性欲 && RAND:2
+					PRINT 度重なる絶頂で
+					SIF TALENT:快感に素直
+						PRINT だらしなく
+				ELSE
+					PRINT 快感で
+				ENDIF
+				IF NOWEX:絶頂数合計 >= 3 && RAND:2
+					PRINT 蕩けさせて、
+				ELSE
+					PRINT 緩ませて、
+				ENDIF
+			ELSE
+				IF TALENT:恋慕 && RAND:2
+					PRINT は幸せそうな表情で、
+				ELSEIF NOWEX:絶頂数合計 >= 2 && RAND:2
+					PRINT はうっとりした表情で、
+				ELSE
+					PRINT は気持ち良さそうな表情で、
+				ENDIF
+			ENDIF
+			IF COND("口淫中")
+				PRINTFORM 舌を動かす事も忘れて
+			ELSEIF PENIS(TARGET) && RANDIF(3, TALENT:貧乳 == 0, NOWEX:Ｖ絶頂, NOWEX:Ｃ絶頂 +  NOWEX:尿道絶頂)
+				IF ABL:精液中毒 >= 3 && NOWEX:射精 && COND("口の使用") && INSERT("屈曲位") && RAND:2
+					PRINT 大きく口を開いて自らの精液を受け止めながら
+					EXP:精液経験 += 1
+					STAIN:Ｍ = SET_STAIN(STAIN:Ｍ, "精液")
+				ELSEIF RAND:2
+					PRINT ペニスを弄りながら
+				ELSE
+					PRINT ペニスをゆっくりと扱きながら
+				ENDIF
+			ELSEIF NOWEX:Ｃ絶頂 + NOWEX:Ｖ絶頂 + NOWEX:尿道絶頂 && RANDIF(3, TALENT:貧乳 == 0, NOWEX:Ｖ絶頂)
+				;顔面騎乗
+				IF TEQUIP:押し倒し && TEQUIP:顔面騎乗
+					IF ABL:サドっ気 >= 3 && RANDIF(3, ABL:自慰中毒 >= 3)
+						IF RAND:2
+							PRINTFORM %CALLNAME:PLAYER%に舌で後始末をさせながら
+						ELSE
+							PRINTFORM %CALLNAME:PLAYER%に舌で後戯をさせながら
+						ENDIF
+					ELSEIF ABL:自慰中毒 >= 3 && RAND:3 == 0
+						PRINTFORM %CALLNAME:PLAYER%の顔に気持ち良い所を擦りつけながら
+					ELSEIF TALENT:好色 && RAND:3 == 0
+						PRINTFORM %CALLNAME:PLAYER%にヒクつくアソコを見せ付けながら
+					ELSEIF RAND:2
+						PRINTFORM %CALLNAME:PLAYER%の顔の上で大股を開きながら
+					ELSE
+						PRINTFORM %CALLNAME:PLAYER%の顔を跨いだままで
+					ENDIF
+				ELSE
+					IF PENIS(TARGET) && RAND:2
+						PRINTFORM ペニスを
+					ELSE
+						PRINTFORM 股間を
+					ENDIF
+					IF ABL:自慰中毒 && RAND:2
+						IF TALENT:好色 + TALENT:淫乱 && RAND:2
+							PRINT 弄るのを見せ付けながら
+						ELSE
+							PRINT 弄りながら
+						ENDIF
+					ELSE
+						PRINT 撫でながら
+					ENDIF
+				ENDIF
+			ELSEIF NOWEX:Ｖ絶頂 && RANDIF(3, TALENT:貧乳 == 0)
+				IF RAND:2 && TALENT:恋慕
+					PRINT 子宮付近を撫でながら
+				ELSE
+					PRINT お腹を撫でながら
+				ENDIF
+			ELSEIF TALENT:貧乳 == 0 && RAND:3 == 0
+				PRINT 胸をやわやわと揉みながら
+			ELSEIF MARK:淫紋 >= 2 && RAND:2
+				PRINTFORM %TEXTR("下腹部に刻まれた/子宮のある場所に彫り込まれた")%紋章を撫でながら
+			ELSEIF RAND:2
+				PRINT 指をしゃぶりながら
+			ELSE
+				PRINT 身体を撫でながら
+			ENDIF
+		ELSEIF RAND:2
+			PRINTFORM %CALLNAME:TARGET%
+			IF INSERT("インサート") && COND("脚の使用") && RAND:3 == 0
+				IF TEQUIP:押し倒し
+					PRINTFORM は%CALLNAME:PLAYER%に跨って体を預けながら、
+				ELSE
+					PRINTFORM はだらしなく大股を開いたまま、
+				ENDIF
+			ELSEIF RAND:2
+				PRINT は断続的に絶頂を繰り返しながら、
+			ELSE
+				PRINT はピクンピクンと身体を時折跳ねさせながら、
+			ENDIF
+		ELSE
+			PRINTFORM %CALLNAME:TARGET%
+			IF INSERT("インサート") && RAND:3 == 0
+				IF COND("脚の使用") && RAND:2
+					PRINT は緩やかに腰を動かしながら、
+				ELSEIF TALENT:オトコ
+					PRINT は肉襞から粘つく液体を滴らせながら、
+				ELSE
+					PRINT は肉襞から粘つく液体を滴らせ、喘ぐように陰唇をヒクつかせながら、
+				ENDIF
+			ELSEIF NOWEX:絶頂数合計 >= 3 && RAND:3 == 0
+				IF RAND:2
+					PRINT は興奮冷めやらぬ様子で大きく息をつきながら、
+				ELSE
+					PRINT は荒い息をつきながら、
+				ENDIF
+			ELSEIF RAND:2
+				PRINT は深い呼吸で息を整えながら、
+			ELSE
+				PRINT は満足げな甘い吐息をつきながら、
+			ENDIF
+		ENDIF
+		;本来はフェラチオ希望
+		IF COND("性欲解消実行中") && STR:プレイ要望 == "フェラチオ"
+			PRINTFORM %TEXTR("口元に寄せられた/頬に擦り付けられた")%
+			SELECTCASE NAMES("性処理")
+			CASE "Ｖセックス"
+				PRINTFORM %TEXTR("中出しセックスで汚れたままの/セックス直後で凄い臭いをさせる")%
+			CASE "Ａセックス"
+				PRINTFORM %TEXTR("生アナルセックスで汚れたままの/アナルセックス直後で酷い臭いをさせている")%
+			CASE "尿道セックス"
+				PRINTFORM %TEXTR("尿道セックスで汚れたままの/強いアンモニア臭をさせている")%
+			ENDSELECT
+			PRINTFORML ペニスに%TEXTR("舌を這わせ/むしゃぶりつい")%て%TEXTR("最初の取り決め/当初の予定")%通りに%TEXTR("精液で喉を潤そうとし/精液を求め/口で精液を搾り取り")%始めた…
+		ELSEIF RAND:3 == 0
+			PRINTFORML \@ RAND:2 ? ぐったり # くたっ \@と脱力している…
+		ELSE
+			PRINTFORML \@ RAND:2 ? 快感 # 絶頂 \@の余韻に\@ RAND:2 ? 浸 # 酔 \@っている…
+		ENDIF
+	ENDIF
+ENDIF
+
+IF COND("性欲解消実行中")
+	SIF LINECOUNT > MEMO_LINECOUNT2
+		WAIT
+	RETURN 1
+ENDIF
+
+IF NOWEX:絶頂数合計 + NOWEX:射精 >= RAND:3 + 1 && STATE("バインド：Ｐ", PLAYER)
+	PRINTFORML …%CALLNAME:TARGET%の絶頂により、ペニスの拘束がわずかに緩んだ！
+	CALL SETFLAG, "Ｐバインド弱体フラグ", PLAYER
+ENDIF
+
+;緊張緩和
+IF NOWEX:絶頂数合計
+	IF TEQUIP:弛緩 == 0 && EX:絶頂数合計
+		TEQUIP:弛緩 = 1
+		CALL PRINT_STRL, @"絶頂により%CALLNAME:TARGET%の身体のこわばりが解れ、_黄色_[緊張緩和]_状態になった！"
+		CALL PRINT_STRL, "（挿入行為での痛みが_黄色_弱_減少します）"
+	ELSEIF TEQUIP:弛緩 <= 1 && EX:絶頂数合計 >= 5
+		TEQUIP:弛緩 = 2
+		CALL PRINT_STRL, @"度重なる絶頂により%CALLNAME:TARGET%は_黄色_[弛緩]_状態になった！"
+		CALL PRINT_STRL, "（挿入行為での痛みが_黄色_強_減少します）"
+	ELSEIF TEQUIP:弛緩 <= 2 && EX:絶頂数合計 >= 10
+		TEQUIP:弛緩 = 3
+		CALL PRINT_STRL, @"執拗に与えられた快楽により%CALLNAME:TARGET%は_ハートピンク_[陶酔]_状態になった！"
+		CALL PRINT_STRL, "（挿入行為での痛みが_黄色_物凄く_減少し、抵抗も_ハートピンク_緩く_なります）"
+		;生挿入許可になった？
+		IF COND("特別に生挿入許可")
+			IF TCVAR:Ｖゴム挿入許可
+				CALL PRINT_STRL, @"もしかしたら、_黄色_\@ COND("ワンモア生挿入実行済") ? 更なる # 今回はさせて貰えなかった \@生挿入\@ COND("なし崩しでＡ挿入可") ? やアナルセックス # \@も許してもらえる_かも……？"
+			ELSE
+				CALL PRINT_STRL, @"もしかしたら、_黄色_ゴム無しでの生挿入\@ COND("なし崩しでＡ挿入可") ? やアナルセックス # \@も許してもらえる_かも……？"
+			ENDIF
+		ELSEIF COND("なし崩しでＡ挿入可")
+			CALL PRINT_STRL, "もしかしたら、_黄色_勢いでアナルセックスもさせてもらえる_かも……？"
+		ENDIF
+	ENDIF
+ENDIF
+
+;絶頂おもらし…利尿剤が無いと、まずお漏らしはしない。絶頂失禁体質があると、しやすくなる。
+VARSET LOCAL
+LOCAL = MAX(RAND:(CALCF("お漏らし", TARGET) + 1) - 2, 0)
+SIF CALCF("お漏らし", TARGET) >= 8
+	LOCAL = CALCF("お漏らし", TARGET)
+
+SIF LOCAL > 0
+	CALL BLANKLINE
+
+IF LOCAL >= 4 && ABL:欲望 >= 4 && RAND:2
+	PRINTFORML %CALLNAME:TARGET%はガクガクと身体を痙攣させながら止め処なく\@ EXP_GAIN("膀胱精液経験") ? 精液混じりの # \@尿を垂れ流した
+	PRINTFORML どうやら排尿行為そのものに快楽を感じているようだ…
+;アソコが露出していない
+ELSEIF LOCAL >= 1 && !CHECK_CLO("Ｖ露出")
+	PRINTFORM %CALLNAME:TARGET%は、あまりの快感の大きさに
+	;アウター(ブルマとか)をはいている+ずらしていない+股間が露出していない
+	IF CHECK_CLO("アウター露出")
+		PRINTFORM %OUTER(TARGET, "略")%を穿いたまま
+	;ボディスーツ+股間をずらしていない+ボトムを脱いでない+股間が露出していない
+	ELSEIF CHECK_CLO("ボディスーツ露出")
+		PRINTFORM %BODYS(TARGET, "略")%を着たまま
+	;パンスト+破ってない
+	ELSEIF CHECK_CLO("パンスト露出")
+		PRINTFORM %OUTER(TARGET, "略")%を穿いたまま
+	;パンツ+パンツをずらしていない+パンツを脱いでない+股間が露出していない
+	ELSEIF CHECK_CLO("パンツ露出")
+		PRINTFORM %PANTIES(TARGET, "略")%を穿いたまま
+	ENDIF
+	PRINTL お漏らしをしてしまった
+	SIF !CHECK_CLO("パンスト露出")
+		PRINTFORML 布地の脇から溢れる\@ EXP_GAIN("膀胱精液経験") ? 精液混じりの # \@おしっこで、股間から下は酷い状態になっている…
+ELSEIF LOCAL >= 1 && TEQUIP:顔面騎乗 && TALENT:オトコ == 0
+	PRINTFORM %CALLNAME:TARGET%は
+	IF ABL:サドっ気 >= 5
+		IF NOWEX:絶頂数合計 >= 2 && RAND:2
+			PRINT 快楽に震えながら、
+		ELSEIF TEQUIP:顔面騎乗 == 1
+			PRINT 嗜虐的な笑みを浮かべながら、
+		ENDIF
+	ELSEIF NOWEX:絶頂数合計 >= 2 && RAND:2
+		PRINT 快楽のあまり、
+	ENDIF
+	IF TEQUIP:顔面騎乗 == 1 && ABL:サドっ気 >= 5
+		PRINTFORM %CALLNAME:PLAYER%の口に直接
+	ELSE
+		PRINTFORM %CALLNAME:PLAYER%の顔に乗っかった体勢のまま
+	ENDIF
+	IF ABL:サドっ気 >= 5
+		PRINTL 放尿し始めた…
+	ELSE
+		PRINTL お漏らしをしてしまった…
+	ENDIF
+ELSEIF LOCAL >= 3
+	IF NOWEX:絶頂数合計 >= 8
+		PRINT 痙攣する
+	ELSEIF NOWEX:絶頂数合計 >= 4
+		PRINT ぐったりとした
+	ENDIF
+	PRINTFORML %CALLNAME:TARGET%の尿道口から噴水のように尿が噴き出した…
+ELSEIF LOCAL >= 2
+	IF GETBIT(TEQUIP:拘束, 21)
+		PRINT 脚を拘束された大股開きの体勢の
+	ELSEIF NOWEX:絶頂数合計 >= 4
+		PRINT ぐったりとした
+	ENDIF
+	IF TALENT:オトコ || RAND:2 == 0
+		PRINTFORML %CALLNAME:TARGET%の尿道口から水流が滴り、水溜りを作った…
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%のおしっこの穴から勢い良く水流が迸り、弧を描いた…
+	ENDIF
+ELSEIF LOCAL >= 1
+	IF RAND:3 == 0
+		PRINTFORML %CALLNAME:TARGET%は快楽のあまり失禁してしまった…
+	ELSEIF RAND:2
+		PRINTFORML 絶頂に震える%CALLNAME:TARGET%は、尿意を抑えきれずにお漏らししてしまった…
+	ELSE
+		PRINTFORML 絶頂の弾みか、快楽で緩んだ小さな穴からおしっこがショロッと漏れ出した…
+	ENDIF
+ELSEIF RAND:3 == 0
+	IF PENIS(TARGET) == 0 && CALCF("お漏らし", TARGET) >= 5 && EXP_GAIN("放尿経験") + EXP_GAIN("お漏らし経験") == 0
+		CALL BLANKLINE
+		PRINTFORML %CALLNAME:TARGET%は何かから耐えるように内腿を緊張させている。
+		PRINTFORML どうやら、おしっこが漏れるのを我慢しているようだ…
+	ENDIF
+	LOCAL = 0
+ENDIF
+
+SIF LOCAL
+	CALL EVENT_OMORASHI, LOCAL
+
+;テキストを読むためのウエイト（表示があるときのみ）
+SIF LINECOUNT > MEMO_LINECOUNT
+	WAIT
+
+IF COND("液体浣腸") + COND("精液浣腸") && COND("アナル栓") == 0
+	;限界値を越えているかどうか
+	IF COND("排泄：限界")
+		CALL KOJO_EVENT, "プラグ無し浣腸イベント"
+		;アナルがふさがれていれば漏れない
+		IF INSERT("Ａインサート") == 0
+			PRINTFORML 
+			PRINTFORM %CALLNAME:TARGET%は
+			SELECTCASE SELECTCOM
+			CASE 14
+				PRINTFORM %CALLNAME:PLAYER%に向けてアヌスを押し広げた体勢のまま、耐え切れずに
+			CASE 33
+				PRINTFORM お尻の穴を塞いでいた物を引きずり出されるのにつられて
+			CASE 142, 143
+				PRINTFORM お尻の穴から腕を引き抜かれた弾みで
+			CASEELSE
+				IF NOWEX:絶頂数合計
+					PRINTFORM 絶頂の快楽に耐え切れずに
+				ELSE
+					IF CUP:快Ａ >= 1000
+						PRINTFORM アナルへの刺激に耐え切れずに
+					ELSE
+						PRINTFORM 便意を堪え切れずに
+					ENDIF
+				ENDIF
+			ENDSELECT
+			SELECTCASE BASE:排泄物
+			CASE 0
+			;うんちなし
+				;混合
+				IF COND("精液浣腸") && COND("温泉浣腸") && CHECK_STAIN(STAIN:TARGET:Ａ, "Ｐ恥垢") 
+					PRINTFORM %TEXTR("恥垢とザーメンと尿のカクテル/白い澱の浮かんだ尿/チンカスまみれの黄金水/精液と尿とチンカスでできた泥")%
+				;純粋精液+恥垢
+				ELSEIF COND("精液浣腸") && CHECK_STAIN(STAIN:TARGET:Ａ, "Ｐ恥垢") 
+					PRINTFORM %TEXTR("ザーメンと恥垢でできた泥/精液とチンカスだけでできた下痢便/精子と恥垢の塊/腸内に詰め込まれたチンカスチーズのザーメンがけ")%
+				;純粋精液+尿
+				ELSEIF COND("精液浣腸") && COND("温泉浣腸")
+					PRINTFORM %TEXTR("尿とザーメンのカクテル/白い澱まじりの尿/他人の尿と精液の混合物")%
+				;純粋小便浣腸
+				ELSEIF COND("温泉浣腸")
+					PRINTFORM %TEXTR("むりやり注がれた他人の小便/糞の臭いが混ざった黄金水/直腸に溜まった他人の黄金水")%
+				;純粋精液浣腸
+				ELSEIF COND("精液浣腸")
+					PRINTFORM %TEXTR("精子でできた下痢便/腸液と白濁液のカクテル/腸液くさい下痢ザーメン/ぬるぬるの下痢精液")%
+				ELSE
+					PRINTFORM 浣腸液
+				ENDIF
+				PRINTFORML を\@ COND("大量浣腸") ? 盛大にぶちまけ # ひりだし \@た…
+			;ここからうんちがまざる
+			CASE IS <= 4
+;				IF COND("精液浣腸") && COND("温泉浣腸")
+;					PRINTFORM 精液で彩られた
+;				ELSEIF COND("精液浣腸")
+;					PRINTFORM 精液で彩られた
+;				ELSEIF COND("温泉浣腸")
+;					PRINTFORM 小便混じりの
+;				ELSE
+;					PRINTFORM 薬液で柔らかくされた
+;				ENDIF
+				IF COND("精液浣腸") && COND("温泉浣腸") && CHECK_STAIN(STAIN:TARGET:Ａ, "Ｐ恥垢") 
+					PRINTFORM %TEXTR("恥垢とザーメンと尿で撹拌された大便の塊/尿と精液でこねくりまわされたチーズ付きの汚物/尿でふやかされたチンカスまみれの宿便/精液と尿とチンカスと便/")%
+				;精液+恥垢
+				ELSEIF COND("精液浣腸") && CHECK_STAIN(STAIN:TARGET:Ａ, "Ｐ恥垢") 
+					PRINTFORM %TEXTR("恥垢とザーメンでぬるぬるにコーティングされた大便/白と茶色の下痢便/チンカスが付着した大便/ザーメンと恥垢と茶色い塊")%
+				;精液+尿
+				ELSEIF COND("精液浣腸") && COND("温泉浣腸")
+					PRINTFORM %TEXTR("尿とザーメンでぐちょぐちょに溶けた軟便/精液と尿と大便の混合物/ザーメンと尿の飛沫と抑えきれなかった大便")%
+				;小便浣腸
+				ELSEIF COND("温泉浣腸")
+					PRINTFORM %TEXTR("他人の小便でふやけきった軟便/糞と黄金のカクテル/黄金水とそれに引き続いて茶色い塊")%
+				;精液浣腸
+				ELSEIF COND("精液浣腸")
+					PRINTFORM %TEXTR("ザーメンでぬるぬるにコーティングされた大便/白と茶色の下痢便/精液まみれの大便/ザーメンと茶色い塊/大便のホワイトソース掛け")%
+				ELSE
+					PRINTFORM 浣腸液とそれに引き続いて大便
+				ENDIF
+				PRINTFORMW をもりもりと\@ COND("大量浣腸") ? 盛大に # \@ひり出し始めた…
+			CASE IS <= 6
+				PRINTFORMW 腸内に溜められていた数日分はあろうかという汚物を\@ COND("精液浣腸") ? 注ぎ込まれた精液と共に # \@凄い勢いでぶちまけた…
+			CASEELSE
+				PRINTFORMW \@ COND("精液浣腸") ? 精液塗れにされた # \@\@ RAND:2 ? 排泄物 # 腸内の汚物 \@を盛大にぶちまけてしまった
+				PRINTFORMW しばらく便秘気味だったのか、始めに軟らかめのモノが凄い勢いで飛び出てきた後に、\@ RAND:2 ? いかにも硬そうで # 一本に繋がった \@太いチョコバーのような汚物がゆっくりと時間をかけて肛門を押し広げながらひり出されている…
+			ENDSELECT
+
+			CALL SETFLAG, "排泄"
+			
+			;排泄した時のSOURCEを加算
+			CALL SOURCE_COM136, 100
+
+			CALL KOJO_EVENT, "プラグ無し浣腸イベント"
+		ELSEIF INSERT("Ａインサート") 
+			PRINTFORML お腹がぐるぐると音を立てている……%CALLNAME:TARGET%は栓がなければすぐにでも漏らしてしまいそうだ。
+		ENDIF
+	ELSEIF COND("液体浣腸")
+		PRINTFORML 
+		SELECTCASE COND("液体浣腸")
+		CASE 4
+			IF ABL:マゾっ気 >= 5
+				PRINTFORML %CALLNAME:TARGET%は苦悶と快楽で緩みきった顔で排泄感を楽しんでいる…
+			ELSE
+				PRINTFORML %CALLNAME:TARGET%は絶望的な量の浣腸液を何とか堪えているようだ…
+			ENDIF
+		CASE 3
+			PRINTFORML %CALLNAME:TARGET%は大量の\@ COND("温泉浣腸") ? 小便を注がれたことによる排泄感 # 浣腸液 \@を何とか堪えているようだ…
+		CASE 2
+			PRINTFORML %CALLNAME:TARGET%は必死に排泄感に耐えている…
+		CASE 1
+			IF ABL:マゾっ気 >= 5
+				PRINTFORML %CALLNAME:TARGET%は排泄感に堪えながらも時折物足りなそうな目をあなたに向ける…
+			ELSE
+				PRINTFORML %CALLNAME:TARGET%は漏れないよう便意を堪えている…
+			ENDIF
+		ENDSELECT
+		CALL KOJO_EVENT, "プラグ無し浣腸イベント"
+	ENDIF
+ENDIF
+
+
+@EVENT_OMORASHI, ARG
+IF ARG >= 2
+	PRINTFORML お漏らし経験＋2
+	EXP:お漏らし経験 += 2
+	BASE:尿意 = 0
+ELSE
+	PRINTFORML お漏らし経験＋1
+	EXP:お漏らし経験 += 1
+	BASE:尿意 = MAX(BASE:尿意 - 20000, 0)
+ENDIF
+TEQUIP:利尿剤 = 0
+
+;放尿のソース獲得
+CALL SOURCE_COM144, 80
+
+;絶頂放尿
+NOWEX:絶頂お漏らし = ARG
+EX:絶頂お漏らし += ARG
+;尿の汚れ発生
+IF TALENT:オトコ == 0
+	CALL ADD_STAIN, TARGET, "Ｖ", "尿"
+	STAIN:Ｖ = SET_STAIN(STAIN:Ｖ, "尿")
+	;聖水プレイ
+	SIF TEQUIP:顔面騎乗
+		STAIN:PLAYER:Ｍ = SET_STAIN(STAIN:PLAYER:Ｍ, "尿")
+ENDIF
+
+;-------------------------------------------------
+;ラグジャラスヒットと恍惚判定
+;ARGSは今のところ"コマンド"と"精液"がある
+;PLAYERかTARGETかどうかで別物だけどここで一括
+;-------------------------------------------------
+;事前チェックと実行が分かれているのは"コマンド"のみ
+;-------------------------------------------------
+@CHECK_LUXURIOUS_HIT, ARGS, ARG
+#DIM LCOUNT
+#DIM CHOICE
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+SIF NOWEX:ARG:ラグジャラスヒット
+	RETURN 0
+
+TCVAR:ARG:ラグジャラスヒット = 0
+
+SELECTCASE ARGS
+CASE "コマンド"
+	SELECTCASE ARG
+	CASE PLAYER
+		;今のところプレイヤーで判定が起きるのは主人だけ
+		SIF PLAYER != MASTER
+			RETURN 0
+		SIF CALCF("弱点突かれ", SELECTCOM) == 0
+			RETURN 0
+
+		TCVAR:PLAYER:ラグジャラスヒット = TCVAR:PLAYER:絶頂増加 + CALCF("弱点突かれ", SELECTCOM)*1000
+
+		;母乳を飲んでいると恍惚度合い上昇
+		TCVAR:PLAYER:ラグジャラスヒット = MULTIPLY(TCVAR:PLAYER:ラグジャラスヒット, 100 + EXP_GAIN("飲乳経験", PLAYER)*10)
+
+		;性癖合致度
+		SIF CALCF("属性突かれ", PLAYER)
+			TCVAR:PLAYER:ラグジャラスヒット += (1000 + TCVAR:PLAYER:ラグジャラスヒット/5)*CALCF("属性突かれ", PLAYER)
+
+		;相思相愛
+		IF PLAYER == MASTER
+			SIF TALENT:相思相愛
+				TCVAR:PLAYER:ラグジャラスヒット += TCVAR:PLAYER:ラグジャラスヒット*30/100 + 2000
+		ENDIF
+
+		SIF TCVAR:PLAYER:ラグジャラスヒット < 1000 || TCVAR:PLAYER:ラグジャラスヒット + BASE:PLAYER:絶頂 < MAX(MAXBASE:PLAYER:絶頂/4, 5000) || RAND:3
+			RETURN 0
+
+		NOWEX:PLAYER:ラグジャラスヒット = 1
+
+	CASE TARGET
+		;弱点等を用意してから設定する（PALAM:連続絶頂COMBO数でも判定）
+		;まずは弱点を突かれたかで判定
+		;GET_PALAMLV(ARG)の値は、順に1:100,2:500,3:3000,4:1万,5:3万,6:6万,7:10万,8:15万,9:25万
+
+		;快感での汎用判定
+		SIF TALENT:Ｃ性向 || TALENT:淫核
+			TCVAR:ラグジャラスヒット = MAX(GET_PALAMLV(CUP:快Ｃ), TCVAR:ラグジャラスヒット)
+		SIF TALENT:Ｖ性向 || TALENT:淫壷
+			TCVAR:ラグジャラスヒット = MAX(GET_PALAMLV(CUP:快Ｖ), TCVAR:ラグジャラスヒット)
+		SIF TALENT:Ａ性向 || TALENT:尻穴狂い
+			TCVAR:ラグジャラスヒット = MAX(GET_PALAMLV(CUP:快Ａ), TCVAR:ラグジャラスヒット)
+		SIF TALENT:Ｂ性向 || TALENT:淫乳
+			TCVAR:ラグジャラスヒット = MAX(GET_PALAMLV(CUP:快Ｂ), TCVAR:ラグジャラスヒット)
+		SIF TALENT:Ｍ性向 || TALENT:蕩唇
+			TCVAR:ラグジャラスヒット = MAX(GET_PALAMLV(CUP:快Ｍ), TCVAR:ラグジャラスヒット)
+
+		SIF TCVAR:ラグジャラスヒット <= RAND:10 || RAND:3
+			RETURN 0
+
+		NOWEX:ラグジャラスヒット = 1
+	ENDSELECT
+ENDSELECT
+
+
+@LUXURIOUS_HIT, ARGS, ARG
+#DIM LCOUNT
+#DIM CHOICE
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+SELECTCASE ARGS
+CASE "コマンド"
+	SIF NOWEX:ARG:ラグジャラスヒット == 0
+		RETURN 0
+
+	EX:ARG:ラグジャラスヒット += NOWEX:ARG:ラグジャラスヒット
+
+	SELECTCASE ARG
+	CASE PLAYER
+		BASE:PLAYER:絶頂 += TCVAR:PLAYER:ラグジャラスヒット
+		TCVAR:PLAYER:絶頂増加 += TCVAR:PLAYER:ラグジャラスヒット
+
+		SETCOLOR DEF_COLOR("ハートピンク")
+		PRINTFORML ＜ラグジャラスヒット！（%CALLNAME:PLAYER%）＞
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に夢中になってしまった！
+		RESETCOLOR
+
+		IF TCVAR:PLAYER:ラグジャラスヒット >= MAX(MAXBASE:PLAYER:絶頂/3, 5000) && RAND:4 == 0
+			PRINTFORML %CALLNAME:PLAYER%は恍惚となってしまった……
+			IF TEQUIP:PLAYER:理性主義
+				FONTSTYLE 1
+				PRINTFORMW パチン！
+				FONTSTYLE 0
+				PRINTFORMW と思いきや、%CALLNAME:(ASSI:1)%は大きな音を立てて理性を取り戻させた！
+			ELSE
+				CHOICE = 0
+				IF CONFIG("恍惚耐性") && BASE:PLAYER:精力 >= 2
+					IF CONFIG("恍惚耐性") == 2
+						CHOICE = 1
+					ELSE
+						CALL PRINT_SELECT, "恍惚感に身を任せる/抵抗する！（精力-１）"
+						CHOICE = RESULT
+					ENDIF
+				ENDIF
+				IF CHOICE
+					BASE:PLAYER:精力 -= 1
+					PRINTFORML 精力-１(%CALLNAME:PLAYER%)
+					PRINTFORMW %CALLNAME:PLAYER%は気力を振り絞って我を取り戻した！
+				ELSE
+					TEQUIP:押し倒し = 1
+					CALL ADD_STATE, PLAYER, "恍惚"
+					;手加減中なら、解除
+					IF TEQUIP:手加減
+						TEQUIP:手加減 = 0
+						PRINTFORML 主導権を%CALLNAME:TARGET%に奪われ、%CALLNAME:PLAYER%は手加減を続けることが出来ない…！
+					ENDIF
+					SIF CONFIG("恍惚耐性") == 0 || BASE:PLAYER:精力 < 2
+						FORCEWAIT
+
+					SIF COND("疲労") == 0
+						CALL KOJO_COUNTER, "恍惚"
+				ENDIF
+			ENDIF
+		ENDIF
+	CASE TARGET
+		SETCOLOR DEF_COLOR("ハートピンク")
+		PRINTFORML ＜ラグジャラスヒット！＞
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の弱点を突いた！
+		RESETCOLOR
+
+		;IF TCVAR:ラグジャラスヒット*10 + PALAM:連続絶頂COMBO数*5 > RAND:100 && RAND:2 == 0
+		;	PRINTFORML %CALLNAME:TARGET%は恍惚としている……
+		;	CALL ADD_STATE, TARGET, "恍惚"
+		;	FORCEWAIT
+		;ENDIF
+	ENDSELECT
+CASE "精液"
+	;イくのをこらえた状態で無いor既に絶頂済み
+	SIF NOWEX:絶頂数合計 || NOWEX:イくのをこらえた == 0
+		RETURN 0
+	;精液に弱くないなら、ここで終了
+	SIF TALENT:精液に弱い == 0
+		RETURN 0
+
+	IF SHOOT("口")
+		SIF COND("精飲に弱い") == 0
+			RETURN 0
+		SIF EXP_GAIN("精飲経験") && RAND:3
+			RETURN 0
+		TIMES CUP:快Ｍ, 2.00
+	ELSEIF SHOOT("Ｖ中出し")
+		SIF COND("膣内射精に弱い") == 0
+			RETURN 0
+		SIF EXP_GAIN("膣内精液経験") && RAND:3
+			RETURN 0
+		TIMES CUP:快Ｖ, 2.00
+	ELSEIF SHOOT("Ａ中出し")
+		SIF COND("肛内射精に弱い") == 0
+			RETURN 0
+		SIF EXP_GAIN("肛内精液経験") && RAND:3
+			RETURN 0
+		TIMES CUP:快Ａ, 2.00
+	ELSEIF SHOOT("ニプルファック")
+		SIF COND("乳内射精に弱い") == 0
+			RETURN 0
+		SIF EXP_GAIN("乳内精液経験") && RAND:3
+			RETURN 0
+		TIMES CUP:快Ｂ, 2.00
+	ELSEIF SHOOT("尿道中出し")
+		SIF COND("尿道内射精に弱い") == 0
+			RETURN 0
+		SIF EXP_GAIN("膀胱精液経験") && RAND:3
+			RETURN 0
+		NOWEX:尿道絶頂 = 1
+		EX:尿道絶頂 += 1
+
+		TIMES CUP:Ｖ潤, 2.00
+		TIMES CUP:欲情, 2.00
+		TIMES CUP:屈服, 2.00
+		TIMES CUP:恥情, 2.00
+	ENDIF
+
+	NOWEX:精液絶頂 = 1
+	EX:精液絶頂 += 1
+	NOWEX:ラグジャラスヒット = 1
+	EX:ラグジャラスヒット += 1
+	NOWEX:イくのをこらえた = 0
+	EX:イくのをこらえた = 0
+
+	CALL ORGASM_ADD_A
+	CALL ORGASM_ADD_C
+
+	SETCOLOR DEF_COLOR("ハートピンク")
+	PRINTFORML ＜ラグジャラスヒット！＞
+	RESETCOLOR
+
+	IF SHOOT("口")
+		IF COND("絶頂", PLAYER) >= 2 && RAND:2
+			PRINTFORM 大量に精液を飲まされた
+		ELSE
+			IF COND("絶頂", PLAYER) >= 2 && RAND:2
+				PRINTFORM %TEXTR("大量の/溢れんばかりの/凄い量の")%
+			ELSE
+				PRINTFORM %TEXTR("勢いよく/熱い/濃厚な")%
+			ENDIF
+			IF SELECTCOM == 140
+				PRINTFORM 精液%TEXTR("を食道に流し込まれた/を喉の奥に浴びせかけられた")%
+			ELSE
+				PRINTFORM 精液%TEXTR("で口内を満たされた/を口に流し込まれた/を喉の奥に浴びせかけられた")%
+			ENDIF
+		ENDIF
+		PRINTFORM %CALLNAME:TARGET%は、
+		PRINTFORM %TEXTR("気持ちよさのあまり/堪えきれずに/興奮のあまり/身体を震わせて/鼻から熱い吐息を漏らしながら/我慢できずに")%
+		PRINTFORMW 絶頂してしまった！
+	ELSEIF SHOOT("Ｖ中出し")
+		IF BASE:胎内精子量 < 100 && NOWEX:Ｖ中出し == EX:Ｖ中出し && RAND:2
+			PRINTFORM 飢えた子宮に精液をご馳走された
+		ELSEIF RAND:2
+			IF COND("絶頂", PLAYER) >= 2 && RAND:2
+				PRINTFORM %TEXTR("大量の/溢れんばかりの/凄い量の")%
+			ELSE
+				PRINTFORM %TEXTR("勢いよく/熱い/濃厚な")%
+			ENDIF
+			PRINTFORM 精液%TEXTR("で子宮を叩かれた/を膣内に流し込まれた/を弱点に浴びせかけられた")%
+		ELSEIF COND("絶頂", PLAYER) >= 2 && RAND:2
+			PRINTFORM 大量に中出しをされた
+		ELSE
+			PRINTFORM 大好きな膣内射精をされた
+		ENDIF
+		PRINTFORM %CALLNAME:TARGET%は、
+		PRINTFORM %TEXTR("気持ちよさのあまり/堪えきれずに/興奮のあまり/身体を震わせて/熱い吐息を漏らしながら/我慢できずに")%
+		PRINTFORMW 絶頂してしまった！
+	ELSEIF SHOOT("Ａ中出し")
+		IF RAND:2
+			IF COND("絶頂", PLAYER) >= 2 && RAND:2
+				PRINTFORM %TEXTR("大量の/溢れんばかりの/凄い量の")%
+			ELSE
+				PRINTFORM %TEXTR("勢いよく/熱い/濃厚な")%
+			ENDIF
+			PRINTFORM 精液%TEXTR("で直腸の奥を叩かれた/をアナルに流し込まれた/を弱点に浴びせかけられた")%
+		ELSEIF COND("絶頂", PLAYER) >= 2 && RAND:2
+			PRINTFORM 大量にアナルに中出しをされた
+		ELSE
+			PRINTFORM 大好きな肛内射精をされた
+		ENDIF
+		PRINTFORM %CALLNAME:TARGET%は、
+		PRINTFORM %TEXTR("気持ちよさのあまり/堪えきれずに/興奮のあまり/身体を震わせて/熱い吐息を漏らしながら/我慢できずに")%
+		PRINTFORMW 絶頂してしまった！
+	ELSEIF SHOOT("ニプルファック")
+		IF RAND:2
+			IF COND("絶頂", PLAYER) >= 2 && RAND:2
+				PRINTFORM %TEXTR("大量の/溢れんばかりの/凄い量の")%
+			ELSE
+				PRINTFORM %TEXTR("勢いよく/熱い/濃厚な")%
+			ENDIF
+			PRINTFORM 精液を%TEXTR("ニプルにご馳走された/乳房の中に流し込まれた/弱点に注がれた")%
+		ELSEIF COND("絶頂", PLAYER) >= 2 && RAND:2
+			PRINTFORM 大量に乳房に中出しをされた
+		ELSE
+			PRINTFORM 大好きな乳内射精をされた
+		ENDIF
+		PRINTFORM %CALLNAME:TARGET%は、
+		PRINTFORM %TEXTR("気持ちよさのあまり/堪えきれずに/興奮のあまり/身体を震わせて/熱い吐息を漏らしながら/我慢できずに")%
+		PRINTFORMW 絶頂してしまった！
+	ELSEIF SHOOT("尿道中出し")
+		IF RAND:2
+			IF COND("絶頂", PLAYER) >= 2 && RAND:2
+				PRINTFORM %TEXTR("大量の/溢れんばかりの/凄い量の")%
+			ELSE
+				PRINTFORM %TEXTR("勢いよく/熱い/濃厚な")%
+			ENDIF
+			PRINTFORM 精液を%TEXTR("大好きな場所にご馳走された/オシッコの穴に流し込まれた/弱点に注がれた")%
+		ELSEIF COND("絶頂", PLAYER) >= 2 && RAND:2
+			PRINTFORM 大量に膀胱への中出しをされた
+		ELSE
+			PRINTFORM 大好きな尿道への射精をされた
+		ENDIF
+		PRINTFORM %CALLNAME:TARGET%は、
+		PRINTFORM %TEXTR("気持ちよさのあまり/堪えきれずに/興奮のあまり/身体を震わせて/熱い吐息を漏らしながら/我慢できずに")%
+		PRINTFORMW 絶頂してしまった！
+	ENDIF
+	CALL ORGASM_ADD_TEXT, TARGET
+ENDSELECT
+

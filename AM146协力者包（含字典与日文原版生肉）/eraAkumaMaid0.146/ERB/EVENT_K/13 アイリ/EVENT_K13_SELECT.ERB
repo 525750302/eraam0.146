@@ -1,0 +1,134 @@
+﻿;-------------------------------------------------
+;もてなすコマンドの選択肢を追加
+@DAILY2_K13_ADDSELECT
+SIF STATE("酔い", TARGET) == 0 && COND("夜") && CFLAG:マタタビ > 0 && CFLAG:マタタビ < 3
+	STR:選択肢 += "マタタビを嗅がせる/"
+SIF CFLAG:じゃれつき具合 != 0
+	STR:選択肢 += "じゃらす/"
+
+;もてなすコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY2_K13_ADDSELECT, ARGS
+SELECTCASE ARGS
+CASE "マタタビを嗅がせる"
+	;CFLAG:マタタビが1の場合初回反応っぽくなる
+	PRINTFORMW そういえば今日\@ CFLAG:マタタビ == 2 ? も # は以前話に出た \@マタタビを用意している…
+	PRINTFORML %CALLNAME:TARGET%に嗅がせて見ますか？
+	CALL PRINT_SELECT, "試してみる/今日はやめとく"
+	SELECTCASE RESULT
+	CASE 0
+		IF CFLAG:マタタビ == 2
+			PRINTFORMW 「この前のは何かの間違いよ…本来なら、こんなの効く…はずが…」
+		ELSE
+			PRINTFORMW 「まあいいけど、どうせ嗅いでも何ともないだろうし…」
+			CFLAG:マタタビ += 1
+		ENDIF
+		PRINTFORMW 「……」
+		PRINTFORMW 「……」
+		CALL PRINT_STR, "「…う、うぅぅ……_／／／_」_W"
+		PRINTFORML 
+		CALL PRINT_STRW, @"%CALLNAME:TARGET%が[_ハートピンク_酔い_]になりました_黄色_(実行値とムードにボーナス＆たまに奇行)"
+		CALL ADD_STATE, TARGET, "酔い"
+	CASE 1
+		PRINTFORMW 「何？どうしたの？今何か隠した…？」
+	ENDSELECT
+	CFLAG:マタタビ += 2
+CASE "じゃらす"
+	PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%の目の前で猫じゃらしを%TEXTR("ゆらゆらと/小刻みに/＿")%動かし
+	IF CSTR:PREV_DAILYCOM != STR:日常イベント名
+		PRINTFORMW てみた…
+	ELSE
+		PRINTFORMW 続けた…
+	ENDIF
+	PRINTL 
+	;発情中はえろいことにしか興味ない
+	SIF COND("発情中")
+		CFLAG:じゃれつき具合 = 0
+	;途中でやめる（この時間に初回でない、かつ連続実行でない）と飽きちゃう　例外あり
+	SIF CHOSE_DEVENT(STR:日常イベント名) && CSTR:PREV_DAILYCOM != STR:日常イベント名 && !(CONDS("直前行動") == "ミニスカパンチラ" && CFLAG:じゃれつき具合 >= 4)
+		CFLAG:じゃれつき具合 = 0
+	;低確率で気まぐれ発動
+	IF RAND:20 == 0 && CFLAG:じゃれつき具合 > 0 && CHOSE_DEVENT(STR:日常イベント名)
+		IF RAND:2 && CFLAG:じゃれつき具合 < 4
+			PRINTFORMW 「はい、捕まえた、っと」
+			PRINTFORMW 「どうせやるんならもっと真面目にやってよね…」
+			PRINTFORMW %CALLNAME:TARGET%にあっさりと動きを見切られてしまった…
+		ELSE
+			PRINTFORMW 「……」
+			PRINTFORMW 「なんか、もういいわ…」
+			PRINTFORMW 「ちょっと飽きてきちゃったし、終わりにしましょ」
+			PRINTFORMW %CALLNAME:TARGET%は猫じゃらしに飽きてしまったようだ…
+		ENDIF
+		CFLAG:じゃれつき具合 = 0
+		RETURN 1
+	ENDIF
+
+	SELECTCASE CFLAG:じゃれつき具合
+	CASE 0
+		IF COND("発情中")
+			PRINTFORMW 「%TEXTR("うーん…今はちょっとそういう気分じゃないかも…/どうせかまってくれるんなら、もっと別の遊びがいいんだけど…♪")%」
+			PRINTFORMW 発情している%CALLNAME:TARGET%に猫じゃらしに対する関心はなさそうだ…
+		ELSEIF CONDS("直前行動") == "ミニスカパンチラ"
+			PRINTFORMW 「それ、絶対もうやんないからね……！」
+			PRINTFORMW 「%CNAME("二人称")%の魂胆なんてお見通しなんだから…！」
+			PRINTFORMW %CALLNAME:TARGET%はパンツが見えてしまうのを警戒しているらしい…
+		ELSE
+			PRINTFORMW 「もうそれ、飽きたんだけど…」
+			PRINTFORMW 「もっと他の遊びとかは無いの？」
+			PRINTFORMW %CALLNAME:TARGET%は猫じゃらしに対する興味を失っているようだ…
+		ENDIF
+	CASE 1
+		IF RAND:2
+			PRINTFORMW 「……」
+			PRINTFORMW 「な、何のつもりよ……」
+			PRINTFORMW 「私はそんな遊びになんて乗らないんだから……」
+		ELSE
+			PRINTFORMW 「バカにしてるの？」
+			PRINTFORMW 「……動くものなら何にでも興味あるってわけじゃないんだから…」
+		ENDIF
+		PRINTFORMW と言いながらも%CALLNAME:TARGET%は無意識に猫じゃらしを狙う構えを取っている… 
+	CASE 2, 3
+		IF RAND:2
+			PRINTFORMW 「……」
+			PRINTFORMW %CALLNAME:TARGET%は首を素早く動かし猫じゃらしの動きを追っている…
+		ELSE
+			PRINTFORMW 「…！」
+			PRINTFORMW %CALLNAME:TARGET%は猫じゃらしの動きに合わせて時折ピクッと体を動かしている…
+		ENDIF
+	CASEELSE
+		IF RAND:4 == 0
+			PRINTFORMW 「………%TEXTR("やぁ/今だ/ふ")%っ！！」
+			PRINTFORMW 「や、やった……！取った……！！」
+			PRINTFORMW 「………あ」
+			IF RAND:2
+				CALL PRINT_STR, "「ま、まあ？よく考えたらどうでもいいわよね、こんな遊び…_／／／_」_W" 
+			ELSE
+				PRINTFORMW 「ああもう……なんで真剣になっちゃってるのよ%CNAME("一人称")%…！」
+			ENDIF
+			PRINTFORMW %CALLNAME:TARGET%は%TEXTR("恥ずかしそうに/我に返ったらしく、慌てて/最初から興味などなかったかのように")%猫じゃらしを投げ捨てた…
+			CFLAG:じゃれつき具合 = 0
+		ELSE
+			IF RAND:4 == 0
+				PRINTFORMW 「……！！」
+				PRINTFORMW 「いや、まだね……ここだと遠すぎるわ…」
+				PRINTFORMW 「もっと手元に来た時がチャンスね……」
+				PRINTFORMW %CALLNAME:TARGET%は猫じゃらしを捕まえるためのベストなタイミングを計っている…
+			ELSEIF RAND:3 == 0
+				PRINTFORMW 「……っ！」
+				PRINTFORMW 「………うぅ…次は、外さないんだから…」
+				PRINTFORMW %CALLNAME:TARGET%は狙いすました一撃が不発に終わって悔しそうにしている…
+			ELSEIF RAND:2
+				PRINTFORMW 「…………ふっ！！」
+				PRINTFORMW 「あ、あれ……？えいっ！！」
+				PRINTFORMW 「むむ……なかなかやるじゃない……！」
+				PRINTFORMW %CALLNAME:TARGET%は惜しいところで手をすり抜けていく猫じゃらしを必死になって追いかけている…
+			ELSE
+				PRINTFORMW 「………」
+				PRINTFORMW 「…絶対、捕まえる……」
+				PRINTFORMW %CALLNAME:TARGET%は%TEXTR("真剣なまなざしで/前のめりになって")%猫じゃらしを見つめている…
+			ENDIF
+		ENDIF
+	ENDSELECT
+	SIF CFLAG:じゃれつき具合 > 0
+		CFLAG:じゃれつき具合 += 1
+ENDSELECT
+

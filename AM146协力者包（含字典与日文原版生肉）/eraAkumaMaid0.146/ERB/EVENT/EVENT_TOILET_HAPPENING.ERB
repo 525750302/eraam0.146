@@ -1,0 +1,521 @@
+﻿;-------------------------------------------------
+; トイレハプニングイベント
+;-------------------------------------------------
+@EVENT_TOILET_HAPPENING
+#DIM TGT_MEMO
+
+	; TARGETの退避
+	TGT_MEMO = TARGET
+
+	; 発生確認＆対象の選別
+	CALL EVENT_TOILET_HAPPENING_ENABLE
+	TARGET = RESULT
+
+	; ふさわしい対象が居る場合はトイレイベント本体発生
+	SIF RESULT
+		CALL EVENT_TOILET_HAPPENING_MAIN
+
+	; TARGETの復帰
+	TARGET = TGT_MEMO
+
+RETURN 1
+
+;-------------------------------------------------
+; トイレイベント 発生確認
+;   返り値が 0 > のとき、イベント発生
+;   その場合、返り値が発生対象の番号となる
+;-------------------------------------------------
+@EVENT_TOILET_HAPPENING_ENABLE
+#DIM HEROINE
+	; 自宅でのみ発生
+	SIF !PLACE("自宅")
+		RETURN 0
+
+	; あなた尿意確認
+	;   ちょっと緩めに判定
+	SIF BASE:PLAYER:尿意 < 3000
+		RETURN 0
+
+	; 既に発生済みの場合発生しない
+	; 発生は１日１回のみ
+	SIF CEVENT("トイレハプニング", PLAYER)
+		RETURN 0
+
+	; 対象の選定
+	HEROINE = FIND_COND("同棲中", "現在不在", "!オトコ", "起床中")
+	IF HEROINE
+		; ヒロインの尿意判定
+		SIF BASE:HEROINE:尿意 < 3000
+			HEROINE = 0
+
+		; 条件を満たしたうえでランダム判定
+		SIF RAND:10 > 3
+			HEROINE = 0
+	ENDIF
+
+	RETURN HEROINE
+
+RETURN 1
+
+;-------------------------------------------------
+; トイレイベント メイン処理
+;   TARGET は対象となるヒロインに変更済み
+;-------------------------------------------------
+@EVENT_TOILET_HAPPENING_MAIN
+#DIMS EVENTS
+#DIMS MSGS
+#DIM SELNUM
+
+	EVENTS = 
+
+	; 描写１
+	DRAWLINE
+	PRINTFORMW %TEXTR("ふと/不意に/＿")%尿意を覚えた%CALLNAME:PLAYER%は%TEXTR("トイレ/お手洗い")%に向かった。
+	PRINTL 
+	PRINTW 
+	PRINTW 　　　ガチャ
+	PRINTL
+	PRINTW
+	PRINTFORMW トイレのドアを開けると、%TEXTR("呆然と/驚いたような顔で/呆気にとられた様子で")%%CALLNAME:PLAYER%を見返してくる%CALLNAME:TARGET%の姿があった……
+	PRINTFORMW %CALLNAME:TARGET%は%TEXTR("トイレの/＿")%便座に%TEXTR("座って/腰を下ろして")%%TEXTR("用を足している/オシッコをしている真っ最中の")%ようだ。
+	; 下腹部が見える格好
+	IF CHECK_SKIRT("スカート") == 0
+		IF CHECK_CLO("アウター露出")
+			PRINTFORM %OUTER(TARGET, "略")%を下ろして
+		ELSE
+			PRINTFORM スカートじゃないため
+		ENDIF
+		PRINTFORMW 露わになった%CALLNAME:TARGET%の%TEXTR("アソコ/秘所/陰部")%から、ほのかに黄色い%TEXTR("小水/尿/オシッコ")%が緩やかなアーチを描きながら便器に落ちて水音を立てている。
+	ELSE
+		PRINTFORMW わずかな水音とともにかすかなアンモニア臭が漂っている。
+	ENDIF
+
+	; 口上呼び出し(メイン)
+	CALL KOJO_DAILYCOM, "トイレハプニング"
+
+	; ヒロインから招かれる場合
+	IF TALENT:淫乱 + CFLAG:ムラムラ && BASE:欲求不満/10 > RAND:10
+		SELNUM = 99
+	ELSE
+		; 対応
+		EVENTS = ドアを閉める
+		SIF TALENT:淫乱 || MARK:屈服刻印 >= 3 || COND("合意：アソコチェック")
+			EVENTS += "/このまま眺める"
+		CALL PRINT_SELECT, EVENTS
+		SELNUM = RESULT
+	ENDIF
+
+	; 対応後の処理
+	SELECTCASE SELNUM
+		CASE 0
+		;   ドアを閉める
+			PRINTFORMW しばらく呆然と目の前の光景を眺めていた%CALLNAME:PLAYER%は慌ててドアを閉めた。
+			PRINTFORMW …………
+			PRINTFORMW ……
+			PRINTFORMW …………薄いドア越しに僅かな水音が聞こえてくる……
+			PRINTFORMW ……
+			PRINTFORMW 
+			PRINTFORM やがて%TEXTR("用を足して/トイレから")%出てきた%CALLNAME:TARGET%は
+			MSGS = 頬を赤く染めながら/耳まで真っ赤にしながら
+			SIF !TALENT:恋慕 && !TALENT:淫乱 && ABL:露出癖 < 3
+				MSGS += @"\/何か言いたそうに%CALLNAME:PLAYER%を一睨みしたあと"
+			PRINTFORM %TEXTR(MSGS)%
+			PRINTFORMW %TEXTR("冷静を装い/何事もなかったかのように")%去っていった……
+
+		CASE 1
+			;  眺める
+			PRINTFORM 慌てる%CALLNAME:TARGET%を%TEXTR("他所に/無視して/制して")%トイレに入り込んでドアを閉めると、%CALLNAME:PLAYER%の意図を察した%CALLNAME:TARGET%は
+			IF TALENT:恥薄い
+				MSGS = 特に恥じらう事なく/見せつけるように
+				SIF TALENT:強気
+					MSGS += "/自分から大きく/視線を合わせながら"
+				SIF TALENT:陽気
+					MSGS += "/気軽な感じで/楽しそうに/お行儀悪く/腰を突き出しながら"
+				SIF TALENT:高慢
+					MSGS += "/自信に溢れた態度で/優越感を滲ませながら"
+				PRINTFORM %TEXTR(MSGS)%
+			ELSE
+				PRINTFORM %TEXTR("恥ずかしそう/観念したよう/諦めたよう")%に%TEXTR("目を伏せ/顔を背け")%て
+			ENDIF
+			SIF CHECK_SKIRT("スカート")
+				PRINTFORM スカートをたくし上げつつ
+			;低確率でM字開脚姿勢
+			IF (TALENT:淫乱 || ABL:露出癖 >= 5) && RAND:4 == 0
+				PRINTFORM 股をＭ字開脚のように大きく開き、
+			ELSE
+				PRINTFORM 脚を開き、
+			ENDIF
+			PRINTFORMW %TEXTR("ほのかに黄色い液体/アンモニア臭のする液体/オシッコ/聖水")%が尿道から%TEXTR("迸る/流れ出る")%様子を%TEXTR("じっくりと/丹念に/心行くまで")%%TEXTR("堪能させて/見学させて/味わわせて")%くれた……
+			PRINTFORMW …………
+			PRINTFORMW ……
+			PRINTFORMW 
+			CALL EVENT_TOILET_HAPPENING_EX("見せつけくぱぁ")
+			IF RESULT
+				PRINTFORM %CALLNAME:PLAYER%の視線
+				IF MARK:屈服刻印 >= 3 || ABL:マゾっ気 >= 4
+					PRINTFORM %TEXTR("にはにかんだ笑みで応えた/を恥ずかしそうに受け止めた")%
+				ELSE
+					PRINTFORM %TEXTR("に顔を真赤にしながら耐えた/を羞恥に耐える表情で受け止めた")%
+				ENDIF
+				PRINTFORM %CALLNAME:TARGET%は、%TEXTR("膣穴/オマンコ/アソコ")%を丁寧に拭って後始末を終えると%CALLNAME:PLAYER%を置いて%TEXTR("そそくさと/恥ずかしそうに")%トイレを出ていった……
+			ELSE
+				PRINTFORMW やがて%TEXTR("オシッコ/排尿")%を終えた%CALLNAME:TARGET%は%TEXTR("不満そうな/何か言いたそうな")%顔で手早く後始末をすませ、%TEXTR("そそくさと/逃げるように")%%TEXTR("トイレ/お手洗い")%を出て行ってしまった。
+			ENDIF
+
+		CASEELSE
+			; 誘われた
+			PRINTFORM 予想外の事態に%CALLNAME:PLAYER%が呆然としていると、%TEXTR("不意に/やおら")%%CALLNAME:TARGET%は%TEXTR("小さく/悪戯っぽく")%%TEXTR("微笑んで/笑みを浮かべて")%
+			PRINTFORMW %TEXTR("便座に座った/用を足している姿勢の")%ままトイレの中に入ってくるように%CALLNAME:PLAYER%を誘ってきた……
+			PRINTFORM %CALLNAME:PLAYER%がトイレに入ると%CALLNAME:TARGET%は
+			SIF CHECK_SKIRT("スカート")
+				PRINTFORM スカートをたくし上げつつ
+			PRINTFORMW 股を開き、%TEXTR("アソコ/女陰/女性器")%を指で拡げ尿道から%TEXTR("小水/オシッコ/黄金水/聖水")%の%TEXTR("迸る/流れ出る/飛び散る")%様を見せつけてきた。
+			PRINTFORMW アンモニアの%TEXTS("匂い")%と共に%TEXTR("派手な/大きな")%水音を立てて%TEXTR("小水/オシッコ/黄金水/聖水")%が便器に吸い込まれていく……
+			PRINTFORMW …………
+			PRINTFORMW ……
+			PRINTFORMW 
+			CALL EVENT_TOILET_HAPPENING_EX("Ｈイベント")
+			IF RESULT
+				; 派生イベントが実行された
+				PRINTFORMW %CALLNAME:PLAYER%は%CALLNAME:TARGET%と一緒にトイレに残った性行為の名残を片付けて何事もなかったかのようにトイレを後にした……
+			ELSE
+				PRINTFORMW やがて%TEXTR("オシッコ/排尿")%を終えた%CALLNAME:TARGET%は%TEXTR("上気した/うっとりとした/満足した")%顔で後始末をすませ、%CALLNAME:PLAYER%と一緒に%TEXTR("トイレ/お手洗い")%を後にした。
+			ENDIF
+	ENDSELECT
+
+	;ドアを即閉じた以外だと露出経験取得
+	IF SELNUM
+		; 経験取得
+		EXP:露出経験 += 1
+		PRINTL 
+		PRINTFORMW 露出経験＋１
+
+		;ちんこを汚れたままにしておくのはあまり良くないので綺麗にする
+		SIF PENIS(MASTER) && COND("Ｐ汚れ", MASTER)
+			CALL RESET_STAIN_EX, "Ｐ", MASTER
+	ENDIF
+	DRAWLINE
+
+	; 尿意処理
+	CALL SETFLAG_DAILY, "トイレ", TARGET
+	CALL SETFLAG_DAILY, "トイレ", PLAYER
+
+	;トイレハプニング発生フラグON
+	CALL SET_CEVENT, "トイレハプニング", PLAYER
+
+RETURN 1
+
+;-------------------------------------------------
+; トイレハプニング 派生イベント
+;   一定条件を満たしたときに発生する派生イベント
+;-------------------------------------------------
+@EVENT_TOILET_HAPPENING_EX(ARGS)
+	; 発生確認
+	SIF EVENT_TOILET_HAPPENING_EX_ENABLE(ARGS) == 0
+		RETURN 0
+
+	; メイン処理
+	CALL EVENT_TOILET_HAPPENING_EX_MAIN(ARGS)
+
+	RETURN 1
+
+;-------------------------------------------------
+; トイレハプニング 派生イベント 続行判断
+;   ※拘るならば要調整
+;-------------------------------------------------
+@EVENT_TOILET_HAPPENING_EX_ENABLE(ARGS)
+#FUNCTION
+
+	SELECTCASE ARGS
+		CASE "見せつけくぱぁ"
+			SIF COND("胎内の精液量") < 40000
+				RETURNF 0
+			RETURNF 1
+		CASE "Ｈイベント"
+			;どれもチンコが必要
+			SIF PENIS(MASTER) == 0
+				RETURNF 0
+			; 自分から誘っているので高確率
+			SIF RAND:10 >= 8
+				RETURNF 1
+		CASEELSE
+			PRINTFORM エラー！　%ARGS%は未定義です
+	ENDSELECT
+
+	; 性処理合意がある場合は高確率で続行
+	SIF COND("合意：性処理") && RAND:10 >= 3
+		RETURNF 1
+	; 淫乱判定
+	SIF TALENT:淫乱 && RAND:10 >= 5
+		RETURNF 1
+
+	; 性処理合意も、淫乱もない場合、恋慕がなければ意向の判定は無効
+	SIF !TALENT:恋慕
+		RETURNF 0
+
+	; TODO
+	;  追加条件
+
+	RETURNF 0
+
+;-------------------------------------------------
+; トイレハプニング 派生イベント メイン処理
+;-------------------------------------------------
+@EVENT_TOILET_HAPPENING_EX_MAIN(ARGS)
+#DIMS TABLE
+#DIMS EVENTS
+
+	; テーブル初期化
+	VARSET EVENTS
+
+	;ここで起きうるイベントのSELECTCOMが必要なら決めてしまう
+	SELECTCASE ARGS
+		CASE "見せつけくぱぁ"
+			EVENTS = 見せつけくぱぁ
+			SELECTCOM = GETNUM(TRAINNAME, "くぱぁさせる")
+		CASE "Ｈイベント"
+			TABLE = 相互自慰
+
+			SIF CANTRAIN("フェラチオ")
+				TABLE += "/フェラチオ"
+			SIF CANTRAIN("正常位") || CANTRAIN("後背位")
+				TABLE += "/∨セックス"
+			SIF CANTRAIN("Ａ正常位")
+				TABLE += "/Ａセックス"
+
+			SPLIT TABLE, "/", LOCALS
+			EVENTS = %LOCALS:(RAND:RESULT)%
+		SELECTCASE EVENTS
+			CASE "相互自慰"
+				SELECTCOM = GETNUM(TRAINNAME, "自慰")
+			CASE "フェラチオ"
+				SELECTCOM = GETNUM(TRAINNAME, "フェラチオ")
+			CASE "∨セックス"
+				SIF CANTRAIN("正常位")
+					SELECTCOM = GETNUM(TRAINNAME, "正常位")
+				SIF CANTRAIN("後背位") && (CANTRAIN("正常位") == 0 || RAND:2)
+					SELECTCOM = GETNUM(TRAINNAME, "後背位")
+			CASE "Ａセックス"
+				SELECTCOM = GETNUM(TRAINNAME, "アナル後背位")
+		ENDSELECT
+	ENDSELECT
+
+	STR:日常イベント名 = トイレイベント：%EVENTS%
+
+	SELECTCASE EVENTS
+		CASE "見せつけくぱぁ"
+			PRINTFORMW やがて水音が弱まり途絶えたが、%CALLNAME:TARGET%はオシッコをする姿勢のままなにやらもじもじとしている……
+			PRINTFORM しばらく待つと、顔を赤くした%CALLNAME:TARGET%は
+			PRINTFORM %TEXTR("脚を更に大きく開いて姿勢で見せつけるように/身体を反らして腰を突き出して")%
+			PRINTFORMW %TEXTR("自らの秘所/アソコ")%を両手の指で押し広げて見せた……
+			PRINTFORM 水滴の残った女陰の膣穴が%TEXTR("ヒクヒクと/震えるように")%蠢き、その奥から
+			IF CFLAG:Ｖ中出し済
+				PRINTFORM %TEXTR("先ほど/さっき/先刻")%
+			ELSE
+				PRINTFORM %TEXTR("この前/前回")%
+			ENDIF
+			PRINTFORM %TEXTR("たっぷりと/大量に")%%TEXTR("注ぎ込んだ/中に出した")%
+			IF CFLAG:Ｖ中出し済
+				PRINTFORM %TEXTR("まだ新しい/新鮮な/活きのいい")%
+			ELSE
+				PRINTFORM %TEXTR("子宮に残っていた/白濁した")%
+			ENDIF
+			PRINTFORMW %TEXTR("精液/ザーメン")%がごぽりと音を立てて溢れ出てきた……
+
+			; 仮想コマンド実行処理
+			CALL EVENT_TOILET_HAPPENING_EX_TRAIN_SIM, EVENTS
+
+		CASE "相互自慰"
+			PRINTFORM %CALLNAME:TARGET%の%TEXTR("排尿姿/オシッコ/オシッコをする姿")%を見ていた%CALLNAME:PLAYER%は、%TEXTR("固くなった/臨戦態勢になった/勃起した/元気一杯な")%%TEXTR("イチモツ/ペニス/自分のモノ")%を取り出し、
+			PRINTFORM それを
+			IF TALENT:淫乱
+				PRINTFORM %TEXTR("物欲しそうに/期待するように/熱の籠もった瞳で")%見つめる
+			ELSE
+				PRINTFORM %TEXTR("ちらちらと/あくまで顔を背けたまま")%盗み見る
+			ENDIF
+			PRINTFORMW %CALLNAME:TARGET%の前で%TEXTR("しごいてみせた/自ら慰めた")%。
+			PRINTFORM %CALLNAME:TARGET%は便座に座ったまま
+			IF TALENT:淫乱
+				PRINTFORM %TEXTR("食い入るように/頬を上気させて/瞳を潤わせながら")%
+			ELSE
+				PRINTFORM %TEXTR("無視できずに/恥ずかしそうに")%
+			ENDIF
+			PRINTFORMW %CALLNAME:PLAYER%の%TEXTR("自慰/オナニー/一人遊び")%%TEXTR("を観察して/に見入って/から目を離せずに")%いたが、やがてその指が自らの%TEXTR("アソコ/女性器/女陰")%に伸び%CALLNAME:TARGET%もまた%TEXTR("自らを慰めはじめた/一人えっちを開始した")%……
+
+			; 仮想コマンド実行処理
+			CALL EVENT_TOILET_HAPPENING_EX_TRAIN_SIM, EVENTS
+
+			PRINTFORMW 甘い息を吐いて%CALLNAME:TARGET%の身体がびくりと震えたのに合わせ、%CALLNAME:PLAYER%は%TEXTR("自慰/オナニー/一人エッチ")%で絶頂した%CALLNAME:TARGET%の顔目掛けて精液を吐き出した……
+			PRINTFORMW %CALLNAME:PLAYER%の%TEXTR("精液/ザーメン/スペルマ")%を顔面で%TEXTR("大量に/滴るほど/顔中がどろりと白濁しそうなほど")%受け止めながらも、%CALLNAME:TARGET%は蕩けた顔をしている……
+
+		CASE "フェラチオ"
+			PRINTFORM %CALLNAME:PLAYER%の視線
+			IF TALENT:恋慕 || TALENT:淫乱
+				PRINTFORM を浴びながら
+			ELSE
+				PRINTFORM に耐えながら
+			ENDIF
+			PRINTFORMW %TEXTR("オシッコをする/排泄を続ける/聖水を排出する")%%CALLNAME:TARGET%の%TEXTR("いじらしい/恥ずかしそうな")%姿を見ていたら、尿意とは異なる排泄欲が湧いてきた……
+			PRINTFORM %TEXTR("勃起した/固くなった/臨戦態勢となった")%%TEXTR("ペニス/男性器/イチモツ")%を取り出すと、%CALLNAME:TARGET%は
+			IF TALENT:恋慕 || TALENT:淫乱
+				PRINTFORM 待ちわびていたかのように
+			ELSE
+				PRINTFORM ためらいがちに
+			ENDIF
+			PRINTFORMW %CALLNAME:PLAYER%のソレを%TEXTR("口に咥えた/しゃぶりはじめた/根本まで頬張った")%……
+
+			; 仮想コマンド実行処理
+			CALL EVENT_TOILET_HAPPENING_EX_TRAIN_SIM, EVENTS
+
+			; さらに派生(ToDo)
+
+			PRINTFORM %TEXTR("秘所/女陰/尿道口")%から零れる%TEXTR("小水/オシッコ/聖水")%が止まっても%CALLNAME:TARGET%は%TEXTR("ペニス/イチモツ")%を%TEXTR("しゃぶる/舐める")%のを止めなかったが、
+			PRINTFORMW %CALLNAME:TARGET%の%TEXTR("口の中/舌の上/喉の奥")%に大量の精液を叩き付けると咳き込みながらも口一杯に溜まった%CALLNAME:PLAYER%の精液を一滴残らず飲み込んだ。
+
+		CASE "∨セックス"
+			; コンドームの有無
+			TEQUIP:PLAYER:コンドーム = 1
+			SIF COND("女性主導生セックス")
+				TEQUIP:PLAYER:コンドーム = 0
+
+			IF ABL:マゾっ気 >= 3 || ABL:露出癖 >= 5
+				PRINTFORM 自らの排泄姿を見せつけるように脚を開いて
+			ELSE
+				PRINTFORM 恥ずかしさに耐えながら
+			ENDIF
+			PRINTFORMW 排泄を続ける%CALLNAME:TARGET%の姿に情欲が沸き立つ……
+			PRINTFORM しばらくして%TEXTR("オシッコを終えた/排泄を終えた/小水の途絶えた/聖水の途絶えた")%%CALLNAME:TARGET%に%TEXTR("勃起した/固くなった/準備万端の")%%TEXTR("ペニス/男性器")%を
+			PRINTFORM %CALLNAME:TARGET%の眼前に突きつけると、%CALLNAME:TARGET%は
+			IF TEQUIP:PLAYER:コンドーム
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORM %SKIRT(TARGET, "略")%のポケット
+					CASE 1
+						PRINTFORM 備え付けの小物入れの中
+				ENDSELECT
+				PRINTFORM から取り出した%TEXTR("コンドーム/ゴム")%を
+				SIF ABL:奉仕精神 > 3
+					PRINTFORM 口を使って
+				PRINTFORM 手早く装着させ、
+			ENDIF
+			; 体位が後背位
+			IF SELECTCOM == GETNUM(TRAINNAME, "後背位")
+				PRINTFORM こちらに尻を向けて便座に手をつく
+			ELSE
+				PRINTFORM 自らの脚を抱えるような
+			ENDIF
+			PRINTFORM 姿勢を取り
+			IF MARK:屈服刻印 > 1
+				PRINTFORM 期待に満ちた瞳で
+			ELSE
+				PRINTFORM 恥ずかしそうに顔を赤らめながら
+			ENDIF
+			PRINTFORMW %CALLNAME:PLAYER%の%TEXTR("ペニス/イチモツ")%を%TEXTR("根元まで/その柔肉で")%%TEXTR("呑み込んだ/咥え込んだ")%……
+
+			; 仮想コマンド実行処理
+			CALL EVENT_TOILET_HAPPENING_EX_TRAIN_SIM, EVENTS
+
+			; さらに派生(ToDo)
+
+		CASE "Ａセックス"
+			PRINTFORM %TEXTR("排泄を終えた/オシッコを出し終えた/聖水を出し切った")%%CALLNAME:TARGET%は
+			IF MARK:屈服刻印 >= 3 || ABL:マゾっ気 >= 4
+				PRINTFORM どこか期待に満ちた眼差しで
+			ELSE
+				PRINTFORM 耳まで顔を赤らめながら
+			ENDIF
+			PRINTFORMW 便座に手をついて、%TEXTR("菊座/アナル")%を強調するように尻を突き出してきた。
+			PRINTFORMW %TEXTR("要望/希望/リクエスト/期待")%に応えて%TEXTR("キュッとすぼまった/キツく締められた")%%CALLNAME:TARGET%の後ろの穴にペニスをあてがい押し込むと、%CALLNAME:TARGET%は抜けるような長い吐息と共に%CALLNAME:PLAYER%の%TEXTR("陰茎/分身/肉棒")%を全て呑み込んだ……
+
+			; 仮想コマンド実行処理
+			CALL EVENT_TOILET_HAPPENING_EX_TRAIN_SIM, EVENTS
+
+		CASEELSE
+			PRINTFORMW エラー！　%EVENTS% は未定義な内容です。
+			RETURN 0
+	ENDSELECT
+
+;-------------------------------------------------
+; トイレハプニング 派生イベント コマンド仮想実行処理
+;-------------------------------------------------
+@EVENT_TOILET_HAPPENING_EX_TRAIN_SIM(ARGS)
+#DIM LCOUNT
+#DIM LINE_MEMO
+
+	;絶頂度合いをリセット
+	VARSET EX
+	VARSET NOWEX
+	VARSET EX:PLAYER:0
+	VARSET NOWEX:PLAYER:0
+	VARSET LOCAL
+
+	;前準備開始
+	CALL SIMULATE_TRAIN_FIRST
+
+	SELECTCASE ARGS
+		CASE "相互自慰"
+			; 相互 なのでヒロイン側の絶頂処理を先に済ませる
+			FOR LCOUNT, 0, 999
+				CALL SIMULATE_TRAIN_COM, SELECTCOM, 1
+
+				;絶頂済みならここでおしまい
+				SIF NOWEX:TARGET:Ｃ絶頂 + NOWEX:TARGET:Ｖ絶頂 + NOWEX:TARGET:Ａ絶頂 + NOWEX:TARGET:Ｂ絶頂 + NOWEX:TARGET:尿道絶頂
+					BREAK
+			NEXT
+			;PRINTFORMW {EXP_GAIN("Ｖ経験")}
+
+			SELECTCOM = GETNUM(TRAINNAME, "自慰する")
+		CASE "フェラチオ"
+
+		CASE "∨セックス"
+
+		CASE "Ａセックス"
+
+		CASE "見せつけくぱぁ"
+			; 絶頂とは関係ない
+			LOCAL = 1
+		;CASE "フェラ後飲尿"
+		;	SELECTCOM = GETNUM(TRAINNAME, "くぱぁさせる")
+		;	; 絶頂とは関係ない
+		;	LOCAL = 1
+	ENDSELECT
+
+	; COMチェック
+	IF SELECTCOM < 0
+		PRINTFORMW エラー！　%ARGS%に対応したCOMは存在しません({SELECTCOM})
+		RETURN 0
+	ENDIF
+
+	SIF !LOCAL
+		LOCAL = 999
+
+	; 実行ループ
+	FOR LCOUNT, 0, LOCAL
+		CALL SIMULATE_TRAIN_COM, SELECTCOM, 1
+
+		;射精済みならここでおしまい
+		SIF NOWEX:PLAYER:射精
+			BREAK
+	NEXT
+
+	;経験や珠などの獲得量計算
+	CALL SIMULATE_TRAIN_CALC
+
+	;結果発表
+	CALL SIMULATE_TRAIN_SHOW
+
+	; 口上対応
+	LINE_MEMO = LINECOUNT
+	CALL KOJO_DAILYCOM, "トイレＨ"
+	SIF NOWEX:PLAYER:射精 && LINECOUNT == LINE_MEMO
+		CALL SAMEN_SHOOT_MESSAGE
+
+	CALL SETFLAG, "調教外Ｈ終了", MASTER
+	CALL SETFLAG, "調教外Ｈ終了", TARGET
+
+;-------------------------------------------------
+; トイレハプニング イベントフラグクリア
+;   日付が変わるとき(EVENTTURNEND)に呼ばれる
+;-------------------------------------------------
+@EVENTTURNEND_TOILET_HAPPENING
+CALL DEL_CEVENT, "トイレハプニング", PLAYER

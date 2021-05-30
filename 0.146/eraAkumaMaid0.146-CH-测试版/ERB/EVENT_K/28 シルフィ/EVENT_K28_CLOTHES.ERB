@@ -1,0 +1,93 @@
+;-------------------------------------------------
+;このキャラ独自の衣装を設定する。制服、体操服、水着は既存のものから選ぶのが楽です
+;-------------------------------------------------
+@CLOTHES_K28, ARGS
+
+SELECTCASE ARGS
+;キャラクター独自の下着の組み合わせを設定できます。設定した場合、一定の確率で着用します
+CASE "下着"
+	CSTR:パンツ = Ｇストリング/ギャル/ハイレグ/Ｔバック/
+	CSTR:ブラ = 
+
+;衣装に関わらず常に付けているアクセサリです。設定しなくてもかまいません
+CASE "アクセサリ"
+	CALL SET_OTHER, "眼鏡"
+;学園での普段着です。設定必須です。
+;セーラー服, ミニスカセーラー服, ブレザー, ミニスカブレザー, アメスクなど
+CASE "制服"
+	CALL SET_COSTUME, "ミニスカセーラー服"
+;学園の体育の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+;体操服ブルマ, 体操服ハーフパンツ, 体操服スパッツ, 体操服ジャージなど
+CASE "体操服"
+	CALL SET_COSTUME, "体操服ブルマ"
+;学園の水泳の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+;スク水, 競泳水着, 白ビキニ, 黒ビキニなど
+CASE "水着"
+	IF BASE:魂 < 30
+		CALL SET_COSTUME, "マイクロビキニ"
+	ELSE
+		CALL SET_COSTUME, "白ビキニ"
+	ENDIF
+;自宅など学園外で着ます。設定必須です
+CASE "普段着"
+	IF COND("夏")
+		CALL SET_SHIRT, "タンクトップ"
+		CALL SET_OUTER, "ハーフパンツ"
+	ELSE
+		CALL SET_SHIRT, "Ｔシャツ"
+		CALL SET_OUTER, "ジャージズボン"
+	ENDIF
+	CALL SET_BRA, ""
+;自分の部屋(notあなたの部屋)で着ます
+CASE "部屋着"
+	IF (COND("夏") || BASE:魂 < 30) && ABL:露出癖 >= 5 && RANDIF(2, BASE:魂 < 30)
+		CALL SETFLAG, "ハダカにする", TARGET
+		IF BASE:魂 < 30 && RAND:2
+			CALL SET_PANTIES, "葉っぱパンツ", TARGET
+		ELSE
+			CALL SET_PANTIES, TEXTR(CSTR:TARGET:好きなパンツ), TARGET
+		ENDIF
+	ELSEIF BASE:魂 < 30
+		IF RAND:2
+			CALL SET_COSTUME, "ミニマムセーラー服"
+		ELSE
+			CALL SETFLAG, "ハダカにする", TARGET
+			CALL SET_PANTIES, "レースのパンツ", TARGET
+		ENDIF
+	ELSE
+		CALL CLOTHES_K28, "普段着"
+	ENDIF
+;デート以外で家から外に出る際に着ます。ラブホ呼出とかね
+CASE "外出着"
+	CALL SET_SHIRT, "パーカー"
+	CALL SET_OUTER, "ジャージズボン"
+	CALL SET_BRA, ""
+	CALL SET_SOCKS, "靴下"
+	CALL SET_SHOES, "スニーカー"
+;もちろんデートの際に着ます
+CASE "デート衣装"
+	IF COND("夏")
+		CALL SET_SHIRT, "白いワンピース"
+		CALL SET_SHOES, "ミュール"
+		CALL SET_OTHER, "麦わら帽子"
+	ELSEIF COND("冬")
+		CALL SET_SHIRT, "ニットセーター"
+		CALL SET_SHOES, "ショートブーツ"
+		CALL SET_OUTER, "ジーンズ"
+	ELSE
+		CALL SET_SHIRT, "チュニック"
+		CALL SET_SHOES, "ミュール"
+		CALL SET_SKIRT, "スカート"
+	ENDIF
+ENDSELECT
+
+
+;-------------------------------------------------
+;時間帯や場所に応じた髪型、表情の変化を記述する。設定しなくてもかまいません
+;-------------------------------------------------
+@MAIDFACE_K28
+IF PLACE("自宅")
+	
+ELSE
+	
+ENDIF

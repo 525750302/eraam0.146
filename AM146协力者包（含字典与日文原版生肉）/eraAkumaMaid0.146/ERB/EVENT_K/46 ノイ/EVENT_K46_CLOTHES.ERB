@@ -1,0 +1,154 @@
+﻿;-------------------------------------------------
+;このキャラ独自の衣装を設定する。制服、体操服、水着は既存のものから選ぶのが楽です
+;-------------------------------------------------
+@CLOTHES_K46, ARGS
+
+SELECTCASE ARGS
+;高めの頻度で着用します。設定しなくてもかまいません
+CASE "下着"
+	IF CEVENT("女装")
+		CALL SET_PANTIES, "Ｔバック"
+		CALL SET_BRA, "オープンブラ"
+	ELSE
+		CSTR:パンツ = トランクス/黒/
+		CSTR:ブラ = 
+	ENDIF
+;衣装に関わらず常に付けているアクセサリです。設定しなくてもかまいません
+CASE "アクセサリ"
+	CALL SET_OTHER, "眼鏡"
+
+;学園での普段着です。設定必須です
+CASE "制服"
+	IF CEVENT("女装")
+		SELECTCASE RAND:3
+		CASE 0
+			CALL SET_SHIRT, "スーツ"
+			CALL SET_SKIRT, "タイトスカート"
+			CALL SET_OUTER, "オープンパンスト"
+			CALL SET_SHOES, "ハイヒール"
+		CASE 1
+			CALL SET_SHIRT, "ルーズブラウス"
+			CALL SET_SKIRT, "ミニスカート"
+			CALL SET_OUTER, "レギンス"
+			CALL SET_SHOES, "ブーツ"
+		CASEELSE
+			CALL SET_SHIRT, "アイドル衣装"
+			CALL SET_SOCKS, "ハイソックス"
+			CALL SET_SHOES, "パンプス"
+			CALL SET_OTHER, "カチューシャ"
+		ENDSELECT
+	ENDIF
+;学園の体育の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+CASE "体操服"
+	IF CEVENT("女装")
+		CALL SET_COSTUME, "体操服ブルマ"
+	ELSE
+		CALL SET_COSTUME, "体操服ジャージ"
+	ENDIF
+;学園の水泳の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+CASE "水着"
+	IF CEVENT("女装")
+		CALL SET_COSTUME, "競泳水着"
+	ELSE
+		CALL SET_COSTUME, "サーフパンツ"
+	ENDIF
+
+;自宅など学園外で着ます。設定必須です
+CASE "普段着"
+	IF CEVENT("女装")
+		CALL SET_SHIRT, "フリルブラウス"
+		CALL SET_SKIRT, "ミニスカート"
+		CALL SET_SOCKS, "ハイソックス"
+		CALL SET_SHOES, "ローファー"
+	ELSEIF RAND:2 && COND("冬") == 0
+		CALL SET_SHIRT, "Ｔシャツ"
+		CALL SET_OUTER, "ハーフパンツ"
+		CALL SET_SOCKS, "靴下"
+		CALL SET_SHOES, "スニーカー"
+	ELSE
+		CALL SET_SHIRT, "スーツ"
+		CALL SET_OUTER, "ズボン"
+		CALL SET_SOCKS, "靴下"
+		CALL SET_SHOES, "靴"
+	ENDIF
+;自分の部屋(notあなたの部屋)で着ます
+CASE "部屋着"
+	IF RAND:2
+		CALL SET_SHIRT, "だぼだぼＴシャツ"
+		CALL SET_PANTIES, ""
+		CALL SET_BRA, ""
+	ELSE
+		CALL SETFLAG, "下着姿になる", TARGET
+	ENDIF
+;デート以外で家から外に出る際に着ます。ラブホ呼出とかね
+CASE "外出着"
+	IF CEVENT("女装")
+		CALL SET_SHIRT, "Ｙシャツ"
+		CALL SET_OUTER, "キュロットスカート"
+		CALL SET_SOCKS, "ハイソックス"
+		CALL SET_SHOES, "バレエシューズ"
+	ELSE
+		IF RAND:2
+			CALL SET_SHIRT, "シャツジャケット/緑色"
+		ELSE
+			CALL SET_SHIRT, "パーカー"
+		ENDIF
+		CALL SET_OUTER, "ジーンズ"
+		CALL SET_SOCKS, "靴下"
+		CALL SET_SHOES, "スニーカー"
+	ENDIF
+;もちろんデートの際に着ます
+CASE "デート衣装"
+	IF CEVENT("女装")
+		IF COND("冬")
+			CALL SET_SHIRT, "フリルブラウス"
+			CALL SET_OUTER, "ズボン"
+			CALL SET_SOCKS, "ハイソックス"
+			CALL SET_SHOES, "モカシン"
+			CALL SET_GLOVE, "手袋"
+			CALL SET_OTHER, "ダッフルコート"
+		ELSE
+			CALL SET_SHIRT, "甘ロリワンピース"
+			CALL SET_SOCKS, "ハイソックス"
+			CALL SET_SHOES, "ミュール"
+			CALL SET_OTHER, "チョーカー"
+		ENDIF
+	ELSE
+		IF COND("冬")
+			CALL SET_SHIRT, "Ｔシャツ"
+			CALL SET_SHIRT, "ズボン"
+			CALL SET_SOCKS, "靴下"
+			CALL SET_SHOES, "ロングブーツ"
+			CALL SET_GLOVE, "手袋"
+			CALL SET_OTHER, "ダッフルコート"
+		ELSE
+			CALL SET_SHIRT, "Ｙシャツ"
+			CALL SET_OUTER, "ハーフパンツ"
+			CALL SET_SOCKS, "靴下"
+			CALL SET_SHOES, "靴"
+		ENDIF
+		IF COND("髪型変更可能") && RAND:3 == 0
+			CSTR:前髪 = アシメ
+			CSTR:アレンジ = 一つ結び
+		ENDIF
+	ENDIF
+
+ENDSELECT
+
+
+;-------------------------------------------------
+;時間帯や場所に応じた髪型、表情の変化を記述する。設定しなくてもかまいません
+;-------------------------------------------------
+@MAIDFACE_K46
+IF CEVENT("女装")
+	CSTR:髪の長さ = セミロング
+	CSTR:眉の形 = 怒り眉
+	CSTR:前髪 = 片目隠れ
+	CSTR:後ろ髪 = ストレート
+	CSTR:アレンジ = ノーアレンジ
+ELSE
+	CALL SETFLAG, "普段の髪型復元", TARGET
+	CSTR:眉の形 = 怒り眉短
+	SIF RAND:3 == 0
+		CSTR:前髪 = ナチュラルバング２
+ENDIF

@@ -1,0 +1,641 @@
+﻿;----------------------------------------------------------------
+;セリフ参照 
+;ARGS = 検索するセリフ
+;----------------------------------------------------------------
+;@CALL_LIB(ARGS)
+;	PRINTFORMW ダイアリーの方が呼ばれた
+;	TRYCALLFORM EVENT_K15_LIBRARY(ARGS)
+;	RETURN 0
+;-------------------------------------------------
+;各種挨拶
+;-------------------------------------------------
+@KOJO_GREETING_K15, ARGS
+#DIM MEMO_LINECOUNT
+;イベント発生中のキャラ
+#DIM ACTOR
+;イベント発生中のキャラのデフォのCALLNAME
+#DIMS CALLNAME_ACTOR
+
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+CASE "挨拶する"
+	SELECTCASE CSTR:朝駆け
+	CASE "朝フェラ"
+
+	ENDSELECT
+
+	;何か発言してたらここまで
+	;SIF LINECOUNT > MEMO_LINECOUNT
+	;	RETURN 1
+
+	IF COND("体育")
+
+	ELSE
+
+	ENDIF
+CASE "一番乗り"
+	CALL CALL_LIB("一番乗り")
+	IF COND("Ｈなサプライズ可能") 
+		PRINTFORMW 「……」
+		PRINTFORMW %CALLNAME:TARGET%は二人っきりであることに気が付き顔を赤らめた。
+	ENDIF
+CASE "ただいま"
+	CALL CALL_LIB("ただいま")
+
+CASE "既に入室"
+	;家で出迎えてくれる時
+	IF COND("夜")
+		CALL CALL_LIB("既に入室：夜")
+	ENDIF
+
+CASE "入室挨拶"
+
+;部屋にいる他の人から挨拶を返される挨拶。WAITの使用は一回が望ましい
+CASE "簡易入室挨拶"
+	;遅れた時のセリフ（既に部員の４分の３が集合済）
+	IF CHARA_NUM("入室挨拶時の室内人数") >= CHARANUM*3/4 && RAND:3 == 0
+		PRINTFORMW 
+	ELSE
+		PRINTFORMW 
+	ENDIF
+;簡易入室挨拶に対する返し。WAITの使用は一回が望ましい
+;誰が入室してきた人はCOND("入室挨拶中")がONなのでFIND_COND("入室挨拶中")で検索可能
+;また、入ってきた人数はCHARA_NUM("入室挨拶中")で調べられる
+CASE "挨拶返し"
+	;挨拶してきた人の中から一人選ぶ
+	ACTOR = FIND_COND("入室挨拶中")
+	;選ばれたキャラのデフォのCALLNAME。このキャラへの呼びかけはCNAME(CALLNAME_ACTOR) で出来る
+	CALLNAME_ACTOR = %CSVCALLNAME(NO:ACTOR)%
+
+	;ここでは括弧に『』を使う
+
+	;挨拶してきた人に先生が混じっている
+	IF FIND_COND("教員", "入室挨拶中")
+		PRINTFORMW 『』
+	;相手が現れるのが遅かった（既に部員の４分の３が集合済）
+	ELSEIF CHARA_NUM("入室挨拶時の室内人数") >= CHARANUM*3/4 && RAND:3 == 0
+		PRINTFORMW 『』
+	ELSE
+		PRINTFORMW 『』
+	ENDIF
+
+CASE "居間に現れた"
+	;一度居間から別の場所に行って、居間に帰って来た時
+	IF CMOVE("居間")
+
+	ELSE
+
+	ENDIF
+CASE "抜け出された"
+
+CASE "お弁当"
+	CALL CALL_LIB("お弁当：包囲下")
+ENDSELECT
+
+;-------------------------------------------------
+;メイン画面での台詞。いわゆる一言イベント強化版
+;ちなみに画面リロードしても同じセリフを喋ります
+;選択肢に挟まれた場所で出力するのでWAITの使用は禁止
+;-------------------------------------------------
+@KOJO_DAILY_K15, ARGS
+#DIM MEMO_LINECOUNT
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+CASE "初回台詞"
+	CALL CALL_LIB("初回台詞")
+CASE "汗だく"
+	PRINTFORML 
+CASE "寝起き"
+	IF RAND:2
+		CALL CALL_LIB("寝起き：１")
+	ELSE 
+		CALL CALL_LIB("寝起き：２")
+	ENDIF
+;眠っている
+CASE "睡眠"
+	CALL KOJO_SLEEP_K15
+	;寝言用の汎用地の文呼出
+	CALL DAILY_MESSAGE, "寝言"
+ENDSELECT
+
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;前回コマンド対応台詞
+SELECTCASE CONDS("直前行動")
+CASE "愛の告白"
+;	PRINTFORML 「        」
+;	PRINTFORML 理解が追い付かず固まっている
+CASE "契約成立"
+	IF RAND:2
+		CALL CALL_LIB("契約成立：魂の使い道")
+	ELSE
+		CALL CALL_LIB("契約成立：１")
+	ENDIF
+CASE "抜け出す"
+	PRINTFORML 
+CASE "あなたの部屋に連れ込まれた"
+	PRINTFORML 
+CASE "自室に招待"
+	PRINTFORML 
+CASE "自室に訪問された"
+	;アドバイザーを伴っている場合
+	IF FIND_COND("現在存在", "助手")
+		PRINTFORML 
+	ELSE
+		PRINTFORML 
+	ENDIF
+CASE "アドバイザー部屋訪問"
+	PRINTFORML 
+;自宅移動の後にあなたに連れられて居間に戻ってきた場合など。優先度は低いです
+CASE "帰還"
+	PRINTFORML 
+CASE "ミニスカパンチラ"
+	PRINTFORML 
+CASE "スカートをめくる"
+	PRINTFORML 
+ENDSELECT
+
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;標語の反応。書いたらコメントアウトを外してください
+IF CFLAG:標語実践
+	IF STRCOUNT(SAVESTR:標語, "喉の渇きに注意")
+		;IF DEVENT("標語お茶") == 0
+		;	PRINTFORML 
+		;	CALL SET_DEVENT, "標語お茶"
+		;ENDIF
+	ELSEIF STRCOUNT(SAVESTR:標語, "体操服")
+		SELECTCASE SAVESTR:標語
+		CASE "体操服はやっぱりブルマ"
+			;IF DEVENT("標語ブルマ") == 0
+			;	PRINTFORML 
+			;	CALL SET_DEVENT, "標語ブルマ"
+			;ENDIF
+		CASE "体操服はやっぱりハーパン"
+
+		CASE "体操服はやっぱりスパッツ"
+
+		CASE "体操服はやっぱりジャージ"
+		;各分岐を細かく埋めずに、上の分岐を消して望みの体操服に着替えてやったぞ発言をここに書くのも良いと思います
+		CASEELSE
+
+		ENDSELECT
+	ELSEIF STRCOUNT(SAVESTR:標語, "学生服")
+		SELECTCASE SAVESTR:標語
+		CASE "学生服はミニスカに限る"
+			;IF DEVENT("標語ミニスカ") == 0
+			;	PRINTFORML 
+			;	CALL SET_DEVENT, "標語ミニスカ"
+			;ENDIF
+		CASE "学生服は超ミニに限る"
+		;各分岐を細かく埋めずに、上の分岐を消して望みの学生服に着替えてやったぞ発言をここに書くのも良いと思います
+		CASEELSE
+
+		ENDSELECT
+	ENDIF
+ENDIF
+
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;イベント台詞。書いたらコメントアウトを外してください
+;CFLAG:日常イベント回数が10増えるたびに一つ起こすぐらいで良いでしょう
+;IF CFLAG:日常イベント回数 >= 5 && DEVENT("質問１") == 0
+;	PRINTFORML 
+;	CALL SET_DEVENT, "質問１"
+;ENDIF
+;IF CFLAG:日常イベント回数 >= 15 && DEVENT("質問２") == 0
+;	PRINTFORML 
+;	CALL SET_DEVENT, "質問２"
+;ENDIF
+
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+;他の人といちゃついた後にパートナー変更
+IF COND("いちゃいちゃ") == 0 && FIND_COND("Ｈないちゃつき中")
+;	PRINTFORML 
+ENDIF
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+
+IF CEVENT("槞彁：就労ビザ取得命令", MASTER) && CEVENT("槞彁：ビザ取得デートのお誘い", MASTER) && TEXTS("曜日") == "日"  && !CEVENT("槞彁：Demsolaviya20XX呼び出し可", MASTER)
+	CALL CALL_LIB("アルバイト探しイベント：日曜日デート待機中")
+ENDIF
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+IF CEVENT("槞彁：就労ビザ取得命令", MASTER) && !CEVENT("槞彁：Demsolaviya20XX呼び出し可", MASTER)
+	CALL CALL_LIB("アルバイト探しイベント：ビザ発行デートのお願い")
+	
+	SIF CEVENT("槞彁：ビザ取得デートのお誘い", MASTER) == 0
+		CALL SET_CEVENT, "槞彁：ビザ取得デートのお誘い", MASTER
+ENDIF
+;何か発言してたらここまで
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+;以下はランダム台詞など
+
+;時間帯と場所と関係で変化有り
+;IF COND("夜")
+	
+;ELSE
+	;PRINTFORML 母国報道　{CFLAG:CFLAG_LIB("母国報道")} 　　母国状況　{CFLAG:CFLAG_LIB("母国状況")} 
+	SELECTCASE CFLAG:MASTER:母国報道
+		CASE 4
+			PRINTFORML %CALLNAME:TARGET%は%TEXTR("絶望したように/必死に/目もくれずに/ため息を付きながら/涙目で")%%TEXTR("ラジオの周波数を変えている/外国語で放送されているラジオを聴いている")%
+			PRINTFORML %CALLNAME:MASTER%に気が付くと%CALLNAME:TARGET%は、%CALLNAME:MASTER%に何事も無かったかのように微笑み、作業を続けた。
+			SIF CEVENT("母国について告白") == 1
+				PRINTFORML どうやら母国のラジオ放送が止まっているようだ・・・　状況は芳しく無さそうだ。
+				
+		CASE 5
+			CALL CALL_LIB("ラジオ放送：包囲下")
+			PRINTFORML %CALLNAME:TARGET%は真剣な顔つきでラジオを聴いている。
+			SIF CEVENT("母国について告白") == 1
+				CALL CALL_LIB("ラジオ放送：包囲下：解説")
+;		CASE 6
+;			CALL CALL_LIB("ラジオ放送：激戦")
+;			PRINTFORML %CALLNAME:TARGET%は真剣な顔つきでラジオを聴いている。
+;			SIF CEVENT("母国について告白") == 1
+;				CALL CALL_LIB("ラジオ放送：包囲下：解説")
+		CASEELSE
+			PRINTFORML %CALLNAME:TARGET%は%TEXTR("絶望したように/必死に/目もくれずに/ため息を付きながら/涙目で")%%TEXTR("ラジオの周波数を変えている/外国語で放送されているラジオを聴いている")%
+			PRINTFORML %CALLNAME:MASTER%に気が付くと%CALLNAME:TARGET%は、%CALLNAME:MASTER%に何事も無かったかのように微笑み、作業を続けた。
+	ENDSELECT
+;ENDIF
+
+;-------------------------------------------------
+;寝言。適当にむにゃむにゃ言わせてください
+;-------------------------------------------------
+@KOJO_SLEEP_K15
+;上から順に発言頻度が高いようにする(== 0の付け忘れではない)
+IF RAND:3
+	CALL CALL_LIB("寝言：母")
+ELSEIF RAND:2
+	CALL CALL_LIB("寝言：人形")
+ELSE
+	CALL CALL_LIB("寝言：父")
+ENDIF
+
+;-------------------------------------------------
+;メイン画面で選択肢として独立している日常イベントでのセリフ。WAIT使って大丈夫です
+;こっちはあくまで選択肢で選ばれた場合に限るのに注意。
+;-------------------------------------------------
+@KOJO_DAILYCOM_K15, ARGS
+;挨拶
+#DIMS GREETING
+
+#DIM MEMO_LINECOUNT
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+	CASE "帰り道"
+		;SAVESTR:現在位置 と SAVESTR:帰り道の行動 を決定する
+		CALL SETFLAG, "遭遇地点"
+
+		;地の文の前の台詞がある場合はここに書く
+		SELECTCASE SAVESTR:現在位置
+		CASE "にわか雨"
+
+		ENDSELECT
+
+		;地の文を出す
+		CALL DAILY_MESSAGE, "帰り道"
+
+		SELECTCASE SAVESTR:帰り道の行動
+		CASE "相合傘"
+
+		CASE "下着選び", "水着選び"
+
+		;特定行動でのセリフ。DAILY_MESSAGE, "帰り道"の地の文を参考に適当に場合分けしてください。
+		CASE "イチャイチャ", "立ち読み", "買い食い", "ゲームを物色"
+
+		CASE "新刊のチェック"
+
+		CASE "寄り道"
+
+		CASE "直帰"
+
+		CASEELSE
+
+		ENDSELECT
+
+	;[999]選択後の台詞。TFLAG:ベッドイン = 1とすることで強制的にエロにも行ける
+	CASE "休憩"
+		IF PLACE("自宅")
+			IF COND("夜")
+
+			ELSE
+
+			ENDIF
+		;ここは実質昼のみ
+		ELSEIF PLACE("部室")
+
+		;場所移動後
+		ELSE
+
+		ENDIF
+	;ここには特殊な条件でのキャラ独自のイベントを書く。別に無くても構わない
+	;発生タイミングは日常イベント選択後の好感度を得た直後
+	CASE "特殊イベント"
+		;眠ってる時でも来るので書くことないならRETURN 0してください
+		SIF CFLAG:睡眠
+			RETURN 0
+	;これは昼か夜
+	CASE "挨拶する"
+		IF COND("夜")
+			GREETING = こんばんは
+		ELSEIF COND("昼")
+			GREETING = こんにちは
+		ELSE
+			GREETING = おはようございます
+		ENDIF
+		;あなたに先に挨拶をされた
+		IF CFLAG:挨拶した == 0
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	CASE "起こす"
+		IF RAND:3
+			CALL CALL_LIB("起こす：１")
+		ELSEIF RAND:2
+			CALL CALL_LIB("起こす：２")
+		ELSE
+			CALL CALL_LIB("起こす：３")
+		ENDIF
+	CASE "トーク"
+		SELECTCASE STR:日常イベント名
+		CASE "褒める"
+			;SELECTCASE CFLAG:母国状況
+				;CASE IS <= 20
+					;CALL CALL_LIB("褒める:崩壊")
+				;CASE 21 TO 89
+					CALL CALL_LIB("褒める:戦時")
+					PRINTFORMW %CALLNAME:TARGET%は喜んでくれたようだ
+				;CASE IS >= 90
+					;CALL CALL_LIB("褒める:停戦")
+			;ENDSELECT
+		CASE "甘い言葉"
+			IF TALENT:恋慕 ;&& CFLAG:母国状況 >= 90
+				;CALL CALL_LIB("甘い言葉：恋慕＆停戦")
+			ELSEIF CALCF("甘い言葉成功")
+				PRINTFORMW 
+			ELSE
+				PRINTFORMW 
+			ENDIF
+		CASEELSE
+			IF (CEVENT("母国について告白") == 0 && TALENT:恋慕)
+				CALL SET_CEVENT("母国について告白")
+				;CALL CALL_LIB("母国について告白")
+			;ELSEIF RAND:2
+			;	CALL CALL_LIB("日常トーク：明後日の方向")
+			ELSE
+				;そんなぽこじゃか呼ばれても困るよね
+				IF RAND:3
+					CALL CtoC_Comm_K15
+					;何か発言してたらここまで
+					SIF LINECOUNT > MEMO_LINECOUNT
+						RETURN 1
+				ENDIF
+
+				SELECTCASE RAND:6
+					CASE 0
+						PRINTFORMW %CALLNAME:MASTER%は%NAME:TARGET%の母国について尋ねた
+						PRINTFORML 
+						CALL CALL_LIB("日常トーク：母国について")
+					CASE 1
+						CALL CALL_LIB("日常トーク：蒼外線")
+					CASE 2
+						CALL CALL_LIB("日常トーク：物価")
+					CASE 3
+						CALL CALL_LIB("日常トーク：魔界と虚偽世界")
+					CASE 4
+						PRINTFORML %CALLNAME:MASTER%はなぜこちらの世界に来たのか尋ねた
+						CALL CALL_LIB("日常トーク：亡命理由")
+					CASE 5
+						PRINTFORML %CALLNAME:MASTER%は家族について尋ねた
+						PRINTFORML 
+						CALL CALL_LIB("日常トーク：家族について(父)")
+					CASEELSE
+						
+				ENDSELECT
+			ENDIF
+		ENDSELECT
+
+	CASE "汗を拭く"
+		PRINTFORMW 
+	CASE "シャワー独り言"
+		CALL CALL_LIB("シャワー独り言")
+	CASE "シャワー"
+		;実は下着を漁ったのに気づかれています
+		IF COND("シャワー：下着漁りバレ")
+			CALL CALL_LIB("シャワー：バレ")
+		ELSE
+			CALL CALL_LIB("シャワー：通常")
+		ENDIF
+	;睡眠中の悪戯
+	CASE "寝込みを襲う"
+		;寝言
+		CALL KOJO_SLEEP_K15
+		WAIT
+	CASE "もてなす"
+		SELECTCASE STR:日常イベント名
+		CASE "おっぱいリフトする"
+			CALL CALL_LIB("おっぱいリフトする")
+		CASE "マッサージする"
+			IF EQUIP:COND("欲求不満")
+				CALL CALL_LIB("マッサージする：欲求不満")
+			ELSE
+				CALL CALL_LIB("マッサージする")
+			ENDIF
+		CASE "キスする"
+			IF CSTR:PREV_DAILYCOM == STR:日常イベント名
+				CALL PRINT_STR, "「…っ！_H_」_W"
+			ELSE
+				PRINTFORMW 
+			ENDIF
+		CASE "膝枕する"
+			IF RAND:2
+				CALL CALL_LIB("膝枕する：１")
+			ELSE
+				CALL CALL_LIB("膝枕する：２")
+			ENDIF
+		CASE "お茶を淹れる"
+			IF RAND:3
+				CALL CALL_LIB("お茶を淹れる：１")
+			ELSEIF RAND:2
+				CALL CALL_LIB("お茶を淹れる：２")
+			ELSE
+				CALL CALL_LIB("お茶を淹れる：３")
+			ENDIF
+		;当然だが尻尾がある相手のみ
+		CASE "しっぽをなでる"
+			IF RAND:3
+				CALL CALL_LIB("尻尾をなでる：１")
+			ELSEIF RAND:2
+				CALL CALL_LIB("尻尾をなでる：２")
+			ELSE
+				CALL CALL_LIB("尻尾をなでる：３")
+			ENDIF
+			;初めて
+			;IF DEVENT(STR:日常イベント名) == 0
+			;	PRINTFORMW 
+			;連続実行
+			;ELSEIF CSTR:PREV_DAILYCOM == STR:日常イベント名
+			;	PRINTFORMW 
+			;この時間で初実行
+			;ELSEIF CHOSE_DEVENT(STR:日常イベント名) == 0 && RAND:2
+			;	PRINTFORMW 
+			;ELSE
+			;	PRINTFORMW 
+			;ENDIF
+		CASEELSE
+			CALL CALL_LIB("もてなす")
+		ENDSELECT
+	CASE "寝姿を整える"
+		;寝言
+		CALL KOJO_SLEEP_K15
+		WAIT
+	CASE "隙を見せる"
+		SELECTCASE STR:日常イベント名
+		CASE "Ｈのお誘い", "パンツ見せ"
+			PRINTFORMW 
+		CASE "押し倒し"
+			PRINTFORMW 
+		CASE "口淫"
+			PRINTFORMW 
+		CASE "頬キス", "キス"
+			PRINTFORMW 
+		CASE "膝を枕にしてくる", "抱きつき", "おっぱい押し付け", "股間擦り付け"
+			PRINTFORMW 
+		CASE "なでなで", "手淫"
+			PRINTFORMW 
+		CASE "膝枕"
+			PRINTFORMW 
+		CASE "お茶汲み"
+			PRINTFORMW 
+		;それ以外
+		CASEELSE
+			IF RAND:2
+				PRINTFORMW 
+			ELSE
+				PRINTFORMW 
+			ENDIF
+		ENDSELECT
+	CASE "トイレ"
+		;トイレで用を済ませた後の台詞
+		IF BASE:尿意 == 0
+			;主人もトイレで済ませてきた
+			IF BASE:MASTER:尿意 == 0
+				PRINTFORMW 
+			ELSE
+				PRINTFORMW 
+			ENDIF
+		;トイレに行く際の台詞
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	CASE "トイレ詮索"
+		PRINTFORMW 
+	CASE "アソコチェック"
+		;睡眠中の悪戯
+		IF CFLAG:睡眠
+			;寝言
+			CALL KOJO_SLEEP_K15
+			WAIT
+		ELSEIF COND("合意：アソコチェック") == 0
+			;拒否されたのに連続実行
+			IF CSTR:PREV_DAILYCOM == STR:日常イベント名
+				PRINTFORMW 
+			ELSE
+				PRINTFORMW 
+			ENDIF
+		ELSE
+			PRINTFORMW 
+		ENDIF
+	CASE "パンツチェック"
+		;睡眠中の悪戯
+		IF CFLAG:睡眠
+			;寝言
+			CALL KOJO_SLEEP_K15
+			WAIT
+		ELSE
+			;連続実行
+			IF CSTR:PREV_DAILYCOM == STR:日常イベント名
+				PRINTFORMW 
+			ELSE
+				PRINTFORMW 
+			ENDIF
+		ENDIF
+	CASE "ブルマチェック", "股間観察"
+		;睡眠中の悪戯
+		IF CFLAG:睡眠
+			;寝言
+			CALL KOJO_SLEEP_K15
+			WAIT
+		ELSEIF CFLAG:股間確認済 && RAND:2
+			PRINTFORMW 
+		;上機嫌
+		ELSEIF CFLAG:褒める
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+
+	CASE "スカートをめくる"
+		SELECTCASE STR:日常イベント名
+		CASE "スカートたくし上げ"
+			;初めて
+			IF DEVENT(STR:日常イベント名) == 0
+				PRINTFORMW 
+			;パンチラ直後
+			ELSEIF COND("パンチラ直後")
+				PRINTFORMW 
+			ELSE
+				PRINTFORMW 
+			ENDIF
+		;スカートをめくる
+		CASEELSE
+			;寝起きの胡乱な状態を襲う
+			IF CFLAG:寝起き
+				PRINTFORMW 
+			;睡眠中の悪戯
+			ELSEIF CFLAG:睡眠
+				;寝言
+				CALL KOJO_SLEEP_K15
+				WAIT
+			;初めて
+			ELSEIF DEVENT(STR:日常イベント名) == 0
+				PRINTFORMW 
+			;パンチラ直後
+			ELSEIF COND("パンチラ直後")
+				PRINTFORMW 
+			ELSE
+				IF COND("挨拶前")
+					PRINTFORMW 
+				ELSE
+					;パンツはいてない
+					IF EQUIP:パンツ == 0
+						PRINTFORMW 
+					ELSE
+						PRINTFORMW 
+					ENDIF
+				ENDIF
+			ENDIF
+		ENDSELECT
+ENDSELECT
+
+
+

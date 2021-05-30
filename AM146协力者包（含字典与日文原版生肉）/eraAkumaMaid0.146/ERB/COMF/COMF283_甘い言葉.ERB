@@ -1,0 +1,201 @@
+﻿@COM283
+;甘い言葉
+;成功率判定を行う。成功時には反感を買わずに恭順・欲望が上昇。
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+;話を聞いてくれる
+IF CALCF("甘い言葉成功")
+	TEQUIP:甘い言葉 = 5
+	;専用の素質を持ってる？
+	SIF TALENT:PLAYER:甘い言葉
+		TEQUIP:甘い言葉 += TALENT:PLAYER:甘い言葉
+	;アドバイスに堕天使の甘言がある？
+	SIF TEQUIP:堕天使の甘言
+		TEQUIP:甘い言葉 += 2
+;話を聞いてくれない
+ELSE
+	TEQUIP:甘い言葉 = 0
+ENDIF
+
+CALL SOURCE_CHECK_SHORT
+
+RETURN 0
+
+@TRAIN_MESSAGE_COM283
+IF PREVCOM >= 0
+	SELECTCASE TRAINNAME_EX(PREVCOM)
+	CASE "剃毛"
+		IF TALENT:オトコ == 0
+			PRINTFORM %CALLNAME:PLAYER%は
+			SELECTCASE CONDS("陰毛")
+			CASE "脱毛処理"
+				PRINTFORM %TEXTR("脱毛されて子供の様にツルツル/完全に脱毛されたおかげでよく見えるよう")%になった
+			CASE "ツルツル"
+				PRINTFORM %TEXTR("丁寧に陰毛を剃り落とされた/ツルツルにされた/よく見えるようになった")%
+			CASE "お手入れ済"
+				IF CEVENTS("陰毛の名称") != ""
+					PRINTFORM 綺麗な%CEVENTS("陰毛の名称")%に
+				ELSE
+					PRINTFORM %TEXTR("丁寧に/綺麗に/バッチリ")%
+				ENDIF
+				PRINTFORM 陰毛を剃り整えられた
+			ENDSELECT
+			PRINTFORM %CALLNAME:TARGET%の%TEXTS("割れ目：表現短め")%
+			IF RAND:2
+				PRINTFORMW を、指先で%TEXTR("優しくなぞり/押し開いたりし/クニクニ弄り")%ながら褒めた…
+			ELSE
+				PRINTFORMW に顔を近づけ、%TEXTR("出来栄えを確認し/剃り残しが無いかチェックし/隅々まで鑑賞し")%ながら褒めた…
+			ENDIF
+			RETURN 1
+		ENDIF
+	CASE "ゴム精飲"
+		PRINTFORM %CALLNAME:PLAYER%は
+		SELECTCASE ABL:精液中毒
+		CASE IS >= 3
+			PRINTFORMW %CALLNAME:TARGET%の見事な飲みっぷりを褒め称えた…
+		CASEELSE
+			PRINTFORMW 、精液をしっかり飲み干せた%CALLNAME:TARGET%を褒め称えた…
+		ENDSELECT
+		RETURN 1
+	CASE "浴尿させる"
+		IF PREVPLAY("尿飲み干し")
+			PRINTFORMW %CALLNAME:PLAYER%は、溢す事もなく綺麗におしっこを飲み干した%CALLNAME:TARGET%を褒め称えた…
+			RETURN 1
+		ENDIF
+	CASE "フィストファック", "両穴フィスト"
+		PRINTFORM %CALLNAME:PLAYER%は
+		PRINTFORM %TEXTR("愛液まみれになった手を見せつけ/股間を撫でさすり/引き続きゆっくりと手を出し入れし")%ながら、
+		IF ABL:Ｖ弛緩
+			PRINTFORMW %TEXTR(@"目を見張る程に大きく広がった%CALLNAME:TARGET%の膣穴\/%CALLNAME:TARGET%の膣穴のガバガバ具合\/すっかり締まりを失ってしまった%CALLNAME:TARGET%のユルい膣穴")%を褒め称えた…
+		ELSE
+			PRINTFORMW %TEXTR(@"大きく広がった%CALLNAME:TARGET%の膣穴\/%CALLNAME:TARGET%の膣穴の深く柔軟な様\/腕だろうと受け入れられる程に成長した%CALLNAME:TARGET%の膣穴")%を褒め称えた…
+		ENDIF
+		RETURN 1
+	CASE "アナルフィスト"
+	ENDSELECT
+ENDIF
+
+PRINTFORM %CALLNAME:PLAYER%
+;褒める
+IF PREVPLAY("Ａお掃除フェラ")
+	PRINTFORM はアナルセックス直後のペニスを口でお掃除している
+ELSEIF PREVPLAY("お掃除フェラ")
+	PRINTFORM は汚れたペニスを口でお掃除している
+;ELSEIF PREVCOM == 14
+;	PRINTFORMW は%CALLNAME:TARGET%のアナルのガバガバ具合を褒めた…
+;	RETURN 1
+;インサート中
+ELSEIF INSERT("合体中") && RANDIF(1, TEQUIP:キス)
+	PRINTFORM は%TEXTS("合体中", PLAYER)%
+ELSEIF TEQUIP:キス
+	PRINTFORM は%TEXTS("キス継続")%、
+	CALL SETFLAG, "追加キスフラグ", TARGET
+ELSEIF TEQUIP:ディープスロート && PREVCOM == TNUM("ディープスロート")
+	PRINTFORMW はディープスロートをしている%CALLNAME:TARGET%に、頭を撫でながら優しく語りかけた…
+	RETURN 1
+ELSE
+	SELECTCASE PREVCOM
+	CASE 91
+		PRINTFORM はペニスに口で奉仕している
+	CASE 98
+		PRINTFORM は股間に顔を埋めて奉仕している
+	CASE TNUM("抱きしめる")
+		PRINTFORMW は%CALLNAME:TARGET%を抱きしめながら、甘く語りかけた…
+		RETURN 1
+	CASEELSE
+		IF ASSI && TALENT:ASSI:甘い言葉 && TALENT:MASTER:甘い言葉 && ASSIPLAY
+			PRINTFORM と%CALLNAME:MASTER%は
+		ELSEIF ASSI && TALENT:ASSI:甘い言葉 && TALENT:MASTER:甘い言葉 && ASSIPLAY == 0
+			PRINTFORM と%CALLNAME:ASSI%は
+		ELSE
+			PRINTFORM は
+		ENDIF
+	ENDSELECT
+ENDIF
+
+IF AGE(TARGET) < AGE(PLAYER) && INSERT("合体中") == 0
+	PRINTFORMW %CALLNAME:TARGET%に優しく語りかけた…
+ELSE
+	PRINTFORMW %CALLNAME:TARGET%に甘く語りかけた…
+ENDIF
+
+
+@EQUIP_COM283_2
+SIF TEQUIP:甘い言葉 == 0
+	RETURN 0
+;実行ターンの成功時のSOURCEはここで処理
+IF SELECTCOM == 283
+	;成功率Downの素質がある場合、取得sourceにボーナスがつく
+	;ソースの基準量や補正倍率はまだ調整途上
+	LOCAL = CALCF("甘い言葉")
+
+	SOURCE:情愛 += LOCAL
+	IF TALENT:オトコ == 0
+		IF TALENT:濡れやすい
+			SOURCE:Ｖ液体追加 += UP_PALAMLV(LOCAL / 10)
+		ELSEIF TALENT:濡れにくい
+			SOURCE:Ｖ液体追加 += DOWN_PALAMLV(LOCAL / 10)
+		ELSE
+			SOURCE:Ｖ液体追加 += LOCAL / 10
+		ENDIF
+	ENDIF
+	SOURCE:恭順追加 += LOCAL / 2
+	SOURCE:欲情追加 += LOCAL / 4
+	;反抗的な人は恭順が上がらな過ぎるので、補正
+	SIF TALENT:反抗的
+		SOURCE:恭順追加 += LOCAL * 3
+	;ムード加算
+	FLAG:ムード += 30 + TEQUIP:甘い言葉*5
+
+	;好感度
+	SIF PLAYER == MASTER
+		TFLAG:好感度ボーナス += 5 + TEQUIP:甘い言葉
+ENDIF
+;ムードアップ中
+PRINTFORML ＜甘い言葉効果発揮中＞
+TEQUIP:甘い言葉 -= 1
+;好感度
+SIF PLAYER == MASTER
+	TFLAG:好感度ボーナス += 2
+
+RETURN 1
+
+;-------------------------------------------------
+;汎用口上
+;-------------------------------------------------
+@KOJO_MESSAGE_COM283
+;汎用成功
+IF TEQUIP:甘い言葉
+	IF TALENT:高慢 && RAND:2
+		PRINTFORMW %CALLNAME:TARGET%は満更でもなさそうだ…
+	ELSEIF TALENT:陽気
+		IF RAND:2
+			PRINTFORM %CALLNAME:TARGET%は、にっこり笑顔で%CALLNAME:PLAYER%
+			IF AGE(TARGET) >= 3
+				PRINTW を抱きしめてきた！
+			ELSE
+				PRINTW に抱きついてきた！
+			ENDIF
+		ELSE
+			PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%の台詞を反芻して顔を緩ませている！
+		ENDIF
+	ELSEIF TALENT:恥じらい
+		PRINTFORMW %CALLNAME:TARGET%は顔を赤くしてもじもじしている！
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%は喜んでいる！
+	ENDIF
+;汎用失敗
+ELSE
+	IF TALENT:高慢 && RAND:2
+		PRINTFORMW %CALLNAME:TARGET%は、%CALLNAME:PLAYER%の口説き文句を鼻で笑った…
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%は、%CALLNAME:PLAYER%の台詞を聞き流した…
+	ENDIF
+ENDIF

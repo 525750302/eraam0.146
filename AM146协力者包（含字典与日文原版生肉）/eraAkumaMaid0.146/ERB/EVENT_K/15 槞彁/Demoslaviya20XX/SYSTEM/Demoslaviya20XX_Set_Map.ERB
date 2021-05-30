@@ -1,0 +1,172 @@
+﻿;;;<Summary>
+;;;	MAPにタイルデータを設定するよ！
+;;;</Summary>
+;;;<param name="ARGS">設定データ(X座標分割記号="," Y座標分割記号="/")</param>
+;;;<example>
+;;;	CALL Demoslaviya20XX_MAP_Set_Hex("草,草,森/街,森,森/森,森,砂")
+;;;</example>
+;;;<remarks>
+;;;	わざわざ１タイル毎に虚無データを入れなくても、ここで自動的に一個飛ばしにデータを入れてくれるんだ！
+;;;	やったね！
+;;;	注意としては、必ず X=0,Y=0座標からスタートするんだ！
+;;;	つまり下のようなMAPは対応していないんだ！
+;;;	  ＠＠＠＠＠＠＠＠＠
+;;;	 ＠＠＠＠＠＠＠＠＠
+;;;	  ＠＠＠＠＠＠＠＠＠
+;;;	 ＠＠＠＠＠＠＠＠＠
+;;;	上みたいなMAP作りたかったら、これを読んでいる君が！作ってみよう！
+;;;	できるだけわかりやすく作ったつもりだけど、分かりにくかったらごめんね！
+;;;	
+;;;	ちなみに作れるMAPを上のように書くとこうなるよ！
+;;;	 ＠＠＠＠＠＠＠＠＠
+;;;	  ＠＠＠＠＠＠＠＠＠
+;;;	 ＠＠＠＠＠＠＠＠＠
+;;;	  ＠＠＠＠＠＠＠＠＠
+;;;	頼むから上の図で伝わってくれ～
+;;;</remarks>
+@Demoslaviya20XX_Map_Set_Hex(ARGS)
+	#DIM DYNAMIC X_COUNT
+	#DIM DYNAMIC Y_COUNT
+	#DIMS DYNAMIC X_DATA,200
+	#DIMS DYNAMIC Y_DATA,200
+	#DIM DYNAMIC X_SET
+
+	SPLIT ARGS,"/",Y_DATA
+
+	;ERHには200って書いてあるけど、ヘクスタイル式なので縦横幅最大値は半分の100なんだ！
+	;ヘクスタイル式って分かりにくいね！
+	FOR Y_COUNT, 0, 100
+		IF Y_DATA:Y_COUNT == ""
+			BREAK
+		ELSE
+			SPLIT Y_DATA:Y_COUNT,",",X_DATA
+
+			FOR X_COUNT, 0, 100
+				IF X_DATA:X_COUNT == ""
+					BREAK
+				ELSE
+					;このIFの中身弄るだけでremarksに書いた作れないMAPを作れるようになると思ったら大間違いだ！
+					;多分ミニゲームの本処理を全部対応させる必要があるから、もし本当に対応させたいと頑張っている人が居たら注意してくれ！
+					;ちなみにここが一個飛ばしに値設定するための処理であって、他の処理はただのデータ対応用の本来は必要なかった処理だ！
+					
+					IF Y_COUNT == 0;0除算エラー対策よ
+						X_SET = X_COUNT * 2
+					ELSEIF Y_COUNT % 2 == 0;同じく0除算エラー対策よ
+						X_SET = X_COUNT * 2
+					ELSE
+						X_SET = X_COUNT * 2 + 1
+					ENDIF
+					Demoslaviya20XX_MAP:Y_COUNT:X_SET:0 = %X_DATA:X_COUNT%
+				ENDIF
+			NEXT
+		ENDIF
+	NEXT
+
+;;;<Summary>
+;;;	MAPにユニットを配置するよ、絶対に,分割は数値で三つ用意すること！
+;;;</Summary>
+;;;<param name="ARGS">設定データ(X,Y,UnitID分割記号="," Unit分割記号="/")</param>
+;;;<example>
+;;;	;座標0,0にユニットID:1を置く、座標1,3にユニットID:2を置く、座標0,12にユニットID:5を置く
+;;;	CALL Demoslaviya20XX_MAP_Set_Unit("0,0,1/1,3,2/0,12,5")
+;;;</example>
+@Demoslaviya20XX_Map_Set_Unit(ARGS)
+	#DIM DYNAMIC LCOUNT
+	#DIMS DYNAMIC UNIT_DATA,3
+	#DIM DYNAMIC X_DATA
+	#DIM DYNAMIC Y_DATA
+	#DIMS DYNAMIC UNITS,10000
+
+	SPLIT ARGS,"/",UNITS
+	;MAP最大面積100*100=10000へクスに全部ユニットが居れば10000回ループする必要有るけど
+	;正直10000回ループする事など無いと思う
+	;ぶっちゃけ100回くらいでも十分なのでは説あるよね
+	;でもまぁ、絶対はないのでちゃんと回そうね
+	;重くなるから途中でBreakするのは忘れないようにしなければ
+	FOR LCOUNT ,0 , 10000
+		IF UNITS:LCOUNT == ""
+			BREAK
+		ELSE
+			SPLIT UNITS,",",UNIT_DATA
+
+			;#region データが数値変換できない場合Breakするよ
+				SIF ISNUMERIC(UNIT_DATA:0) == 0
+					BREAK
+				SIF ISNUMERIC(UNIT_DATA:1) == 0
+					BREAK
+				;Demoslabiya20XX_MAPは文字列型配列でも、処理で使うときは毎回TOINTするから数値変換可能でないと困るんだ！
+				SIF ISNUMERIC(UNIT_DATA:2) == 0
+					BREAK
+			;#endregion
+
+			;時空の狭間に取り込まれる場合BREAKする
+			IF TOINT(UNIT_DATA:0) == 0
+				IF TOINT(UNIT_DATA:1) == 0
+					;何もしないよ
+				ELSEIF TOINT(UNIT_DATA:1) % 2 == 1
+					BREAK
+				ENDIF
+			ELSEIF TOINT(UNIT_DATA:1) == 0
+				SIF TOINT(UNIT_DATA:0) % 2 == 1;上のIFでUNIT_DATA != 0である事は保証されているので、これでいいのだ
+					BREAK 
+			ELSEIF (TOINT(UNIT_DATA:0) % 2 == TOINT(UNIT_DATA:1) % 2)
+				BREAK
+			ENDIF
+
+			;指定座標に先客が居た場合BREAKする
+			SIF Demoslaviya20XX_MAP:TOINT(UNIT_DATA:1):TOINT(UNIT_DATA:0):1 != "None"
+				BREAK
+
+			;Demoslaviya20XX_MAPのデータ構造は　Demoslaviya20XX_MAP:Y座標:X座標:各パラメータ　なんだ！
+			;分かりにくいね！気を付けよう！
+			;Demoslaviya20XX_MAPは文字列型配列だからUNIT_DATA:2はTOINTしたら駄目なんだ！
+			;さらに分かりにくいね！気を付けよう！
+			Demoslaviya20XX_MAP:TOINT(UNIT_DATA:1):TOINT(UNIT_DATA:0):1 = UNIT_DATA:2
+		ENDIF
+	NEXT
+	;本当なら設定失敗したユニットIDを返したかったけど、なんか色々面倒で諦めためう
+
+
+;;;<Summary>
+;;;	ユニット配置可能エリアを設定するよ
+;;;</Summary>
+;;;<param name="ARGS">設定データ(X,Y,召還可能(trueもしくはfalse)="," ="/")</param>
+;;;<example>
+;;;	;座標0,0にユニットID:1を置く、座標1,3にユニットID:2を置く、座標0,12にユニットID:5を置く
+;;;	CALL Demoslaviya20XX_MAP_Set_Unit("0,0,true/1,3,true/0,12,true")
+;;;</example>
+@Demoslaviya20XX_Map_Set_UnitSummonArea(ARGS)
+	#DIM DYNAMIC LCOUNT
+	#DIMS DYNAMIC IsSet,3
+	#DIM DYNAMIC X_DATA
+	#DIM DYNAMIC Y_DATA
+	#DIMS DYNAMIC InputData,10000
+
+	SPLIT ARGS,"/",InputData
+	;MAP最大面積100*100=10000へクスに全部ユニットが居れば10000回ループする必要有るけど
+	;正直10000回ループする事など無いと思う
+	;ぶっちゃけ100回くらいでも十分なのでは説あるよね
+	;でもまぁ、絶対はないのでちゃんと回そうね
+	;重くなるから途中でBreakするのは忘れないようにしなければ
+	FOR LCOUNT ,0 , 10000
+		IF InputData:LCOUNT == ""
+			BREAK
+		ELSE
+			SPLIT InputData,",",IsSet
+
+			;#region データが数値変換できない場合Breakするよ
+				SIF ISNUMERIC(IsSet:0) == 0
+					BREAK
+				SIF ISNUMERIC(IsSet:1) == 0
+					BREAK
+			;#endregion
+
+			;時空の狭間に取り込まれる場合BREAKする(これは別に時空の狭間に取り込まれても問題ないんだけどね？)
+			SIF (TOINT(IsSet:0) % 2 == TOINT(IsSet:1) % 2)
+				BREAK
+
+			;Demoslaviya20XX_MAPのデータ構造は　Demoslaviya20XX_MAP:Y座標:X座標:各パラメータ　なんだ！
+			;分かりにくいね！気を付けよう！
+			Demoslaviya20XX_MAP:TOINT(IsSet:1):TOINT(IsSet:0):2 = IsSet:2
+		ENDIF
+	NEXT

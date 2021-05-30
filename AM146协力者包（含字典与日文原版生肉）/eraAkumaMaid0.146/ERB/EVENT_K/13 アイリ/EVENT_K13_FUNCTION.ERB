@@ -1,0 +1,33 @@
+﻿;-------------------------------------------------
+;猫の日（ゲーム内５６日）に猫下着を着ける
+;部室入室時、もしくは性処理時に変更
+;-------------------------------------------------
+@CATDAY_K13
+;今日は猫の日？
+IF TEXTS("日付対応イベント") == "猫の日"
+	;既に今回の猫の日イベントを見たならRETURN 0
+	SIF CEVENT("猫の日")
+		RETURN 0
+;猫の日でないなら次の猫の日に備えてフラグ消しつつRETURN 0
+ELSE
+	CALL DEL_CEVENT, "猫の日"
+	RETURN 0
+ENDIF
+
+;着替えさせたり脱がせた際は勝手に着替えない
+SIF CFLAG:コスプレ中 || CSTR:没収済パンツ != "" || COND("全裸状態終了可能")
+	RETURN 0
+SIF COND("Ｈなサプライズ可能") == 0
+	RETURN 0
+;水着の場合は制服に着替える
+IF CHECK_CLO("水着")
+	CALL SETFLAG, "ハダカにする", TARGET
+	CALL SET_COORDINATE, "制服", TARGET
+	CALL FOLLOW_RULES
+	CALL SET_OTHER, "マフラー"
+ENDIF
+
+CALL SET_BRA, "猫型ブラ"
+CALL SET_PANTIES, "肉球プリントパンツ"
+CALL SET_CEVENT, "猫の日"
+

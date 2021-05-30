@@ -1,0 +1,529 @@
+;-------------------------------------------------
+;FIND_CONDのARG除外
+;-------------------------------------------------
+@FINDT_COND_K50(ARG, ARGS:0, ARGS:1, ARGS:2, ARGS:3)
+#FUNCTION
+#DIM LCOUNT
+;該当するキャラの人数
+#DIM NUM_FIND
+
+;条件が空なら0
+SIF ARGS:0 == "" && ARGS:1 == "" && ARGS:2 == "" && ARGS:3 == ""
+	RETURNF 0
+
+VARSET LOCAL
+NUM_FIND = 0
+
+FOR LCOUNT, 2, CHARANUM
+	SIF LCOUNT == ARG
+		CONTINUE
+	SIF ARGS:0 != "" && COND(ARGS:0, LCOUNT) == 0
+		CONTINUE
+	SIF ARGS:1 != "" && COND(ARGS:1, LCOUNT) == 0
+		CONTINUE
+	SIF ARGS:2 != "" && COND(ARGS:2, LCOUNT) == 0
+		CONTINUE
+	SIF ARGS:3 != "" && COND(ARGS:3, LCOUNT) == 0
+		CONTINUE
+
+	NUM_FIND += 1
+
+	SIF RAND:NUM_FIND == 0
+		LOCAL = LCOUNT
+NEXT
+RETURNF LOCAL
+
+;-------------------------------------------------
+;過去二回までのARGの数値を記憶する
+;-------------------------------------------------
+;ARGに数字を入力、過去二回に同じ数値がないかを確認する
+;ARGには0～99までの値が入力可能
+;同じ数字がない場合1を返してCFLAG:カブランド（_DAILY）にその値を記録する
+;全てリセットするときはそのキャラのCFLAG:カブランドまたはカブランド_DAILYを0にする
+;◇使用例
+;MEMO_LINECOUNT = LINECOUNT
+;FOR LCOUNT, 0, 100
+;	IF RAND:5 == 0
+;		IF CHECK_TWO_POINTS(4)
+;			PRINTFORML だぶりなし
+;		ENDIF
+;	ELSEIF RAND:4 == 0
+;		IF CHECK_TWO_POINTS(3)
+;～～～～省略～～～～～
+;	SIF LINECOUNT > MEMO_LINECOUNT
+;		BREAK
+;NEXT
+;二回前までにRAND:5 == 0の分岐に来ていない場合、だぶりなしを表示し、ループを終わらせる
+;-------------------------------------------------
+@CHECK_TWO_POINTS(ARG, ARG:1)
+#FUNCTION
+;過去の二回の数値
+#DIM NUM_OLDER
+#DIM NUM_OLDEST
+
+SIF ARG:1 == 0
+	ARG:1 = TARGET
+
+IF COND("KOJO_DAILY台詞中")
+	IF CFLAG:(ARG:1):カブランド_DAILY == 0
+		CFLAG:(ARG:1):カブランド_DAILY = 100 + ARG
+	ELSEIF CFLAG:(ARG:1):カブランド_DAILY < 1000
+		NUM_OLDER = CFLAG:(ARG:1):カブランド_DAILY % 100
+		SIF ARG == NUM_OLDER
+			RETURNF 0
+		CFLAG:(ARG:1):カブランド_DAILY = 10000 + (NUM_OLDER * 100) + ARG
+	ELSE
+		NUM_OLDER = CFLAG:(ARG:1):カブランド_DAILY % 100
+		NUM_OLDEST = (CFLAG:(ARG:1):カブランド_DAILY - NUM_OLDER) / 100 % 100
+		SIF ARG == NUM_OLDER || ARG == NUM_OLDEST
+			RETURNF 0
+		CFLAG:(ARG:1):カブランド_DAILY = 10000 + (NUM_OLDER * 100) + ARG
+	ENDIF
+ELSE
+	IF CFLAG:(ARG:1):カブランド == 0
+		CFLAG:(ARG:1):カブランド = 100 + ARG
+	ELSEIF CFLAG:(ARG:1):カブランド < 1000
+		NUM_OLDER = CFLAG:(ARG:1):カブランド % 100
+		SIF ARG == NUM_OLDER
+			RETURNF 0
+		CFLAG:(ARG:1):カブランド = 10000 + (NUM_OLDER * 100) + ARG
+	ELSE
+		NUM_OLDER = CFLAG:(ARG:1):カブランド % 100
+		NUM_OLDEST = (CFLAG:(ARG:1):カブランド - NUM_OLDER) / 100 % 100
+		SIF ARG == NUM_OLDER || ARG == NUM_OLDEST
+			RETURNF 0
+		CFLAG:(ARG:1):カブランド = 10000 + (NUM_OLDER * 100) + ARG
+	ENDIF
+ENDIF
+
+RETURNF 1
+
+;-------------------------------------------------
+;ARGの小テストの予想点数を事前に計算させる
+;ARGはTARGETかMASTER
+;-------------------------------------------------
+@EXPECTED_SCORE_K50(ARG)
+#FUNCTION
+#DIM MEMO_STUDY
+#DIM MEMO_SCHOLAR
+#DIM MEMO_TEST
+
+MEMO_STUDY = CFLAG:ARG:勉強時間
+
+CFLAG:ARG:勉強時間 += 1
+
+IF COND("教員")
+	SIF ARG == MASTER
+		CFLAG:MASTER:勉強時間 += 1
+ELSEIF TALENT:MASTER:賢い && TALENT:賢い
+	CFLAG:ARG:勉強時間 += 1
+ELSEIF TALENT:MASTER:賢い || (TALENT:MASTER:愚か == 0 && TALENT:愚か)
+	SIF ARG != MASTER
+		CFLAG:ARG:勉強時間 += 1
+ELSEIF TALENT:賢い
+	SIF ARG == MASTER
+		CFLAG:MASTER:勉強時間 += 1
+ENDIF
+
+MEMO_TEST = CALCF("試験の予想点数", ARG)
+CFLAG:ARG:勉強時間 = MEMO_STUDY
+
+RETURNF MEMO_TEST
+
+;-------------------------------------------------
+;文字色変更関数
+;-------------------------------------------------
+;CFLAG:OFCに数値が入ってるとその色に文字色を変更する
+;ARGSに"セット"で開始、"リセット"で終了　リセットを忘れないこと
+;ARGは省略だとTARGET
+;地の文を書きたい場合、PRINTFORMDWでデフォルト色の文字に出来る
+;@PRINT_STRの使用は禁止！それ以降デフォルトに戻ります
+;RETURNの上にリセットおくを忘れずに
+;-------------------------------------------------
+@CHANGE_OFC, ARGS, ARG
+
+SIF ARG == 0
+	ARG = TARGET
+
+SELECTCASE ARGS
+CASE "セット"
+	SIF CFLAG:ARG:OFC
+		SETCOLOR CFLAG:ARG:OFC
+CASE "リセット"
+	SIF CFLAG:ARG:OFC
+		RESETCOLOR
+ENDSELECT
+
+;------------------------------------------------
+;OFC専用のPRINT_STR
+;ARGを省略したいがためにARGS:9まであったのを1個だけに変更
+;たぶん支障はないはず・・・
+;ARG省略はTARGET
+;------------------------------------------------
+@OFC_PRINT_STR, ARGS, ARG
+#DIM LCOUNT
+
+SIF ARG == 0
+	ARG = TARGET
+
+VARSET LOCALS
+
+;文字列を分解する
+SPLIT ARGS, "_", LOCALS
+
+FOR LCOUNT, 0, 100
+	;特殊な操作
+	SELECTCASE LOCALS:LCOUNT
+	;CASE ""
+	;	BREAK
+	CASE "CALLNAME:TARGET"
+		PRINTFORM %CALLNAME:TARGET%
+		CONTINUE
+	CASE "CALLNAME:PLAYER"
+		PRINTFORM %CALLNAME:PLAYER%
+		CONTINUE
+	CASE "CALLNAME:ASSI"
+		PRINTFORM %CALLNAME:ASSI%
+		CONTINUE
+	CASE "CALLNAME:MASTER"
+		PRINTFORM %CALLNAME:MASTER%
+		CONTINUE
+	CASE "BUTTON"
+		;次の文字をボタンにする
+		LCOUNT += 1
+		PRINTBUTTON LOCALS:LCOUNT, LOCALS:LCOUNT
+		IF CFLAG:ARG:OFC
+			SETCOLOR CFLAG:ARG:OFC
+		ELSE
+			RESETCOLOR
+		ENDIF
+		CONTINUE
+	CASE "NOBUTTON"
+		;次の文字をボタンにしない
+		LCOUNT += 1
+		PRINTPLAINFORM %LOCALS:LCOUNT%
+		IF CFLAG:ARG:OFC
+			SETCOLOR CFLAG:ARG:OFC
+		ELSE
+			RESETCOLOR
+		ENDIF
+		CONTINUE
+	CASE "DRAWLINE"
+		RESETCOLOR
+		DRAWLINE
+		SIF CFLAG:ARG:OFC
+			SETCOLOR CFLAG:ARG:OFC
+		CONTINUE
+	CASE "太字"
+		;次の文字を太字
+		FONTBOLD
+		CONTINUE
+	CASE "I"
+		;次の文字を斜体
+		FONTITALIC
+		CONTINUE
+	CASE "-"
+		;次の文字に打消し線を引く
+		FONTSTYLE 4
+		CONTINUE
+	CASE "R"
+		RESETCOLOR
+		CONTINUE
+	CASE "L"
+		PRINTL 
+		CONTINUE
+	CASE "W"
+		PRINTW 
+		CONTINUE
+	CASE "H"
+		CALL HEARTMARK
+		CONTINUE
+	CASE "WH"
+		CALL WHITE_HEARTMARK
+		CONTINUE
+	CASE "BH"
+		CALL BIG_HEARTMARK
+		CONTINUE
+	CASE "BBH"
+		CALL BIG_BLACK_HEARTMARK
+		CONTINUE
+	CASE "HH"
+		SETCOLOR DEF_COLOR("ハートピンク")
+		CALL HEARTMARK
+		IF CFLAG:ARG:OFC
+			SETCOLOR CFLAG:ARG:OFC
+		ELSE
+			RESETCOLOR
+		ENDIF
+		CONTINUE
+	CASE "WHH"
+		SETCOLOR DEF_COLOR("ハートピンク")
+		CALL WHITE_HEARTMARK
+		IF CFLAG:ARG:OFC
+			SETCOLOR CFLAG:ARG:OFC
+		ELSE
+			RESETCOLOR
+		ENDIF
+		CONTINUE
+	CASE "BHH"
+		SETCOLOR DEF_COLOR("ハートピンク")
+		CALL BIG_HEARTMARK
+		IF CFLAG:ARG:OFC
+			SETCOLOR CFLAG:ARG:OFC
+		ELSE
+			RESETCOLOR
+		ENDIF
+		CONTINUE
+	CASE "BBHH"
+		SETCOLOR DEF_COLOR("ハートピンク")
+		CALL BIG_BLACK_HEARTMARK
+		IF CFLAG:ARG:OFC
+			SETCOLOR CFLAG:ARG:OFC
+		ELSE
+			RESETCOLOR
+		ENDIF
+		CONTINUE
+	CASE "CBBH"
+		IF TALENT:ARG:相思相愛
+			SETCOLOR DEF_COLOR("赤")
+		ELSEIF TALENT:ARG:恋慕
+			SETCOLOR DEF_COLOR("ピンク")
+		ELSE
+			SETCOLOR DEF_COLOR("ハートピンク")
+		ENDIF
+		CALL BIG_BLACK_HEARTMARK
+		IF CFLAG:ARG:OFC
+			SETCOLOR CFLAG:ARG:OFC
+		ELSE
+			RESETCOLOR
+		ENDIF
+		CONTINUE
+	CASE "／／／"
+		SETCOLOR DEF_COLOR("ピンク")
+		PRINT ///
+		IF CFLAG:ARG:OFC
+			SETCOLOR CFLAG:ARG:OFC
+		ELSE
+			RESETCOLOR
+		ENDIF
+		CONTINUE
+	CASE "茶色", "ショッキングピンク", "ピンク", "ハートピンク", "赤", "紅", "黄色", "暗黄色", "イエロー", "緑", "青", "水色", "藍色", "暗灰色", "灰色", "明灰色", "白"
+		SETCOLOR DEF_COLOR(LOCALS:LCOUNT)
+		CONTINUE
+	ENDSELECT
+
+	PRINTFORM %LOCALS:LCOUNT%
+	IF CFLAG:ARG:OFC
+		SETCOLOR CFLAG:ARG:OFC
+	ELSE
+		RESETCOLOR
+	ENDIF
+	FONTSTYLE 0
+NEXT
+
+;-------------------------------------------------
+;OFC_PRINT_STRの最後の_Lと_Wを関数に織り込んだver
+;-------------------------------------------------
+@OFC_PRINT_STRL, ARGS, ARG
+CALL OFC_PRINT_STR, ARGS, ARG
+PRINTL
+
+@OFC_PRINT_STRW, ARGS, ARG
+CALL OFC_PRINT_STR, ARGS, ARG
+WAIT
+
+;------------------------------------------------
+;PRINT_SELECT時に一時的にデフォルトカラーに戻す処理を加えたもの
+;------------------------------------------------
+@OFC_PRINT_SELECT, ARGS, ARGS:1, ARG
+#DIM RE_MEMO
+
+SIF ARG == 0
+	ARG = TARGET
+
+SIF CFLAG:ARG:OFC
+	RESETCOLOR
+CALL PRINT_SELECT, ARGS, ARGS:1
+RE_MEMO = RESULT
+SIF CFLAG:ARG:OFC
+	SETCOLOR CFLAG:ARG:OFC
+
+RETURN RE_MEMO
+
+;-------------------------------------------------
+;アナグラム生成
+;GETBITの仕様のため単語登録は64個まで
+;ARGS内に"末尾記号削除"をいれると"、", "。", "！", "？", "…"を除くようになる
+;-------------------------------------------------
+@TEXTAN(ARGS)
+#FUNCTIONS
+#DIM LCOUNT_1
+#DIM LCOUNT_2
+#DIM NUM_SELECT
+#DIM NUM_CHOICE
+#DIM CHOICE_LIST
+#DIM NUM_ITEMS
+#DIM DELETE_MARK
+#DIMS CHOICES
+#DIMS ANAGRAM
+
+
+VARSET LOCALS
+SPLIT ARGS, "/", LOCALS
+
+ANAGRAM =
+CHOICE_LIST = 0
+NUM_ITEMS = 0
+DELETE_MARK = 0
+
+;まず何個入ったかを知らべ、リストを作成する
+FOR LCOUNT_1, 0, 64
+	SELECTCASE LOCALS:LCOUNT_1
+	CASE ""
+		CONTINUE
+	CASE "末尾記号削除"
+	;ちょっと強引…
+		DELETE_MARK += 1
+		LOCALS:LCOUNT_1 =
+		SETBIT CHOICE_LIST, (LCOUNT_1)
+		NUM_ITEMS += 1
+		CONTINUE
+	CASEELSE
+		SETBIT CHOICE_LIST, (LCOUNT_1)
+		NUM_ITEMS += 1
+	ENDSELECT
+NEXT
+
+FOR LCOUNT_1, 0, NUM_ITEMS
+	NUM_CHOICE = 1
+	FOR LCOUNT_2, 0, NUM_ITEMS
+		IF GETBIT(CHOICE_LIST, LCOUNT_2) == 0
+			CONTINUE
+		ELSE
+			IF RAND:NUM_CHOICE == 0
+				CHOICES = %LOCALS:LCOUNT_2%
+				NUM_SELECT = LCOUNT_2
+			ENDIF
+			NUM_CHOICE += 1
+		ENDIF
+	NEXT
+	ANAGRAM = %ANAGRAM%%CHOICES%
+	CLEARBIT CHOICE_LIST, NUM_SELECT
+NEXT
+
+IF DELETE_MARK
+	FOR LCOUNT_1, 0, 100
+		SELECTCASE SUBSTRING(ANAGRAM, STRLENS(ANAGRAM)-2)
+		CASE "、", "。", "！", "？", "…"
+			ANAGRAM = %SUBSTRING((ANAGRAM), 0, STRLENS((ANAGRAM)) - 2)%
+		CASEELSE
+			BREAK
+		ENDSELECT
+	NEXT
+ENDIF
+RETURNF ANAGRAM
+
+;-------------------------------------------------
+;商品を並べて購入まで処理してくれる関数
+;ひとまず20個まで増やしたい場合LCOUNTのループ数上げて下さい
+;書き方：商品名$値段/とする
+;何か買ったらSTR:購入アイテムに商品名が入る（キャンセルされた場合は空）
+;例）
+;MYSHOP_SHOWCASE, "フーセンガム$1/ハブラシ$3/ペンシルロケット$29"
+;SELECTCASE STR:購入アイテム
+;CASE "フーセンガム"
+;ENDSELECT
+;-------------------------------------------------
+@MYSHOP_SHOWCASE, ARGS
+#DIM LCOUNT
+#DIM NUM_SELECT
+#DIM PLICE
+#DIM DOLLAR_MARK
+#DIM MEMO_LINECOUNT
+#DIMS GOODS
+NUM_SELECT = 0
+STR:購入アイテム =
+MEMO_LINECOUNT = LINECOUNT
+PRINTFORMDL どれにしますか？　(所持金：%MONEY_C(MONEY)%)
+DRAWLINE
+;ARGSの中身を並べていく
+VARSET LOCALS
+SPLIT ARGS, "/", LOCALS
+FOR LCOUNT, 0, 20
+	SIF LOCALS:LCOUNT == ""
+		CONTINUE
+	DOLLAR_MARK = STRFIND(LOCALS:LCOUNT, "$")
+	IF DOLLAR_MARK > 0
+		GOODS = %SUBSTRING(LOCALS:LCOUNT, 0, DOLLAR_MARK)%
+		PLICE = TOINT( SUBSTRING(LOCALS:LCOUNT, DOLLAR_MARK+1, -1) )
+	ELSE
+		LOCALS:LCOUNT = エラー$0
+		GOODS = エラー
+		PLICE = 0
+	ENDIF
+	PRINTFORMLCD  [ {LCOUNT}]%TEXT_LJ(GOODS, 26)%%TEXT_RJ(MONEY_C(PLICE), 12)%
+	NUM_SELECT += 1
+	SIF NUM_SELECT % 2 == 0
+		PRINTL
+NEXT
+SIF NUM_SELECT % 2
+	PRINTL
+DRAWLINE
+PRINTFORMDL [100] やめる
+INPUT
+IF RESULT == 100
+ELSEIF  0 > RESULT || LCOUNT < RESULT
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+ELSEIF LOCALS:RESULT == "" 
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RESTART
+ELSE
+	DOLLAR_MARK = STRFIND(LOCALS:RESULT, "$")
+	GOODS = %SUBSTRING(LOCALS:RESULT, 0, DOLLAR_MARK)%
+	PLICE = TOINT( SUBSTRING(LOCALS:RESULT, DOLLAR_MARK+1, -1) )
+	
+	IF PLICE > MONEY
+		PRINTFORMDW お金が足りません
+		CLEARLINE LINECOUNT - MEMO_LINECOUNT
+		RESTART
+	ELSE
+		MONEY -= PLICE
+		STR:購入アイテム = %GOODS%
+		PRINTFORMDW ＜%STR:購入アイテム%を購入しました＞
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;特別な呼び方に一時的に変更する
+;呼び方の変更をしている場合は一時的にメモを取り置き換えることができる
+;ARGSに呼び名、ARGS:1にかな表記
+;-------------------------------------------------
+@SET_SPECIALNAME_REPLACE, ARGS, ARGS:1, ARG
+
+SIF ARG == 0
+	ARG = TARGET
+
+IF CEVENTS("二人称主人") != ""
+	CALL SET_CEVENT, @"二人称主人bak：%CEVENTS("二人称主人")%", ARG
+	CALL SET_CEVENT, @"二人称主人かなbak：%CEVENTS("二人称主人かな")%", ARG
+	CALL DEL_CEVENT_GROUP_EX, "二人称主人", ARG
+ENDIF
+
+CALL SET_CEVENT, @"二人称主人：%ARGS%", ARG
+CALL SET_CEVENT, @"二人称主人かな：%ARGS:1%", ARG
+
+@DEL_SPECIALNAME_REPLACE, ARG
+
+SIF ARG == 0
+	ARG = TARGET
+
+CALL DEL_CEVENT_GROUP_EX, "二人称主人", ARG
+
+IF CEVENTS("二人称主人bak") != ""
+	CALL SET_CEVENT, @"二人称主人：%CEVENTS("二人称主人bak")%", ARG
+	CALL SET_CEVENT, @"二人称主人かな：%CEVENTS("二人称主人かなbak")%", ARG
+	CALL DEL_CEVENT_GROUP, "二人称主人bak", ARG
+	CALL DEL_CEVENT_GROUP, "二人称主人かなbak", ARG
+ENDIF
+

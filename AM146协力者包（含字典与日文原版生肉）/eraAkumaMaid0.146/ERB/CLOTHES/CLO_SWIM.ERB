@@ -1,0 +1,561 @@
+﻿;-------------------------------------------------
+;文字列ARGSから水着の種類や名称を返す
+;-------------------------------------------------
+@SWIM(ARGS, ARGS:1)
+#FUNCTIONS
+
+;以下は未設定のもの
+VARSET LOCALS
+;LOCALS:0に名称が入る
+SPLIT ARGS, "/", LOCALS
+
+SELECTCASE ARGS:1
+CASE "色"
+	RETURNF LOCALS:1
+CASE "種類"
+	IF STRCOUNT(ARGS, "メンズビキニ")
+		RETURNF "メンズビキニ"
+	ELSEIF STRCOUNT(ARGS, "サーフパンツ")
+		RETURNF "サーフパンツ"
+	ELSEIF STRCOUNT(ARGS, "マイクロビキニ")
+		RETURNF "マイクロビキニ"
+	ELSEIF STRCOUNT(ARGS, "ビキニ")
+		RETURNF "ビキニ"
+	ELSEIF STRCOUNT(ARGS, "競泳水着")
+		RETURNF "競泳水着"
+	ELSEIF STRCOUNT(ARGS, "スク水")
+		RETURNF "スク水"
+	ELSEIF STRCOUNT(ARGS, "ハイレグワンピ")
+		RETURNF "ハイレグワンピ"
+	ELSEIF STRCOUNT(ARGS, "ワンピース水着")
+		RETURNF "ワンピース水着"
+	ELSEIF STRCOUNT(ARGS, "ティアドロップ")
+		RETURNF "ティアドロップ"
+	ELSEIF STRCOUNT(ARGS, "スリングショット")
+		RETURNF "スリングショット"
+	ENDIF
+
+	IF STRCOUNT(ARGS, "パレオ")
+		RETURNF "パレオ"
+	ELSEIF STRCOUNT(ARGS, "ショートパンツ")
+		RETURNF "ショートパンツ"
+	ELSEIF STRCOUNT(ARGS, "ミニスカート")
+		RETURNF "ミニスカート"
+	ENDIF
+	RETURNF ""
+CASE "ボトム"
+	IF STRCOUNT(ARGS, "パレオ")
+		RETURNF "パレオ"
+	ELSEIF STRCOUNT(ARGS, "ショートパンツ")
+		RETURNF "ショートパンツ"
+	ELSEIF STRCOUNT(ARGS, "ミニスカート")
+		RETURNF "ミニスカート"
+	ENDIF
+	RETURNF ""
+ENDSELECT
+
+RETURNF LOCALS
+
+;-------------------------------------------------
+;水着ARGSの名称に属性を勝手に付け加える
+;CSTR:今年の水着 = %PALAM_SWIM("マイクロビキニ")%の様にして使う
+;ARGS:1に"属性のみ"と入れると、属性部分だけが返される
+;ARGS:1に色の指定が入っている場合には、それを考慮した色の水着になる
+;-------------------------------------------------
+@PALAM_SWIM(ARGS, ARGS:1)
+#FUNCTIONS
+#DIMS NAME_SWIM
+#DIMS NAME_BOTTOM
+#DIMS NAME_SWIM_BOTTOM
+#DIMS STR_ADD
+#DIMS COLOR_CHOICES
+
+VARSET STR_ADD
+VARSET COLOR_CHOICES
+
+;組み合わせかも知れないので分解
+VARSET LOCALS
+SPLIT ARGS, "/", LOCALS
+NAME_SWIM_BOTTOM = %LOCALS:0%
+;色指定が/区切りで複数の形かも知れないので単一にしておく
+ARGS:1 = %TEXTR(ARGS:1)%
+
+VARSET LOCALS
+SPLIT NAME_SWIM_BOTTOM, "＆", LOCALS
+NAME_SWIM = %LOCALS:0%
+NAME_BOTTOM = %LOCALS:1%
+
+;水着本体の属性
+SELECTCASE SWIM(NAME_SWIM, "種類")
+CASE "メンズビキニ"
+	STR_ADD += "/上半身露出/へそ露出/生え放題露出/男物"
+CASE "サーフパンツ"
+	STR_ADD += "/上半身露出/へそ露出/男物"
+CASE "ビキニ"
+	STR_ADD += "/谷間露出/へそ露出/下腹部露出/生え放題露出"
+CASE "ワンピース水着"
+	STR_ADD += "/ワンピース/体型カバー/生え放題露出"
+CASE "競泳水着"
+	STR_ADD += "/ワンピース/鼠径部露出/ハイレグ/ナチュラル露出"
+CASE "マイクロビキニ"
+	STR_ADD += "/谷間露出/巨乳輪露出/へそ露出/下腹部露出/鼠径部露出/Ｔバック/陰毛露出/Ｈ"
+CASE "ハイレグワンピ"
+	STR_ADD += "/ワンピース/谷間露出/鼠径部露出/ハイレグ/Ｔバック/ナチュラル露出/Ｈ"
+CASE "ティアドロップ"
+	STR_ADD += "/谷間露出/巨乳輪露出/へそ露出/下腹部露出/鼠径部露出/Ｔバック/陰毛露出/超Ｈ"
+CASE "スリングショット"
+	STR_ADD += "/ワンピース/谷間露出/巨乳輪露出/へそ露出/鼠径部露出/陰唇露出/ハイレグ/Ｔバック/陰毛露出/超Ｈ"
+ENDSELECT
+
+;ボトムの属性
+SELECTCASE SWIM(NAME_BOTTOM, "種類")
+CASE "パレオ"
+	STR_ADD += "/股間ガード"
+CASE "ショートパンツ"
+	STR_ADD += "/股間ガード"
+CASE "ミニスカート"
+	STR_ADD += "/股間ガード"
+ENDSELECT
+
+SELECTCASE ARGS:1
+CASE "属性のみ"
+	LOCALS = %STR_ADD%
+CASE "色以外"
+	LOCALS = %NAME_SWIM_BOTTOM%%STR_ADD%
+;色指定なしだと色はランダム(ARGS:1に好みの色を指定したが、好みの色自体が無い場合の対策)
+CASE ""
+	COLOR_CHOICES = \/%SET_CLOCOLOR("ランダムカラー")%
+	LOCALS = %CLOCOLOR(COLOR_CHOICES, "形容詞")%%NAME_SWIM_BOTTOM%%COLOR_CHOICES%%STR_ADD%
+CASEELSE
+	COLOR_CHOICES = \/%SET_CLOCOLOR(ARGS:1)%
+	LOCALS = %CLOCOLOR(COLOR_CHOICES, "形容詞")%%NAME_SWIM_BOTTOM%%COLOR_CHOICES%%STR_ADD%
+ENDSELECT
+
+RETURNF LOCALS
+
+
+;-------------------------------------------------
+;キャラARGの水着を着る上で重要な身体的特徴を羅列する
+;-------------------------------------------------
+@SWIM_APP(ARG)
+#FUNCTIONS
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+
+VARSET LOCALS
+
+LOCALS += @"黄色/%CONDS("体型", ARG)%\/"
+
+SIF TALENT:ARG:ふたなり
+	LOCALS += "黄色/ふたなり/"
+SIF TALENT:ARG:オンナ == 0
+	LOCALS += @"黄色\/ペニスサイズ：%CONDS("ペニスサイズ", ARG)%\/"
+
+;乳首
+IF COND("巨乳輪", ARG) && TALENT:ARG:ニプルピアス
+	LOCALS += "黄色/巨乳輪＆乳首ピアス/"
+ELSEIF COND("巨乳輪", ARG)
+	LOCALS += "黄色/巨乳輪/"
+ELSEIF TALENT:ARG:ニプルピアス
+	LOCALS += "黄色/乳首ピアス/"
+ENDIF
+
+SIF TALENT:ARG:へそピアス
+	LOCALS += "黄色/へそピアス/"
+
+SIF BASE:ARG:陰毛
+	LOCALS += @"黄色/陰毛:%CONDS("陰毛", ARG)%\/"
+
+SIF MARK:ARG:淫紋
+	LOCALS += "黄色/淫紋/"
+
+RETURNF LOCALS
+
+;-------------------------------------------------
+;ARGの水着が条件ARGSを満たすか確認する
+;-------------------------------------------------
+@CHECK_SWIM(ARGS, ARG)
+#FUNCTION
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+SIF CSTR:ARG:今年の水着 == ""
+	RETURNF 0
+
+SELECTCASE ARGS
+CASEELSE
+	SIF STRCOUNT(CSTR:ARG:今年の水着, ARGS)
+		RETURNF 1
+ENDSELECT
+RETURNF 0
+
+
+;-------------------------------------------------
+;パートナーの水着ARGSからちょっとしたコメントを返す
+;ARGS:1に"単独文"と指定されている場合には、PRINTFORMW %COMMENT_SWIM(ARGS, "単独文")%で通用する文章のみを選ぶ
+;-------------------------------------------------
+@COMMENT_SWIM(ARGS, ARGS:1)
+#FUNCTIONS
+#DIMS CHOICES_BOTTOM
+;SIF ARG == 0 && TARGET
+;	ARG = TARGET
+
+CHOICES_BOTTOM = %SWIM(ARGS, "ボトム")%
+
+VARSET LOCALS
+
+SELECTCASE SWIM(ARGS, "種類")
+CASE "メンズビキニ", "サーフパンツ"
+	IF ARGS:1 == "単独文"
+		IF COND("男の娘")
+			LOCALS += @"これを選んだのは迂闊だったかもしれない……%CALLNAME:TARGET%の男とは思えない容姿が想像以上に人目を惹き付け、居心地が悪いぐらいだ。\/"
+			LOCALS += @"男物の水着のおかげで%CALLNAME:TARGET%の中性的な魅力が引き立てられてしまったのか、正直なところ周囲の視線が非常に気になる……\/"
+		ENDIF
+	ELSE
+		LOCALS += "男物の/"
+	ENDIF
+CASE "ビキニ"
+	IF STRCOUNT(ARGS, "股間ガード")
+		IF ARGS:1 == "単独文"
+			LOCALS += "ビキニだけに比べて露出が減ってはいるが、服装としてはこの方がお洒落かもしれない。/"
+		ELSE
+			LOCALS += "なかなかにお洒落な/"
+		ENDIF
+	ELSE
+		IF ARGS:1 == "単独文"
+			LOCALS += @"%TEXTR("可愛らしさとセクシーさが絶妙に両立していてかなり良い感じだ。/デート水着としては代名詞的な位置付けをされているだけあって、堪らないものがある……")%\/"
+		ELSE
+			LOCALS += @"%TEXTR("可愛らしさとセクシーさが絶妙に両立している/大胆な/デート水着の代名詞である")%\/"
+		ENDIF
+	ENDIF
+CASE "ワンピース水着"
+	SELECTCASE CHOICES_BOTTOM
+	CASE "パレオ"
+		IF ARGS:1 == "単独文"
+			LOCALS += "ただでさえ体型を隠す水着に更に重ねられたパレオが目に涼しく、なかなかにお洒落な感じだ。/"
+		ELSE
+			LOCALS += "なかなかにお洒落な/"
+		ENDIF
+	ENDSELECT
+	IF ARGS:1 == "単独文"
+		LOCALS += @"%TEXTR(@"こういう時の水着と言えばビキニを連想してしまうものだが、どことなく漂う清楚な雰囲気が良い感じだ。\/露出が少ないだけに、かえって%CALLNAME:TARGET%自身の良さが出ている気がする……")%\/"
+	ELSE
+		LOCALS += @"%TEXTR("どことなく清楚な雰囲気が漂う/スク水程ではないが体のラインがあまり出ない/露出が少ないだけにかえって素材の良さが光る")%\/"
+		SIF COND("油断")
+			LOCALS += "油断気味な腰回りが補正されて良い感じな"
+	ENDIF
+CASE "マイクロビキニ"
+	IF STRCOUNT(ARGS, "股間ガード")
+		IF ARGS:1 == "単独文"
+			LOCALS += @"%CHOICES_BOTTOM%のせいで更に強調された小さなビキニブラが、否が応でも視線を惹きつけて離さない……/"
+		ELSE
+			LOCALS += @"%CHOICES_BOTTOM%のせいでブラの小ささが更に強調されている/"
+		ENDIF
+	ELSE
+		IF ARGS:1 == "単独文"
+			IF TALENT:オンナ == 0
+				LOCALS += "流石に下に何か着るべきだったかもしれない……もしも勃起してしまったとしたら、少々危険な事態になる事だろう。/"
+			ELSE
+				LOCALS += "……何度見ても、泳ぐための衣装とは思えない大胆な格好だ。/"
+				SIF TALENT:巨乳
+					LOCALS += @"布地が小さすぎて大事なところも満足に隠せていない上に、%CALLNAME:TARGET%の胸が大きいのも合わさってすさまじい破壊力だ……\/"
+			ENDIF
+		ELSE
+			LOCALS += @"%TEXTR("何度見ても泳ぐための衣装とは思えない/大胆にも程がある/布地が小さすぎて大事なところも満足に隠せていない")%\/"
+			IF TALENT:巨乳
+				LOCALS += "胸が大きいのもあって凄まじい破壊力な/"
+			;ELSEIF TALENT:貧乳
+			;	LOCALS += "やはり貧乳にはこれに限る/"
+			ENDIF
+		ENDIF
+	ENDIF
+CASE "競泳水着"
+	IF ARGS:1 == "単独文"
+		IF TALENT:巨乳
+			LOCALS += "窮屈そうに押さえつけられて逆に強調された巨乳と絞られた腰回り、そして惜しげもなく晒された鼠径部と股間のなだらかな盛り上がりが目に眩しい……/"
+		ELSEIF TALENT:オトコ == 0
+			LOCALS += "ぴったりと水着が密着して女性らしい起伏が出た上半身と絞られた腰回り、そして惜しげもなく晒された鼠径部と股間のなだらかな盛り上がりが目に眩しい……/"
+		ELSE
+			LOCALS += "ぴったりと水着が密着した上半身と絞られた腰回り、そして惜しげもなく晒された鼠径部と股間の盛り上がりが目に眩しい……/"
+		ENDIF
+	ELSE
+		LOCALS += "身体のラインを引き立てる/"
+		IF TALENT:巨乳
+			LOCALS += @"窮屈そうに押さえつけられて巨乳っぷりが逆に強調されている\/"
+		ELSEIF TALENT:オトコ == 0
+			LOCALS += "ぴったりと水着が密着して女性らしい起伏が強調されている/"
+		ELSE
+			LOCALS += "ぴったりと水着が密着して股間の膨らみが正直なところ気になる/"
+		ENDIF
+	ENDIF
+ENDSELECT
+
+IF STRCOUNT(ARGS, "Ｈ")
+	IF STRCOUNT(ARGS, "股間ガード")
+		IF ARGS:1 == "単独文"
+			LOCALS += @"%CHOICES_BOTTOM%を合わせているとはいえ、公共の場で身に着けるには少し過激すぎるかもしれない……\/"
+		ELSE
+			LOCALS += @"%CHOICES_BOTTOM%を合わせているとはいえ、公共の場で身に着けるには過激かもしれない\/"
+		ENDIF
+	ELSEIF TALENT:オトコ == 0
+		IF ARGS:1 == "単独文"
+			LOCALS += "流石にこれは、こういう場所で着る水着としては適していないかもしれない……動いたら色々なところが食みだしそうだ。/"
+		ELSE
+			LOCALS += "人前で着る水着としては少しＨ過ぎるかもしれない/"
+		ENDIF
+	ELSE
+		IF ARGS:1 == "単独文"
+			LOCALS += "流石にこれは、男が着るには無理がある水着かもしれない……小さな布地に締め付けられた股間の盛り上がりが目を引き過ぎる。/"
+		ELSE
+			LOCALS += "人前で着る水着としては少し危険度が高すぎる/"
+		ENDIF
+	ENDIF
+ENDIF
+;ちんこ
+IF TALENT:オンナ == 0
+	IF STRCOUNT(ARGS, "股間ガード")
+		IF ARGS:1 == "単独文"
+			LOCALS += @"%CHOICES_BOTTOM%を合わせたおかげで、股間の膨らみを隠せて良い感じだ。\/"
+		ELSE
+			LOCALS += @"%CHOICES_BOTTOM%のおかげで股間の盛り上がりを隠せて良い感じな\/"
+		ENDIF
+	ELSEIF SIZE("ペニス", TARGET) >= 2
+		IF ARGS:1 == "単独文"
+			LOCALS += "下半身にもう一枚何か身につけた方が良かったかもしれない……股間の膨らみが少し目立つ。/"
+		ELSE
+			LOCALS += "股間の膨らみが少々目立つ/"
+		ENDIF
+	ENDIF
+ENDIF
+
+;腰細い
+IF COND("スリム")
+	IF TALENT:巨尻 > TALENT:巨乳
+		IF STRCOUNT(ARGS, "股間ガード")
+			IF ARGS:1 == "単独文"
+
+			ELSE
+				LOCALS += @"せっかくの大きなお尻を隠してしまうのは勿体ないかも知れない\/"
+			ENDIF
+		ENDIF
+	ENDIF
+	IF TALENT:オトコ == 0 && STRCOUNT(ARGS, "体型カバー") == 0
+		IF ARGS:1 == "単独文"
+			LOCALS += "美しい腰のくびれがたまらない……無意識に手を伸ばして触ってしまいそうな程だ。/"
+		ELSE
+			LOCALS += "腰のくびれがグッとくる"
+		ENDIF
+	ENDIF
+ENDIF
+IF TALENT:オンナ && STRCOUNT(ARGS, "鼠径部露出") && STRCOUNT(ARGS, "股間ガード") == 0
+	IF ARGS:1 == "単独文"
+		LOCALS += "惜しげもなく晒された鼠径部と股間のなだらかな盛り上がりが目に眩しい……/"
+	ELSE
+		LOCALS += "惜しげもなく晒された鼠径部と股間のなだらかな盛り上がりが目に眩しい/"
+	ENDIF
+ENDIF
+IF STRCOUNT(ARGS, "陰唇露出")
+	IF STRCOUNT(ARGS, "股間ガード")
+		IF ARGS:1 == "単独文"
+			LOCALS += @"凄い事になっている下半身は%CHOICES_BOTTOM%のおかげでカバーされているが、公共の場でするには過激すぎる格好かもしれない……\/"
+		ELSE
+			LOCALS += @"凄い事になっている下半身は%CHOICES_BOTTOM%のおかげでカバーされているが、公共の場で身に着けるには過激すぎるかもしれない\/"
+		ENDIF
+	ELSEIF TALENT:オトコ == 0
+		IF ARGS:1 == "単独文"
+			LOCALS += "股間の布地が小さすぎて陰唇が隠しきれていないため、太ももを擦り合わせながら行動して貰わないと人を呼ばれてしまいそうだ……/"
+		ELSE
+			LOCALS += "股間の布地が小さすぎて陰唇が隠しきれていない/"
+		ENDIF
+	ELSE
+		IF ARGS:1 == "単独文"
+			LOCALS += "股間の布地が小さすぎてペニスが隠しきれていないため、手や荷物でガードしていないと人を呼ばれてしまいそうだ……/"
+		ELSE
+			LOCALS += "股間の布地が小さすぎてペニスがハミ出している/"
+		ENDIF
+	ENDIF
+ENDIF
+IF TALENT:オンナ && STRCOUNT(ARGS, "ハイレグ") && STRCOUNT(ARGS, "股間ガード") == 0
+	IF ARGS:1 == "単独文"
+		LOCALS += "股間のハイレグカットのおかげで脚が長く見え、かなりお洒落な感じだ……道行く人の視線を感じる。/"
+	ELSE
+		LOCALS += @"%TEXTR("股間のハイレグカットがセクシーな/股間の食い込みの激しさが人目を引くデザインの/ハイレグ効果のおかげか普段より脚が長く見える")%\/"
+	ENDIF
+ENDIF
+IF STRCOUNT(ARGS, "Ｔバック") && STRCOUNT(ARGS, "股間ガード") == 0
+	IF ARGS:1 == "単独文"
+		LOCALS += @"後ろが紐状なおかげでよく見える%CALLNAME:TARGET%のお尻がなんとも魅力的だ……\/"
+	ELSE
+		LOCALS += @"後ろが紐状なので\@ TALENT:巨尻 ? デカい # \@お尻が丸見えな\/"
+	ENDIF
+ENDIF
+
+IF TALENT:巨乳 && STRCOUNT(ARGS, "谷間露出") && RAND:3 == 0
+	IF ARGS:1 == "単独文"
+		LOCALS += @"何も羽織っていないので当然と言えば当然だが、%CALLNAME:TARGET%の大きな胸が零れそうだ……\/"
+	ELSE
+		IF TALENT:巨乳 >= 2 && RAND:2
+			LOCALS += "自慢の爆乳が零れそうな/"
+		ELSE
+			LOCALS += "大きな胸が零れそうな/"
+		ENDIF
+	ENDIF
+ENDIF
+IF COND("巨乳輪") && STRCOUNT(ARGS, "巨乳輪露出")
+	IF ARGS:1 == "単独文"
+		LOCALS += @"デザインが際どいせいで、%CALLNAME:TARGET%の大きな乳輪がはみ出て見えてしまっている……\/"
+	ELSE
+		LOCALS += "デザインが際どいため大きな乳輪がはみ出て見えてしまっている/"
+	ENDIF
+ENDIF
+
+;へそ
+IF STRCOUNT(ARGS, "へそ露出") && TALENT:へそピアス
+	IF ARGS:1 == "単独文"
+		LOCALS += "おへそのピアスが目を引いて、ちょっとお洒落な感じだ。/"
+	ELSE
+		LOCALS += "おへそのピアスがお洒落な/"
+	ENDIF
+ENDIF
+IF STRCOUNT(ARGS, "下腹部露出") && MARK:淫紋
+	IF ARGS:1 == "単独文"
+		IF TALENT:オトコ == 0
+			LOCALS += "子宮の位置に彫られた淫紋が目に鮮やかで、なかなかお洒落な感じだ。/"
+		ELSE
+			LOCALS += "下腹部に彫られた淫紋が目に鮮やかで、なかなかお洒落な感じだ。/"
+		ENDIF
+	ELSE
+		LOCALS += "下腹部に入れられた淫紋がお洒落な/"
+	ENDIF
+ENDIF
+
+;陰毛
+SELECTCASE COND("陰毛")
+CASE IS >= 7
+	IF STRCOUNT(ARGS, "股間ガード")
+		IF STRCOUNTS(ARGS, "陰毛露出", "ナチュラル露出", "生え放題露出")
+			IF ARGS:1 == "単独文"
+				LOCALS += @"%CHOICES_BOTTOM%のおかげで本来なら水着からハミ出る陰毛が隠されて、なかなか良い感じだ。\/"
+			ELSE
+				LOCALS += @"%CHOICES_BOTTOM%のおかげでハミ毛が防がれて良い感じな\/"
+			ENDIF
+		ENDIF
+	ELSEIF STRCOUNT(ARGS, "生え放題露出")
+		IF ARGS:1 == "単独文"
+			LOCALS += "下に何かを履くか少しは剃るかするべきだったかもしれない……生えるがままの陰毛がハミ出てしまっている。/"
+		ELSE
+			LOCALS += "生えるがままの陰毛が少し食み出てしまっている/"
+		ENDIF
+	ELSEIF STRCOUNT(ARGS, "ナチュラル露出")
+		IF ARGS:1 == "単独文"
+			LOCALS += "下に何かを履くか少しは剃るかするべきだったかもしれない……陰毛が大分ハミ出てしまっている。/"
+		ELSE
+			LOCALS += "陰毛が大分ハミ出てしまっている/"
+		ENDIF
+	ELSEIF STRCOUNT(ARGS, "陰毛露出")
+		IF ARGS:1 == "単独文"
+			IF TALENT:オンナ == 0
+				LOCALS += "水着が際どいため陰毛どころかペニスの盛り上がりが強調されて、凄い事になっている……/"
+			ELSE
+				LOCALS += "下に何かを履くか少しは剃るかするべきだったかもしれない……水着が小さすぎて見えている陰毛の方が広い有様だ。/"
+			ENDIF
+		ELSE
+			LOCALS += "生地が小さすぎて見えている陰毛の方が広い有様な/"
+		ENDIF
+	ENDIF
+CASE 6
+	IF STRCOUNT(ARGS, "股間ガード")
+		IF STRCOUNTS(ARGS, "陰毛露出", "ナチュラル露出")
+			IF ARGS:1 == "単独文"
+				LOCALS += @"%CHOICES_BOTTOM%のおかげで本来なら水着からハミ出る陰毛が隠されて、なかなか良い感じだ。\/"
+			ELSE
+				LOCALS += @"%CHOICES_BOTTOM%のおかげでハミ毛が防がれて良い感じな\/"
+			ENDIF
+		ENDIF
+	ELSEIF STRCOUNT(ARGS, "ナチュラル露出")
+		IF ARGS:1 == "単独文"
+			LOCALS += "下に何かを履くべきだったかもしれない……陰毛が少しだけ、食み出てしまっている。/"
+		ELSE
+			LOCALS += "陰毛が少しだけ食み出てしまっている/"
+		ENDIF
+	ELSEIF STRCOUNT(ARGS, "陰毛露出")
+		IF ARGS:1 == "単独文"
+			IF TALENT:オンナ == 0
+				LOCALS += "水着が際どいため陰毛どころかペニスの盛り上がりが強調されて、凄い事になっている……/"
+			ELSE
+				LOCALS += "下に何かを履くべきだったかもしれない……生地が小さいせいで、一目で陰毛がはみ出ているのが見て取れる。/"
+			ENDIF
+		ELSE
+			LOCALS += "生地が小さいせいで陰毛がバッチリと食み出てしまっている/"
+		ENDIF
+	ENDIF
+CASE 5
+	IF STRCOUNT(ARGS, "股間ガード")
+		IF STRCOUNT(ARGS, "陰毛露出")
+			IF ARGS:1 == "単独文"
+				LOCALS += @"%CHOICES_BOTTOM%のおかげで本来なら水着からハミ出る陰毛が隠されて、なかなか良い感じだ。\/"
+			ELSE
+				LOCALS += @"%CHOICES_BOTTOM%のおかげでハミ毛が防がれて良い感じな\/"
+			ENDIF
+		ENDIF
+	ELSEIF STRCOUNT(ARGS, "陰毛露出")
+		IF ARGS:1 == "単独文"
+			IF TALENT:オンナ == 0
+				LOCALS += "水着が際どいため陰毛どころかペニスの盛り上がりが強調されて、凄い事になっている……/"
+			ELSE
+				LOCALS += "水着が際どいため陰毛が少々見えてしまっているが、剃り整えられているため逆にお洒落な印象を受ける。/"
+			ENDIF
+		ELSE
+			IF TALENT:オンナ == 0
+				LOCALS += "水着が際どいため陰毛どころかペニスの盛り上がりが強調されている/"
+			ELSE
+				LOCALS += "陰毛が少々見えてしまっているが、剃り整えられているため逆にお洒落な印象の/"
+			ENDIF
+		ENDIF
+	ENDIF
+CASE 4
+	IF STRCOUNT(ARGS, "股間ガード")
+		IF STRCOUNT(ARGS, "陰毛露出")
+			IF ARGS:1 == "単独文"
+				LOCALS += @"%CHOICES_BOTTOM%のおかげで際どい状態の股間が隠されて、なかなか良い感じだ。\/"
+			ELSE
+				LOCALS += @"%CHOICES_BOTTOM%のおかげでハミ毛が防がれて良い感じな\/"
+			ENDIF
+		ENDIF
+	ELSEIF STRCOUNT(ARGS, "陰毛露出")
+		IF ARGS:1 == "単独文"
+			IF TALENT:オンナ == 0
+				LOCALS += "水着が際どいため陰毛どころかペニスの盛り上がりが強調されて、凄い事になっている……/"
+			ELSE
+				LOCALS += "水着が際どいため陰毛が隠しきれてはいないが、至近距離で凝視されない限りは大丈夫そうだ。/"
+			ENDIF
+		ELSE
+			SELECTCASE CONDS("陰毛")
+			CASE "剃り跡"
+				LOCALS += "ジョリジョリした剃り跡が見えているため、陰毛を剃っている事が一目瞭然な/"
+			CASE "無精髭"
+				LOCALS += "無精髭状態の陰毛が見えてしまって少しだらしない/"
+			CASE "生えかけ"
+				LOCALS += "生えかけの陰毛が水着から食み出して見えてしまっている/"
+			ENDSELECT
+		ENDIF
+	ENDIF
+CASE 1 TO 3
+	IF STRCOUNT(ARGS, "股間ガード")
+		IF STRCOUNT(ARGS, "陰毛露出")
+			IF ARGS:1 == "単独文"
+				LOCALS += @"%CHOICES_BOTTOM%のおかげで本来なら隠せていない際どい部分が隠されて、なかなか良い感じだ。\/"
+			ELSE
+				LOCALS += @"%CHOICES_BOTTOM%のおかげで際どい部分が隠せて良い感じな\/"
+			ENDIF
+		ENDIF
+	ELSEIF STRCOUNT(ARGS, "陰毛露出")
+		IF ARGS:1 == "単独文"
+			LOCALS += "パレオやスカートを着けていないため、水着が食い込む股間が丸見えの状態だ……/"
+		ELSE
+			LOCALS += "生地が小さいせいでアソコの毛が無いのが丸見えな/"
+		ENDIF
+	ENDIF
+ENDSELECT
+
+RETURNF TEXTR(LOCALS)
+

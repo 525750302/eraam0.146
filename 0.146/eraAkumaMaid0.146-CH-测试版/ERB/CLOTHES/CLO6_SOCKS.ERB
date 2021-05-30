@@ -1,0 +1,164 @@
+;-------------------------------------------------
+;キャラARGにARGSを着せる。ARGS == ""なら脱がす
+;-------------------------------------------------
+@SET_SOCKS, ARGS, ARG
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+;汚れ＆ずれたりしたフラグ等を初期化して新品にする
+STAIN:ARG:靴下 = 0
+IF COND("脚の使用", ARG)
+	CALL PALAM_SOCKS, ARGS, ARG
+ELSE
+	CSTR:ARG:靴下 = 
+ENDIF
+EQUIP:ARG:靴下 = STRLENS(CSTR:ARG:靴下)
+TFLAG:着替えた = 1
+
+;-------------------------------------------------
+;ARGの靴下の名前。ARGSに"略"と入れると略称になる
+;-------------------------------------------------
+@SOCKS(ARG, ARGS)
+#FUNCTIONS
+#DIMS COLOR_ABOUT
+
+VARSET LOCALS
+SELECTCASE ARGS
+CASE "略"
+	IF CHECK_SOCKS("足袋", ARG)
+		LOCALS = 足袋
+	ELSEIF CHECK_SOCKS("パンスト", ARG)
+		LOCALS = パンスト
+	ELSEIF CHECK_SOCKS("レギンス", ARG)
+		LOCALS = レギンス
+	ELSEIF CHECK_SOCKS("ストッキング", ARG)
+		LOCALS = ストッキング
+	ELSEIF CHECK_SOCKS("ニーソ", ARG)
+		LOCALS = ニーソ
+	ELSE
+		LOCALS = 靴下
+	ENDIF
+CASEELSE
+	;LOCALSに名称が入る
+	SPLIT CSTR:ARG:靴下, "/", LOCALS
+	COLOR_ABOUT = %CLOCOLOR(CSTR:ARG:靴下, "形容詞")%
+
+	SELECTCASE COLOR_ABOUT
+	CASE ""
+	CASEELSE
+		LOCALS = %CLOCOLOR(CSTR:ARG:靴下, "形容詞")%%LOCALS%
+	ENDSELECT
+ENDSELECT
+RETURNF LOCALS
+
+;-------------------------------------------------
+;ARG番の靴下の名称。着せ替えなどで表を作る際に使う
+;-------------------------------------------------
+@NAME_SOCKS(ARG)
+#FUNCTIONS
+VARSET LOCALS
+
+SELECTCASE ARG
+CASE 0
+	LOCALS = ソックス
+CASE 1
+	LOCALS = ハイソックス
+CASE 2
+	LOCALS = ニーソックス
+CASE 3
+	LOCALS = フリルニーソ
+CASE 4
+	LOCALS = サイハイソックス
+CASE 5
+	LOCALS = 足袋
+CASE 6
+	LOCALS = ストッキング
+CASE 7
+	LOCALS = 網ストッキング
+CASE 8
+	LOCALS = ガーターストッキング
+CASE 9
+	LOCALS = ガーターニーソ
+ENDSELECT
+
+RETURNF LOCALS
+
+;-------------------------------------------------
+;キャラARGに靴下ARGSを着せた場合のCSTR処理
+;-------------------------------------------------
+@PALAM_SOCKS, ARGS, ARG
+;追加で記述された属性を一時的に保管する
+#DIMS STR_ADD
+
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+
+STR_ADD = %EXTSTR(ARGS, "/")%
+ARGS = %EXTSTR(ARGS, "", "/")%
+
+SELECTCASE ARGS
+CASE ""
+	CSTR:ARG:靴下 = 
+CASE "ソックス"
+	CSTR:ARG:靴下 = ソックス/足首まで/
+CASE "ハイソックス"
+	CSTR:ARG:靴下 = ハイソックス/
+CASE "ニーソックス"
+	CSTR:ARG:靴下 = ニーソックス/
+CASE "サイハイソックス"
+	CSTR:ARG:靴下 = サイハイソックス/太ももまで/
+
+CASE "ストッキング"
+	CSTR:ARG:靴下 = ストッキング/太ももまで/
+CASE "網ストッキング"
+	CSTR:ARG:靴下 = 網ストッキング/レース/太ももまで/
+CASE "ガーターストッキング"
+	CSTR:ARG:靴下 = ガーターストッキング/太ももまで/
+CASE "ガーターニーソ"
+	CSTR:ARG:靴下 = ガーターニーソ/太ももまで/
+
+CASE "フリルニーソ"
+	CSTR:ARG:靴下 = フリルニーソ/
+CASE "フリルオーバーニーソ"
+	CSTR:ARG:靴下 = フリルオーバーニーソ/太ももまで/
+
+CASE "足袋"
+	CSTR:ARG:靴下 = 足袋/足首まで/
+
+CASE "黒いニーソックス"
+	CSTR:ARG:靴下 = 黒いニーソックス/
+CASE "靴下"
+	CSTR:ARG:靴下 = 靴下/
+CASEELSE
+	CSTR:ARG:靴下 = %ARGS%/
+ENDSELECT
+
+CSTR:ARG:靴下 = %MERGE_STR(CSTR:ARG:靴下, STR_ADD)%
+
+;-------------------------------------------------
+;靴下ARGSの番号
+;-------------------------------------------------
+@NUM_SOCKS(ARGS)
+#FUNCTION
+#DIM LCOUNT
+
+FOR LCOUNT, 100, 400
+	SELECTCASE NAME_SOCKS(LCOUNT)
+	CASE ARGS
+		RETURNF LCOUNT
+	ENDSELECT
+NEXT
+RETURNF 100
+
+;-------------------------------------------------
+;ARGの靴下が条件ARGSを満たすか確認する
+;-------------------------------------------------
+@CHECK_SOCKS(ARGS, ARG)
+#FUNCTION
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+SIF EQUIP:ARG:靴下 == 0
+	RETURNF 0
+SIF STRCOUNT(CSTR:ARG:靴下, ARGS)
+	RETURNF 1
+RETURNF 0
+

@@ -1,0 +1,142 @@
+@COM100
+;足舐め奉仕
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+;-------------------------------------------------
+;実行できるかの判定
+;-------------------------------------------------
+CALL SHOW_COM_ORDER_COM, 100
+
+;実行できない
+SIF TCVAR:やる気 == 0
+	RETURN 0
+;-------------------------------------------------
+;実行決定
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+STR:前回コマンド = 足舐め奉仕
+;-------------------------------------------------
+;-------------------------------------------------
+;射精チェック
+;-------------------------------------------------
+;CALL SAMEN_CHECK
+RETURN 1
+
+@FLAG_COM100, ARG
+CALL SETFLAG, "足舐め奉仕フラグ", TARGET
+;対象の口⇔調教者の脚の汚れが移動
+CALL EQ_STAIN, TARGET, "Ｍ", PLAYER, "脚"
+
+@SOURCE_COM100, ARG
+CALL VARSET_COMF
+
+CALL SOURCE_SERVICE_PLAY, "足を舐める"
+
+CALL SOURCE_DOWNBASE_HP, 100
+
+SOURCE:0:不潔 = COM_ORDER_STAIN("脚", "Ｍ")*80 + 80
+SOURCE:0:欲情追加 = CALCF("実行値による欲情追加")
+SOURCE:0:屈従 = 5000
+SOURCE:0:逸脱 = 3000
+
+CALL CALC, "調教ソース", ARG
+
+@TRAIN_MESSAGE_COM100
+IF CHECK_COM("連続実行")
+	PRINTFORM %CALLNAME:TARGET%は%CALLNAME:PLAYER%
+	IF CHECK_CLO("足露出", PLAYER) && ABL:マゾっ気 >= 3
+		PRINTFORMW の足の指%TEXTR("を一本づつ丁寧に舌を這わせて綺麗に舐め清めている/を水音をたてながら嬉しそうにしゃぶっている/に舌で熱心に奉仕している")%……
+	ELSE
+		PRINTFORMW の足を舐め続けている……
+	ENDIF
+ELSEIF CHOSECOM(SELECTCOM)
+	PRINTFORMW %CALLNAME:TARGET%は再び差し出された%CALLNAME:PLAYER%の足に舌を這わせた……
+ELSE
+	PRINTFORM %CALLNAME:TARGET%は
+	IF CHECK_STAIN(STAIN:PLAYER:脚, "精液")
+		PRINTFORM 精液で汚れた
+	ELSEIF CHECK_STAIN(STAIN:PLAYER:脚, "Ｖ")
+		PRINTFORM 愛液で汚れた
+	ELSEIF COND("汗だく", PLAYER) && RAND:2 == 0
+		PRINTFORM %TEXTR("汗で匂う/汗臭い")%
+	ELSEIF ABL:PLAYER:サドっ気 >= 3
+		PRINTFORM %TEXTR("口に押し付けられた/鼻先に差し出された/目の前に出された")%
+		IF CHECK_OUTER("網パンスト", PLAYER) || CHECK_OUTER("オープンパンスト", PLAYER) || CHECK_OUTER("パンスト", PLAYER)
+			PRINTFORM %OUTER(PLAYER, "略")%を履いた
+		ELSEIF EQUIP:PLAYER:靴 == 0 && EQUIP:PLAYER:靴下 
+			PRINTFORM %SOCKS(PLAYER, "略")%を履いた
+		ENDIF
+	ELSEIF CHECK_OUTER("網パンスト", PLAYER) || CHECK_OUTER("オープンパンスト", PLAYER) || CHECK_OUTER("パンスト", PLAYER)
+		PRINTFORM %OUTER(PLAYER, "略")%を履いた
+	ELSEIF EQUIP:PLAYER:靴 == 0 && EQUIP:PLAYER:靴下 
+		PRINTFORM %SOCKS(PLAYER, "略")%を履いた
+	ENDIF
+	PRINTFORM %CALLNAME:PLAYER%の足
+	IF EXP:足舐め経験 == 0
+		IF TALENT:強気 || TALENT:高慢
+			PRINTFORMW に葛藤を滲ませながら舌を伸ばした……
+		ELSE
+			PRINTFORMW におそるおそる舌を伸ばした……
+		ENDIF
+	ELSEIF ABL:奉仕精神 >= 3
+		PRINTFORMW に舌を這わせ、丁寧に舐め始めた……
+	ELSE
+		PRINTFORMW を舌で舐め始めた……
+	ENDIF
+ENDIF
+
+@COM_ORDER_COM100, ARG
+VARSET LOCAL
+LOCALS = 
+
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
+CALL COM_ORDER, ARG
+
+LOCAL = RESULT
+
+;ABL:奉仕精神
+IF ABL:奉仕精神
+	LOCAL += MIN(ABL:奉仕精神, 10) * 2
+	LOCALS = %LOCALS% + 奉仕精神LV{ABL:奉仕精神}({MIN(ABL:奉仕精神, 10) * 2})
+ENDIF
+;ABL:マゾっ気
+IF ABL:マゾっ気
+	LOCAL += MIN(ABL:マゾっ気, 5) * 3
+	LOCALS = %LOCALS% + マゾっ気LV{ABL:マゾっ気}({MIN(ABL:マゾっ気, 5) * 3})
+ENDIF
+
+;恥じらい
+IF TALENT:恥じらい
+	LOCAL -= 5
+	LOCALS = %LOCALS% - 恥じらい(5)
+ENDIF
+;献身的
+IF TALENT:献身
+	LOCAL += 6
+	LOCALS = %LOCALS% + 献身(6)
+ENDIF
+;快感の否定
+IF TALENT:快感の否定
+	LOCAL -= 1
+	LOCALS = %LOCALS% - 快感の否定(1)
+ENDIF
+
+;汚れあり
+IF COM_ORDER_STAIN("脚", "Ｍ")
+	LOCAL -= COM_ORDER_STAIN("脚", "Ｍ")
+	LOCALS = %LOCALS% - 汚れあり
+	;汚臭鈍感
+	SIF TALENT:汚臭鈍感 || TALENT:汚臭敏感
+		LOCALS = %LOCALS%、\@TALENT:汚臭鈍感 ? 汚臭鈍感 # 汚臭敏感\@
+	SIF COND("陶酔")
+		LOCALS = %LOCALS%、陶酔で半減
+	LOCALS = %LOCALS%({COM_ORDER_STAIN("脚", "Ｍ")})
+ENDIF
+
+;合計を表示(40以上で実行)
+CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 40
+
+RETURN RESULT

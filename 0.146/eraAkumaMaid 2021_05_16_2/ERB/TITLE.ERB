@@ -1,0 +1,60 @@
+@SYSTEM_TITLE
+;@SYSTEM_TITLEが定義されていると、標準のタイトル画面の代わりにSYSTEM_TITLEが呼ばれる。
+
+;このタイミングでグローバル変数を読んでおけば取りこぼしが無くなる。
+;GLOBALはRESETDATAやLOADDATAによって初期化・上書きされない。
+;必要に応じてコメントアウトを解除すること。
+;LOADGLOBAL
+
+[IF_NDEBUG]
+	HTML_PRINT "<shape type='space' param='2700'><img src='TITLE' height='3600' ypos='-3300'>"
+[ENDIF]
+
+;タイトル表示
+$TITLE_SELECT
+DRAWLINE 
+
+ALIGNMENT CENTER
+PRINTFORML %GAMEBASE_TITLE%
+PRINTFORML %VERS_eraAkumaMaid()%
+PRINTFORML %GAMEBASE_AUTHOR%
+PRINTFORML (%GAMEBASE_YEAR%)
+PRINTL 
+PRINTFORML %GAMEBASE_INFO%
+ALIGNMENT LEFT
+
+
+DRAWLINE 
+
+;選択肢表示。_Rename.csvで指定した値を読むことはできないのでここで指定する必要がある。
+PRINTL [0] 最初からはじめる
+PRINTL [1] ロードしてはじめる
+
+$TITLE_INPUT
+INPUT
+IF RESULT == 0
+	DRAWLINE
+	RESETDATA
+	;ADDDEFCHARAはeramakerの動作を再現するために存在する専用の関数です
+	;他の場面ではADDCHARA、ADDSPCHARA等を使うことを勧めます
+	ADDDEFCHARA
+	BEGIN FIRST
+	RETURN
+ELSEIF RESULT == 1
+	LOADGLOBAL
+	SELECTCASE GLOBAL:最新ＳＬ番号
+	CASE 0 TO 98
+		CALL LOADGAME_EX, GLOBAL:最新ＳＬ番号/20
+	CASEELSE
+		CALL LOADGAME_EX
+	ENDSELECT
+	GOTO TITLE_SELECT
+	;LOADGAME_EXでLOADを行わずに戻ってきた場合、もう一度選択しなおす。
+ELSE
+	CLEARLINE 1
+	REUSELASTLINE 無効な値です
+	GOTO TITLE_INPUT
+ENDIF
+
+;SYSTEM_TITLE中でRETURNすると次に実行する行が無くなり、エラーになる。
+;必ずBEGIN命令かLOADGAMEを行うこと。

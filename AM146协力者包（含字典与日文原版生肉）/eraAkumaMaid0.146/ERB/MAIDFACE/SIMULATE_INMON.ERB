@@ -1,0 +1,109 @@
+﻿;-------------------------------------------------
+;キャラARGの淫紋を選ぶ。ARG == 0 の場合はドッペルあなたを使ってのシミュレーションモード
+;-------------------------------------------------
+@SIMULATE_INMON, ARG
+#DIM MEMO_INMON
+#DIM MEMO_REDRAW
+
+MEMO_REDRAW = CURRENTREDRAW()
+REDRAW 0
+
+;淫紋設定中フラグＯＮ
+SETBIT FLAG:状況判定, 44
+
+SELECTCASE ARG
+CASE 0
+	ADDCHARA 99
+	ARG = CHARANUM - 1
+	CALL SET_3SIZE, ARG
+	BASE:ARG:ウェスト = BASE:ARG:身長 * 38 /100
+	TALENT:ARG:肌の色 = 0
+	MARK:ARG:淫紋 = 2
+	CALL SIMULATE_INMON_MAIN, ARG
+	CALL DELETE_CHARA, CHARANUM - 1
+CASEELSE
+	MEMO_INMON = MARK:ARG:淫紋
+	SIF MARK:ARG:淫紋 == 0
+		MARK:ARG:淫紋 = 1
+	CALL SIMULATE_INMON_MAIN, ARG
+	MARK:ARG:淫紋 = MEMO_INMON
+ENDSELECT
+
+CLEARBIT FLAG:状況判定, 44
+REDRAW MEMO_REDRAW
+
+@SIMULATE_INMON_MAIN, ARG
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIMS CHOICES
+MEMO_LINECOUNT = LINECOUNT
+
+PRINTL 
+CALL PRINT_CUTIN, "淫紋", ARG
+
+IF NO:ARG  == 99
+	CALL PRINT_STRL, @"　　　　肌の色:%TEXT_LJ(CONDS("肌の色", ARG), 7)%_BUTTON_[普通]_BUTTON_[褐色肌]_BUTTON_[色白]_BUTTON_[青肌]"
+	CALL PRINT_STRL, @"　　　お腹周り:%TEXT_LJ(CONDS("お腹の見た目", ARG), 7)%_BUTTON_[普通にする]_BUTTON_[スリム]_BUTTON_[筋肉質]_BUTTON_[油断]"
+ENDIF
+PRINTL 
+
+CALL PRINT_STRL, @"　　　　　形状:%TEXT_LJ(CONDS("淫紋の種類", ARG), 5)%　_BUTTON_[基本]_BUTTON_[羽化]_BUTTON_[改造]_BUTTON_[開花]_BUTTON_[寄生]"
+CALL PRINT_STRL, @"　　　　　　　　　　　_BUTTON_[浸食]_BUTTON_[堕落]_BUTTON_[隷属]_BUTTON_[封入]_BUTTON_[聖翼]"
+PRINTL 
+CALL PRINT_STRL, @"　　　　　段階:{MARK:ARG:淫紋}LV　　_BUTTON_[0LV]_BUTTON_[1LV]_BUTTON_[2LV]_BUTTON_[3LV]_BUTTON_[4LV]"
+PRINTL 
+CALL PRINT_STRL, "　　　これでよい？　　_BUTTON_[ＯＫ！]"
+
+INPUTS
+CHOICES = %EXTSTR(RESULTS, "[", "]")%
+CLEARLINE 1
+
+SELECTCASE CHOICES
+CASE "ＯＫ！"
+	SIF CEVENTS("淫紋", ARG) == ""
+		CALL SET_CEVENT, "淫紋：基本", ARG
+
+	PRINTL 
+	RETURN 1
+CASE "普通"
+	TALENT:ARG:肌の色 = 0
+CASE "褐色肌"
+	TALENT:ARG:肌の色 = 1
+CASE "色白"
+	TALENT:ARG:肌の色 = 2
+CASE "青肌"
+	TALENT:ARG:肌の色 = 3
+CASE "普通にする"
+	TALENT:ARG:筋肉質 = 0
+	BASE:ARG:ウェスト = BASE:ARG:身長 * 38 /100
+CASE "スリム"
+	TALENT:ARG:筋肉質 = 0
+	BASE:ARG:ウェスト = BASE:ARG:身長 * 35 /100
+CASE "筋肉質"
+	TALENT:ARG:筋肉質 = 1
+	BASE:ARG:ウェスト = BASE:ARG:身長 * 38 /100
+CASE "油断"
+	TALENT:ARG:筋肉質 = 0
+	BASE:ARG:ウェスト = BASE:ARG:身長 * 41 /100
+;形状
+CASE "基本", "羽化", "改造", "開花", "寄生", "浸食", "堕落", "隷属", "封入", "聖翼"
+	CALL DEL_CEVENT_GROUP, "淫紋", ARG
+	CALL SET_CEVENT, @"淫紋：%CHOICES%", ARG
+;段階
+CASE "0LV"
+	MARK:ARG:淫紋 = 0
+CASE "1LV"
+	MARK:ARG:淫紋 = 1
+CASE "2LV"
+	MARK:ARG:淫紋 = 2
+CASE "3LV"
+	MARK:ARG:淫紋 = 3
+CASE "4LV"
+	MARK:ARG:淫紋 = 4
+ENDSELECT
+
+CLEARLINE LINECOUNT - MEMO_LINECOUNT
+RESTART
+
+
+

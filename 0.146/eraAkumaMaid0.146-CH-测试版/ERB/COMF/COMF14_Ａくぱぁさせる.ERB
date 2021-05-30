@@ -1,0 +1,655 @@
+@COM14
+;Ａくぱぁさせる　Ｖインサートの時には体勢的に可能ならば抜かずに行う
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+;-------------------------------------------------
+;実行できるかの判定
+;-------------------------------------------------
+CALL SHOW_COM_ORDER_COM, 14
+
+;実行できない
+SIF TCVAR:やる気 == 0
+	RETURN 0
+;-------------------------------------------------
+;実行決定
+;-------------------------------------------------
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+RETURN 1
+
+@FLAG_COM14, ARG
+;腸内ルートはキャラの指⇔Ａの汚れが移動
+SIF CHECK_COM("腸内描写", 14)
+	CALL EQ_STAIN, TARGET, "手", TARGET, "Ａ"
+SIF PREVCOM == 13 && CHECK_COM("両穴くぱぁ")
+	CALL FLAG_COM13, 50
+
+@SOURCE_COM14, ARG
+SIF PREVCOM == 13 && CHECK_COM("両穴くぱぁ")
+	CALL SOURCE_COM13, 50
+
+CALL VARSET_COMF
+
+CALL SOURCE_DOWNBASE_HP, 14
+
+SOURCE:0:不潔 = 500
+SOURCE:0:露出 = 4000
+SOURCE:0:屈従 = 1000
+SOURCE:0:逸脱 = 1000
+
+;ABL:露出癖をみる
+SELECTCASE ABL:露出癖
+CASE 0 TO 5
+	SOURCE:0:充足 = ABL:露出癖*500
+CASE 6 TO 10
+	SOURCE:0:充足 = 2500 + (ABL:露出癖 - 5)*200
+CASEELSE
+	SOURCE:0:充足 = 3500 + (ABL:露出癖 - 10)*100
+ENDSELECT
+
+;恥じらい・恥薄い
+SIF TALENT:恥じらい
+	TIMES SOURCE:0:逸脱, 2.00
+SIF TALENT:恥薄い
+	TIMES SOURCE:0:逸脱, 0.50
+
+IF TALENT:Ａ性向
+	TIMES SOURCE:0:不潔, 0.50
+	TIMES SOURCE:0:充足, 2.00
+	TIMES SOURCE:0:逸脱, 0.50
+ENDIF
+
+;ビデオ撮影、室内露出、野外プレイは経験等にプラス
+IF TEQUIP:ビデオカメラ
+	TIMES SOURCE:0:露出, 1.50
+	TIMES SOURCE:0:屈従, 1.50
+	TIMES SOURCE:0:逸脱, 1.50
+ENDIF
+IF TEQUIP:室内露出プレイ || TEQUIP:野外プレイ
+	TIMES SOURCE:0:露出, 1.50
+	TIMES SOURCE:0:屈従, 1.50
+	TIMES SOURCE:0:逸脱, 1.50
+ENDIF
+;恥ずかしさアップなプレイ
+IF PREVEX("絶頂数合計") || PREVEX("Ａ中出し")
+	TIMES SOURCE:0:露出, 1.50
+	TIMES SOURCE:0:逸脱, 1.50
+ENDIF
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM14
+#DIM FLAG_MESSAGE, 2
+
+;ルートとしては、腸の中まで見せるorアヌスの皺を伸ばすor尻肉を広げてアナルを見せる
+IF PREVCOM == SELECTCOM
+	IF COND("両穴くぱぁ") 
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%に向けて股間の両方の穴を押し開いた体勢のままじっとしている…
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PLAYER%に向けてアナルを押し広げた体勢のままじっとしている…
+	ENDIF
+	RETURN 0
+ENDIF
+
+;両穴くぱぁ
+IF PREVCOM == 13 && CHECK_COM("両穴くぱぁ")
+	IF COND("両穴くぱぁ")
+		PRINTFORM %CALLNAME:TARGET%は既に両方の穴を惜しげもなく開帳していたが、要望に応えて改めて
+	ELSE
+		PRINTFORM %CALLNAME:TARGET%はアソコを見せつけている体勢から更に腰を突き出すと、
+	ENDIF
+;前回Ｖくぱぁ
+ELSEIF PREVCOM == 13
+	PRINTFORM %CALLNAME:TARGET%はアソコを見せつけている体勢のまま、今度は
+ELSE
+	;脚拘束
+	IF GETBIT(TEQUIP:拘束, 21)
+		PRINTFORM 脚を開かれた格好で拘束されている%CALLNAME:TARGET%は、
+	ELSE
+		PRINTFORM %CALLNAME:TARGET%は
+	ENDIF
+
+	;穴開きでないパンツをはいていて、ずらされていないなら、必ずずらす
+	SIF !CHECK_CLO("Ａ露出")
+		CALL SETFLAG, "ボトムを露出：テキスト無し", TARGET
+
+	VARSET FLAG_MESSAGE
+	;表情、雰囲気描写
+	IF TCVAR:やる気 <= 20
+		;恥じらい
+		IF TALENT:恥じらい
+			IF RAND:5 == 0
+				PRINTFORM 固く瞳を閉じて
+			ELSEIF RAND:4 == 0
+				PRINTFORM 目を伏せて
+			ELSEIF RAND:3 == 0
+				PRINTFORM 恥ずかしそうに目を閉じて
+			ELSEIF RAND:2 == 0
+				PRINTFORM 羞恥で顔を真っ赤にして
+			ELSE
+				PRINTFORM 恥ずかしそうに頬を染めて
+			ENDIF
+			FLAG_MESSAGE = 1
+		;反抗的
+		ELSEIF TALENT:反抗的
+			PRINTFORM 嫌そうな顔をしながら
+			FLAG_MESSAGE = 1
+		ENDIF
+	ELSEIF TALENT:恋慕 == 0
+		;恥じらい
+		IF TALENT:恥じらい
+			IF RAND:4 == 0
+				PRINTFORM 羞恥に頬を染めて
+			ELSEIF RAND:3 == 0
+				PRINTFORM 顔を火照らせて
+			ELSEIF RAND:2 == 0
+				PRINTFORM 少し頬を染めて
+			ELSE
+				PRINTFORM うっすらと頬を染めて
+			ENDIF
+			FLAG_MESSAGE = 1
+		ENDIF
+	ELSEIF TALENT:恋慕
+		;恥じらい
+		IF TALENT:恥じらい && RAND:2 == 0
+			PRINTFORM 羞恥に頬を染めながら
+		ELSEIF TEQUIP:シックスナイン == 0 && RAND:3 == 0
+			PRINTFORM 上目遣いで様子を伺いながら
+		ELSEIF RAND:2 == 0
+			PRINTFORM うっすらと頬を染めながら
+		ELSE
+			PRINTFORM 顔を火照らせながら
+		ENDIF
+		FLAG_MESSAGE = 1
+	ENDIF
+	IF TEQUIP:シックスナイン
+		PRINTFORM %CALLNAME:PLAYER%の顔から腰を浮か
+		IF TCVAR:やる気 > 20 && RAND:2
+			PRINT して股をさらに開くと、
+		ELSE
+			PRINT すと、
+		ENDIF
+	;脚を拘束されていないなら開く描写
+	ELSEIF COND("脚の使用") && INSERT("Ｖインサート") == 0
+		;まんぐり返し
+		IF TCVAR:やる気 > 50 && RAND:2
+			IF RAND:2
+				PRINTFORM まんぐり返しの体勢で
+			ELSE
+				PRINTFORM ころんと仰向けになって
+			ENDIF
+			IF RAND:2 == 0
+				PRINTFORM 両腕で太腿をひきつけるようにして大きく股を開く
+			ELSEIF TEQUIP:ビデオカメラ
+				PRINTFORM よく見えるように腰を突き出す
+			ELSE
+				PRINTFORM %CALLNAME:PLAYER%によく見えるように腰を突き出す
+			ENDIF
+			IF ABL:露出癖 >= 3 && CHOSECOM(SELECTCOM) == 0 && RAND:2
+				IF RAND:2
+					PRINTFORM 事で視線を股間に誘導すると、
+				ELSE
+					PRINTFORM 事で視線が股間に突き刺さるのを愉しみながら、
+				ENDIF
+			ELSE
+				PRINTFORM と、
+			ENDIF
+		;お尻を向ける
+		ELSE
+			IF TALENT:恥薄い && TCVAR:やる気 > 20 && RAND:2
+				PRINTFORM ためらいなく
+			ELSEIF (TALENT:内気 || TALENT:素直 || TALENT:恥じらい) && RAND:2
+				PRINTFORM おずおずと
+			ENDIF
+			SIF TCVAR:やる気 > 20 && RAND:2 == 0
+				PRINTFORM 四つん這いになって
+			PRINTFORM お尻を突き出すと、
+		ENDIF
+	ELSEIF FLAG_MESSAGE
+		PRINTFORM 、
+	ENDIF
+ENDIF
+
+IF TCVAR:やる気 > 20 && RAND:2
+	LOCALS = グッと
+ELSEIF RAND:2
+	LOCALS = ゆっくりと
+ELSE
+	LOCALS = そっと
+ENDIF
+
+;腸内
+IF TCVAR:やる気 > 20 && ABL:Ａ拡張 >= 2 && COND("指の使用") && COND("液体浣腸") + COND("排泄：危険域") == 0 && (PREVCOM == 142 || PREVCOM == 143 || RAND:3 == 0)
+	IF PREVCOM == 142 || PREVCOM == 143
+		IF PREVPLAY("結腸責め")
+			PRINTFORM %TEXTR("腕で結腸まで犯された直後/結腸から腕を引き抜かれたばかり/大腸の奥深くまで受け入れていた拳を引き抜かれたばかり")%の
+		ELSE
+			PRINTFORM フィストされたばかりの
+		ENDIF
+	ELSEIF PREVCOM == 33
+		PRINTFORM バイブを抜かれたばかりの
+	ELSEIF PREVCOM >= 70 && PREVCOM <= 79
+		PRINTFORM 先程まで犯されていた
+	ELSEIF PREVEX("Ａ絶頂")
+		IF PREVCOM == 3
+			PRINTFORM イったばかりの
+		ELSE
+			PRINTFORM イかされたばかりの
+		ENDIF
+	ELSEIF EX:Ａ絶頂
+		PRINTFORM 快感にヒクつく
+	ENDIF
+
+	IF EXP_GAIN("Ａ拡張経験") >= 3 || ABL:Ａ拡張 >= 3 + RAND:3 || PREVCOM == 142 || PREVCOM == 143
+		PRINTFORM 緩んだ
+	ELSEIF RAND:2 == 0
+		PRINTFORM ココア色の
+	ENDIF
+
+	;両穴くぱぁ且つ継続中ではない
+	IF PREVCOM == 13 && CHECK_COM("両穴くぱぁ") && COND("両穴くぱぁ") == 0
+		PRINTFORM アヌスにも指を潜り込ませて
+	ELSE
+		PRINTFORM アヌスに指を潜り込ませて
+	ENDIF
+	IF RAND:3 == 0
+		PRINTFORMW 、%CALLNAME:PLAYER%に向けて%LOCALS%開いた…
+	ELSEIF RAND:2 == 0
+		PRINTFORMW %LOCALS%押し広げた…
+	ELSE
+		PRINTFORMW %LOCALS%開いて見せてきた…
+	ENDIF
+	FLAG_MESSAGE:1 = 1
+;アヌス
+ELSE
+	;両穴くぱぁ継続
+	IF COND("両穴くぱぁ")
+		PRINTFORM お尻の肉をこれでもかと押し広げ、
+	ELSE
+		PRINTFORM %TEXTS("お尻：視覚")%の肉を%LOCALS%押し広げて、
+	ENDIF
+
+	LOCALS = 
+	SIF TALENT:好色 + TALENT:淫乱 + TALENT:尻穴狂い && PALAM:欲情 >= 3000 && RAND:2
+		LOCALS = 淫乱な
+
+	IF RAND:2 && TALENT:肌の色
+		SELECTCASE CONDS("肌の色")
+		CASE "褐色肌"
+			PRINTFORM 褐色の肌の中でも一際色濃いココア色の%LOCALS%
+		CASE "色白"
+			PRINTFORM 肌の色同様に色素が薄めな%LOCALS%
+		CASE "青肌"
+			PRINTFORM 色濃く色素の沈着した%LOCALS%
+		ENDSELECT
+	;陰毛描写
+	ELSEIF COND("陰毛") >= 6 && AGE(TARGET) >= 3 && RAND:2
+		PRINTFORM 陰毛にだらしなく縁取られた%LOCALS%
+	ELSEIF COND("液体浣腸") + COND("排泄：危険域")
+		PRINTFORM 排泄の刺激に\@ COND("排泄：限界") ? 今にも決壊しそうな # 耐えている \@%LOCALS%
+	ELSEIF PREVCOM >= 70 && PREVCOM <= 79
+		PRINTFORM 先程まで犯されていた%LOCALS%
+	ELSEIF ABL:Ａ感覚 >= 3 && RAND:2
+		PRINTFORM 充血してヒクつく%LOCALS%
+	ELSE
+		IF ABL:Ａ拡張 >= 4 && EXP:Ａ経験 >= 150
+			PRINTFORM 使い込まれた%LOCALS%
+		ELSEIF ABL:Ａ拡張 >= 2 && EXP:Ａ経験 >= 50
+			PRINTFORM 柔らかい%LOCALS%
+		ELSEIF AGE(TARGET) == 1 && RAND:2
+			PRINTFORM 小さな
+		ELSEIF RAND:2
+			PRINTFORM 可愛らしい
+		ELSE
+			PRINTFORM キュっと窄んだままの
+		ENDIF
+	ENDIF
+
+	IF RAND:3 == 0
+		PRINTFORM アヌス
+	ELSEIF RAND:2 == 0
+		PRINTFORM お尻の穴
+	ELSE
+		PRINTFORM アナル
+	ENDIF
+	;両穴くぱぁ且つ継続中ではない
+	IF PREVCOM == 13 && CHECK_COM("両穴くぱぁ") && COND("両穴くぱぁ") == 0
+		PRINTFORM も
+	ELSE
+		PRINTFORM を
+	ENDIF
+	IF TCVAR:やる気 > 50 && RAND:2
+		PRINTFORMW 見せ付けてきた…
+	ELSEIF RAND:2
+		PRINTFORMW 露出させた…
+	ELSE
+		PRINTFORMW 剥き出しにした…
+	ENDIF
+ENDIF
+
+
+;前回Ａセックス
+IF PREVCOM >= 70 && PREVCOM <= 79 && COND("液体浣腸") + COND("排泄：危険域") == 0
+	IF ABL:Ａ拡張 >= 3 && RAND:3 == 0
+		IF EX:Ａ中出し >= 3 && RAND:3 == 0
+			PRINTFORMW 丸くぽっかりと開いた穴からは散々に注ぎ込んだものが込み上げ、恥ずかしい臭いと音を伴って汚らしく垂れ流されている…
+		ELSE
+			PRINTFORM 大きく広がったアヌスからは、散々撹拌されて泡だった濁った汚液が
+			SIF PREVEX("Ａ中出し")
+				PRINT 出されたばかりの精液と共に
+			PRINTFORMW ドロドロとこぼれだしている…
+		ENDIF
+	;前回中出し
+	ELSEIF PREVEX("Ａ中出し")
+		IF TCVAR:やる気 > 50 && RAND:2
+			PRINTFORMW %CALLNAME:TARGET%はお腹に力を込めると、先程の行為を確認させるかのように、精液をドロっと逆流させて見せてきた…
+		ELSEIF RAND:2 == 0
+			PRINTFORMW たっぷりと中に出されたソコは、快感に口を開いたまま精液で粘ついた粘膜を覗かせている…
+		ELSE
+			PRINTFORMW 息づくようにヒクついているアナルから、注がれたばかりの精液がドロリとこぼれだしてきた…
+		ENDIF
+	ELSEIF ABL:Ａ拡張 >= 2 && RAND:2 == 0
+		PRINTFORMW 閉じ切らない肉の洞窟の奥では、次なる快感を求めて粘膜が蠢いている…
+	ELSE
+		PRINTFORMW ペニスの抜けたアヌスは、快感に口を開いたまま\@ RAND:2 ? 柔らかな # 鮮やかな色の \@内部の粘膜を覗かせている…
+	ENDIF
+	TFLAG:地の文分岐 = 1
+;腸内ルート
+ELSEIF FLAG_MESSAGE:1 == 1
+	TFLAG:地の文分岐 = 2
+	;拡張度大
+	IF EXP_GAIN("Ａ拡張経験") >= 5 || ABL:Ａ拡張 >= 3 + RAND:3
+		IF RAND:3 == 0
+			IF CHOSECOM(SELECTCOM) == 0 && BASE:排泄物 == 0 && EX:排泄
+				PRINTFORM すっかり内容物を出し切って綺麗にされた
+			ELSE
+				SIF TALENT:処女 == 1 && CHOSECOM(SELECTCOM) == 0
+					PRINTFORM いまだ未使用の綺麗なアソコとは対照的に
+				IF CHOSECOM(SELECTCOM) == 0 && ABL:Ａ使い < ABL:Ａ拡張
+					PRINTFORM \@ AGE(TARGET) < 3 ? 将来 # 日常生活 \@が心配になるほど\@ RAND:2 ? に緩んだ # 大きな \@
+				ELSEIF RAND:2 == 0
+					PRINT ぽっかりと開いたままの
+				ELSE
+					PRINT すっかり皺の伸びきっている
+				ENDIF
+			ENDIF
+			PRINTFORM お尻の穴は、
+			IF EXP:Ａ性交経験 && EXP:Ａフィスト経験 && RAND:2
+				PRINTFORM 色々なものを受け入れてきた
+			ELSE
+				PRINTFORM 恥ずかしい%TEXTS("匂い")%を辺りに吐き出しながら
+			ENDIF
+			PRINTFORMW 直腸内の景色を隠すことなく%CALLNAME:PLAYER%に晒している…
+			TFLAG:地の文分岐 = 3
+		ELSEIF RAND:2 == 0
+			IF ABL:Ａ感覚 >= 3 && EXP:Ａ経験 >= 150 && EXP:Ａ性交経験 >= 50 && RAND:2
+				PRINTFORM すっかり性器として開発されてしまった排泄の為の穴は
+			ELSE
+				PRINTFORM ぽっかりと開いた肛門は
+			ENDIF
+			IF INSERT("Ｖインサート")
+				PRINTFORMW 前の穴に侵入してくる\@ PENIS(PLAYER) ? ペニス # 張型 \@に合わせて蠢き、腸内の%TEXTS("匂い")%を撒き散らしている…
+			ELSEIF RAND:2
+				PRINTFORMW 呼吸に合わせて蠢き、更なる責めを求めているようにも見える…
+			ELSE
+				PRINTFORMW 呼吸に合わせて蠢き、%CALLNAME:PLAYER%を誘っているようにも見える…
+			ENDIF
+		ELSE
+			PRINTFORM 散々苛められたソコは、
+			SIF EXP_GAIN("Ａ拡張経験") >= 3 || EXP_GAIN("Ａ性交経験") >= 5 || PREVCOM == 142 || PREVCOM == 143
+				PRINTFORM 埋めていたものがなくなっても
+			PRINTFORM 大きく開いたまま
+			SIF PREVEX("Ａ中出し") && CHECK_STAIN(STAIN:Ａ, "精液")
+				PRINT 精液混じりの
+			PRINTFORMW 腸液をこぼしている…
+		ENDIF
+	ELSEIF EX:Ａ絶頂 >= 5
+		PRINTFORM %CALLNAME:TARGET%のソコは
+		SIF INSERT("Ｖインサート")
+			PRINTFORM 、膣に奥まで捻じ込む度に
+		PRINTFORM 物欲しそうに
+		IF EXP_GAIN("肛内精液経験")
+			PRINTFORMW 濁った汚液をこぼしている…
+		ELSE
+			PRINTFORMW ヒクヒクと収縮を繰り返している…
+		ENDIF
+	ELSEIF PALAM:欲情 >= 3000
+		PRINTFORM 肉の洞窟を形作る直腸の粘膜は、
+		IF INSERT("Ｖインサート")
+			PRINTFORM 膣道への刺激に反応してか
+		ELSE
+			PRINTFORM 触れてもいないのに
+		ENDIF
+		PRINTFORMW ヒクヒクと痙攣している…
+	ENDIF
+;アヌスルート
+ELSE
+	;前回中出し
+	IF PREVEX("Ａ中出し")
+		IF COND("液体浣腸") + COND("排泄：危険域")
+			PRINTFORMW %CALLNAME:TARGET%は犯されたばかりで力の入り辛いアヌスをきゅっと締めて、精液混じりの排泄物を\@ ABL:マゾっ気 < 3 ? 必死で # \@押しとどめている…
+		ELSEIF TCVAR:やる気 > 50 && RAND:2
+			PRINTFORMW %CALLNAME:TARGET%はお腹に力を込めると、先程の行為を確認させるかのように、精液をドロっと逆流させて見せてきた…
+		ELSE
+			PRINTFORMW 息づくようにヒクついている窄まりから、注がれたばかりの精液がトロリとこぼれだしてきた…
+		ENDIF
+	ELSEIF TALENT:好色+TALENT:淫乱 && ABL:Ａ感覚 >= 3 && ABL:露出癖 >= 3 && ABL:Ａ使い >= 5 && ABL:Ａ拡張 >= 2 && PREVEX("Ａ絶頂") == 0 && !RAND:3
+		IF COND("液体浣腸") + COND("排泄：危険域") || (PALAM:欲情 >= 3000 && RAND:2)
+			PRINTFORM %CALLNAME:TARGET%は\@ COND("指の使用") ? 指で # \@引き伸ばしたアヌスをヒクヒクと蠢かせて、
+			IF TALENT:強気 && RAND:2
+				PRINT 不敵
+			ELSE
+				PRINT 妖艶
+			ENDIF
+			PRINTFORMW な笑みを浮かべている…
+		ELSE
+			PRINTFORMW %CALLNAME:TARGET%はアヌスをきゅっと窄めたり、ぽかぁと開いたりする様を見せ付けて%CALLNAME:PLAYER%を誘っている…
+		ENDIF
+	ELSEIF PALAM:欲情 >= 10000
+		IF TALENT:恥じらい && RAND:2
+			SIF INSERT("Ｖインサート")
+				PRINTFORM 犯されながらの辱めに
+			PRINTFORM 顔を赤くする%CALLNAME:TARGET%
+			IF TALENT:清楚 && RAND:3
+				PRINTFORM の清楚な雰囲気
+			ELSEIF TALENT:内気 && RAND:3
+				PRINTFORM の気弱そうな様子
+			ELSE
+				PRINTFORM の恥ずかしそうな様子
+			ENDIF
+			PRINTFORM とは裏腹に、
+			IF ABL:Ａ拡張 >= 4 && EXP_GAIN("Ａ拡張経験")
+				PRINTFORMW 貪欲なお尻の穴は大口を開けてヒクついている…
+			ELSE
+				PRINTFORMW 充血したお尻の穴は物欲しそうにヒクついている…
+			ENDIF
+		ELSEIF ABL:Ａ拡張 >= 3 && RAND:2
+			SIF INSERT("Ｖインサート")
+				PRINTFORM セックスによる興奮のせいか
+			PRINTFORM %CALLNAME:TARGET%のソコは\@ EX:絶頂数合計 ? すっかり # 既に \@充血し、僅かに
+			IF COND("精液浣腸")
+				PRINTFORMW 精液を滲ませている…
+			ELSEIF TEQUIP:浣腸
+				PRINTFORMW 浣腸液を滲ませている…
+			ELSE
+				PRINTFORMW 口を開いたまま誘うように息づいている…
+			ENDIF
+		ELSE
+			SIF INSERT("Ｖインサート")
+				PRINTFORM %CALLNAME:PLAYER%が腰を突き上げて子宮付近を擦りあげると、
+			PRINTFORMW 目の前で、皺を伸ばされていた肛門が\@ COND("液体浣腸") + COND("排泄：危険域") ? 刺激で漏らすまいと # 恥ずかしそうに \@収縮して陰影を濃くする…
+		ENDIF
+	ELSEIF  PALAM:欲情 >= 3000 || TALENT:恋慕 || INSERT("Ｖインサート")
+		IF ABL:Ａ拡張 >= 3 && COND("液体浣腸") + COND("排泄：危険域") == 0 && RAND:3 == 0
+			PRINTFORM %CALLNAME:TARGET%の拡張済みの肛門は、
+			IF INSERT("Ｖインサート")
+				PRINTFORMW 膣口周辺の肉が引きずられるのに合わせて呼吸している口のような動きを見せている…
+			ELSEIF COND("指の使用") == 0 || RAND:2
+				PRINTFORMW 何かを待ちわびるかのように僅かに口を開いている…
+			ELSE
+				PRINTFORMW 指で拡げるまでもなく僅かに口を開いている…
+			ENDIF
+		ELSEIF TALENT:恋慕 && RAND:3 == 0
+			PRINTFORMW %CALLNAME:TARGET%のアヌスは羞恥からか僅かに汗ばみ、絶妙な艶かしさで%CALLNAME:PLAYER%の目を愉しませている…
+		ELSEIF PALAM:欲情 >= 6000
+			IF INSERT("Ｖインサート")
+				PRINTFORM 膣を出入りする\@ PENIS(PLAYER) ? ペニス # 張型 \@で歪む
+			ELSE
+				PRINTFORM ぐっと皺を引き伸ばして剥き出しにされた
+			ENDIF
+			PRINTFORM %CALLNAME:TARGET%のソコは、興奮からか
+			IF EXP:Ａ経験 >= 50 && RAND:2
+				PRINTFORMW ぽってりと盛り上がり気味になり、つい触りたくなるような変化を見せている…
+			ELSE
+				PRINTFORMW 汗ばんで、独特の%TEXTS("匂い")%を放ちはじめている…
+			ENDIF
+		ELSE
+			SIF INSERT("Ｖインサート")
+				PRINTFORM 激しく犯されている膣の直ぐ傍で
+			PRINTFORMW そっと息づくようにヒクついている肛門が、%CALLNAME:PLAYER%の視線を吸い寄せて離さない…
+		ENDIF
+	ENDIF
+	TFLAG:地の文分岐 = 4
+ENDIF
+
+;両穴くぱぁフラグＯＮ
+SIF PREVCOM == 13 && CHECK_COM("両穴くぱぁ")
+	CALL SETFLAG, "両穴くぱぁ", TARGET
+
+CALL TRAIN_PHOTO_COM14
+
+
+@TRAIN_PHOTO_COM14
+;くぱぁ直後の写真撮影で使う
+STR:青写真 = 
+
+STR:青写真 += @"%TEXTS("お尻：感触")%を押し開いて"
+
+SIF COND("両穴くぱぁ")
+	STR:青写真 += @"%TEXTR("膣穴/膣口")%と共に"
+
+IF CHECK_COM("腸内描写")
+	IF PREVPLAY("排泄")
+		STR:青写真 += @"排泄直後%TEXTR("の綺麗な直腸粘膜/ですっかり綺麗になった直腸")%"
+	ELSEIF PREVPLAY("温泉浣腸")
+		STR:青写真 += @"オシッコを流し込まれた直後の腸内"
+	ELSEIF PREVEX("Ａ中出し")
+		STR:青写真 += @"精液を排泄されたばかりの直腸内"
+	ELSE
+		STR:青写真 += @"%TEXTR("大きく広がった直腸内の景色を/鮮やかな色の直腸粘膜")%"
+	ENDIF
+ELSE
+	IF PREVEX("Ａ中出し")
+		STR:青写真 += @"%TEXTR("中出しセックス直後の/粘液混じりの精液を垂らす/中出し直後で精液を溢す")%アヌス"
+	ELSEIF PREVCOM >= 70 && PREVCOM <= 79
+		STR:青写真 += @"%TEXTR("使用直後のアナル/一仕事終えたばかりの排泄のための穴")%"
+	ELSEIF PREVCOM == 142 || PREVCOM == 143
+		STR:青写真 += @"フィスト直後で%TEXTR("大口を開けているアナル/大きく広がったアナル/だらしなく口を開けるアヌス")%"
+	ELSE
+		STR:青写真 += @"%TEXTS("アナル：視覚")%"
+	ENDIF
+ENDIF
+IF TCVAR:やる気 > 20 && PENIS(TARGET) && COND("イきそう") && CHECK_CLO("Ｐ露出")
+	SELECTCASE SIZE("ペニス", TARGET)
+	CASE 0
+		STR:青写真 += @"と共に硬く勃起した%TEXTR("粗チン/子供ちんちん/短小ペニス")%"
+	CASE 1
+		IF COND("真性包茎")
+			STR:青写真 += @"と共に硬く勃起した包茎ペニス"
+		ELSEIF COND("仮性包茎")
+			STR:青写真 += @"と共に硬く勃起したペニス"
+		ELSE
+			STR:青写真 += @"と共に硬く勃起したズル剥けペニス"
+		ENDIF
+	CASE 2 TO 4
+		STR:青写真 += @"と共に硬く勃起した巨根"
+	CASE IS >= 5
+		STR:青写真 += @"と共に硬く勃起した規格外の巨根"
+	ENDSELECT
+ENDIF
+
+STR:青写真 += @"を%PHOTO_SHOWING("見せつけ")%"
+
+
+@COM_ORDER_COM14, ARG
+VARSET LOCAL
+LOCALS = 
+
+;すべての命令に共通の要素を考慮
+;(信頼が高いと命令に従いやすいなど)
+CALL COM_ORDER, ARG
+
+LOCAL = RESULT
+
+;ABL:露出癖
+IF ABL:露出癖
+	LOCAL += MIN(ABL:露出癖, 10) * 2
+	LOCALS = %LOCALS% + 露出癖LV{ABL:露出癖}({MIN(ABL:露出癖, 10) * 2})
+ENDIF
+;ABL:マゾっ気
+IF ABL:マゾっ気
+	LOCAL += MIN(ABL:マゾっ気, 5) * 3
+	LOCALS = %LOCALS% + マゾっ気LV{ABL:マゾっ気}({MIN(ABL:マゾっ気, 5) * 3})
+ENDIF
+;冷静
+IF TALENT:冷静
+	LOCAL -= 5
+	LOCALS = %LOCALS% - 冷静(5)
+ENDIF
+;恥じらい
+IF TALENT:恥じらい
+	LOCAL -= 25
+	LOCALS = %LOCALS% - 恥じらい(25)
+ENDIF
+;恥薄い
+IF TALENT:恥薄い
+	LOCAL += 5
+	LOCALS = %LOCALS% + 恥薄い(5)
+ENDIF
+;清楚
+IF TALENT:清楚
+	LOCAL -= 20
+	LOCALS = %LOCALS% - 清楚(20)
+ENDIF
+;快感の否定
+IF TALENT:快感の否定
+	LOCAL -= 5
+	LOCALS = %LOCALS% - 快感の否定(5)
+ENDIF
+;前回中出し
+IF PREVEX("Ａ中出し")
+	LOCAL -= 10
+	LOCALS = %LOCALS% - 中出し直後(10)
+ENDIF
+IF COND("陶酔")
+	LOCAL += 10
+	LOCALS = %LOCALS% + 陶酔(10)
+ENDIF
+IF TEQUIP:媚薬
+	LOCAL += 2
+	LOCALS = %LOCALS% + 媚薬(2)
+ENDIF
+;ビデオ撮影
+IF TEQUIP:ビデオカメラ
+	LOCAL -= 30
+	LOCALS = %LOCALS% - 撮影中(30)
+ENDIF
+;野外or室内露出
+IF TEQUIP:野外プレイ
+	LOCAL -= 10
+	LOCALS = %LOCALS% - 野外プレイ(10)
+ELSEIF TEQUIP:室内露出プレイ
+	LOCAL -= 10
+	LOCALS = %LOCALS% - 室内露出(10)
+ENDIF
+
+;合計を表示(40以上で実行)
+CALL PRINT_COM_ORDER_COM, LOCALS, ARG, LOCAL, 40
+
+RETURN RESULT

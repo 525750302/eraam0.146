@@ -1,0 +1,71 @@
+;-------------------------------------------------
+;部員同士での交流。自分はTARGETとして呼ばれ、話相手の部員はPARTNER()として呼ばれる
+;話相手への呼びかけはCNAME("パートナー")で出来る
+;TFLAG:台詞スキップ = 1で話している相手のセリフのスキップ、TFLAG:地の文スキップ = 1で続く地の文のスキップをする事が出来る
+;-------------------------------------------------
+@KOJO_COMM_K35, ARGS
+#DIM MEMO_LINECOUNT
+;対話相手にしたいキャラの名前を/区切りでこれに突っ込んでFIND_TaiTa(EVENT_TABLE)とするとそのうち一人が選ばれる
+#DIMS EVENT_TABLE
+
+EVENT_TABLE = 
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+;話しかける側のセリフ。COND("対話可能")を満たす相手を選んでPARTNER()にする事で、特定の相手に話しかけることもできる
+CASE "お誘いする"
+	;特定の相手に話しかける場合はEVENT_TABLEに対話相手の呼び名(CALLNAME)を / 区切りで並べて ; を消す
+	;例１）フェリシエルor濡烏の君orあんずから一人選ぶ場合
+	EVENT_TABLE = 真/莉
+	;例２）部員全てから一人選ぶ場合
+	;EVENT_TABLE = 全員
+
+	IF FIND_TaiTa(EVENT_TABLE)
+		;話し相手をパートナーにする
+		CALL SET_PARTNER, FIND_TaiTa(EVENT_TABLE)
+		CALL EMOTION_PLUS, "交流中", TARGET, PARTNER()
+	ENDIF
+
+	IF NO:PARTNER() == 34
+		IF COND("今年の水着選択済", PARTNER() )
+			PRINTFORMW 「なぁなぁ、お前の部屋にあった水着ってアイツが選んだの？」
+			PRINTFORMW 『は、はあ！？ 水着って、ちょ……勝手に見たの！？』
+			PRINTFORMW 「いやぁ、お前があーいう水着を着る日が来るとはねぇ……」
+			PRINTFORMW 『に、兄さんには関係ないでしょー！？』
+		ELSEIF RAND:2
+			PRINTFORMW 「おーい真ー、ゲームしようぜゲーム」
+			PRINTFORMW 灯は手にした対戦ゲームを真に見せた。
+			PRINTFORMW 『……やだ』
+			PRINTFORMW 「いーじゃん別に。手加減してやっからさ」
+			PRINTFORMW 『それもやだ』
+			PRINTFORMW 「なんだよ、付き合い悪いな～」
+			PRINTFORMW 『何言われても兄さんとはやらないからね！』
+			PRINTFORMW 「%TEXTR("ふーん。まあ真弱いしなぁ/なんだよ、子供みたいに駄々こねちゃって/やれやれ、そんなに負けるのが怖いかねぇ")%」
+			PRINTFORMW 『%TEXTR("今なんていった！/はー？ そんなことないですけど？/そういう問題じゃないでしょー！？")%』
+			PRINTFORMW 結局、あっさり口車に乗せられた真は灯と対戦することになった。
+		ELSE
+			PRINTFORMW 「真ー、喉乾かね？」
+			PRINTFORMW 『……いつもの？』
+			PRINTFORMW 「おう、よろしく」
+			PRINTFORMW 灯にお札を手渡され、真はため息交じりに走り出した。
+			PRINTL
+			PRINTFORMW ……しばらくして、炭酸ジュースを手にした真が僅かに息を上げながら帰ってきた。
+			PRINTFORMW 「やっぱお前、炭酸振らずに走るの上手いよなぁ」
+			PRINTFORMW 『はあ……どうも……』
+			PRINTFORMW 躊躇いなくフタを開けてジュースを呷る兄を横目に、真は溜め息をついた。
+		ENDIF
+	ELSEIF NO:PARTNER() == 48
+		PRINTFORMW 「莉ー、今日はパンツ履いてるかー？」
+		IF EQUIP:PARTNER():パンツ
+			PRINTFORMW 『履いてるよー』
+			PRINTFORMW 「よーし」
+		ELSE
+			PRINTFORMW 『履いてないよー』
+			PRINTFORMW 「おーそうかバカヤロー」
+		ENDIF
+	ENDIF
+;話しかけられる側のセリフ。括弧は『』を使うのが望ましい
+CASE "誘われた"
+
+
+ENDSELECT

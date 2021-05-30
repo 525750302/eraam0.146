@@ -1,0 +1,85 @@
+@COM85
+;尿道屈曲位
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+;-------------------------------------------------
+;射精チェック
+;-------------------------------------------------
+CALL SAMEN_CHECK
+
+RETURN 1
+
+@FLAG_COM85, ARG
+CALL FLAG_INSERTION, "尿道インサート", ARG, 120
+
+@SOURCE_COM85, ARG
+CALL SOURCE_INSERTION, "尿道インサート", ARG, 120
+CALL VARSET_COMF
+
+;露出、屈従のソース
+SOURCE:0:露出 = 3000
+SOURCE:0:屈従 = 3000
+
+;根元まで受け入れられる場合にはクリを擦られてしまう
+IF ABL:尿道拡張 > SIZE("ペニス", PLAYER) && PENIS(TARGET) == 0
+	;ABL:Ｃ感覚をみる
+	SOURCE:0:Ｃ快楽 = CALCF("Ｃ刺激", 2, 20)
+	;調教者の腰使いをみる
+	SOURCE:0:Ｃ快楽 = SOURCE_EXABL(SOURCE:0:Ｃ快楽, "腰使い", PLAYER)
+ENDIF
+SOURCE:0:情愛 = 300
+
+;PALAM:欲情をみる
+SELECTCASE PALAM:欲情
+CASE IS < PALAMLV:1
+	TIMES SOURCE:0:情愛, 0.30
+CASE IS < PALAMLV:2
+	TIMES SOURCE:0:情愛, 0.60
+CASE IS < PALAMLV:3
+	TIMES SOURCE:0:情愛, 1.00
+CASE IS < PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.50
+CASE IS >= PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.80
+ENDSELECT
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM85
+#DIM MEMO_LINECOUNT
+
+MEMO_LINECOUNT = LINECOUNT
+CALL TRAIN_MESSAGE_INSERTION
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+PRINTFORM %CALLNAME:PLAYER%は
+IF COND("前Ｔから対象のみ変更") && VAU_INSERT_PLAY(PREVCOM:1)
+	CALL ADD_TEXT, "性器から性器へ"
+	PRINTFORM %CALLNAME:TARGET%をひっくり返すと、
+;穴開きでないパンツをはいていて、ずらされていないなら、必ずずらす
+ELSEIF !CHECK_CLO("Ｖ露出") && CHECK_CLO("Ｖ露出可")
+	PRINTFORM %CALLNAME:TARGET%の
+	CALL SETFLAG, "ボトムを露出：テキスト有り", TARGET
+	PRINTFORM 、恥ずかしいまんぐり返しの体勢を取らせて
+ELSE
+	PRINTFORM %CALLNAME:TARGET%をひっくり返すと、
+	IF TEQUIP:キス
+		PRINTFORM 唇を奪いながら
+		CALL SETFLAG, "追加キスフラグ", TARGET
+	ENDIF
+ENDIF
+PRINTFORM %TEXTS("尿道")%尿道
+IF TALENT:妊娠 && ABL:PLAYER:サドっ気 >= 3
+	PRINTFORMW を普段通り激しく犯した…
+ELSE
+	PRINTFORMW を奥深くまで犯しはじめた…
+ENDIF

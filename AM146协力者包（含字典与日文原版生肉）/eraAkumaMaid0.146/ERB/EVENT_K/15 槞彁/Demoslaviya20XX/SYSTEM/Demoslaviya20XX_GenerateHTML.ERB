@@ -1,0 +1,439 @@
+﻿;=========================
+;通常画面HTML統合メソッド
+;ARG:0 = 描画範囲内左隅X座標
+;ARG:1 = 描画範囲Y座標
+;=========================
+@Demoslaviya20XX_GenerateHTML(ARG:0,ARG:1)
+	#DIM DYNAMIC LCOUNT
+	#DIMS DYNAMIC HEX_HTML
+	#DIMS DYNAMIC UNIT_HTML
+	#DIMS DYNAMIC MovableRangeHTML
+	#DIMS DYNAMIC AttackRangeHTML
+	#DIMS DYNAMIC MapButtonHTML
+	#DIMS DYNAMIC CommandBttonHTML
+
+	;初期化するよ
+	CALL Demoslaviya20XX_HTML_Constructor
+	CALL Demoslaviya20XX_MoveCostMap_Constructor
+	CALL Demoslaviya20XX_MoveRoute_Constructor
+	CALL Demoslaviya20XX_AttackRangeMap_Constructor
+	CALL Demoslaviya20XX_AttackRoute_Constructor
+	
+
+	FOR LCOUNT, 0, 12
+		CALL Demoslaviya20XX_GenerateHTML_Hex(ARG:0,(ARG:1 + LCOUNT),LCOUNT,HEX_HTML)
+		CALL Demoslaviya20XX_GenerateHTML_Unit(ARG:0,(ARG:1 + LCOUNT),LCOUNT,UNIT_HTML)
+		CALL Demoslaviya20XX_GenerateHTML_MapButton(ARG:0,(ARG:1 + LCOUNT),LCOUNT,MapButtonHTML)
+
+		IF Demoslaviya20XX_SelectCommandMode == "移動"
+			MovableRangeHTML = 
+			CALL Demoslaviya20XX_GenerateHTML_MovableRange(ARG:0,(ARG:1 + LCOUNT),LCOUNT,MovableRangeHTML)
+
+
+		ELSEIF Demoslaviya20XX_SelectCommandMode == "攻撃" && TOINT(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:3) > 0
+			AttackRangeHTML = 
+			IF Demoslaviya20SXX_EnemyTargetMode == "True"
+				CALL Demoslaviya20XX_GenerateHTML_EnemyTargetHexSelect(ARG:0,(ARG:1 + LCOUNT),LCOUNT,AttackRangeHTML)
+			ELSE
+				CALL Demoslaviya20XX_GenerateHTML_AttackRange(ARG:0,(ARG:1 + LCOUNT),LCOUNT,AttackRangeHTML)
+			ENDIF
+		ENDIF
+		CALL Demoslaviya20XX_GenerateHTML_CommandButton(LCOUNT,CommandBttonHTML)
+
+		Demoslaviya20XX_HTML:LCOUNT += @"<nobr>%HEX_HTML%%UNIT_HTML%%MovableRangeHTML%%AttackRangeHTML%%MapButtonHTML%%CommandBttonHTML%</nobr>"
+
+	NEXT
+	;ここは余白なので何も入れたらだめなのだ！気を付けるのだ！
+	FOR LCOUNT,12,21
+		CALL Demoslaviya20XX_GenerateHTML_CommandButton(LCOUNT,CommandBttonHTML)
+		Demoslaviya20XX_HTML:LCOUNT += @"<nobr>%CommandBttonHTML%</nobr><br>"
+	NEXT
+
+;ARG = 描画中Y座標行目
+@Demoslaviya20XX_GenerateHTML_CommandButton(ARG,RESULT_DATA)
+	#DIM DYNAMIC Y_Line
+	#DIMS DYNAMIC temp,21
+	#DIMS REF RESULT_DATA
+
+	Y_Line = ARG
+	;pos = 3400が右端よ
+	temp:0  += @"<nonbutton pos='3350'><font color='red'><b>Демославия20XX</b></font></nonbutton>"
+	temp:1  += @"<nonbutton pos='3650'><font color='red'>(ダエモスラビヤ20XX)</font></nonbutton>"
+	temp:2  += @"<nonbutton pos='3400'>～シナリオ～</nonbutton>"
+	temp:3  += @"<nonbutton pos='3550'>%Demoslaviya20XX_StageName%</nonbutton>"
+	temp:4  += @"<nonbutton pos='3400'>～目標～</nonbutton>"
+	temp:5  += @"<nonbutton pos='3550' title = '敵を全滅させる'><font color='red'><b>殲滅</b></font></nonbutton>"
+	temp:6  += @"<nonbutton pos='3400'>┏画面移動━━━━━┓</nonbutton>"
+	temp:7  += @"<nonbutton pos='3400'>┃</nonbutton><button value='100' pos='3850'>[↑]</button><nonbutton pos='4400'>┃</nonbutton>"
+	temp:8  += @"<nonbutton pos='3400'>┃</nonbutton><button value='101' pos='3650'>[←]</button><button value='102' pos='4050'>[→]</button><nonbutton pos='4400'>┃</nonbutton>"
+	temp:9  += @"<nonbutton pos='3400'>┃</nonbutton><button value='103' pos='3850'>[↓]</button><nonbutton pos='4400'>┃</nonbutton>"
+	temp:10 += @"<nonbutton pos='3400'>┗━━━━━━━━━┛</nonbutton>"
+	temp:11 += @"<nonbutton pos='3400'>┏現在の指示モード━┓</nonbutton>"
+	IF Demoslaviya20XX_SelectCommandMode == "移動"
+		temp:12 += @"<nonbutton pos='3400'>┃</nonbutton><button value='200' pos='3650'><font color='blue'><b>移動モード</b></font></button><nonbutton pos='4400'>┃</nonbutton>"
+	ELSEIF Demoslaviya20XX_SelectCommandMode == "攻撃"
+		temp:12 += @"<nonbutton pos='3400'>┃</nonbutton><button value='200' pos='3650'><font color='red'><b>攻撃モード</b></font></button><nonbutton pos='4400'>┃</nonbutton>"
+	ENDIF
+	temp:13 += @"<nonbutton pos='3400'>┗━━━━━━━━━┛</nonbutton>"
+	temp:14 += @""
+	temp:15 += @""
+	temp:16 += @""
+	temp:17 += @""
+	temp:18 += @""
+	temp:19 += @""
+	temp:20 += @"<button value='998' title='次のターンに移ります' pos='3900'>ターン終了</button>"
+
+	RESULT_DATA = %temp:Y_Line%
+;=========================
+;Hex&Unitボタンバインディング用HTML作成メソッド
+;ARG = 描画範囲内左隅X座標
+;ARG:1 = 描画範囲Y座標
+;ARG:2 = 描画中Y座標行目
+;=========================
+@Demoslaviya20XX_GenerateHTML_MapButton(ARG:0,ARG:1,ARG:2,RESULT_DATA)
+	#DIM DYNAMIC X_VIEW
+	#DIM DYNAMIC Y_View
+	#DIM DYNAMIC X_Count
+	#DIM DYNAMIC Y_LINE
+	
+	#DIMS DYNAMIC HexName
+	#DIMS DYNAMIC HexText
+	#DIM DYNAMIC HexButtonValue
+
+	#DIMS DYNAMIC UnitID
+	#DIMS DYNAMIC UnitName
+	#DIMS DYNAMIC UnitText
+	#DIMS DYNAMIC UnitDefaultSrc
+	#DIM DYNAMIC UnitButtonValue
+
+
+	#DIMS REF RESULT_DATA
+
+	;#region 初期化
+		X_VIEW = ARG
+		Y_View = ARG:1
+		Y_LINE = ARG:2
+		RESULT_DATA = 
+	;#endregion 
+
+	FOR X_Count , X_VIEW , X_VIEW + 24
+		IF X_Count >= 200
+			BREAK ;描画範囲突破してしまった場合はBreakするよ
+		ENDIF 
+		IF Y_LINE >= 200
+			BREAK ;上に同じく
+		ENDIF
+
+		IF X_Count % 2 == Y_View % 2
+			HexName = %Demoslaviya20XX_MAP:Y_View:X_Count:0%
+			HexButtonValue = 1000000 + Y_View * 1000 + X_Count
+			IF Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_View:X_Count:0,"タイル名") != "Error" && Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_View:X_Count:0,"タイル名") != "虚無" && Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_View:X_Count:0,"タイル名") != ""
+				IF Y_View % 2 == 1
+					RESULT_DATA += @"<button value='{HexButtonValue}' title='%Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_View:X_Count:0,"解説")%\n デバッグ ={Demoslaviya20XX_AttackRangeMap:Y_View:X_Count}' pos='{Demoslaviya20XX_LeftSpase + (X_COUNT-X_VIEW)*Demoslaviya20XX_HexSize/2}'>"
+					RESULT_DATA += @"<img src = 'NoneHex' srcb = 'CursorHex' ypos = '{Y_LINE * 75}' height = '{Demoslaviya20XX_HexSize}'>"
+					RESULT_DATA += @"</button>"
+				ELSE
+					RESULT_DATA += @"<button value='{HexButtonValue}' title='%Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_View:X_Count:0,"解説")% \n デバッグ ={Demoslaviya20XX_AttackRangeMap:Y_View:X_Count}' pos='{Demoslaviya20XX_LeftSpase + (X_COUNT-X_VIEW)*Demoslaviya20XX_HexSize/2}'>"
+					RESULT_DATA += @"<img src = 'NoneHex' srcb = 'CursorHex' ypos = '{Y_LINE * 75}' height = '{Demoslaviya20XX_HexSize}'>"
+					RESULT_DATA += @"</button>"
+				ENDIF
+			ENDIF
+
+			UnitID = %Demoslaviya20XX_MAP:Y_View:X_Count:1%
+
+			IF ISNUMERIC(UnitID) == 1
+				UnitName = %Demoslaviya20XX_Unit:(TOINT(UnitID)):1%
+				
+				IF TOINT(UnitID) == Demoslaviya20XX_SelectUnit
+					UnitDefaultSrc = SelectUnit
+				ELSE
+					UnitDefaultSrc = NoneUnit
+				ENDIF 
+
+				UnitButtonValue = 2000000 + Y_View * 1000 + X_Count
+				IF Y_View % 2 == 1
+					RESULT_DATA += @"<button value='{UnitButtonValue}' title='%Demoslaviya20XX_GenerateUnitComment(TOINT(UnitID))%' pos='{Demoslaviya20XX_LeftSpase + Demoslaviya20XX_HexHalfSize + (X_COUNT-X_VIEW - 1)*Demoslaviya20XX_HexSize/2 + 50}'>"
+					RESULT_DATA += @"<img src = '%UnitDefaultSrc%' srcb = 'CursorUnit' ypos = '{Y_LINE * 75 + 50}' height = '{Demoslaviya20XX_UnitSize}'>"
+					RESULT_DATA += @"</button>"
+				ELSE
+					RESULT_DATA += @"<button value='{UnitButtonValue}' title='%Demoslaviya20XX_GenerateUnitComment(TOINT(UnitID))%' pos='{Demoslaviya20XX_LeftSpase + Demoslaviya20XX_HexHalfSize + (X_COUNT-X_VIEW -1)*Demoslaviya20XX_HexSize/2 + 50}'>"
+					RESULT_DATA += @"<img src = '%UnitDefaultSrc%' srcb = 'CursorUnit' ypos = '{Y_LINE * 75 + 50}'  height = '{Demoslaviya20XX_UnitSize}'>"
+					RESULT_DATA += @"</button>"
+				ENDIF 
+			ENDIF
+		ENDIF
+	NEXT
+	RETURN
+;=========================
+@Demoslaviya20XX_GenerateHTML_Hex(ARG,ARG:1,ARG:2,RESULT_DATA)
+	#DIM DYNAMIC X_VIEW
+	#DIM DYNAMIC Y_VIEW
+	#DIM DYNAMIC X_COUNT
+	#DIM DYNAMIC Y_LINE
+	#DIMS DYNAMIC HEX_NAME
+	#DIMS DYNAMIC TITLE_DATA
+	#DIMS DYNAMIC SRC_DATA
+
+	#DIMS REF RESULT_DATA
+
+	;#region 初期化
+		X_VIEW = ARG
+		Y_VIEW = ARG:1
+		Y_LINE = ARG:2
+		RESULT_DATA = 
+	;#endregion 
+	FOR X_COUNT, X_VIEW, X_VIEW+24 ;表示画面は横幅12だよ！でもヘクスタイル方式なので数値が二倍になるのだ！
+		SIF X_COUNT >= 200
+			BREAK ;描画範囲突破してしまった場合はBreakするよ
+		SIF Y_LINE >= 200
+			BREAK ;上に同じく
+		IF X_COUNT % 2 == Y_VIEW % 2
+			HEX_NAME = %Demoslaviya20XX_GET_HEXDATA(Demoslaviya20XX_MAP:Y_VIEW:X_COUNT:0,"ファイル名")%
+			TITLE_DATA = %Demoslaviya20XX_Generate_Hex_Comment(HEX_NAME)%
+			SRC_DATA = %Demoslaviya20XX_GET_HEXDATA(HEX_NAME, "ファイル名")%
+			
+			IF HEX_NAME != "Error"
+				IF Y_VIEW % 2 == 0
+					RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + (X_COUNT-X_VIEW)*Demoslaviya20XX_HexSize/2}'>"
+					RESULT_DATA += @"<img src='%HEX_NAME%' height='{Demoslaviya20XX_HexSize}' ypos='{Y_LINE*75}'>"
+					RESULT_DATA += @"</nonbutton>"
+				ELSE 
+					RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + Demoslaviya20XX_HexHalfSize + (X_COUNT-X_VIEW-1)*Demoslaviya20XX_HexSize/2}'>"
+					RESULT_DATA += @"<img src='%HEX_NAME%' height='{Demoslaviya20XX_HexSize}' ypos='{Y_LINE*75}'>"
+					RESULT_DATA += @"</nonbutton>"
+				ENDIF
+			ENDIF
+		ENDIF
+	NEXT
+	RETURN 
+
+;=========================
+;ユニット描画HTML命令作成メソッド
+;ARG = 描画範囲内左隅X座標
+;ARG:1 = 描画範囲Y座標（要するにMAP全体で見たときのY座標　データ取得用）
+;ARG:2 = 描画中Y座標行目（こっちは、表示画面内のY座標　表示するときの描画Y座標移動用）
+;=========================
+@Demoslaviya20XX_GenerateHTML_Unit(ARG,ARG:1,ARG:2,RESULT_DATA)
+	#DIM DYNAMIC X_VIEW
+	#DIM DYNAMIC Y_VIEW
+	#DIM DYNAMIC X_COUNT
+	#DIM DYNAMIC Y_LINE
+	#DIM DYNAMIC UnitID
+	#DIMS DYNAMIC UnitName
+	#DIMS DYNAMIC UnitIFF
+	#DIMS DYNAMIC UnitColor
+	#DIMS DYNAMIC IsUnitMoved
+
+	#DIMS REF RESULT_DATA
+
+	;#region 初期化
+		X_VIEW = ARG
+		Y_VIEW = ARG:1
+		Y_LINE = ARG:2
+		RESULT_DATA = 
+	;#endregion 
+	FOR X_COUNT, X_VIEW, X_VIEW+24 ;表示画面は横幅12だよ！でもヘクスタイル方式なので数値が二倍になるのだ！
+		SIF X_COUNT >= 200
+			BREAK ;描画範囲突破してしまった場合はBreakするよ
+		SIF Y_LINE >= 200
+			BREAK ;上に同じく
+		IF X_COUNT % 2 == Y_VIEW % 2
+			UnitID = TOINT(Demoslaviya20XX_Map:Y_VIEW:X_COUNT:1)
+			UnitName = %Demoslaviya20XX_Unit:UnitID:1%
+			UnitIFF = %Demoslaviya20XX_Unit:UnitID:0%
+
+			IF UnitName != "None" && UnitName != ""
+				IF UnitIFF == "敵"
+					UnitColor = Enemy
+				ELSEIF UnitIFF == "味方"
+					IF Demoslaviya20XX_Unit:UnitID:3 < Demoslaviya20XX_GET_UNITDATA(UnitName,"行動力")
+						UnitColor = Moved
+					ELSE
+						UnitColor = Wait
+					ENDIF
+				ENDIF
+				IF Y_VIEW % 2 == 0
+					RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + (X_COUNT - X_VIEW)*Demoslaviya20XX_HexSize/2 + 50}'>"
+					RESULT_DATA += @"<img src='%UnitColor%' height='{Demoslaviya20XX_UnitSize}' ypos='{Y_LINE*75+50}'>"
+					RESULT_DATA += @"</nonbutton>"
+					RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + (X_COUNT - X_VIEW)*Demoslaviya20XX_HexSize/2 +50}'>"
+					RESULT_DATA += @"<img src='%Demoslaviya20XX_GET_UNITDATA(UnitName,"ファイル名")%' height='{Demoslaviya20XX_UnitSize}' ypos='{Y_LINE*75+50}'>"
+					RESULT_DATA += @"</nonbutton>"
+				ELSE 
+					RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + Demoslaviya20XX_HexHalfSize + ((X_COUNT - X_VIEW)-1)*Demoslaviya20XX_HexSize/2 + 50}'>"
+					RESULT_DATA += @"<img src='%UnitColor%' height='{Demoslaviya20XX_UnitSize}' ypos='{Y_LINE*75+50}'>"
+					RESULT_DATA += @"</nonbutton>"
+					RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + Demoslaviya20XX_HexHalfSize + ((X_COUNT - X_VIEW)-1)*Demoslaviya20XX_HexSize/2 +50}'>"
+					RESULT_DATA += @"<img src='%Demoslaviya20XX_GET_UNITDATA(UnitName,"ファイル名")%' height='{Demoslaviya20XX_UnitSize}' ypos='{Y_LINE*75+50}'>"
+					RESULT_DATA += @"</nonbutton>"
+				ENDIF
+			ENDIF
+		ENDIF
+	NEXT
+	RETURN 
+;=========================
+;移動可能範囲表示HTML作成メソッド
+;RESULT_DATA = 作成したHTMLを入れる所だよー これを戻り値として使うわよ！
+;ARG:0 = 描画範囲内左隅X座標
+;ARG:1 = 描画範囲Y座標（要するにMAP全体で見たときのY座標　データ取得用）
+;ARG:2 = 描画中Y座標行目（こっちは、表示画面内のY座標　表示するときの描画Y座標移動用）
+;=========================
+@Demoslaviya20XX_GenerateHTML_MovableRange(ARG:0,ARG:1,ARG:2,RESULT_DATA)
+	#DIMS DYNAMIC UnitType
+	#DIM DYNAMIC UnitNowMovePower
+	#DIM DYNAMIC X_Now
+	#DIM DYNAMIC Y_Now
+
+	#DIM DYNAMIC X_Count
+	#DIM DYNAMIC X_View
+	#DIM DYNAMIC Y_View
+	#DIM DYNAMIC Y_Line
+
+	#DIMS REF RESULT_DATA
+
+	;#region 初期化
+		X_View = ARG
+		Y_View = ARG:1
+		Y_Line = ARG:2
+		UnitNowMovePower = 0
+		RESULT_DATA = 
+	;#endregion 
+
+	IF Demoslaviya20XX_SelectUnit != 0
+		UnitType = %Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1%
+		UnitNowMovePower = TOINT(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:3)
+		CALL Demoslaviya20XX_UnitSearch(Demoslaviya20XX_SelectUnit)
+		IF RESULT:0 == 1
+			Y_Now = RESULT:1
+			X_Now = RESULT:2
+			Demoslaviya20XX_MoveCostMap:Y_Now:X_Now = TOINT(Demoslaviya20XX_Unit:Demoslaviya20XX_SelectUnit:3)
+			CALL Demoslaviya20XX_MoveCostCalc(UnitType,UnitNowMovePower,Y_Now,X_Now)
+			;いつもの
+			FOR X_Count, X_View, X_View+24 ;表示画面は横幅12だよ！でもヘクスタイル方式なので数値が二倍になるのだ！
+				IF X_Count >= 200
+					BREAK ;描画範囲突破してしまった場合はBreakするよ
+				ENDIF
+				IF Y_Line >= 200
+					BREAK ;上に同じく
+				ENDIF
+				IF X_Count % 2 == Y_View % 2
+					IF Demoslaviya20XX_MoveCostMap:Y_View:X_Count >= 0
+						IF Y_VIEW % 2 == 0
+							RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + (X_COUNT - X_View)*Demoslaviya20XX_HexSize/2}'>"
+							RESULT_DATA += @"<img src='MoveHex' height='{Demoslaviya20XX_HexSize}' ypos='{Y_LINE*75}'>"
+							RESULT_DATA += @"</nonbutton>"
+						ELSE 
+							RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + Demoslaviya20XX_HexHalfSize + ((X_COUNT - X_View)-1)*Demoslaviya20XX_HexSize/2}'>"
+							RESULT_DATA += @"<img src='MoveHex' height='{Demoslaviya20XX_HexSize}' ypos='{Y_LINE*75}'>"
+							RESULT_DATA += @"</nonbutton>"
+						ENDIF
+					ENDIF
+				ENDIF
+			NEXT
+		ENDIF
+	ENDIF
+	RETURN
+
+
+;=========================
+;攻撃可能範囲表示HTML作成メソッド
+;RESULT_DATA = 作成したHTMLを入れる所だよー これを戻り値として使うわよ！
+;X_View = 描画範囲内左隅X座標
+;Y_View = 描画範囲Y座標（要するにMAP全体で見たときのY座標　データ取得用）
+;ARG:2 = 描画中Y座標行目（こっちは、表示画面内のY座標　表示するときの描画Y座標移動用）
+;=========================
+@Demoslaviya20XX_GenerateHTML_AttackRange(X_View,Y_View,Y_Line,RESULT_DATA)
+	#DIMS DYNAMIC UnitType
+	#DIM DYNAMIC WeaponRange
+	#DIM DYNAMIC X_Now
+	#DIM DYNAMIC Y_Now
+
+	#DIM DYNAMIC X_Count
+	#DIM DYNAMIC X_View
+	#DIM DYNAMIC Y_View
+	#DIM DYNAMIC Y_Line
+
+	#DIMS REF RESULT_DATA
+
+	IF Demoslaviya20XX_SelectUnit != 0
+		UnitType = Demolaviya20XX_Unit:Demoslaviya20XX_SelectUnit:1
+		WeaponRange = TOINT(Demoslaviya20XX_GET_WEAPONDATA(Demoslaviya20XX_SelectWeapon,"射程"))
+		CALL Demoslaviya20XX_UnitSearch(Demoslaviya20XX_SelectUnit)
+		IF RESULT:0 == 1
+			Y_Now = RESULT:1
+			X_Now = RESULT:2
+			CALL Demoslaviya20XX_AttackRangeCalc(Demoslaviya20XX_SelectWeapon,WeaponRange,Y_Now,X_Now)
+			;いつもの
+			FOR X_Count, X_View, X_View+24 ;表示画面は横幅12だよ！でもヘクスタイル方式なので数値が二倍になるのだ！
+				IF X_Count >= 200
+					BREAK ;描画範囲突破してしまった場合はBreakするよ
+				ENDIF
+				IF Y_Line >= 200
+					BREAK ;上に同じく
+				ENDIF
+				IF X_Count % 2 == Y_View % 2
+					IF Demoslaviya20XX_AttackRangeMap:Y_View:X_Count >= 0
+						PRINTFORML {Y_View} : {X_Count} {Demoslaviya20XX_AttackRangeMap:Y_View:X_Count}
+						IF Y_VIEW % 2 == 0
+							RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + (X_Count - X_View)*Demoslaviya20XX_HexSize/2}'>"
+							RESULT_DATA += @"<img src='AttackHex' height='{Demoslaviya20XX_HexSize}' ypos='{Y_LINE*75}'>"
+							RESULT_DATA += @"</nonbutton>"
+						ELSE 
+							RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + Demoslaviya20XX_HexHalfSize + ((X_COUNT - X_View)-1)*Demoslaviya20XX_HexSize/2}'>"
+							RESULT_DATA += @"<img src='AttackHex' height='{Demoslaviya20XX_HexSize}' ypos='{Y_LINE*75}'>"
+							RESULT_DATA += @"</nonbutton>"
+						ENDIF
+					ENDIF
+				ENDIF
+			NEXT
+		ENDIF
+	ENDIF
+	RETURN
+
+
+;=========================
+;敵ターン時攻撃対象ヘクス表示HTML作成メソッド
+;RESULT_DATA = 作成したHTMLを入れる所だよー これを戻り値として使うわよ！
+;X_View = 描画範囲内左隅X座標
+;Y_View = 描画範囲Y座標（要するにMAP全体で見たときのY座標　データ取得用）
+;Y_Line = 描画中Y座標行目（こっちは、表示画面内のY座標　表示するときの描画Y座標移動用）
+;=========================
+@Demoslaviya20XX_GenerateHTML_EnemyTargetHexSelect(X_View,Y_View,Y_Line,RESULT_DATA)
+	#DIMS DYNAMIC UnitType
+	#DIM DYNAMIC WeaponRange
+	#DIM DYNAMIC X_Now
+	#DIM DYNAMIC Y_Now
+
+	#DIM DYNAMIC X_Count
+	#DIM DYNAMIC X_View
+	#DIM DYNAMIC Y_View
+	#DIM DYNAMIC Y_Line
+
+	#DIMS REF RESULT_DATA
+
+	IF Demoslaviya20XX_SelectUnit != 0
+		CALL Demoslaviya20XX_UnitSearch(Demoslaviya20XX_SelectUnit)
+		;いつもの
+		FOR X_Count, X_View, X_View+24 ;表示画面は横幅12だよ！でもヘクスタイル方式なので数値が二倍になるのだ！
+			IF X_Count >= 200
+				BREAK ;描画範囲突破してしまった場合はBreakするよ
+			ENDIF
+			IF Y_Line >= 200
+				BREAK ;上に同じく
+			ENDIF
+			IF X_Count % 2 == Y_View % 2
+				IF Demoslaviya20XX_EnemyTargetSelectMap:Y_View:X_Count >= 0
+					IF Y_VIEW % 2 == 0
+						RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + (X_Count - X_View)*Demoslaviya20XX_HexSize/2}'>"
+						RESULT_DATA += @"<img src='AttackHex' height='{Demoslaviya20XX_HexSize}' ypos='{Y_LINE*75}'>"
+						RESULT_DATA += @"</nonbutton>"
+					ELSE 
+						RESULT_DATA += @"<nonbutton pos='{Demoslaviya20XX_LeftSpase + Demoslaviya20XX_HexHalfSize + ((X_COUNT - X_View)-1)*Demoslaviya20XX_HexSize/2}'>"
+						RESULT_DATA += @"<img src='AttackHex' height='{Demoslaviya20XX_HexSize}' ypos='{Y_LINE*75}'>"
+						RESULT_DATA += @"</nonbutton>"
+					ENDIF
+				ENDIF
+			ENDIF
+		NEXT
+	ENDIF
+	RETURN

@@ -1,0 +1,97 @@
+@COM86
+;尿道対面座位
+CALL PRINT_TRAIN_NAME(SELECTCOM)
+
+CALL TRAIN_MESSAGE_B
+
+SIF REFUSE_CHECK()
+	RETURN 0
+
+STR:前回コマンド = %STR:今回コマンド%
+
+;-------------------------------------------------
+;射精チェック
+;-------------------------------------------------
+CALL SAMEN_CHECK
+
+RETURN 1
+
+@FLAG_COM86, ARG
+CALL FLAG_INSERTION, "尿道インサート", ARG, 50
+
+@SOURCE_COM86, ARG
+CALL SOURCE_INSERTION, "尿道インサート", ARG, 50
+
+CALL VARSET_COMF
+
+SOURCE:0:露出 = 300
+SOURCE:0:情愛 = 1000
+
+;PALAM:欲情をみる
+SELECTCASE PALAM:欲情
+CASE IS < PALAMLV:1
+	TIMES SOURCE:0:情愛, 0.30
+CASE IS < PALAMLV:2
+	TIMES SOURCE:0:情愛, 0.60
+CASE IS < PALAMLV:3
+	TIMES SOURCE:0:情愛, 1.00
+CASE IS < PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.50
+CASE IS >= PALAMLV:4
+	TIMES SOURCE:0:情愛, 1.80
+ENDSELECT
+
+CALL CALC, "調教ソース", ARG
+
+
+@TRAIN_MESSAGE_COM86
+#DIM MEMO_LINECOUNT
+
+MEMO_LINECOUNT = LINECOUNT
+CALL TRAIN_MESSAGE_INSERTION
+SIF LINECOUNT > MEMO_LINECOUNT
+	RETURN 1
+
+PRINTFORM %CALLNAME:PLAYER%は
+IF EXP:尿道性交経験 == 0
+	;前回放尿
+	IF PREVPLAY("放尿")
+		PRINTFORM 排尿したばかりの
+	ELSEIF PREVEX("尿道絶頂")
+		PRINTFORM イったばかりで敏感な
+	ELSEIF PREVPLAY("膀胱内浴尿")
+		PRINTFORM 輸尿直後の
+	ELSEIF PENIS(TARGET) && PREVEX("射精")
+		PRINTFORM 射精したばかりで敏感な
+	ELSEIF PREVCOM == 15
+		PRINTFORM 指で弄ばれて開き気味な
+	ELSEIF PREVCOM == 149
+		PRINTFORM カテーテルを引き抜かれた直後の
+	ELSEIF PREVCOM == 151
+		PRINTFORM ブジーで虐め抜いた直後の
+	ENDIF
+	IF PENIS(TARGET)
+		PRINTFORMW %CALLNAME:TARGET%のペニスを握って尿道口を押し広げ、オナホールにそうするかのように自らのペニスの挿入を試みた。
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%の尿道にペニスの先端を押し付け、グッと力を込めて腰を突き出した。
+	ENDIF
+ELSE
+	IF COND("前Ｔから対象のみ変更") && PREVCOM:1 >= 60 && PREVCOM:1 <= 88
+		CALL ADD_TEXT, "性器から性器へ"
+		PRINTFORM %CALLNAME:TARGET%に正面から抱きつかせながら、尿道でペニスを咥え込ませ
+	;穴開きでないパンツをはいていて、ずらされていないなら、必ずずらす
+	ELSEIF !CHECK_CLO("Ｖ露出") && CHECK_CLO("Ｖ露出可")
+		PRINTFORM %CALLNAME:TARGET%の
+		CALL SETFLAG, "ボトムを露出：テキスト有り", TARGET
+		PRINTFORM 、正面から抱きつかせながら尿道でペニスを咥え込ませ
+	ELSE
+		PRINTFORM %CALLNAME:TARGET%に正面から抱きつかせながら尿道でペニスを咥え込ませ
+	ENDIF
+
+	IF (CHECK_COM("キス") && TALENT:恋慕) || TEQUIP:キス
+		PRINTFORMW 、キスをしながら腰を揺すった…
+		CALL SETFLAG, "追加キスフラグ", TARGET
+	ELSE
+		PRINTW た…
+	ENDIF
+ENDIF

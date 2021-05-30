@@ -1,0 +1,1874 @@
+﻿;-------------------------------------------------
+;日常イベントという名前のセクハライベント！
+;BEGIN TRAINで初期化されるPALAM, TEQUIP, STAIN, SOURCE, EXなどは注意する事
+;エロモードに入るコマンドが用意されているのだから、あくまで触りだけダラダラ適当にやるのが重要
+;セクハラコマンドで膣に指出し入れしてクンニして合体して…とかもう調教と一緒だからな！
+;違和感少なく妥当な行動を選ばせる分岐を作るのが重要
+;-------------------------------------------------
+;[200]トーク			[201]もてなす		[202]隙を見せる			[203]パンツチェック
+;[204]スマホで写真撮影	[205]性処理を頼む	[206]性欲解消を手伝う	
+;-------------------------------------------------
+;TRAINNAMEに相当。右の大きな数字はSHOP画面で割り振られた番号である
+;実際に起きる内容によって名前自体が変わるのに注意
+;-------------------------------------------------
+@DAILYCOMNAME(ARG)
+#FUNCTIONS
+
+SELECTCASE ARG
+CASE 1, 200
+	IF CFLAG:睡眠
+		RETURNF "起こす"
+	ELSEIF CFLAG:挨拶された == 0
+		RETURNF "挨拶する"
+	ELSE
+		RETURNF "トーク"
+	ENDIF
+CASE 2, 201
+	IF CFLAG:睡眠
+		RETURNF "寝込みを襲う"
+	ELSEIF COND("びしょびしょ")
+		RETURNF "体を拭く"
+	ELSEIF COND("汗だく")
+		RETURNF "汗を拭く"
+	ELSE
+		RETURNF "もてなす"
+	ENDIF
+CASE 3, 202
+	IF CFLAG:睡眠
+		RETURNF "寝姿を整える"
+	ELSE
+		RETURNF "隙を見せる"
+	ENDIF
+CASE 4, 203
+	;睡眠姦後はアソコチェック
+	IF CFLAG:睡眠 && EXP_GAIN("睡眠姦経験")
+		RETURNF "アソコチェック"
+	;スカート履いていて捲ってない＆下が何か不明ならスカートをめくる
+	;ELSEIF EQUIP:スカート && CFLAG:スカートめくり == 0 && COND("パンツ形状確認") == 0 && CFLAG:股間確認済 == 0 && CHECK_OUTER("ズボン") == 0
+	ELSEIF EQUIP:スカート && CFLAG:スカートめくり == 0 && CHECK_CLO("スカートめくりの価値なし") == 0
+		RETURNF "スカートをめくる"
+	;性処理で股間の穴を使わせてもらった直後
+	ELSEIF COND("性処理：挿入直後") && COND("合意：アソコチェック") && COND("パンツ詳細確認")
+		RETURNF "アソコチェック"
+	;パンツの上に何かを履いている場合
+	ELSEIF CHECK_CLO("アウター露出")
+		IF CFLAG:股間確認済 == 0
+			IF CHECK_OUTER("ブルマ")
+				RETURNF "ブルマチェック"
+			ELSE
+				RETURNF "股間観察"
+			ENDIF
+		ELSEIF CFLAG:睡眠
+			RETURNF "アソコチェック"
+		ELSEIF COND("パンツ詳細確認") == 0 && COND("合意：パンツチェック")
+			RETURNF "パンツチェック"
+		ELSEIF CFLAG:アソコチェック == 0 && COND("合意：アソコチェック") && COND("パンツ詳細確認")
+			RETURNF "アソコチェック"
+		ELSEIF EQUIP:パンツ && CHECK_CLO("パンスト露出")
+			RETURNF "パンツチェック"
+		ELSE
+			RETURNF "股間観察"
+		ENDIF
+	;パンツの代わりに何かを着ている場合
+	ELSEIF CHECK_CLO("ボディスーツ露出") || CHECK_CLO("水着姿")
+		IF EQUIP:パンツ == 0 && CHECK_CLO("ボディスーツ露出") == 0
+			RETURNF "アソコチェック"
+		ELSEIF CFLAG:股間確認済 == 0
+			RETURNF "股間観察"
+		ELSEIF CFLAG:睡眠
+			RETURNF "アソコチェック"
+		ELSEIF CFLAG:アソコチェック == 0 && COND("合意：アソコチェック")
+			RETURNF "アソコチェック"
+		ELSE
+			RETURNF "股間観察"
+		ENDIF
+	;見るからになにも穿いてない
+	ELSEIF EQUIP:パンツ == 0
+		RETURNF "アソコチェック"
+	;睡眠中はオープンクロッチパンツならアソコチェックする
+	ELSEIF CFLAG:睡眠 && CHECK_PANTIES("Ｖ露出") && COND("パンツ形状確認")
+		RETURNF "アソコチェック"
+	;パンツの確認がまだ
+	ELSEIF COND("パンツ詳細確認") == 0
+		RETURNF "パンツチェック"
+	ELSEIF CFLAG:アソコチェック == 0
+		RETURNF "アソコチェック"
+	ELSE
+		RETURNF "パンツチェック"
+	ENDIF
+CASE 5, 204
+	VARSET LOCALS
+	SELECTCASE CONDS("直前行動")
+	CASE "パンツ没収"
+		LOCALS = 没収済パンツを撮影
+	CASE "スカートをめくる", "スカートたくし上げ"
+		LOCALS = スカートの下を撮影
+	CASE "ブルマチェック", "股間観察"
+		SIF COND("合意：パンツチェック") || TALENT:恥薄い || CFLAG:睡眠
+			LOCALS = 股間を撮影する
+	CASE "パンツチェック"
+		IF COND("合意：パンツチェック") || CFLAG:睡眠
+			IF EQUIP:パンツ
+				IF CHECK_PANTIES("クロッチ")
+					LOCALS = パンツを接写する
+				ELSE
+					LOCALS = アソコを接写する
+				ENDIF
+			ELSEIF EQUIP:パンツ == 0
+				LOCALS = アソコを接写する
+			ENDIF
+		ENDIF
+	CASE "アナルチェック"
+		SIF COND("合意：アソコチェック") || CFLAG:睡眠
+			LOCALS = アナルを接写する
+	CASE "アソコチェック", "股間チェック"
+		SIF COND("合意：アソコチェック") || CFLAG:睡眠
+			LOCALS = アソコを接写する
+	ENDSELECT
+
+	IF LOCALS == "" || CFLAG:寝起き || STRCOUNT(SAVESTR:PREV_PHOTO, LOCALS)
+		RETURNF "スマホで写真撮影"
+	ELSE
+		RETURNF LOCALS
+	ENDIF
+CASE 6, 205
+	SIF COND("合意：性処理") == 0 || CFLAG:睡眠
+		RETURNF ""
+	SIF BASE:MASTER:精力 < 30 || BASE:MASTER:魂 < 100
+		RETURNF ""
+
+	IF COND("ながら性処理")
+		RETURNF "ながら性処理"
+	ELSE
+		RETURNF "性処理を頼む"
+	ENDIF
+CASE 7, 206
+	SIF ABL:欲望 < 3 || TALENT:反抗的 || EXP:Ｈ回数 == 0
+		RETURNF ""
+	SIF COND("性欲解消コマンド実行可能") == 0 || CFLAG:睡眠
+		RETURNF ""
+	SIF BASE:MASTER:精力 < 30 || BASE:MASTER:魂 < 100
+		RETURNF ""
+
+	RETURNF "性欲解消を手伝う"
+;CASE 8, 207
+;	SIF CHARA_NUM("室内の邪魔者") == 0
+;		RETURNF ""
+;	RETURNF "提案する"
+;CASE 
+;	RETURNF "着替えを頼む"
+ENDSELECT
+
+;-------------------------------------------------
+;変化する要素を加味したDAILYCOMNAME（コマンド選択するときの表示）
+;基本は@DAILYCOMNAME
+;-------------------------------------------------
+@DAILYCOMNAME_SELECT(ARGS)
+#FUNCTIONS
+
+SELECTCASE ARGS
+CASE "隙を見せる"
+	SIF COND("やる気性処理直後")
+		ARGS = 余韻に浸る
+	SIF COND("Ｐ汚れ", MASTER) && FIND_COND("性処理直後", "性処理：挿入直後") + COND("Ｐ汚れの相手", MASTER) && COND("やる気性処理") + CFLAG:ムラムラ + TALENT:においに弱い + TALENT:汚臭敏感 + COND("発情期") && COND("自発お掃除フェラ可能")
+		ARGS = お掃除を頼む
+
+	IF COND("Ｈのお誘い可能") && COND("Ｈなおねだり可能") && PLACE("野外") == 0 && (CHARA_NUM("室内の邪魔者") == 0 || TALENT:恥薄い || TALENT:好色 || TALENT:淫乱)
+		SELECTCASE CONDS("直前行動")
+		CASE "アナルチェック", "アナルの見せつけ撮影", "アナルのチラ見せ撮影"
+			SIF COND("Ａ熟達")
+				ARGS = 股間に見入る
+		CASE "アソコチェック", "アソコの見せつけ撮影", "アソコのチラ見せ撮影"
+			SIF COND("Ｖ熟達") || COND("Ａ熟達")
+				ARGS = 股間に見入る
+		CASE "パンツチェック", "ブルマチェック", "股間観察", "パンツ見せ"
+			IF COND("Ｖ熟達")
+				ARGS = 股間に見入る
+			ELSEIF CHECK_CLO("Ｔバックヒップ") + CHECK_CLO("Ｏバックヒップ") && COND("Ａ熟達")
+				ARGS = 股間に見入る
+			ENDIF
+		ENDSELECT
+	ENDIF
+CASE "スカートをめくる"
+	ARGS = %CLO("スカートめくり")%をめくる
+CASE "スカートの下を撮影"
+	ARGS = %SKIRT(TARGET, "略")%の下を撮影
+CASE "パンツチェック"
+	SIF EQUIP:パンツ && COND("パンツ形状確認")
+		ARGS = %PANTIES(TARGET, "パンツ")%チェック
+CASE "アソコチェック"
+	;アナルメインな状態…とりあえずはオトコだけで良いかなぁ
+	IF TALENT:オトコ
+		IF CFLAG:睡眠 == 0 && COND("Ａ熟達") && (COND("性処理：Ａ挿入直後") || CFLAG:アナルチェック == 0 || CFLAG:アソコチェック)
+			ARGS = アナルチェック
+		ELSE
+			ARGS = 股間チェック
+		ENDIF
+	ELSE
+		;IF CFLAG:睡眠 == 0 && COND("Ａ熟達")
+		;	SIF COND("性処理：Ａ挿入直後") || (TALENT:処女 + CFLAG:アソコチェック && CFLAG:アナルチェック == 0)
+		;		ARGS = アナルチェック
+		;ENDIF
+	ENDIF
+CASE "パンツを接写する"
+	SIF EQUIP:パンツ
+		ARGS = %PANTIES(TARGET, "パンツ")%を接写する
+CASE "アソコを接写する"
+	SIF TALENT:オトコ
+		ARGS = 股間を接写する
+CASE "スマホで写真撮影"
+	IF COND("透けブラ撮影可能")
+		IF EQUIP:ブラ && CHECK_BRA("乳首露出") == 0
+			ARGS = 透けブラを隠し撮る
+		ELSE
+			ARGS = 透け乳首を隠し撮る
+		ENDIF
+	ENDIF
+ENDSELECT
+RETURNF ARGS
+
+;-------------------------------------------------
+;@DAILYCOMNAMEから番号への逆引き
+;-------------------------------------------------
+@DAILYNUM(ARGS)
+#FUNCTION
+#DIM LCOUNT
+
+FOR LCOUNT, 1, 10
+	SELECTCASE DAILYCOMNAME(LCOUNT)
+	CASE ARGS
+		RETURNF LCOUNT
+	ENDSELECT
+NEXT
+RETURNF 0
+
+;-------------------------------------------------
+;各コマンドの内容はだいたいムードや相手の状態、行動などで自動分岐します
+;あとでコンフィグに手動選択を作るのも良いかもなー
+;ARGには日常イベントの番号、ARGSには名前。ステ変動の影響を受けないように最初に固定させておく
+;FLAG:SELECT_USERSHOPが立っている際には、前半分をすっ飛ばすことで後で後ろ半分だけをカウントできるようにする
+;-------------------------------------------------
+@EVENT_DAILY, ARG, ARGS
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIM MEMO_TARGET
+;パンツ確認フラグの記録
+#DIM CHECK_PANTU
+;淫紋が見えるようになったかをチェックする
+#DIM IS_VISIBLE_INMON
+#DIM MEMO_REALTIMEFORFLAG
+
+SIF ARG <= 0
+	RETURN 0
+
+SIF FLAG:SELECT_USERSHOP
+	GOTO AFTER_PART_EVENT_DAILY
+
+STR:日常イベント選択名 = %DAILYCOMNAME_SELECT(ARGS)%
+
+MEMO_REALTIMEFORFLAG = FLAG:現実時間
+;現実時間フラグ取得
+CALL GET_REALTIMEFORFLAG
+
+TFLAG:顔グラ表示中 = 0
+CSTR:お誘い = 
+
+FLAG:対複数 = 0
+MEMO_TARGET = TARGET
+
+;パンツの確認度の変化を見るために使用
+CHECK_PANTU = CFLAG:下着確認済
+;淫紋確認の地の文を出すかのチェックに使う
+IS_VISIBLE_INMON = CHECK_CLO("淫紋露出")
+
+;この中の分岐でSTR:日常イベント名 が決定される
+CALLFORM MESSAGE_DAILY_SELECT{ARG}
+
+;イベントが特に起きてない場合は戻る（時間経過をさせない）
+IF STR:日常イベント名 == ""
+	FLAG:現実時間 = MEMO_REALTIMEFORFLAG
+	TARGET = MEMO_TARGET
+	RETURN 0
+ENDIF
+
+;不機嫌、怒り、恥じらい判定
+FOR LCOUNT, 2, CHARANUM
+	SIF CFLAG:LCOUNT:不機嫌
+		CFLAG:LCOUNT:不機嫌 -= 1
+	SIF CFLAG:LCOUNT:怒り
+		CFLAG:LCOUNT:怒り -= 1
+	SIF CFLAG:LCOUNT:恥じらい
+		CFLAG:LCOUNT:恥じらい -= 1
+NEXT
+
+CVARSET CFLAG, GETNUM(CFLAG, "行動参加中")
+CFLAG:行動参加中 = 1
+;日常イベントフラグ確定
+CALL SET_DEVENT2, TARGET
+
+MEMO_LINECOUNT = LINECOUNT
+;口上で作った選択肢を選んだならここで地の文と台詞が出る
+TRYCALLFORM KOJO_DAILY{ARG}_K{NO:TARGET}_ADDSELECT, STR:日常イベント名
+
+;口上で作った選択肢を選んでいない場合
+IF LINECOUNT == MEMO_LINECOUNT
+	;地の文前台詞
+	CALL KOJO_DAILYCOM, @"%ARGS%：地の文前"
+	;地の文。TFLAG:地の文スキップ がONだと内部で地の文がカットされる
+	CALLFORM MESSAGE_DAILY{ARG}
+
+	;イベントが特に起きてない場合は戻る（時間経過をさせない）
+	IF STR:日常イベント名 == ""
+		FLAG:現実時間 = MEMO_REALTIMEFORFLAG
+		TARGET = MEMO_TARGET
+		RETURN 0
+	ENDIF
+
+	;性処理系は前半後半に分かれるので地の文スキップ状態でも事後台詞を出す
+	SELECTCASE ARG
+	CASE 6, 7
+		TFLAG:地の文スキップ = 0
+		CALL KOJO_DAILYCOM, ARGS
+	CASEELSE
+		SIF TFLAG:地の文スキップ == 0
+			CALL KOJO_DAILYCOM, ARGS
+	ENDSELECT
+
+
+	;全員相手なら、他の参加者のセリフ
+	IF FLAG:対複数
+		;喋るのは優先順位が上の人から
+		FOR LCOUNT, 1, CHARANUM
+			SIF FINDCHARA(CFLAG:優先順位, LCOUNT, 2) <= 0
+				CONTINUE
+
+			TARGET = FINDCHARA(CFLAG:優先順位, LCOUNT, 2)
+
+			SIF CFLAG:行動参加中
+				CONTINUE
+
+			SELECTCASE STR:日常イベント名
+			CASE "挨拶する"
+				SIF CFLAG:挨拶された
+					CONTINUE
+			CASE "パンツ見せ"
+				SIF COND("自発パンツ見せ可能") == 0
+					CONTINUE
+			ENDSELECT
+
+			SIF COND("現在存在") == 0
+				CONTINUE
+			;台詞
+			CALL KOJO_DAILYCOM, ARGS, "改行無し"
+			CFLAG:行動参加中 = 1
+			CALL BLANKLINE
+
+			;参加は５人まで
+			SELECTCASE CHARA_NUM("行動参加中")
+			CASE IS >= 5
+				BREAK
+			CASE IS >= 2
+				SIF RAND:4 == 0
+					BREAK
+			ENDSELECT
+		NEXT
+	ENDIF
+
+	TARGET = MEMO_TARGET
+
+	MEMO_LINECOUNT = LINECOUNT
+	;台詞の後に続く地の文。有ったり無かったり。
+	TRYCALLFORM AFTERMESSAGE_DAILY{ARG}
+ENDIF
+;パートナーを再セット(他の部員が参加するイベントでリセットされている場合があるため)
+CALL SET_PARTNER
+SIF LINECOUNT > MEMO_LINECOUNT && FLAG:SELECT_USERSHOP == 0
+	CALL BLANKLINE
+
+;お誘い判定あるなら、ここでいったん切る
+SIF FLAG:SELECT_USERSHOP
+	RETURN 1
+
+$AFTER_PART_EVENT_DAILY
+
+;日常イベントによるフラグ変更処理
+CALL SETFLAG_KOJO_DAILYCOM, ARG
+
+;行動の記録
+IF FLAG:対複数
+	FOR LCOUNT, 2, CHARANUM
+		SIF LCOUNT == MEMO_TARGET || CFLAG:LCOUNT:行動参加中 == 0
+			CONTINUE
+
+		TARGET = LCOUNT
+		IF CFLAG:LCOUNT:行動参加中 == 2
+			CALL SET_PREV_DAILYCOM2, ARG, STR:日常イベント名２
+		ELSE
+			CALL SET_PREV_DAILYCOM, ARG, STR:日常イベント名
+		ENDIF
+	NEXT
+ENDIF
+TARGET = MEMO_TARGET
+CALL SET_PREV_DAILYCOM, ARG
+
+;不機嫌、怒り、恥じらいチェック
+FOR LCOUNT, 2, CHARANUM
+	;イベント前に不機嫌だった人は機嫌が直る。再びやらかしてたら駄目
+	SIF CFLAG:LCOUNT:不機嫌 < 2
+		CFLAG:LCOUNT:不機嫌 = 0
+	SIF CFLAG:LCOUNT:怒り < 2
+		CFLAG:LCOUNT:怒り = 0
+	SIF CFLAG:LCOUNT:恥じらい < 2
+		CFLAG:LCOUNT:恥じらい = 0
+NEXT
+
+;好感度による反抗的の消去判定
+CALL SETFLAG, "反抗的消去", TARGET
+
+;淫紋イベント（スカートの下を見る場合には淫紋も目に入る）
+IF IS_VISIBLE_INMON == 0 && MARK:淫紋 && CFLAG:淫紋の様子 == 0
+	IF STRCOUNT(SAVESTR:PREV_日常イベント名, "スカート") && CHECK_CLO("淫紋露出：スカート無視")
+		DRAWLINE
+		CALL TEXT, "淫紋の様子：スカートめくり"
+	ELSEIF CHECK_CLO("淫紋露出")
+		DRAWLINE
+		CALL TEXT, "淫紋の様子"
+	ENDIF
+ENDIF
+
+;特定行動後の派生イベントなど(パートナー以外のイベントが起きる事もある)
+CALL EVENT_DAILY_EX, ARG, ARGS
+
+TARGET = MEMO_TARGET
+
+;キャラ間のコミュニケーションイベント
+;CALL EVENT_COMM
+
+;入室イベント
+CALL EVENT_ENTER_ROOM
+
+;現実時間フラグ取得
+CALL GET_REALTIMEFORFLAG
+
+CVARSET CFLAG, GETNUM(CFLAG, "KOJO_DAILY済")
+
+
+@SET_PREV_DAILYCOM, ARG, ARGS
+SIF TARGET <= 0
+	RETURN 0
+
+;日常イベントフラグ確定
+CALL SET_DEVENT2, TARGET
+
+;今回の出来事を記録。前回選択コマンドとして参照可能
+IF ARG
+	CFLAG:MASTER:PREV_DAILYCATE = ARG
+	CFLAG:PREV_DAILYCATE = ARG
+ENDIF
+
+IF STR:日常イベント名 != ""
+	SAVESTR:PREV_日常イベント名 = %STR:日常イベント名%
+	SAVESTR:PREV_PHOTO = %STR:日常イベント名%
+
+	CSTR:MASTER:PREV_DAILYCOM = %STR:日常イベント名%
+	CSTR:MASTER:DAILYCOM履歴 = %CSTR:DAILYCOM履歴%＠%STR:日常イベント名%\/
+
+	CSTR:PREV_DAILYCOM = %STR:日常イベント名%
+	CSTR:DAILYCOM履歴 = %CSTR:DAILYCOM履歴%＠%STR:日常イベント名%\/
+	;@EVENT_DAILY_EX内では変化しない
+	SAVESTR:PREV_直前行動 = < 直前行動：%STR:日常イベント名%（%CALLNAME:TARGET%）>
+ENDIF
+
+;一通り終わったらフラグ初期化
+STR:日常イベント名 = %ARGS%
+
+;お昼に穿いてたパンツの記録
+SIF COND("昼") && COND("パンツ形状確認") && CSTR:PREV_パンツ == ""
+	CSTR:PREV_パンツ = %CSTR:パンツ%
+
+;主にサブキャラのフラグ記録に使う
+@SET_PREV_DAILYCOM2, ARG, ARGS
+SIF TARGET <= 0
+	RETURN 0
+
+;日常イベントフラグ確定
+CALL SET_DEVENT2, TARGET
+
+;今回の出来事を記録。前回選択コマンドとして参照可能
+SIF ARG
+	CFLAG:PREV_DAILYCATE = ARG
+
+CSTR:PREV_DAILYCOM = %ARGS%
+CSTR:DAILYCOM履歴 = %CSTR:DAILYCOM履歴%＠%ARGS%\/
+
+;お昼に穿いてたパンツの記録
+SIF COND("昼") && COND("パンツ形状確認") && CSTR:PREV_パンツ == ""
+	CSTR:PREV_パンツ = %CSTR:パンツ%
+
+;-------------------------------------------------
+;台詞発言後に変動するフラグなどを管理する。
+;イチャイチャすると欲求不満度が上がってエロシーンでボーナス
+;-------------------------------------------------
+@SETFLAG_KOJO_DAILYCOM, ARG
+#DIM LCOUNT
+#DIM MEMO_DESIRE
+#DIM ACTOR, 5
+#DIM NUM_ACTOR
+#DIM MEMO_KOUKANDO
+
+MEMO_KOUKANDO = CFLAG:好感度
+MEMO_DESIRE = BASE:欲求不満
+
+;ターン経過で増減するフラグ
+FOR LCOUNT, 1, CHARANUM
+	SIF CFLAG:LCOUNT:不在
+		CONTINUE
+
+	IF CFLAG:LCOUNT:睡眠 && (CFLAG:LCOUNT:睡眠 >= 2 || LCOUNT != TARGET)
+		CFLAG:LCOUNT:睡眠 -= 1
+		SIF CFLAG:LCOUNT:睡眠 == 0 && LCOUNT != TARGET
+			CALL REMOVE_STATE, LCOUNT, "酔い"
+		SIF CFLAG:LCOUNT:睡眠 < 3
+			CALL REMOVE_STATE, LCOUNT, "眠気"
+	ENDIF
+	IF CFLAG:LCOUNT:お茶
+		CFLAG:LCOUNT:お茶 -= 1
+		BASE:LCOUNT:尿意 += 400 + TALENT:LCOUNT:小柄*200 - TALENT:LCOUNT:長身*100
+	ENDIF
+
+	SELECTCASE LCOUNT
+	CASE TARGET, MASTER
+	CASEELSE
+		;酔いだと眠くなることも
+		SIF STATE("酔い", LCOUNT) && RAND:5 == 0
+			CALL ADD_STATE, LCOUNT, "眠気"
+	ENDSELECT
+
+	CFLAG:LCOUNT:隙あり = 0
+	CFLAG:LCOUNT:寝起き = 0
+
+	SIF COND("現在不在", LCOUNT)
+		CONTINUE
+
+	;汗だく状態からはすぐ脱する
+	IF TALENT:LCOUNT:汗かき && COND("夏") && RAND:3
+		CFLAG:LCOUNT:汗 += 1 + RAND:2
+	ELSEIF CFLAG:LCOUNT:汗 >= 2 && RAND:4
+		CFLAG:LCOUNT:汗 -= 1
+	ENDIF
+NEXT
+
+;フラグ変動（コマンド区分で分岐）
+SELECTCASE ARG
+;トーク
+CASE 1
+	FOR LCOUNT, 2, CHARANUM
+		SIF CFLAG:LCOUNT:行動参加中
+			CFLAG:LCOUNT:隙あり = 1
+	NEXT
+	SELECTCASE STR:日常イベント名
+	CASE "起こす"
+		CALL SETFLAG_DAILY, "起こす"
+	CASE "挨拶ハグ", "挨拶キス"
+		CALL SETFLAG_DAILY, "挨拶"
+	CASE "挨拶フェラ", "挨拶クンニ"
+		CALL SETFLAG_DAILY, "挨拶"
+		CALL SETFLAG_DAILY, "スカートめくり"
+	CASE "甘い言葉"
+		CALL SETFLAG_DAILY, "甘い言葉"
+		CFLAG:隙あり = 3
+	CASE "褒める", "おやつを褒める"
+		CALL SETFLAG_DAILY, "褒める"
+		CFLAG:隙あり = 2
+	CASEELSE
+		;トーク系が選ばれたら基本的には挨拶済みとなる
+		FOR LCOUNT, 2, CHARANUM
+			SIF CFLAG:LCOUNT:行動参加中
+				CALL SETFLAG_DAILY, "挨拶", LCOUNT
+		NEXT
+	ENDSELECT
+
+;もてなす
+CASE 2
+	SELECTCASE STR:日常イベント名
+	CASE "睡眠姦キス"
+		EXP:睡眠悪戯経験 += 1
+		;対象の口⇔調教者の口の汚れが移動
+		CALL EQ_STAIN, TARGET, "Ｍ", MASTER, "Ｍ"
+
+		PRINTFORML 睡眠悪戯経験+1
+	CASE "睡眠姦フェラ"
+		EXP:睡眠悪戯経験 += 1
+		;対象の口⇔調教者のＰの汚れが移動
+		CALL EQ_STAIN, TARGET, "Ｍ", MASTER, "Ｐ"
+
+		PRINTFORML 睡眠悪戯経験+1
+	CASE "睡眠姦逆フェラ"
+		EXP:睡眠悪戯経験 += 1
+		EXP:MASTER:フェラ経験 += 1
+		;対象のP⇔調教者の口の汚れが移動
+		CALL EQ_STAIN, TARGET, "Ｐ", MASTER, "Ｍ"
+
+		PRINTFORML 睡眠悪戯経験+1
+		PRINTFORML フェラ経験+1(%CALLNAME:MASTER%)
+	CASE "睡眠姦正常位", "睡眠姦寝バック"
+		CALL SETFLAG_DAILY, "スカートめくり"
+		EXP:睡眠姦経験 += 1
+		EXP:Ｖ経験 += 1
+		EXP:MASTER:Ｖ挿入経験 += 1
+		EXP:MASTER:腰使い経験 += 1
+		;対象のＶ⇔調教者のＰの汚れが移動
+		CALL EQ_STAIN, TARGET, "Ｖ", MASTER, "Ｐ"
+
+		PRINTFORML 睡眠姦経験+1
+		PRINTFORML Ｖ経験+1
+		PRINTFORML Ｖ挿入経験+1（%CALLNAME:MASTER%）
+		PRINTFORML 腰使い経験+1（%CALLNAME:MASTER%）
+		IF SIZE("ペニス", MASTER) >= LIMIT(ABL:Ｖ拡張, 2, 3)
+			PRINTFORML Ｖ拡張経験+1
+			EXP:Ｖ拡張経験 += 1
+		ENDIF
+
+	CASE "おっぱいリフトする"
+		CALL SETFLAG_DAILY, "ブラ形状確認"
+	CASE "チップを渡す"
+		CALL SETFLAG_DAILY, "褒める"
+		CFLAG:隙あり = 2
+	CASE "お茶を淹れる"
+		CALL SETFLAG_DAILY, "お茶"
+	CASE "お酒をふるまう"
+		CALL SETFLAG_DAILY, "お酒"
+	CASE "汗を拭く"
+		CALL SETFLAG_DAILY, "汗を拭く"
+	;AFTERMESSAGE_DAILY2内でフラグを変動させる
+	CASE "一緒に勉強する"
+	;CASE "クンニ奉仕する", "フェラ奉仕する"
+
+	ENDSELECT
+;隙を見せる
+CASE 3
+	FOR LCOUNT, 2, CHARANUM
+		SIF CFLAG:LCOUNT:行動参加中
+			CFLAG:LCOUNT:隙あり = 1
+	NEXT
+
+	SELECTCASE STR:日常イベント名
+	CASE "お掃除フェラ"
+		CALL SETFLAG_DAILY, "お掃除フェラ"
+	CASE "寝姿を整える"
+		CALL SETFLAG_DAILY, "寝姿を整える"
+	CASE "お茶汲み"
+		CALL SETFLAG_DAILY, "お茶"
+	CASE "パンツ見せ"
+		FOR LCOUNT, 2, CHARANUM
+			SIF CFLAG:LCOUNT:行動参加中
+				CALL SETFLAG_DAILY, "スカートめくり", LCOUNT
+		NEXT
+	ENDSELECT
+;パンツチェック
+CASE 4
+	SELECTCASE STR:日常イベント名
+	CASE "アソコチェック", "股間チェック"
+		CFLAG:アソコチェック = 1
+		;欲求不満ＵＰ
+		SIF CHOSE_DEVENT(STR:日常イベント名) == 0 && COND("合意：アソコチェック")
+			BASE:欲求不満 += RAND:(5 + MIN(ABL:欲望, 10) + MIN(ABL:露出癖, 5) ) + 5
+	CASE "アナルチェック"
+		CFLAG:アナルチェック = 1
+		;欲求不満ＵＰ
+		SIF CHOSE_DEVENT(STR:日常イベント名) == 0 && COND("合意：アソコチェック")
+			BASE:欲求不満 += RAND:(5 + MIN(ABL:欲望, 10) + MIN(ABL:露出癖, 5) ) + 5
+	CASE "ブルマチェック", "股間観察"
+		CFLAG:股間確認済 = 1
+	CASE "スカートをめくる", "スカートたくし上げ"
+		CALL SETFLAG_DAILY, "スカートめくり"
+		;欲求不満ＵＰ
+		IF CHOSE_DEVENT(STR:日常イベント名) == 0 && COND("合意：スカートめくり")
+			BASE:欲求不満 += RAND:(5 + MIN(ABL:欲望, 10) + MIN(ABL:露出癖, 5) )/2
+			SIF MARK:淫紋
+				BASE:欲求不満 += 5
+		ENDIF
+	CASE "パンツ没収"
+		CALL SETFLAG, "パンツ没収", TARGET
+		;欲求不満ＵＰ
+		BASE:欲求不満 += RAND:(5 + MIN(ABL:欲望, 10) + MIN(ABL:露出癖, 5) )/2
+	CASEELSE
+		SIF DAILYCOMNAME(4) == "パンツチェック" && (COND("合意：パンツチェック") || CFLAG:睡眠)
+			CALL SETFLAG_DAILY, "パンツ詳細確認"
+		;欲求不満ＵＰ
+		SIF CHOSE_DEVENT(STR:日常イベント名) == 0 && COND("合意：パンツチェック")
+			BASE:欲求不満 += RAND:(5 + MIN(ABL:欲望, 10) + MIN(ABL:露出癖, 5) )/2
+	ENDSELECT
+
+;写真撮影
+CASE 5
+	SELECTCASE STR:日常イベント名
+	CASE "ポーズ撮影"
+		IF CHOSE_DEVENT(STR:日常イベント名) == 0
+			BASE:欲求不満 += RAND:(1 + MIN(ABL:欲望, 10) + MIN(ABL:露出癖, 5) )/2 + 1
+		ELSEIF MAX(ABL:欲望, ABL:露出癖) >= 5
+			BASE:欲求不満 += RAND:(1 + MIN(ABL:欲望, 10) + MIN(ABL:露出癖, 5) )/3 + 2
+		ENDIF
+	CASE "スカートの下を撮影", "股間を撮影する","パンツを接写する"
+		SIF CHOSE_DEVENT(STR:日常イベント名) == 0
+			BASE:欲求不満 += RAND:(1 + MIN(ABL:欲望, 10) + MIN(ABL:露出癖, 5) )/2 + 1
+	CASE "アソコを接写する"
+		SIF CHOSE_DEVENT(STR:日常イベント名) == 0
+			BASE:欲求不満 += RAND:(3 + MIN(ABL:欲望, 10) + MIN(ABL:露出癖, 5) )/2 + 3
+	ENDSELECT
+;性処理
+CASE 6
+	CALL SETFLAG_DAILY, "性処理終了"
+;性欲解消
+CASE 7
+	;汗判定で使う
+	VARSET LOCAL
+
+	IF COND("絶頂")
+		CALL CALC, "欲求不満解消", TARGET, LIMIT(COND("絶頂")*25, 50, 100)
+	ELSE
+		CALL CALC, "欲求不満解消", TARGET, 50
+	ENDIF
+
+	IF COND("種族：雪女") == 0
+		SELECTCASE NAMES("性処理")
+		CASE "Ｖセックス", "Ａセックス", "尿道セックス"
+			;けっこう汗かき
+			LOCAL += 3 + RAND:3
+			SIF COND("夏")
+				LOCAL += 2
+			CALL SETFLAG_DAILY, "汗汚れ"
+		CASEELSE
+			LOCAL += RAND:2
+			SIF COND("夏")
+				LOCAL += 1
+			CALL SETFLAG_DAILY, "汗汚れ"
+		ENDSELECT
+	ENDIF
+
+	IF COND("汗だく")
+		CFLAG:汗 += LOCAL
+	ELSE
+		CFLAG:汗 = MIN(CFLAG:汗 + LOCAL, 5)
+	ENDIF
+
+	SELECTCASE NAMES("性処理")
+	CASE "Ｖセックス", "Ａセックス", "尿道セックス", "クンニ", "フェラする"
+		CALL SETFLAG_DAILY, "スカートめくり"
+		CALL SETFLAG_DAILY, "パンツ詳細確認"
+		CFLAG:股間確認済 = 1
+	ENDSELECT
+
+	;本日の性処理フラグON
+	CFLAG:性欲解消済 += 1
+
+	CALL SETFLAG, "調教外Ｈ終了", PLAYER
+	CALL SETFLAG, "調教外Ｈ終了", TARGET
+	SIF CFLAG:褒める == 0
+		CFLAG:褒める = 1
+ENDSELECT
+
+;インサートの設定と解除
+SELECTCASE STR:日常イベント名
+CASE "睡眠姦正常位"
+	CALL SET_INSERT, TARGET, PLAYER, 60
+CASE "睡眠姦寝バック"
+	CALL SET_INSERT, TARGET, PLAYER, 61
+CASEELSE
+	;インサート解除
+	CALL RESET_INSERT, TARGET, PLAYER
+ENDSELECT
+
+;寝ていたらここまで
+IF CFLAG:睡眠
+	BASE:欲求不満 = MEMO_DESIRE
+	RETURN 1
+ENDIF
+
+;以下表示関連
+IF BASE:欲求不満 > MEMO_DESIRE
+	PRINTFORML 欲求不満+{BASE:欲求不満 - MEMO_DESIRE}％
+	;愛液＆汚れ判定
+	CALL STAIN_CALC_DAILY, BASE:欲求不満 - MEMO_DESIRE, TARGET
+ELSEIF BASE:欲求不満 < MEMO_DESIRE
+	PRINTFORML 欲求不満-{MEMO_DESIRE - BASE:欲求不満}％
+ENDIF
+
+;ちょっかいかけると好感度ＵＰ。条件を加味して増減させたいところだ
+FOR LCOUNT, 2, CHARANUM
+	SIF CFLAG:LCOUNT:行動参加中 == 0
+		CONTINUE
+	;ちょっかいかけた回数を記録
+	CFLAG:LCOUNT:ちょっかい数 += 1
+	CFLAG:LCOUNT:日常イベント回数 += 1
+	CFLAG:LCOUNT:好感度 += MAX(13 - CFLAG:LCOUNT:ちょっかい数*3, 1)
+	SIF COND("DAILYCOM回数", LCOUNT) >= 2
+		CALL SETFLAG_DAILY, "挨拶", LCOUNT
+NEXT
+
+SELECTCASE STR:日常イベント名
+CASE "チップを渡す"
+	CFLAG:好感度 += 10
+	MONEY -= 300
+	PRINTFORML 所持金-%MONEY_C(300)%
+CASE "手頃な物をプレゼント"
+	CFLAG:好感度 += 20
+	MONEY -= 10
+	PRINTFORML 所持金-%MONEY_C(10)%
+CASE "そこそこする物をプレゼント"
+	CFLAG:好感度 += 50
+	MONEY -= 200
+	PRINTFORML 所持金-%MONEY_C(200)%
+CASE "お高い物をプレゼント"
+	CFLAG:好感度 += 200
+	MONEY -= 10000
+	PRINTFORML 所持金-%MONEY_C(10000)%
+ENDSELECT
+
+PRINTFORMW 好感度+{CFLAG:好感度 - MEMO_KOUKANDO}
+
+IF FLAG:対複数
+	VARSET ACTOR
+	NUM_ACTOR = 0
+
+	FOR LCOUNT, 2, CHARANUM
+		SIF CFLAG:LCOUNT:行動参加中 == 0
+			CONTINUE
+		ACTOR:NUM_ACTOR = LCOUNT
+		NUM_ACTOR += 1
+	NEXT
+	IF NUM_ACTOR
+		CALL CHANGE_RELATION, 2, ACTOR:0, ACTOR:1, ACTOR:2, ACTOR:3, ACTOR:4
+		PRINTFORMW %CALLNAME:TARGET%達の仲良し度＋2
+	ENDIF
+ENDIF
+SELECTCASE COND("欲求不満")
+CASE IS >= 2
+	IF CFLAG:ムラムラ == 0
+		CALL PRINT_STRW, @"%CALLNAME:TARGET%が[_ピンク_ムラムラ_]状態になりました_黄色_(実行値＆ムードにボーナス)"
+		CFLAG:ムラムラ = 1
+	ENDIF
+CASE 1
+	IF CFLAG:ムラムラ && COND("発情期") == 0
+		CALL PRINT_STRW, @"%CALLNAME:TARGET%の[ムラムラ]が治まりました"
+		CFLAG:ムラムラ = 0
+	ENDIF
+CASE 0
+	IF CFLAG:ムラムラ
+		CALL PRINT_STRW, @"%CALLNAME:TARGET%の[ムラムラ]が治まりました"
+		CFLAG:ムラムラ = 0
+	ENDIF
+ENDSELECT
+IF CFLAG:甘い言葉 == 1
+	CALL PRINT_STRW, @"%CALLNAME:TARGET%が[_ハートピンク_ときめき_]状態になりました_黄色_(ムードにボーナス)"
+	CFLAG:甘い言葉 = 2
+ENDIF
+IF CFLAG:褒める == 1
+	CALL PRINT_STRW, @"%CALLNAME:TARGET%が[上機嫌]になりました_黄色_(実行値に+5ボーナス)"
+	CFLAG:褒める = 2
+ENDIF
+
+;エロコマンドは周りの人の欲求不満もたまる
+IF BASE:欲求不満 > MEMO_DESIRE
+	FOR LCOUNT, 2, CHARANUM
+		SELECTCASE LCOUNT
+		CASE TARGET
+			CONTINUE
+		CASEELSE
+			SIF COND("現在不在", LCOUNT)
+				CONTINUE
+		ENDSELECT
+		SELECTCASE CFLAG:LCOUNT:優先順位
+		CASE IS >= 6
+			SIF RAND:5
+				CONTINUE
+		CASE IS >= 3
+			SIF RAND:3
+				CONTINUE
+		ENDSELECT
+
+		BASE:LCOUNT:欲求不満 += RAND:(1 + MIN(ABL:LCOUNT:欲望, 10) )/2
+		SIF TALENT:LCOUNT:淫乱
+			BASE:LCOUNT:欲求不満 += 1
+		SIF TALENT:LCOUNT:恋慕
+			BASE:LCOUNT:欲求不満 += 1
+	NEXT
+ENDIF
+
+;-------------------------------------------------
+;日常イベントでの各種フラグを設定する関数。殆どは値の大きさでイベント進行度も記録される
+;ARGは誰を基準としてフラグを設定するかで未入力ならTARGET
+;-------------------------------------------------
+@SETFLAG_DAILY, ARGS, ARG
+#DIM LCOUNT
+;行為の参加者のカウントで使ったりする
+#DIM NUM_ACT
+#DIM ACTOR
+#DIM MEMO_STUDY, 2
+#DIM MEMO_SCHOLAR, 2
+#DIM MEMO_TEST_MASTER
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+NUM_ACT = 0
+ACTOR = 0
+
+SELECTCASE ARGS
+CASE "場所を変える"
+	;移動に際してインサートは終了
+	SIF INSERT("挿入中", ARG)
+		CALL RESET_INSERT, ARG
+	IF ARG != MASTER
+		CALL MOVE_PLACE, SAVESTR:現在位置, ARG
+		SIF CONFIG("自宅では靴を脱ぐ") && PLACE("自宅") == 0
+			CALL SET_SHOES_RE, ARG
+	ENDIF
+
+CASE "性処理終了"
+	;汗判定で使う
+	VARSET LOCAL
+	IF TFLAG:ながら性処理
+		;うっすら汗かき
+		IF COND("種族：雪女") == 0
+			SELECTCASE NAMES("性処理")
+			CASE "Ｖセックス", "Ａセックス", "尿道セックス"
+				LOCAL += RAND:2
+				SIF COND("夏")
+					LOCAL += 1
+				CALL SETFLAG_DAILY, "汗汚れ"
+			ENDSELECT
+		ENDIF
+	;やる気性処理
+	ELSE
+		IF COND("絶頂")
+			CALL CALC, "欲求不満解消", TARGET, LIMIT(COND("絶頂")*25, 25, 75)
+		ELSE
+			CALL CALC, "欲求不満解消", TARGET, 25
+		ENDIF
+
+		IF COND("種族：雪女") == 0
+			SELECTCASE NAMES("性処理")
+			CASE "Ｖセックス", "Ａセックス", "尿道セックス"
+				;けっこう汗かき
+				LOCAL += 3 + RAND:3
+				SIF COND("夏")
+					LOCAL += 2
+				CALL SETFLAG_DAILY, "汗汚れ"
+			CASEELSE
+				LOCAL += RAND:2
+				SIF COND("夏")
+					LOCAL += 1
+				CALL SETFLAG_DAILY, "汗汚れ"
+			ENDSELECT
+		ENDIF
+	ENDIF
+	IF COND("汗だく")
+		CFLAG:汗 += LOCAL
+	ELSE
+		CFLAG:汗 = MIN(CFLAG:汗 + LOCAL, 5)
+	ENDIF
+
+	SELECTCASE NAMES("性処理")
+	CASE "Ｖセックス", "Ａセックス", "尿道セックス", "パンツ見抜き"
+		CALL SETFLAG_DAILY, "スカートめくり"
+		CALL SETFLAG_DAILY, "パンツ詳細確認"
+		CFLAG:股間確認済 = 1
+	ENDSELECT
+
+	;性処理履歴に回数追加
+	CALL SETFLAG, "性処理履歴", TARGET
+
+	EXP:性処理経験 += 1
+	PRINTFORML 性処理経験+１
+
+	CALL SETFLAG, "調教外Ｈ終了", PLAYER
+	CALL SETFLAG, "調教外Ｈ終了", TARGET
+
+	TFLAG:ながら性処理 = 0
+CASE "入室までの所要時間計算"
+	;呼び出された人が居る場合
+	IF FINDCHARA(CFLAG:呼び出された, 1, 2) > 0
+		CFLAG:FINDCHARA(CFLAG:呼び出された, 1, 2):入室までの所要時間 = 1
+	ELSE
+		FOR LCOUNT, 1, CHARANUM
+			SIF CFLAG:LCOUNT:不在
+				CONTINUE
+
+			SELECTCASE CFLAG:LCOUNT:入室までの所要時間
+			CASE IS <= 1
+				CONTINUE
+			CASEELSE
+				;夜は全員最初からいる。
+				IF COND("夜")
+					CFLAG:LCOUNT:入室までの所要時間 = 1
+				ELSE
+					CFLAG:LCOUNT:入室までの所要時間 -= 1
+				ENDIF
+			ENDSELECT
+		NEXT
+	ENDIF
+CASE "挨拶"
+	CFLAG:ARG:挨拶した = 1
+	CFLAG:ARG:挨拶された = 1
+CASE "起こす"
+	CALL REMOVE_STATE, ARG, "酔い"
+	SIF COND("熟睡", ARG) == 0
+		CALL REMOVE_STATE, ARG, "眠気"
+	SIF CFLAG:ARG:パンツ没収
+		CALL SETFLAG, "パンツ返却", ARG
+	CFLAG:ARG:スカートめくり = 0
+	CFLAG:ARG:睡眠 = 0
+	CFLAG:ARG:寝起き = 1
+	CFLAG:ARG:隙あり = 4
+	IF EXP_GAIN("睡眠姦経験", ARG)
+		;インサート解除
+		CALL RESET_INSERT, ARG, MASTER
+	ENDIF
+	CALL RESET_STAIN_EX, "寝姿を整える", ARG
+
+CASE "寝姿を整える"
+	SIF CFLAG:ARG:パンツ没収
+		CALL SETFLAG, "パンツ返却", ARG
+	CFLAG:ARG:スカートめくり = 0
+	IF EXP_GAIN("睡眠姦経験", ARG)
+		;インサート解除
+		CALL RESET_INSERT, ARG, MASTER
+	ENDIF
+	CALL RESET_STAIN_EX, "寝姿を整える", ARG
+	SIF CFLAG:ARG:汗 > 0
+		CFLAG:ARG:汗 = 1
+CASE "甘い言葉"
+	SIF CALCF("甘い言葉成功", ARG)
+		CFLAG:ARG:甘い言葉 = 1
+CASE "褒める"
+	SIF CFLAG:ARG:褒める == 0
+		CFLAG:ARG:褒める = 1
+CASE "不機嫌", "怒り", "恥じらい"
+	CFLAG:ARG:ARGS = 2
+CASE "勉強"
+	MEMO_STUDY:0 = CFLAG:勉強時間
+	MEMO_STUDY:1 = CFLAG:MASTER:勉強時間
+	MEMO_SCHOLAR:0 = BASE:学力
+	MEMO_SCHOLAR:1 = BASE:MASTER:学力
+	MEMO_TEST_MASTER = CALCF("試験の予想点数", MASTER)
+
+	;履歴に勉強追加
+	CSTR:DAILYCOM履歴 = %CSTR:DAILYCOM履歴%＠勉強\/
+
+	CFLAG:勉強時間 += 1
+	CFLAG:MASTER:勉強時間 += 1
+
+	IF COND("教員")
+		CFLAG:MASTER:勉強時間 += 1
+	ELSEIF TALENT:MASTER:賢い && TALENT:賢い
+		CFLAG:勉強時間 += 1
+		CFLAG:MASTER:勉強時間 += 1
+	ELSEIF TALENT:MASTER:賢い || (TALENT:MASTER:愚か == 0 && TALENT:愚か)
+		CFLAG:勉強時間 += 1
+	ELSEIF TALENT:賢い
+		CFLAG:MASTER:勉強時間 += 1
+	ENDIF
+
+	SIF COND("学生")
+		BASE:学力 = CALCF("推定学力")
+	BASE:MASTER:学力 = CALCF("推定学力", MASTER)
+
+	SIF COND("学生")
+		PRINTFORML 勉強pt+{CFLAG:勉強時間 - MEMO_STUDY:0}\@ MEMO_SCHOLAR:0 != BASE:学力 ? ＆学力+{BASE:学力 - MEMO_SCHOLAR:0} # \@
+	PRINTFORMW 勉強pt+{CFLAG:MASTER:勉強時間 - MEMO_STUDY:1}\@ MEMO_SCHOLAR:1 != BASE:MASTER:学力 ? ＆学力+{BASE:MASTER:学力 - MEMO_SCHOLAR:1} # \@（%CALLNAME:MASTER%）
+
+	PRINTFORML - 小テストによる試験の予想得点（全教科合計の平均）-
+
+	IF COND("学生")
+		CFLAG:予想点 = CALCF("試験の予想点数")
+		PRINTFORML %TEXT_LJ(CALLNAME:TARGET, 16)% {CFLAG:予想点, 3}点 … %TEXTS("試験評価", CFLAG:予想点)%
+	ENDIF
+	CFLAG:MASTER:予想点 = CALCF("試験の予想点数", MASTER)
+	PRINTFORMW %TEXT_LJ(CALLNAME:MASTER, 16)% {CFLAG:MASTER:予想点, 3}点 … %TEXTS("試験評価", CFLAG:MASTER:予想点)%
+
+	SELECTCASE CFLAG:MASTER:予想点
+	CASE IS >= 90
+		IF MEMO_TEST_MASTER < 90
+			PRINTL 
+			PRINTFORMW ……やれることはやった、という感じだ。学年上位の仲間入りもできるかもしれない。
+		ENDIF
+	CASE IS >= 80
+		IF MEMO_TEST_MASTER < 80
+			PRINTL 
+			PRINTFORMW ……随分と勉強した。けっこう上の順位を狙えるかもしれない。
+		ENDIF
+	CASE IS >= 60
+		IF MEMO_TEST_MASTER < 60
+			PRINTL 
+			PRINTFORMW ……普段の成績を維持する程度なら、もう十分だろう。
+		ENDIF
+	CASE IS >= 30
+		IF MEMO_TEST_MASTER < 30
+			PRINTL 
+			PRINTFORMW ……このぐらいやっておけば、赤点になることはなさそうだ。
+		ENDIF
+	ENDSELECT
+CASE "お茶", "お茶を用意"
+	FOR LCOUNT, 1, CHARANUM
+		SIF COND("現在不在", LCOUNT)
+			CONTINUE
+		CFLAG:LCOUNT:お茶 = 7 + RAND:3
+
+		SIF BASE:LCOUNT:尿意 < 5000
+			BASE:LCOUNT:尿意 += 1500
+	NEXT
+	SIF ARG && (SAVESTR:お茶 == "" || ARGS == "お茶を用意")
+		SAVESTR:お茶 = %TEXTR(CSTR:ARG:お茶)%
+	SIF SAVESTR:お茶 == ""
+		SAVESTR:お茶 = お茶
+CASE "お酒"
+	FOR LCOUNT, 1, CHARANUM
+		SIF COND("現在不在", LCOUNT) || CEVENT("飲酒拒否", LCOUNT)
+			CONTINUE
+
+		IF STATE("酔い", LCOUNT)
+			;IF TALENT:LCOUNT:薬毒耐性 == 0 && RAND:3 == 0
+			;	CALL ADD_STATE, LCOUNT, "悪酔い"
+			;	IF LCOUNT == TARGET
+			;		PRINTFORMW ……%CALLNAME:LCOUNT%は呑み過ぎてしまったようだ。
+			;		CALL PRINT_STRW, @"%CALLNAME:LCOUNT%は_青_悪酔い_してしまった…"
+			;		CALL DAILY_MESSAGE, "悪酔い"
+			;	ENDIF
+			;ENDIF
+		ELSE
+			CALL ADD_STATE, LCOUNT, "酔い"
+		ENDIF
+
+		BASE:LCOUNT:尿意 += 1500 + TALENT:LCOUNT:小柄*200 - TALENT:LCOUNT:長身*100
+		NUM_ACT += 1
+		ACTOR = LCOUNT
+	NEXT
+
+	IF NUM_ACT
+		IF STATE("酔い")
+			CALL PRINT_STRW, @"%CALLNAME:TARGET%\@ NUM_ACT >= 3 ? 達 # \@が[_ハートピンク_酔い_]になりました_黄色_(実行値とムードにボーナス＆たまに奇行)"
+		ELSEIF STATE("酔い", MASTER) && NUM_ACT == 1
+			PRINTFORMW 残念ながら%CALLNAME:TARGET%には断られてしまったので一人で飲みます。
+		ELSE
+			CALL PRINT_STRW, @"%CALLNAME:ACTOR%\@ NUM_ACT >= 3 ? 達 # \@が[_ハートピンク_酔い_]になりました_黄色_(実行値とムードにボーナス＆たまに奇行)"
+		ENDIF
+		MONEY -= NUM_ACT*500
+		PRINTFORMW 所持金-%MONEY_C(NUM_ACT*500)%
+	ENDIF
+CASE "お掃除フェラ"
+	EXP:ARG:フェラ経験 += 1
+	PRINTFORML フェラ経験+1
+	IF CHECK_STAIN(STAIN:MASTER:Ｐ, "Ｐ恥垢")
+		EXP:ARG:お掃除フェラ経験 += 2
+		PRINTFORML お掃除フェラ経験+2
+	ELSE
+		EXP:ARG:お掃除フェラ経験 += 1
+		PRINTFORML お掃除フェラ経験+1
+	ENDIF
+	CALL RESET_STAIN_EX, "Ｐ", MASTER
+
+CASE "汗を拭く"
+	SIF CFLAG:ARG:汗 > 0
+		CFLAG:ARG:汗 = 1
+	CALL RESET_STAIN_EX, "Ｂ", ARG
+CASE "汗が引いた"
+	SIF CFLAG:ARG:汗 >= 2
+		CFLAG:ARG:汗 = 1
+CASE "汗汚れ"
+	SIF PENIS(ARG)
+		STAIN:ARG:Ｐ = SET_STAIN(STAIN:ARG:Ｐ, "汗")
+	SIF TALENT:オトコ == 0
+		STAIN:ARG:Ｖ = SET_STAIN(STAIN:ARG:Ｖ, "汗")
+	STAIN:ARG:Ａ = SET_STAIN(STAIN:ARG:Ａ, "汗")
+	STAIN:ARG:Ｂ = SET_STAIN(STAIN:ARG:Ｂ, "汗")
+	SIF EQUIP:ARG:パンツ && COND("汗かき", ARG)
+		STAIN:ARG:パンツ = SET_STAIN(STAIN:ARG:パンツ, "汗")
+	SIF EQUIP:ARG:服 && COND("汗かき", ARG)
+		STAIN:ARG:服 = SET_STAIN(STAIN:ARG:服, "汗")
+
+CASE "シャワー"
+	CFLAG:ARG:シャワー済 = 1
+	CFLAG:ARG:汗 = 0
+	CALL RESET_STAIN_EX, "全部", ARG
+	TEQUIP:ARG:お風呂上り = 1
+CASE "パンツおぼろげ確認"
+	SETBIT CFLAG:ARG:下着確認済, 0
+CASE "パンツ色確認"
+	CFLAG:ARG:下着確認済 = SETBITS(CFLAG:ARG:下着確認済, 0, 1)
+CASE "パンツ形状確認"
+	CFLAG:ARG:下着確認済 = SETBITS(CFLAG:ARG:下着確認済, 0, 2)
+CASE "パンツ詳細確認"
+	CFLAG:ARG:下着確認済 = SETBITS(CFLAG:ARG:下着確認済, 0, 3)
+CASE "ブラ形状確認"
+	CFLAG:ARG:下着確認済 = SETBITS(CFLAG:ARG:下着確認済, 10, 12)
+
+CASE "スカートめくり"
+	IF EQUIP:ARG:スカート
+		CFLAG:ARG:スカートめくり = 1
+		CFLAG:ARG:股間確認済 = 1
+		SIF CHECK_CLO("パンツ視認可能", ARG)
+			CALL SETFLAG_DAILY, "パンツ形状確認", ARG
+	ENDIF
+CASE "トイレ"
+	CFLAG:ARG:トイレ済 = 1
+	SIF PENIS(ARG)
+		STAIN:ARG:Ｐ = SET_STAIN(STAIN:ARG:Ｐ, "尿")
+	SIF TALENT:オトコ == 0
+		STAIN:ARG:Ｖ = SET_STAIN(STAIN:ARG:Ｖ, "尿")
+	BASE:ARG:尿意 = 0
+CASE "同伴者"
+	SAVESTR:同伴者 = %CALLNAME:ARG%
+ENDSELECT
+
+;-------------------------------------------------
+;DEVENTはメイン画面で発生するイベントの記録
+;CEVENTとの大きな違いはSET_DEVENTしたものが特定タイミングにならないと本決定されないところ
+;書式としてはCEVENT同様に特殊なイベント群を作る際には、頭に"イベント名："とするのを推奨
+;また、記述と操作の都合により、半角の"/"と"^"の使用は禁止
+;-------------------------------------------------
+@DEVENT(ARGS, ARG)
+#FUNCTION
+#DIMS TEXT_SEARCH
+
+SIF ARG < 0
+	RETURNF 0
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+TEXT_SEARCH = \/%ARGS%\/
+
+SIF STRCOUNT(@"\/%CSTR:ARG:DEVENT%", TEXT_SEARCH)
+	RETURNF 1
+RETURNF 0
+
+@SET_DEVENT, ARGS, ARG
+#DIMS TEXT_SEARCH
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+TEXT_SEARCH = \/%ARGS%\/
+
+;もう記録済みなら弾く
+SIF STRCOUNT(@"\/%CSTR:ARG:DEVENT%", TEXT_SEARCH) || STRCOUNT(@"\/%CSTR:ARG:NOW_DEVENT%", TEXT_SEARCH)
+	RETURN 0
+CSTR:ARG:NOW_DEVENT += @"%ARGS%\/"
+
+;NOW_DEVENTに格納されているものをDEVENTに追加する
+;CDAYEVの確定もここで行う
+;タイミングはEVENTTURNENDとEVENTTRAINとSET_PREV_DAILYCOMとEVENT_ACADEMY
+@SET_DEVENT2, ARG
+#DIM LCOUNT
+#DIMS CDAYEV_SPLITS, 100
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+CSTR:ARG:DEVENT = %CSTR:ARG:DEVENT%%CSTR:ARG:NOW_DEVENT%
+CSTR:ARG:NOW_DEVENT = 
+
+VARSET LOCALS
+SPLIT CSTR:ARG:CDAYEV, "/", LOCALS
+CSTR:ARG:CDAYEV = 
+FOR LCOUNT, 0, 100
+	SELECTCASE LOCALS:LCOUNT
+	CASE ""
+		BREAK
+	CASEELSE
+		VARSET CDAYEV_SPLITS
+		SPLIT LOCALS:LCOUNT, "_", CDAYEV_SPLITS
+		CSTR:ARG:CDAYEV += @"%CDAYEV_SPLITS%\/"
+	ENDSELECT
+NEXT
+
+
+@DEL_DEVENT, ARGS, ARG
+#DIM LCOUNT
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+VARSET LOCALS
+;イベントごとに分解する
+SPLIT CSTR:ARG:DEVENT, "/", LOCALS
+
+;一旦CSTR:DEVENTを初期化
+CSTR:ARG:DEVENT = 
+
+FOR LCOUNT, 0, 100
+	SELECTCASE LOCALS:LCOUNT
+	;消す対称or空文字
+	CASE "", ARGS
+		CONTINUE
+	CASEELSE
+		CSTR:ARG:DEVENT = %CSTR:ARG:DEVENT%%LOCALS:LCOUNT%/
+	ENDSELECT
+NEXT
+
+@DEVENTS(ARGS, ARG)
+#FUNCTIONS
+#DIM LCOUNT
+
+VARSET LOCALS
+
+SIF ARG < 0
+	RETURNF LOCALS
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+ARGS = %ARGS%：
+
+;イベントごとに分解する
+SPLIT CSTR:ARG:DEVENT, "/", LOCALS
+
+FOR LCOUNT, 0, 100
+	SIF LOCALS:LCOUNT == ""
+		BREAK
+	;イベント群ARGSでないならCONTINUE
+	SIF STRCOUNT(LOCALS:LCOUNT, ARGS) == 0
+		CONTINUE
+
+	;イベント名：内容 となっているので"内容"部分を抜き出す
+	LOCALS:LCOUNT = %SUBSTRING(LOCALS:LCOUNT, STRLENS(ARGS), -1)%
+	RETURNF LOCALS:LCOUNT
+NEXT
+
+LOCALS = 
+RETURNF LOCALS
+
+
+;その時間帯でのARGSの選択回数を返す
+@CHOSE_DEVENT(ARGS, ARG)
+#FUNCTION
+
+SIF ARG < 0
+	RETURNF 0
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+RETURNF STRCOUNT(CSTR:ARG:DAILYCOM履歴, @"＠%ARGS%\/")
+
+
+@SEVENT(ARGS, ARG)
+#FUNCTION
+
+SIF ARG < 0
+	RETURNF 0
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+SIF STRCOUNT(CSTR:ARG:SEVENT, @"%ARGS%\/")
+	RETURNF 1
+RETURNF 0
+
+@SET_SEVENT, ARGS, ARG
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+ARGS = %ARGS%\/
+
+;もう記録済みなら弾く
+SIF STRCOUNT(CSTR:ARG:SEVENT, ARGS)
+	RETURN 0
+CSTR:ARG:SEVENT = %CSTR:ARG:SEVENT%%ARGS%
+
+
+;-------------------------------------------------
+;現在位置の判定関数。SAVESTR:現在位置 がARGSかを判定する
+;ARGS:1は通常は空だが、これに文字列を入れるとSAVESTR:現在位置の代わりにARGS:1で判定する
+;-------------------------------------------------
+@PLACE(ARGS, ARGS:1)
+#FUNCTION
+#DIMS LOCATIONS
+
+SELECTCASE ARGS:1
+CASE ""
+	LOCATIONS = %SAVESTR:現在位置%
+CASEELSE
+	LOCATIONS = %ARGS:1%
+ENDSELECT
+
+SELECTCASE ARGS
+CASE "勉強可能", "髪型変更可能"
+	SELECTCASE LOCATIONS
+	;誰かの部屋
+	CASE @"%CSVCALLNAME(NO:MASTER)%の部屋", @"%CSVCALLNAME(NO:TARGET)%の部屋", @"%CSVCALLNAME(NO:(ASSI:1))%の部屋"
+		RETURNF 1
+	;誰かの家
+	CASE @"%CSVCALLNAME(NO:TARGET)%の家", @"%CSVCALLNAME(NO:(ASSI:1))%の家"
+		RETURNF 1
+	;勉強可能な部屋
+	CASE "居間", "部室"
+		RETURNF 1
+	ENDSELECT
+CASE "鞄持ち歩き中"
+	SELECTCASE LOCATIONS
+	CASE "ヤリ部屋", "体育倉庫", "更衣室", "保健室", "ラブホテル"
+		RETURNF 1
+	CASE @"%CSVCALLNAME(NO:TARGET)%の部屋"
+		RETURNF 1
+	CASE @"%CSVCALLNAME(NO:TARGET)%の家", @"%CSVCALLNAME(NO:(ASSI:1))%の家"
+		RETURNF 1
+	CASE "公園", "部室"
+		RETURNF 1
+	ENDSELECT
+CASE "自室"
+	SIF LOCATIONS == @"%CSVCALLNAME(NO:MASTER)%の部屋"
+		RETURNF 1
+CASE "パートナーの部屋"
+	SIF LOCATIONS == @"%CSVCALLNAME(NO:TARGET)%の部屋"
+		RETURNF 1
+CASE "アドバイザーの部屋"
+	SIF LOCATIONS == @"%CSVCALLNAME(NO:(ASSI:1))%の部屋"
+		RETURNF 1
+CASE "Ｈ目的"
+	SELECTCASE LOCATIONS
+	CASE "ヤリ部屋", "体育倉庫", "更衣室", "保健室", "ラブホテル"
+		RETURNF 1
+	ENDSELECT
+CASE "学園内"
+	SELECTCASE LOCATIONS
+	CASE "部室", "ヤリ部屋", "体育倉庫", "更衣室", "保健室"
+		RETURNF 1
+	ENDSELECT
+CASE "出先"
+	SELECTCASE LOCATIONS
+	CASE "部室"
+		RETURNF 0
+	CASE @"%CSVCALLNAME(NO:TARGET)%の家", @"%CSVCALLNAME(NO:(ASSI:1))%の家"
+		RETURNF 0
+	CASEELSE
+		SIF PLACE("自宅", ARGS:1)
+			RETURNF 0
+		RETURNF 1
+	ENDSELECT
+CASE "お風呂場"
+	SELECTCASE LOCATIONS
+	CASE "ラブホテル"
+		RETURNF 1
+	CASE @"%CSVCALLNAME(NO:TARGET)%の家", @"%CSVCALLNAME(NO:(ASSI:1))%の家"
+		RETURNF 1
+	CASEELSE
+		SIF PLACE("自宅", ARGS:1)
+			RETURNF 1
+		RETURNF 0
+	ENDSELECT
+CASE "野外"
+	SELECTCASE LOCATIONS
+	CASE "公園"
+		RETURNF 1
+	CASEELSE
+		SIF COND("帰り道") || COND("デート中") || COND("買い物中")
+			RETURNF 1
+	ENDSELECT
+CASE "個室"
+	SELECTCASE LOCATIONS
+	CASE "居間", "部室", "公園"
+		RETURNF 0
+	CASE @"%CSVCALLNAME(NO:TARGET)%の家", @"%CSVCALLNAME(NO:(ASSI:1))%の家"
+		RETURNF 0
+	CASEELSE
+		RETURNF 1
+	ENDSELECT
+CASE "自宅"
+	SELECTCASE LOCATIONS
+	CASE "自室", "居間"
+		RETURNF 1
+	CASEELSE
+		SIF STRCOUNT(LOCATIONS, "の部屋")
+			RETURNF 1
+	ENDSELECT
+CASE "パートナーの自宅"
+	SIF LOCATIONS == @"%CSVCALLNAME(NO:TARGET)%の家"
+		RETURNF 1
+CASEELSE
+	SIF LOCATIONS == ARGS
+		RETURNF 1
+ENDSELECT
+
+RETURNF 0
+
+
+;-------------------------------------------------
+;キャラARGをARGSへ移動させる関数
+;-------------------------------------------------
+@MOVE_PLACE, ARGS, ARG
+#DIM LCOUNT
+;服を着替えるかの判定。部屋着に着替えていたり服を脱いでいたりするとONになる
+#DIM CHANGE_CLOTH
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+CHANGE_CLOTH = 0
+;移動で服を着替えないシチュ
+IF COND("デート中", ARG)
+ELSEIF CSTR:ARG:現在位置 != ARGS
+	SIF COND("部屋着に着替えた", ARG) && PLACE("自宅", CSTR:ARG:現在位置) && ARGS != @"%CSVCALLNAME(NO:ARG)%の部屋" && ARGS != @"%CSVCALLNAME(NO:MASTER)%の部屋"
+		SETBIT CHANGE_CLOTH, 0
+	IF COND("全裸状態終了可能", ARG) && ARGS != @"%CSVCALLNAME(NO:ARG)%の部屋" && ARGS != @"%CSVCALLNAME(NO:MASTER)%の部屋"
+		SETBIT CHANGE_CLOTH, 1
+	;外に行く際には脱いだ服があるならそれを着る
+	ELSEIF PLACE("出先", ARGS) && CSTR:ARG:脱いだ服一式 != ""
+		SETBIT CHANGE_CLOTH, 1
+	ENDIF
+ENDIF
+
+CSTR:ARG:現在位置 = %ARGS%
+
+VARSET LOCALS
+SPLIT CSTR:ARG:移動履歴, "/", LOCALS
+
+SIF LOCALS != CSTR:ARG:現在位置
+	CSTR:ARG:移動履歴 = %ARGS%\/%CSTR:ARG:移動履歴%
+
+;部屋着から普段着への変化が起きたか？
+SIF CHANGE_CLOTH == 0
+	RETURN 0
+
+SIF GETBIT(CHANGE_CLOTH, 1)
+	CALL SET_MEMO_DRESS, "脱いだ服一式", ARG
+
+SIF GETBIT(CHANGE_CLOTH, 0)
+	CALL SET_COORDINATE, "普段着", ARG
+
+
+
+;-------------------------------------------------
+;キャラARGがARGSへ移動済かを見る関数
+;-------------------------------------------------
+@CMOVE(ARGS, ARG)
+#FUNCTION
+
+SIF ARG < 0
+	RETURNF 0
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+SIF STRCOUNT(@"\/%CSTR:ARG:移動履歴%", @"\/%ARGS%\/")
+	RETURNF 1
+RETURNF 0
+
+
+;-------------------------------------------------
+;キャラ名のみの表示。主に喋る人が誰か分かるように表示する
+;-------------------------------------------------
+@PRINT_NAME, ARG
+#DIMS APP_CHANGE
+#DIMS DISPLAY_NAME
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+CALL PRINT_STRL, @"- _%DISPLAY_NAME(ARG)%_-"
+
+;-------------------------------------------------
+;PRINT_NAME表示に使う文字列
+;-------------------------------------------------
+@DISPLAY_NAME(ARG)
+#FUNCTIONS
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+IF NICKNAME:ARG != ""
+	RETURNF @"黄色_%NICKNAME:ARG%"
+ELSE
+	RETURNF @"黄色_%CALLNAME:ARG%"
+ENDIF
+
+;-------------------------------------------------
+;キャラ名と服装の表示。主に喋る人が誰か分かるように表示する
+;-------------------------------------------------
+@PRINT_NAME_CLO, ARG
+#DIMS APP_CHANGE
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+CALL PRINT_STRL, @"- _%DISPLAY_NAME(ARG)%_〈%CLO_ABOUT(ARG)%%SHOW_APP_CHANGE(ARG, " with")%〉 -"
+
+;普段と比べて格好に変化が出てる場合にそれを描写する。@PRINT_STRの書式なのに注意
+;ARGSに文字列が入っている場合には、%ARGS% %SHOW_APP_CHANGE(ARG)% となる
+@SHOW_APP_CHANGE(ARG, ARGS)
+#FUNCTIONS
+#DIMS APP_CHANGE
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+VARSET APP_CHANGE
+
+;まずは露出ステータス
+IF CHECK_CLO("腋露出", ARG)
+	IF COND("腋毛", ARG) >= 6
+		APP_CHANGE += @"%TEXTS("腋")%毛(%CONDS("腋毛", ARG)%)＆"
+	ELSE
+		APP_CHANGE += @"%TEXTS("腋")%＆"
+	ENDIF
+ENDIF
+
+IF CHECK_CLO("乳首露出", ARG)
+	IF TALENT:ARG:ニプルピアス
+		APP_CHANGE += "乳首ピ＆"
+	ELSEIF EQUIP:ARG:ブラ + EQUIP:ARG:ボディスーツ
+		APP_CHANGE += "乳首＆"
+	ENDIF
+;これは乳輪チラの方に含まれる
+ELSEIF EQUIP:ARG:ブラ + EQUIP:ARG:ボディスーツ && CHECK_CLO("乳輪露出", ARG)
+;	APP_CHANGE += "乳輪＆"
+ELSEIF TALENT:ARG:巨乳 && EQUIP:ARG:服 + EQUIP:ARG:ボディスーツ && CHECK_CLO("谷間露出", ARG)
+	APP_CHANGE += "胸の谷間＆"
+ENDIF
+
+IF CHECK_CLO("陰毛露出", ARG)
+	APP_CHANGE += @"陰毛(%CONDS("陰毛", ARG)%)＆"
+ELSEIF COND("調教中", ARG)
+	SIF COND("陰毛", ARG) && CHECK_CLO("Ｖ露出")
+		APP_CHANGE += @"陰毛(%CONDS("陰毛", ARG)%)＆"
+ENDIF
+
+IF CHECK_CLO("ハダカ", ARG)
+ELSEIF CHECK_CLO("股間露出", ARG)
+	SELECTCASE COND("陰毛", ARG)
+	CASE 1 TO 3
+		APP_CHANGE += @"股間(%CONDS("陰毛", ARG)%)＆"
+	CASEELSE
+		APP_CHANGE += "股間＆"
+	ENDSELECT
+ELSEIF CHECK_CLO("鼠径部露出", ARG)
+	APP_CHANGE += "鼠径部＆"
+ENDIF
+;状態で色が変わる。分かる人は分かる
+IF CHECK_CLO("淫紋露出", ARG)
+	IF CFLAG:ARG:Ｖ中出し済 || (TALENT:ARG:オトコ && CFLAG:ARG:Ａ中出し済)
+		APP_CHANGE += "_ハートピンク_淫紋_＆"
+	ELSEIF CFLAG:ARG:ムラムラ || COND("欲求不満", ARG) >= 2
+		APP_CHANGE += "_ピンク_淫紋_＆"
+	ELSEIF COND("排卵中", ARG)
+		APP_CHANGE += "_ショッキングピンク_淫紋_＆"
+	ELSEIF COND("危険日", ARG)
+		APP_CHANGE += "_イエロー_淫紋_＆"
+	ELSE
+		APP_CHANGE += "淫紋＆"
+	ENDIF
+ENDIF
+
+IF CHECK_CLO("へそ露出", ARG)
+	IF TALENT:ARG:へそピアス
+		APP_CHANGE += "へそピ＆"
+	ELSEIF EQUIP:ARG:服 + EQUIP:ARG:ボディスーツ
+		APP_CHANGE += "ヘソ＆"
+	ENDIF
+ENDIF
+
+SIF APP_CHANGE != ""
+	APP_CHANGE = %SUBSTRING(APP_CHANGE, 0, STRLENS(APP_CHANGE) - 2)%露出,
+
+
+IF CHECK_CLO("ハミ毛", ARG)
+	APP_CHANGE += @"ハミ毛(%CONDS("陰毛", ARG)%),"
+ELSEIF CHECK_CLO("透け毛", ARG)
+	APP_CHANGE += @"透け毛(%CONDS("陰毛", ARG)%),"
+ENDIF
+
+;上半身の状態チェック
+IF CHECK_CLO("トップレス", ARG)
+	APP_CHANGE += "トップレス,"
+ELSEIF CHECK_CLO("乳首露出", ARG)
+ELSEIF EQUIP:ARG:ブラ + EQUIP:ARG:ボディスーツ && CHECK_CLO("乳輪露出", ARG)
+	APP_CHANGE += "_ハートピンク_乳輪チラ_,"
+ELSEIF COND("ブラ透け", ARG)
+	IF EQUIP:ARG:ブラ && CHECK_BRA("乳首露出", ARG) == 0
+		APP_CHANGE += "_ハートピンク_ブラ透け_,"
+	ELSEIF TALENT:ARG:ニプルピアス
+		APP_CHANGE += "_ハートピンク_乳首ピ透け_,"
+	ELSE
+		APP_CHANGE += "_ハートピンク_乳首透け_,"
+	ENDIF
+ENDIF
+
+;髪型は常時表示でも良いかもなぁ
+IF CFLAG:ARG:顔グラ
+	SIF COND("顔グラ表示中", ARG) == 0
+		APP_CHANGE += @"%CONDS("髪色", ARG)%%CONDS("髪型", ARG)%,"
+ELSEIF CFLAG:ARG:髪型変更のお願い中
+	APP_CHANGE += @"%CONDS("髪型", ARG)%,"
+ENDIF
+
+SIF APP_CHANGE != ""
+	APP_CHANGE = %ARGS% %SUBSTRING(APP_CHANGE, 0, STRLENS(APP_CHANGE) - 1)%
+
+RETURNF APP_CHANGE
+
+
+;-------------------------------------------------
+;@PRINT_NAME_CLOのパンツ版
+;-------------------------------------------------
+@PRINT_NAME_PANTU, ARG
+#DIMS APP_CHANGE
+#DIM LCOUNT
+;衣装の記録
+#DIMS MEMO_CLO, 50
+#DIM MEMO_EQUIP, 50
+#DIM MEMO_STAIN, 20
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+;着ていた服と汚れを記憶する
+FOR LCOUNT, 40, 50
+	MEMO_CLO:LCOUNT = %CSTR:ARG:LCOUNT%
+NEXT
+FOR LCOUNT, 40, 50
+	MEMO_EQUIP:LCOUNT = EQUIP:ARG:LCOUNT
+NEXT
+FOR LCOUNT, 10, 20
+	MEMO_STAIN:LCOUNT = STAIN:ARG:LCOUNT
+NEXT
+
+;パンツが見えるようにする
+CALL SET_SKIRT, "", ARG
+CALL SET_BODYS, "", ARG
+CALL SET_OUTER, "", ARG
+
+IF EQUIP:ARG:パンツ
+	CALL PRINT_STRL, @"- _%DISPLAY_NAME(ARG)%_〈%PANTIES(ARG)%%SHOW_APP_PANTU(ARG, " with")%〉 -"
+ELSE
+	CALL PRINT_STRL, @"- _%DISPLAY_NAME(ARG)%_〈_ハートピンク_ノーパン_%SHOW_APP_PANTU(ARG, " with")%〉 -"
+ENDIF
+
+;着ていた服と汚れを戻す
+FOR LCOUNT, 40, 50
+	CSTR:ARG:LCOUNT = %MEMO_CLO:LCOUNT%
+NEXT
+FOR LCOUNT, 40, 50
+	EQUIP:ARG:LCOUNT = MEMO_EQUIP:LCOUNT
+NEXT
+FOR LCOUNT, 10, 20
+	STAIN:ARG:LCOUNT = MEMO_STAIN:LCOUNT
+NEXT
+
+
+@SHOW_APP_PANTU(ARG, ARGS)
+#FUNCTIONS
+#DIMS APP_PANTU
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+VARSET APP_PANTU
+
+;まずは露出ステータス
+IF CHECK_CLO("陰毛露出", ARG)
+	APP_PANTU += @"陰毛(%CONDS("陰毛", ARG)%)＆"
+ELSEIF COND("調教中", ARG)
+	SIF COND("陰毛", ARG) && CHECK_CLO("Ｖ露出")
+		APP_PANTU += @"陰毛(%CONDS("陰毛", ARG)%)＆"
+ENDIF
+
+IF EQUIP:ARG:パンツ == 0
+ELSEIF CHECK_CLO("股間露出", ARG)
+	SELECTCASE COND("陰毛", ARG)
+	CASE 1 TO 3
+		APP_PANTU += @"股間(%CONDS("陰毛", ARG)%)＆"
+	CASEELSE
+		APP_PANTU += "股間＆"
+	ENDSELECT
+;ELSEIF CHECK_CLO("大陰唇露出", ARG)
+;	APP_PANTU += "大陰唇＆"
+ELSEIF CHECK_CLO("鼠径部露出", ARG)
+	APP_PANTU += "鼠径部＆"
+ENDIF
+;状態で色が変わる。分かる人は分かる
+IF CHECK_CLO("淫紋露出", ARG)
+	IF CFLAG:ARG:Ｖ中出し済 || (TALENT:ARG:オトコ && CFLAG:ARG:Ａ中出し済)
+		APP_PANTU += "_ハートピンク_淫紋_＆"
+	ELSEIF CFLAG:ARG:ムラムラ || COND("欲求不満", ARG) >= 2
+		APP_PANTU += "_ピンク_淫紋_＆"
+	ELSEIF COND("排卵中", ARG)
+		APP_PANTU += "_ショッキングピンク_淫紋_＆"
+	ELSEIF COND("危険日", ARG)
+		APP_PANTU += "_イエロー_淫紋_＆"
+	ELSE
+		APP_PANTU += "淫紋＆"
+	ENDIF
+ENDIF
+
+SIF APP_PANTU != ""
+	APP_PANTU = %SUBSTRING(APP_PANTU, 0, STRLENS(APP_PANTU) - 2)%露出,
+
+
+IF CHECK_CLO("ハミ毛", ARG)
+	APP_PANTU += @"ハミ毛(%CONDS("陰毛", ARG)%),"
+ELSEIF CHECK_CLO("透け毛", ARG)
+	APP_PANTU += @"透け毛(%CONDS("陰毛", ARG)%),"
+ENDIF
+
+SIF APP_PANTU != ""
+	APP_PANTU = %ARGS% %SUBSTRING(APP_PANTU, 0, STRLENS(APP_PANTU) - 1)%
+
+RETURNF APP_PANTU
+
+
+;-------------------------------------------------
+;@STAIN_CALC_COSPLAYの日常版
+;欲求不満度が上昇した際に呼ばれ、値によって蒸れたり濡れたりが起きる。ARGが欲求不満の増分
+;-------------------------------------------------
+@STAIN_CALC_DAILY, ARG, ARG:1
+#DIM ACTOR
+#DIM VALUE
+
+ACTOR = ARG:1
+SIF ACTOR == 0 && TARGET > 0
+	ACTOR = TARGET
+
+VALUE = ARG + TALENT:ACTOR:濡れやすい - TALENT:ACTOR:濡れにくい
+
+;汚れの時間差をつけるためパンツに付く汚れは前回までのものを使う
+IF EQUIP:ACTOR:パンツ && CHECK_PANTIES("クロッチ", ACTOR)
+	SIF CHECK_STAIN(STAIN:ACTOR:Ｖ, "蒸れ")
+		STAIN:ACTOR:パンツ = SET_STAIN(STAIN:ACTOR:パンツ, "蒸れ")
+	SIF VALUE > 0 && CHECK_STAIN(STAIN:ACTOR:Ｖ, "濡れ")
+		STAIN:ACTOR:パンツ = SET_STAIN(STAIN:ACTOR:パンツ, "濡れ")
+	SIF CHECK_STAIN(STAIN:ACTOR:Ｖ, "精液")
+		STAIN:ACTOR:パンツ = SET_STAIN(STAIN:ACTOR:パンツ, "精液")
+ELSEIF EQUIP:ACTOR:アウター && CHECK_OUTER("クロッチ", ACTOR)
+	SIF CHECK_STAIN(STAIN:ACTOR:Ｖ, "蒸れ")
+		STAIN:ACTOR:アウター = SET_STAIN(STAIN:ACTOR:アウター, "蒸れ")
+	SIF VALUE > 0 && CHECK_STAIN(STAIN:ACTOR:Ｖ, "濡れ")
+		STAIN:ACTOR:アウター = SET_STAIN(STAIN:ACTOR:アウター, "濡れ")
+	SIF CHECK_STAIN(STAIN:ACTOR:Ｖ, "精液")
+		STAIN:ACTOR:アウター = SET_STAIN(STAIN:ACTOR:アウター, "精液")
+ELSEIF EQUIP:ACTOR:ボディスーツ && CHECK_BODYS("クロッチ", ACTOR)
+	SIF CHECK_STAIN(STAIN:ACTOR:Ｖ, "蒸れ")
+		STAIN:ACTOR:ボディスーツボトム = SET_STAIN(STAIN:ACTOR:ボディスーツボトム, "蒸れ")
+	SIF VALUE > 0 && CHECK_STAIN(STAIN:ACTOR:Ｖ, "濡れ")
+		STAIN:ACTOR:ボディスーツボトム = SET_STAIN(STAIN:ACTOR:ボディスーツボトム, "濡れ")
+	SIF CHECK_STAIN(STAIN:ACTOR:Ｖ, "精液")
+		STAIN:ACTOR:ボディスーツボトム = SET_STAIN(STAIN:ACTOR:ボディスーツボトム, "精液")
+ENDIF
+
+SIF TALENT:ACTOR:オトコ || ARG <= 0 || VALUE <= 0
+	RETURN 0
+
+;Ｖ汚れの発生
+SELECTCASE COND("欲求不満", ACTOR)
+CASE IS >= 3
+	IF VALUE >= 3 && CHECK_STAIN(STAIN:ACTOR:Ｖ, "蒸れ")
+		STAIN:ACTOR:Ｖ = SET_STAIN(STAIN:ACTOR:Ｖ, "濡れ")
+	ELSE
+		STAIN:ACTOR:Ｖ = SET_STAIN(STAIN:ACTOR:Ｖ, "蒸れ")
+	ENDIF
+CASE 2
+	IF VALUE >= 5 && CHECK_STAIN(STAIN:ACTOR:Ｖ, "蒸れ")
+		STAIN:ACTOR:Ｖ = SET_STAIN(STAIN:ACTOR:Ｖ, "濡れ")
+	ELSE
+		STAIN:ACTOR:Ｖ = SET_STAIN(STAIN:ACTOR:Ｖ, "蒸れ")
+	ENDIF
+CASE 1
+	IF VALUE >= 7 && CHECK_STAIN(STAIN:ACTOR:Ｖ, "蒸れ")
+		STAIN:ACTOR:Ｖ = SET_STAIN(STAIN:ACTOR:Ｖ, "濡れ")
+	ELSEIF VALUE >= 3
+		STAIN:ACTOR:Ｖ = SET_STAIN(STAIN:ACTOR:Ｖ, "蒸れ")
+	ENDIF
+CASE 0
+	SIF VALUE >= 5
+		STAIN:ACTOR:Ｖ = SET_STAIN(STAIN:ACTOR:Ｖ, "蒸れ")
+ENDSELECT
+

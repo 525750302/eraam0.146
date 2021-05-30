@@ -1,0 +1,215 @@
+﻿;-------------------------------------------------
+;追加もてなす系
+;-------------------------------------------------
+;もてなすコマンドの選択肢を追加
+@DAILY2_K31_ADDSELECT
+SIF CFLAG:じゃれつき具合_寧子 != 0
+	STR:選択肢 += "じゃらす/"
+[IF_DEBUG]
+SIF COND("発情期") == 0
+	STR:選択肢 += "発情スイッチ ON/"
+SIF COND("発情期")
+	STR:選択肢 += "発情スイッチ OFF/"
+[ENDIF]
+
+
+;もてなすコマンドで増やした選択肢の地の文と台詞
+@KOJO_DAILY2_K31_ADDSELECT, ARGS
+SELECTCASE ARGS
+;-------------------------------------------------
+;ねこじゃらしでじゃらす
+;構文や最初の地の文に関してはアイリちゃんとこからまるパクパクごっくんご馳走様です。感謝。
+;許可らしきものは頂けたのだ。多分。
+;
+;CFLAG:じゃれつき具合_寧子
+;0=やだ 1=うわ、出してきた 2,3=むきになってきた 4>=うぉおおおおお！！ 
+;-------------------------------------------------
+CASE "じゃらす"
+	PRINTFORM %CALLNAME:MASTER%は%CALLNAME:TARGET%の目の前で猫じゃらしを%TEXTR("ゆらゆらと/小刻みに/＿")%動かし
+	IF CSTR:PREV_DAILYCOM != STR:日常イベント名
+		PRINTFORMW てみた…
+	ELSE
+		PRINTFORMW 続けた…
+	ENDIF
+	PRINTL 
+	;hokaguru add
+	;そも恋慕じゃないとまともに付き合ってくれない
+	SIF TALENT:恋慕 == 0
+		CFLAG:じゃれつき具合_寧子 = 0
+	;発情中はえろいことしたいからそれどころではない
+	SIF COND("発情中")
+		CFLAG:じゃれつき具合_寧子 = 0
+	;途中でやめる（この時間に初回でない、かつ連続実行でない）と飽きちゃう
+	SIF CHOSE_DEVENT(STR:日常イベント名) && CSTR:PREV_DAILYCOM != STR:日常イベント名
+		CFLAG:じゃれつき具合_寧子 = 0
+
+;原本だとこの後気紛れ分岐があるけど恋慕の時点で気紛れとか発生し無さそうなので置いておく
+
+	SELECTCASE CFLAG:じゃれつき具合_寧子
+	;0=やだ
+	CASE 0
+		IF COND("発情中")
+			PRINTFORMW 猫じゃらしを向けられた%CALLNAME:TARGET%はじぃっと猫じゃらしよりも%CALLNAME:MASTER%を見ている。
+			PRINTFORMW 「……あのね、発情期なわけですよ。ご存じの通り」
+			IF TALENT:恋慕
+				PRINTFORMW 「……して欲しいのは、なにあの、そーいう遊びじゃないんだけどな」
+			ELSE
+				PRINTFORMW 「…………そーいうことする余裕は、無い」
+			ENDIF
+		;どうやってか出したいけど上手い事行く分岐を思いつかない
+		;ELSEIF TALENT:恋慕
+		;	PRINTFORMW 「…………猫扱いされるの好きじゃないんだけど、知ってるよね？」
+		;	PRINTFORMW やや言いにくそうに%CALLNAME:TARGET%はそれだけ言って、ぺしっと%CALLNAME:MASTER%の手に握られた猫じゃらしを軽くはたくと
+		;	PRINTFORMW 「あーあの……今日はこのくらいで勘弁してにゃん？」
+		;	PRINTFORMW おどけるように舌を出してそう苦笑した。
+		ELSE
+			IF TALENT:恋慕
+				PRINTFORMW 「……えっと、まだやるの？」
+				PRINTFORMW 「%CNAME("一人称")%はー……%TEXTR("もう良いんじゃないかなって思うんだけど/ぶっちゃけ冷静になったと言いますか")%」
+				PRINTFORMW 「またの機会という事で」
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW %CALLNAME:TARGET%はうんざりしたような視線で%CALLNAME:MASTER%の持つ猫じゃらしを見つめている。
+					PRINTFORMW 「じゃらされろ、と？」
+					PRINTFORMW 「……はぁ」
+					PRINTFORMW やがて溜息を一つ吐いてそっぽを向いてしまった。
+				ELSEIF RAND:2
+					PRINTFORMW 「…………うわぁ」
+					PRINTFORMW %CALLNAME:MASTER%が取り出した猫じゃらしを見て顔を歪める%CALLNAME:TARGET%は…
+					PRINTFORMW 「パスで」
+					PRINTFORMW それだけ言うともう見向きもしなくなってしまった。
+				ELSE
+					PRINTFORMW 「楽しいと思う？」
+					PRINTFORMW 「うん、まぁ……%CNAME("二人称")%はもしかしたら楽しいかも知らんけど……」
+					PRINTFORMW 「……猫扱いされんの、嫌なの。おーらい？」
+				ENDIF
+			ENDIF
+		ENDIF
+	;1=うわ、出してきた
+	CASE 1
+		IF RAND:2
+			PRINTFORMW 「いやいやいや……あのさ」
+			PRINTFORMW 「猫じゃないって何度も言ってるし。覚えてるよね、うん？」
+			PRINTFORMW そう言いながら%CALLNAME:TARGET%は呆れたように肩をすくめているが視線はちらちらと揺れる猫じゃらしを追っているのが見て取れた。
+		ELSE
+			PRINTFORMW 「そんなの取り出してどーすんのさ」
+			PRINTFORMW 「……あぁ、はい、まぁ、うん……いいよ……いや、よくは無いけども」
+		ENDIF
+	;2,3=むきになってきた
+	CASE 2, 3
+		IF RAND:2
+			PRINTFORMW 「――――ふんっ」
+			PRINTFORMW 「ﾁｯ……」
+			PRINTFORMW 隙を見て伸ばした手が空を掻いて%CALLNAME:TARGET%は小さく舌打ちをしている…
+			PRINTFORMW それからさも興味ないとばかりにそっぽを向いたが耳がピンと警戒するように張り詰めていた…
+		ELSE
+			PRINTFORML 「だーかーら……猫扱いすんなって言ってる――」
+			PRINTFORMW と、言い切る刹那に横合いから手が伸びる。
+			PRINTFORMW 「で、しょ……」
+			PRINTFORMW が、それは掠りもせずに空を切った…
+			PRINTFORMW 「……%TEXTR("違う、ムキになってないっての/ノーカン")%」
+		ENDIF
+	;4 >=うぉおおおおお！！ 
+	CASEELSE
+		;獲ったどー！！
+		IF RAND:4 == 0
+			IF RAND:2
+				PRINTFORMW 「――――しゃっ」
+				PRINTFORMW %CALLNAME:MASTER%が気付いた瞬間にはもう既に%CALLNAME:MASTER%の手に猫じゃらしは無かった。
+				PRINTFORMW 「…………お、おう？」
+				PRINTFORMW むしろやった本人が呆然として、猫じゃらしを握った手と%CALLNAME:MASTER%の方に何度も視線を往復させていた。
+				PRINTFORMW ようやく猫じゃらしを奪い取れた事に気付いた%CALLNAME:TARGET%は、
+				PRINTFORMW 「ふ、ふふん……ま、まぁーーね、%CNAME("一人称")%にかかればこ、こんなもんすよ」
+				PRINTFORMW ひらひらと奪った猫じゃらしを振りながら気恥ずかしそうにそう言った…
+			ELSE
+				PRINTFORMW 「……とたっ！」
+				PRINTFORMW 一瞬の不意をついた%CALLNAME:TARGET%は見事%CALLNAME:MASTER%から猫じゃらしを奪って見せた。
+				PRINTFORMW 「へへ、やりぃ」
+				PRINTFORMW 「いやぁ意外とすばっこくて……」
+				PRINTFORMW 「……あ」
+				PRINTFORMW 「……あ、遊んであげたんだし、感謝して？」
+			ENDIF
+			CFLAG:じゃれつき具合_寧子 = 0
+		;獲れなかったどー！？
+		ELSE
+			IF RAND:4 == 0
+				PRINTFORMW 「これ……でっ！」
+				PRINTFORMW 鋭い指先が%CALLNAME:MASTER%の揺らす猫じゃらしに迫る。
+				PRINTFORMW 「――――獲った、あぁ！？」
+				PRINTFORMW しかしすかされてつんのめった%CALLNAME:TARGET%の体がそのまま%CALLNAME:MASTER%に抱き付くようにタックルする形になってしまった…
+				PRINTFORMW 「っつう……うー……くっそ」
+				IF RAND:5 == 0
+					PRINTFORMW 「……う、ぁ？」
+					PRINTFORMW %CALLNAME:MASTER%に覆いかぶさる形になった事に気付いたのか、
+					PRINTFORMW 床に手を付いて押し倒すような姿勢から%CALLNAME:TARGET%は固まってしまった…
+					PRINTFORMW 目と鼻の先の距離、僅かな吐息の音も聞こえそうだ。
+					IF CEVENT("ネコイベント:じゃらし事故") == 0
+						PRINTFORMW 「…………ぃ……ぁ……こ、れは……」
+						PRINTFORMW どもる様な声から黙りこくってじっくりと数十秒、真赤になった額にじっとりとした汗が浮かんでいるのが見える。
+						PRINTFORMW ゆっくりと、顔の、唇の距離が近くなって…
+						PRINTFORML
+						PRINTFORML
+						PRINTFORMW 「……ん」 
+						PRINTFORML 
+						PRINTFORML
+						PRINTFORMW 「あの……か、代わり、だから……これは、代わり」
+						PRINTFORMW 「だから……えと、ごめん……これで終わり……で、お願いします」
+						CALL SET_CEVENT, "ネコイベント:じゃらし事故"
+					ELSE
+						PRINTFORMW 「…………ぇー、あー……」
+						PRINTFORMW 先日と同じような状況に%CALLNAME:TARGET%は視線を逸らそうとするが、
+						PRINTFORMW 一度行き場を失った視線は定まらず、挙動不審にどこそこへと移っていた。
+						PRINTFORMW 「…………」
+						PRINTFORMW そして…
+						PRINTFORMW 「……目」
+						PRINTFORMW 観念したように%CALLNAME:TARGET%は真っ直ぐ%CALLNAME:MASTER%を見据えると、
+						PRINTFORMW 「目ぇ……閉じて？」
+						PRINTFORMW 狭い狭い間の距離を更に狭めていった。
+					ENDIF
+					EXP:キス経験 += 1
+					PRINTFORML
+					PRINTFORMW キス経験＋１
+					CFLAG:じゃれつき具合_寧子 = 0
+					RETURN 1
+				ELSE
+					PRINTFORMW むくりと起き上った%CALLNAME:TARGET%が気にした様子も無くすぐさま距離を取って構えを取る。
+					PRINTFORMW 「よしこい、次っ」
+					PRINTFORMW どうやら闘志は消えていないらしい…
+				ENDIF
+			ELSEIF RAND:3 == 0
+				PRINTFORMW 「あぁ……まんまとじゃらされてる……じゃらされてるのは解るんだけど」
+				PRINTFORMW 「……っ……ていっ！」
+				PRINTFORMW %CALLNAME:TARGET%の%TEXTR("右の大振り/左のジャブのような一撃/上手からの一閃")%が空を切った。
+				PRINTFORMW 「…………なんっか腹立つ！！」
+			ELSEIF RAND:2
+				PRINTFORMW 「うぉおおおおおお！」
+				PRINTFORMW 雄叫びと共に繰り出された%CALLNAME:TARGET%の会心の一撃は――
+				PRINTFORMW 「うん…あの…こっちみんな」
+				PRINTFORMW ものの見事に空振りしてしまった…
+			ELSE
+				PRINTFORMW 「……っとぉ！？……ここ……は！あ、おっし！？」
+				PRINTFORMW 「はぁ…はぁ…ええい、%CNAME("二人称")%！それ揺らすな！」
+			ENDIF
+		ENDIF
+	ENDSELECT
+	SIF CFLAG:じゃれつき具合_寧子 > 0
+		CFLAG:じゃれつき具合_寧子 += 1
+CASE "発情スイッチ ON"
+	SETBIT BASE:バイオリズム, 20
+	PRINTFORMW 「ん？急に後ろ向けって何さ……」
+	PRINTFORMW 「にぎゃっ！？ふ、ぃ、ぁ……お、お尻、馬鹿っ」
+	PRINTFORMW 「ぬ、抜け、抜けって、動かすなこのばっ」
+	CALL PRINT_STR, "「かっひ？！_HH_ し、しきゅっ_HH_ そこ、だめっ_HH_」_W"
+	CALL PRINT_STR, "「っ_HH_……ぁ、ふっ_HH_ そんな、つよくしちゃ_HH_」_W"
+	CALL PRINT_STR, "「はぁ_HH_……っ……ﾌｰ_HH_　ﾌｯ_HH_ ……ばっ…この、ばかぁっ_HH_ 」_W"
+	IF RAND:2
+		PRINTFORMW 　　　　　　　　　　　　　寧子 発情タイム 開始
+	ELSE
+		PRINTFORMW 　　　　　　　　　　　　　ボ　ー　ナ　ス　確　定
+	ENDIF
+CASE "発情スイッチ OFF"
+	CLEARBIT BASE:バイオリズム, 20
+	PRINTFORMW 寧子　発情タイム　終了
+ENDSELECT
+
+

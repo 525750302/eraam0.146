@@ -1,0 +1,474 @@
+﻿;-------------------------------------------------
+;メイン画面での時間経過による入室イベント
+;CFLAG:入室までの所要時間 を最初に減らし、1になったら入室イベント発生
+;イベント発生した人は0にする
+;昼は時間ごとに人が入ってくるが、夜は最初から全員集合している
+;ただしCFLAG:入室までの所要時間の値次第で少々分岐あり
+;同伴で行動した相手は寝ていない限りは挨拶済み
+;-------------------------------------------------
+@EVENT_ENTER_ROOM
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIM MEMO_LINECOUNT2
+;喋る候補は３人も居れば十分。むしろ二人で良いまである
+#DIM NEWCOMER, 3
+;入室者人数
+#DIM NUM_NEWCOMER
+;次のターンでの入室予定者
+#DIM NUM_NEXT_NEWCOMER
+;部屋に既にいる部員の人数(あなたは除く)
+#DIM NUM_INROOM
+;挨拶返しの人数
+#DIM NUM_CAN_REPLY
+#DIM NUM_REPLY
+;オート挨拶対象者
+#DIM GREETING_NEWCOMER
+#DIMS EVENT_NAME
+#DIM BONUS_TIME
+#DIMS MEMO_BEFORE_DRESS, 100
+#DIMS MEMO_AFTER_DRESS, 100
+
+;現在位置が他の人が現れる場所でない場合には何も起こさない
+SELECTCASE SAVESTR:現在位置
+CASE "居間", "部室"
+CASEELSE
+	RETURN 0
+ENDSELECT
+
+REDRAW 0
+
+VARSET MEMO_BEFORE_DRESS
+VARSET MEMO_AFTER_DRESS
+VARSET NEWCOMER
+NUM_NEWCOMER = 0
+NUM_NEXT_NEWCOMER = 0
+VARSET GREETING_NEWCOMER
+SAVESTR:同伴者 = 
+
+;まずは入室までの所要時間を１減らす。夜は最初から全員初期値が１
+CALL SETFLAG_DAILY, "入室までの所要時間計算"
+
+;自宅にいる際には気まぐれでのみ現れる
+IF PLACE("自宅") && SAVESTR:現在位置 == "居間" && CFLAG:MASTER:入室までの所要時間 == 0
+	FOR LCOUNT, 2, CHARANUM
+		SIF CFLAG:LCOUNT:不在 || CFLAG:LCOUNT:睡眠 || CSTR:LCOUNT:現在位置 == "居間"
+			CONTINUE
+		SIF RAND:3 == 0 || CFLAG:LCOUNT:呼び出された
+			CFLAG:LCOUNT:入室までの所要時間 = 1
+	NEXT
+ENDIF
+
+FOR LCOUNT, 1, CHARANUM
+	SIF CFLAG:LCOUNT:不在
+		CONTINUE
+
+	SELECTCASE LCOUNT
+	CASE TARGET, MASTER
+	CASEELSE
+		SELECTCASE CFLAG:LCOUNT:入室までの所要時間
+		CASE 1
+			NUM_NEWCOMER += 1
+			IF PLACE("自宅") == 0
+				;最初からいない人は挨拶フラグリセット
+				CFLAG:LCOUNT:挨拶した = 0
+				CFLAG:LCOUNT:挨拶された = 0
+			ENDIF
+		CASE 2
+			NUM_NEXT_NEWCOMER += 1
+		ENDSELECT
+	ENDSELECT
+NEXT
+
+;NEWCOMERが誰か、についてはここで全て決定する
+;あなたが入室した際
+IF CFLAG:MASTER:入室までの所要時間 == 1
+	;まずは出来る事の判定。何をやって貰えるかな？
+	CALL CHECK_COM_ABLE, TARGET
+
+	;色々あった際にみんなが遅れてくる時間
+	BONUS_TIME = 1 + RAND:3
+
+	;パートナー寝てる？
+	IF CFLAG:睡眠
+		FOR LCOUNT, 2, CHARANUM
+			SELECTCASE LCOUNT
+			CASE TARGET
+			CASEELSE
+				SIF CFLAG:LCOUNT:不在
+					CONTINUE
+				CFLAG:LCOUNT:睡眠 = 0
+				;寝てる人が居る時には、他の人が来るまでの猶予時間にボーナス
+				CFLAG:LCOUNT:入室までの所要時間 += BONUS_TIME + 3
+			ENDSELECT
+		NEXT
+
+		;入室予定者も０に戻す
+		NUM_NEWCOMER = 0
+		NUM_NEXT_NEWCOMER = 0
+	;パートナーシャワー中？
+	ELSEIF CFLAG:シャワー中
+		FOR LCOUNT, 2, CHARANUM
+			SELECTCASE LCOUNT
+			CASE TARGET
+			CASEELSE
+				SIF CFLAG:LCOUNT:不在
+					CONTINUE
+				;他の人が来るまでの猶予時間にボーナス
+				CFLAG:LCOUNT:入室までの所要時間 += BONUS_TIME
+			ENDSELECT
+		NEXT
+
+		;入室予定者も０に戻す
+		NUM_NEWCOMER = 0
+		NUM_NEXT_NEWCOMER = 0
+	;パートナーが性処理の合意もちorムラムラ中だとたまに単独
+	ELSEIF RAND:3 == 0 && (COND("欲求不満") || COND("合意：性処理") || TALENT:相思相愛)
+		FOR LCOUNT, 2, CHARANUM
+			SELECTCASE LCOUNT
+			CASE TARGET
+			CASEELSE
+				SIF CFLAG:LCOUNT:不在
+					CONTINUE
+				;他の人が来るまでの猶予時間にボーナス
+				CFLAG:LCOUNT:入室までの所要時間 += BONUS_TIME
+			ENDSELECT
+		NEXT
+
+		;入室予定者も０に戻す
+		NUM_NEWCOMER = 0
+		NUM_NEXT_NEWCOMER = 0
+
+	;パートナー以外も既にいる？
+	ELSEIF NUM_NEWCOMER
+		FOR LCOUNT, 0, MIN(NUM_NEWCOMER, 3)
+			NEWCOMER:LCOUNT = FIND_COND("新規入室")
+			;FIND_COND("新規入室")に引っかからないようにする
+			CFLAG:(NEWCOMER:LCOUNT):入室までの所要時間 = 0
+		NEXT
+	ENDIF
+;遅れてやってきた入室者がいる
+ELSEIF NUM_NEWCOMER
+	FOR LCOUNT, 0, MIN(NUM_NEWCOMER, 3)
+		NEWCOMER:LCOUNT = FIND_COND("新規入室")
+		;FIND_COND("新規入室")に引っかからないようにする
+		CFLAG:(NEWCOMER:LCOUNT):入室までの所要時間 = 0
+	NEXT
+ENDIF
+
+;入室時に起きるフラグの調整（主に標語）
+FOR LCOUNT, 1, CHARANUM
+	;NEWCOMERor入室までの所要時間 == 1なら入室
+	SELECTCASE LCOUNT
+	CASE NEWCOMER:0, NEWCOMER:1, NEWCOMER:2
+		;初期化はここの一番下で行う
+		CFLAG:LCOUNT:入室挨拶中 = 1
+	CASEELSE
+		SIF CFLAG:LCOUNT:入室までの所要時間 != 1
+			CONTINUE
+	ENDSELECT
+
+	SELECTCASE SAVESTR:現在位置
+	CASE "部室"
+		SELECTCASE SAVESTR:標語
+		CASE "喉の渇きに注意"
+			SIF CFLAG:LCOUNT:睡眠
+				CONTINUE
+			CFLAG:LCOUNT:お茶 = 7 + RAND:3
+			BASE:LCOUNT:尿意 += 400 + TALENT:LCOUNT:小柄*200 - TALENT:LCOUNT:長身*100
+		ENDSELECT
+	ENDSELECT
+NEXT
+
+;イベント発生した人は0にする＆現在位置を現れた場所に変更
+FOR LCOUNT, 2, CHARANUM
+	IF CFLAG:LCOUNT:入室までの所要時間 == 1 || CFLAG:LCOUNT:入室挨拶中
+		CFLAG:LCOUNT:入室までの所要時間 = 0
+		SIF CFLAG:MASTER:入室までの所要時間 == 0
+			CALL MOVE_PLACE, SAVESTR:現在位置, LCOUNT
+	ENDIF
+NEXT
+
+;イベントの地の文と台詞
+;あなたが入室した時
+IF CFLAG:MASTER:入室までの所要時間 == 1
+	;パートナー寝てる？
+	IF CFLAG:睡眠
+		IF PLACE("自宅")
+			PRINTFORMW %CALLNAME:MASTER%が帰宅すると……先に戻っていたらしい%CALLNAME:TARGET%が寝息を立てていた。
+			;夜は他に同棲してる人が居ると寝ないので現状だと以下は発生しない
+			SELECTCASE CHARA_NUM("出現予定")
+			CASE IS >= 2
+				PRINTFORMW 他の人達も全員戻っているようだ。
+			CASE 1
+				PRINTFORMW %CALLNAME:FIND_COND("出現予定")%も帰ってきているようだ。
+			ENDSELECT
+			;夜は全員最初からいる
+			CVARSET CFLAG, GETNUM(CFLAG, "入室までの所要時間")
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%が%TEXTS("現在位置")%に顔を出すと……先に来ていたらしい%CALLNAME:TARGET%が寝息を立てていた。
+		ENDIF
+	;パートナーシャワー中？
+	ELSEIF CFLAG:シャワー中
+		CALL EVENT_ACADEMY, "シャワー"
+
+	;パートナー以外も既にいる？
+	ELSEIF NUM_NEWCOMER
+		PRINTFORM %CALLNAME:MASTER%
+		;同伴出勤
+		IF COND("同伴可能")
+			PRINTFORM と%CALLNAME:TARGET%
+			CALL SETFLAG_DAILY, "挨拶"
+			CALL SETFLAG_DAILY, "同伴者"
+		ENDIF
+
+		IF PLACE("自宅")
+			PRINTFORM が帰宅すると
+		ELSE
+			PRINTFORM が%TEXTS("現在位置")%に顔を出すと
+		ENDIF
+
+		EVENT_NAME = 既に入室
+
+		IF PLACE("自宅")
+			IF RAND:(NUM_NEWCOMER + 1)
+				PRINTFORM 、遅れて戻った
+				EVENT_NAME = ただいま
+
+				;帰ったばかりなのに帰宅後に格好になってる齟齬の修正
+				FOR LCOUNT, 2, CHARANUM
+					MEMO_BEFORE_DRESS:LCOUNT = %CSTR:LCOUNT:帰宅時の格好%
+					;帰宅後の格好をMEMO_AFTER_DRESSに記録
+					CALL MEMO_DRESS, "帰宅時の格好", LCOUNT
+					MEMO_AFTER_DRESS:LCOUNT = %CSTR:LCOUNT:帰宅時の格好%
+
+					;CSTR:帰宅時の格好を元に戻して、それに着替える
+					CSTR:LCOUNT:帰宅時の格好 = %MEMO_BEFORE_DRESS:LCOUNT%
+					CALL SET_MEMO_DRESS, "帰宅時の格好", LCOUNT
+				NEXT
+			ELSE
+				PRINTFORM 、既に戻っていた
+			ENDIF
+		ELSE
+			PRINTFORM 、既に入室していた
+		ENDIF
+		;同伴出勤
+		IF COND("同伴可能")
+			SELECTCASE NUM_NEWCOMER
+			CASE 1
+				PRINTFORMW %CALLNAME:(NEWCOMER:0)%が挨拶してきた。
+			CASE 2
+				PRINTFORMW %CALLNAME:(NEWCOMER:0)%と%CALLNAME:(NEWCOMER:1)%が挨拶してきた。
+			CASEELSE
+				PRINTFORMW %CALLNAME:(NEWCOMER:0)%達が挨拶してきた。
+			ENDSELECT
+			CALL KOJO_GREETINGS, EVENT_NAME, NEWCOMER:0, NEWCOMER:1, NEWCOMER:2
+		ELSE
+			SELECTCASE NUM_NEWCOMER
+			CASE 1
+				PRINTFORMW %CALLNAME:TARGET%と%CALLNAME:(NEWCOMER:0)%が挨拶してきた。
+			CASE 2
+				PRINTFORMW %CALLNAME:TARGET%達が挨拶してきた。
+			CASEELSE
+				PRINTFORMW %CALLNAME:TARGET%達が挨拶してきた。
+			ENDSELECT
+			CALL KOJO_GREETINGS, EVENT_NAME, TARGET, NEWCOMER:0, NEWCOMER:1, NEWCOMER:2
+		ENDIF
+		;一緒に居た人たちが仲良くなる
+		CALL CHANGE_RELATION, 2, TARGET, NEWCOMER:0, NEWCOMER:1, NEWCOMER:2
+
+	;以下は二人きりのシチュ発生
+	ELSE
+		;まだ来ていない人が居る(ここにくるのは昼のみ)
+		IF CHARA_NUM("出現予定")
+			PRINTFORM %CALLNAME:MASTER%
+			;同伴出勤
+			IF COND("同伴可能")
+				PRINTFORM と%CALLNAME:TARGET%
+				CALL SETFLAG_DAILY, "挨拶"
+				CALL SETFLAG_DAILY, "同伴者"
+			ENDIF
+
+			PRINTFORM が%TEXTS("現在位置")%に顔を出すと、
+			;同伴出勤
+			IF COND("同伴可能")
+				PRINTFORMW 他には誰も居ない……一番乗りのようだ。
+				CALL KOJO_GREETING, "一番乗り"
+			ELSE
+				PRINTFORMW %CALLNAME:TARGET%から声がかけられた。
+				CALL KOJO_GREETING, "既に入室"
+			ENDIF
+
+		;二人きり
+		ELSE
+			PRINTFORM %CALLNAME:MASTER%
+			;一緒に行動
+			IF COND("同伴可能") && TALENT:相思相愛
+				IF PLACE("自宅")
+					PRINTFORMW は%CALLNAME:TARGET%と仲良く寄り添いながら家に戻りました。
+				ELSE
+					PRINTFORMW は%CALLNAME:TARGET%と二人きりの部活動を始める事にしました。
+				ENDIF
+			ELSE
+				EVENT_NAME = 既に入室
+				IF PLACE("自宅")
+					IF COND("同伴可能")
+						PRINTFORMW は%CALLNAME:TARGET%と一緒に家に戻った。
+					ELSEIF RAND:2
+						PRINTFORM が帰宅すると、遅れて戻った%CALLNAME:TARGET%から声がかけられた。
+						EVENT_NAME = ただいま
+						;帰ったばかりなのに帰宅後に格好になってる齟齬の修正
+						FOR LCOUNT, 2, CHARANUM
+							MEMO_BEFORE_DRESS:LCOUNT = %CSTR:LCOUNT:帰宅時の格好%
+							;帰宅後の格好をMEMO_AFTER_DRESSに記録
+							CALL MEMO_DRESS, "帰宅時の格好", LCOUNT
+							MEMO_AFTER_DRESS:LCOUNT = %CSTR:LCOUNT:帰宅時の格好%
+
+							;CSTR:帰宅時の格好を元に戻して、それに着替える
+							CSTR:LCOUNT:帰宅時の格好 = %MEMO_BEFORE_DRESS:LCOUNT%
+							CALL SET_MEMO_DRESS, "帰宅時の格好", LCOUNT
+						NEXT
+					ELSE
+						PRINTFORM が帰宅すると、既に戻っていた%CALLNAME:TARGET%から声がかけられた。
+					ENDIF
+				ELSE
+					PRINTFORMW が%TEXTS("現在位置")%に顔を出すと、既に入室していた%CALLNAME:TARGET%から声がかけられた。
+				ENDIF
+				CALL KOJO_GREETING, EVENT_NAME
+			ENDIF
+		ENDIF
+		;二人きりイベント
+		CALL EVENT_ACADEMY, "二人きり"
+	ENDIF
+	;帰ったばかりなのに帰宅後に格好になってる齟齬の修正の後始末
+	FOR LCOUNT, 2, CHARANUM
+		;帰宅時の格好に着替えたかチェック
+		SIF MEMO_AFTER_DRESS:LCOUNT == ""
+			CONTINUE
+		;もしも着替えているならば、帰宅後の本来の格好に着替える
+		CSTR:LCOUNT:帰宅時の格好 = %MEMO_AFTER_DRESS:LCOUNT%
+		CALL SET_MEMO_DRESS, "帰宅時の格好", LCOUNT
+	NEXT
+;初めて顔を出した
+ELSEIF NUM_NEWCOMER == 1 && CFLAG:NEWCOMER:加入日 == 0
+	DRAWLINE
+	MEMO_LINECOUNT = LINECOUNT
+	CALL EVENT_PROFILE, "初訪問", NEWCOMER
+	IF LINECOUNT == MEMO_LINECOUNT
+		PRINTFORMW 初めて顔を出した%CALLNAME:NEWCOMER%が挨拶してきた。
+		CALL KOJO_GREETING, "入室挨拶", NEWCOMER
+	ENDIF
+;入室者がいる
+ELSEIF NUM_NEWCOMER
+	DRAWLINE
+
+	EVENT_NAME = 入室挨拶
+
+	;部屋に既にいる部員の人数(あなたは除く)
+	NUM_INROOM = CHARA_NUM("入室挨拶時の室内人数")
+
+	IF PLACE("自宅")
+		EVENT_NAME = 居間に現れた
+	;イベント日でない事も簡易挨拶の条件
+	ELSEIF TEXTS("日付対応イベント") == ""
+		;既に部屋に人が居るなら簡易入室挨拶になる事も（部屋にいる他の人から、反応が返ってくる）
+		SIF NUM_INROOM && RAND:4 == 0
+			EVENT_NAME = 簡易入室挨拶
+	ENDIF
+
+	MEMO_LINECOUNT = LINECOUNT
+
+	SELECTCASE NUM_NEWCOMER
+	CASE 1
+		IF CFLAG:(NEWCOMER:0):呼び出された
+			PRINTFORMW ……呼び出された%CALLNAME:(NEWCOMER:0)%が挨拶しながら%SAVESTR:現在位置%に現れた。
+		ELSEIF PLACE("自宅")
+			PRINTFORMW %CALLNAME:(NEWCOMER:0)%が居間に\@ CMOVE("居間", NEWCOMER:0) ? 戻ってきた # 現れた \@。
+		ELSE
+			PRINTFORMW ……遅れて顔を出した%CALLNAME:(NEWCOMER:0)%が挨拶してきた。
+		ENDIF
+	CASE 2
+		IF PLACE("自宅")
+			PRINTFORMW %CALLNAME:(NEWCOMER:0)%と%CALLNAME:(NEWCOMER:1)%が居間に\@ CMOVE("居間", NEWCOMER:0) ? 戻ってきた # 現れた \@。
+		ELSE
+			PRINTFORMW ……遅れて顔を出した%CALLNAME:(NEWCOMER:0)%と%CALLNAME:(NEWCOMER:1)%が挨拶してきた。
+		ENDIF
+	CASEELSE
+		IF PLACE("自宅")
+			PRINTFORMW %CALLNAME:(NEWCOMER:0)%達が居間に\@ CMOVE("居間", NEWCOMER:0) ? 戻ってきた # 現れた \@。
+		ELSE
+			PRINTFORMW ……遅れて顔を出した%CALLNAME:(NEWCOMER:0)%達が挨拶してきた。
+		ENDIF
+	ENDSELECT
+	CALL KOJO_GREETINGS, EVENT_NAME, NEWCOMER:0, NEWCOMER:1, NEWCOMER:2
+	;一緒に来た人たちが仲良くなる
+	CALL CHANGE_RELATION, 2, NEWCOMER:0, NEWCOMER:1, NEWCOMER:2
+
+	;挨拶が短い時も発生させてみる
+	SELECTCASE LINECOUNT - MEMO_LINECOUNT
+	CASE IS <= 2
+		EVENT_NAME = 簡易入室挨拶
+	CASE 3
+		SIF RAND:2 == 0
+			EVENT_NAME = 簡易入室挨拶
+	ENDSELECT
+
+	IF EVENT_NAME == "簡易入室挨拶" && PLACE("自宅") == 0
+		NUM_CAN_REPLY = NUM_INROOM
+		;あいさつは３人まで
+		NUM_REPLY = 3
+
+		PRINTL 
+		MEMO_LINECOUNT = LINECOUNT
+
+		FOR LCOUNT, 2, CHARANUM
+			SIF COND("入室挨拶中", LCOUNT) || COND("現在存在", LCOUNT) == 0
+				CONTINUE
+			IF RAND:NUM_CAN_REPLY < NUM_REPLY
+				MEMO_LINECOUNT2 = LINECOUNT
+				CALL KOJO_GREETING, "挨拶返し", LCOUNT
+				SIF LINECOUNT != MEMO_LINECOUNT2
+					NUM_REPLY -= 1
+			ENDIF
+			NUM_CAN_REPLY -= 1
+
+			SIF NUM_REPLY == 0 || NUM_CAN_REPLY == 0
+				BREAK
+		NEXT
+		SIF LINECOUNT == MEMO_LINECOUNT
+			CLEARLINE 1
+	ENDIF
+ENDIF
+
+
+;寝てる相手に悪戯してるなら足音をお知らせ
+IF CFLAG:睡眠 && NUM_NEXT_NEWCOMER
+	DRAWLINE
+	PRINTFORMW ……微かに足音がする。そろそろ誰か他の人が現れそうだ。
+	;汚した？
+	IF COND("着衣の乱れ")
+		PRINTFORMW %TEXTR("着衣の乱れを直して/手早く汚れを拭って/身嗜みを整えて")%証拠隠滅した%CALLNAME:MASTER%は、肩を優しく揺すって%CALLNAME:TARGET%を眠りから覚ました。
+	ELSEIF EXP_GAIN("睡眠悪戯経験") + EXP_GAIN("睡眠姦経験")
+		PRINTFORMW 十分楽しんだ%CALLNAME:MASTER%は、肩を優しく揺すって%CALLNAME:TARGET%を眠りから覚ました。
+	ELSE
+		PRINTFORMW %CALLNAME:MASTER%は肩を優しく揺すって%CALLNAME:TARGET%を眠りから覚ました。
+	ENDIF
+
+	CALL SETFLAG_DAILY, "起こす"
+	CALL KOJO_DAILYCOM, "起こす"
+;寝てる人が起きる（現状こっちルートは無し）
+ELSEIF CFLAG:睡眠 && NUM_NEWCOMER
+	PRINTL 
+	DRAWLINE
+	PRINTFORMW にわかにうるさくなったせいで%CALLNAME:TARGET%が目を覚ましました。
+
+	CALL SETFLAG_DAILY, "起こす"
+	CALL KOJO_DAILYCOM, "起こす"
+ENDIF
+
+
+CFLAG:MASTER:入室までの所要時間 = 0
+
+
+;入室挨拶中のフラグ初期化
+CVARSET CFLAG, GETNUM(CFLAG, "入室挨拶中")
+

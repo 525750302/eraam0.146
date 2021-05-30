@@ -1,0 +1,121 @@
+;-------------------------------------------------
+;このキャラ独自の衣装を設定する。制服、体操服、水着は既存のものから選ぶのが楽です
+;-------------------------------------------------
+@CLOTHES_K44, ARGS
+
+SELECTCASE ARGS
+;高めの頻度で着用します。設定しなくてもかまいません
+CASE "下着"
+	CSTR:パンツ = レースのパンツ/赤/
+	CSTR:ブラ = レースのブラ/赤/
+
+;衣装に関わらず常に付けているアクセサリです。設定しなくてもかまいません
+CASE "アクセサリ"
+	IF CFLAG:花の意味 == 1
+		CALL SET_OTHER, "藤の髪飾り"
+	ELSE
+		CALL SET_OTHER, "綺麗に研がれたナイフ"
+	ENDIF
+	IF CEVENT("猩々木に祝福を祈る") && COND("冬")
+		IF CFLAG:花の意味 == 0
+			CALL SET_OTHER, "赤いマフラー"
+		ELSEIF CFLAG:花の意味 == 1
+			CALL SET_OTHER, "白いマフラー"
+		ELSEIF CFLAG:花の意味 == 2
+			CALL SET_OTHER, "藤の花柄のマフラー"
+		ENDIF
+	ENDIF
+;学園での普段着です。設定必須です
+CASE "制服"
+	IF COND("冬")
+		CALL SET_COSTUME, "セーラー服/白/"
+	ELSE
+		CALL SET_COSTUME, "ノースリーブセーラー服/白/"
+	ENDIF
+;学園の体育の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+CASE "体操服"
+	CALL SET_COSTUME, "体操服ハーフパンツ"
+;学園の水泳の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+CASE "水着"
+	CALL SET_COSTUME, "スク水/青"
+
+;自宅など学園外で着ます。設定必須です
+CASE "普段着"
+	CALL SET_SHIRT, "赤黒いノースリーブパーカー"
+	CALL SET_SHOES, "ショートブーツ"
+	SIF COND("冬")
+		CALL SET_OTHER, "ボロボロのジャンバー"
+
+;自分の部屋(notあなたの部屋)で着ます
+CASE "部屋着"
+
+;デート以外で家から外に出る際に着ます。ラブホ呼出とかね
+CASE "外出着"
+
+;もちろんデートの際に着ます
+CASE "デート衣装"
+IF TALENT:恋慕
+	IF CFLAG:花の意味 == 0
+		IF COND("冬")
+			SIF CEVENT("猩々木に祝福を祈る")
+				CALL SET_OTHER, "赤いマフラー"
+		ELSE
+			SIF CFLAG:髪型変更のお願い中 == 0
+				CSTR:アレンジ = 編み上げ
+		ENDIF
+		CSTR:服 = オフショルダーシャツ/黒/
+		CALL SET_OUTER, "ホットパンツ"
+		CSTR:靴下 = サイハイソックス/太ももまで/
+		CSTR:ブラ = フリルのブラ/薄桃色/
+		CSTR:パンツ = フリルのパンツ/薄桃色/フロントリボン紐赤/
+		CSTR:靴 = カットブーツ/黒/
+	ELSEIF CFLAG:花の意味 == 1
+		IF COND("冬")
+			CALL SET_OUTER, "パンスト"
+			SIF CEVENT("猩々木に祝福を祈る")
+				CALL SET_OTHER, "白いマフラー"
+		ELSE
+			SIF CFLAG:髪型変更のお願い中 == 0
+				CSTR:アレンジ = 編み上げ
+			CSTR:靴下 = サイハイソックス/太ももまで/
+		ENDIF
+		CSTR:服 = オーバーサイズオフショルダーシャツ/白/ワンピース/要たくし上げ/
+		CSTR:スカート = 裾/ワンピース/
+		CSTR:ブラ = フリルのブラ/白/
+		CSTR:パンツ = フリルのパンツ/白/フロントリボン紐白/
+		CSTR:靴 = カットブーツ/黒/
+	ELSEIF CFLAG:花の意味 == 2
+		IF COND("冬")
+			CALL SET_OUTER, "パンスト"
+			SIF CEVENT("猩々木に祝福を祈る")
+				CALL SET_OTHER, "藤の花柄のマフラー"
+		ELSE
+			SIF CFLAG:髪型変更のお願い中 == 0
+				CSTR:アレンジ = 編み上げ
+			CSTR:靴下 = サイハイソックス/太ももまで/
+		ENDIF
+		CSTR:服 = オーバーサイズオフショルダーシャツ/ベージュ/ワンピース/要たくし上げ/
+		CSTR:スカート = 裾/ワンピース/
+		CSTR:ブラ = フリルのブラ/黒/
+		CSTR:パンツ = フリルのパンツ/黒/フロントリボン紐赤/
+		CSTR:靴 = カットブーツ/黒/
+	ENDIF
+ENDIF
+ENDSELECT
+
+
+;-------------------------------------------------
+;時間帯や場所に応じた髪型、表情の変化を記述する。設定しなくてもかまいません
+;-------------------------------------------------
+@MAIDFACE_K44
+IF TALENT:相思相愛 && CEVENT("花の意味、言葉を選ぶなら") && CFLAG:花の意味 == 1 &&  DEVENT("あかずきん：さいご") && DEVENT("どんなはな？") && DEVENT("はなのいみ") && CEVENT("瑕疵を罪上げる") && DEVENT("小さく咲く花") == 0
+	CSTR:口の形 = 微笑
+	CALL SET_DEVENT, "小さく咲く花"
+ENDIF
+IF PLACE("自宅")
+	SIF CFLAG:髪型変更のお願い中 == 0
+		CALL SETFLAG, "普段の髪型復元", TARGET
+ELSEIF PLACE("部室") && PLACE("野外") == 0
+	SIF CFLAG:髪型変更のお願い中 == 0 && CEVENT("がっこうへいった") 
+		CSTR:アレンジ = おさげ
+ENDIF

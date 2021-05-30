@@ -1,0 +1,261 @@
+;TARGETの素質変動など
+@EVENTCHECK_T
+#DIM ADDCOND_RESULT
+;-------------------------------------------------------------------------------------------------
+;技能の成長
+;-------------------------------------------------------------------------------------------------
+CALL EX_ABLUP, TARGET
+
+;-------------------------------------------------------------------------------------------------
+;ネガティブな素質の克服
+;-------------------------------------------------------------------------------------------------
+CALL SETFLAG, "反抗的消去", TARGET
+
+CALL EVENT_NEXTTIME
+
+;恋慕と淫乱の自動取得
+IF COND("恋慕と淫乱の自動獲得可能")
+	IF TALENT:恋慕 == 0
+		STR:実行条件 = 
+		RESULT = 0
+		TRYCALLFORM ADDCOND_K{NO:TARGET}("恋慕")
+		ADDCOND_RESULT = RESULT
+		SIF STR:実行条件 == "" && (COND("恋慕取得可能") || ADDCOND_RESULT)
+			CALL SETFLAG, "恋慕"
+	ENDIF
+	IF TALENT:淫乱 == 0 && COND("恋慕と淫乱の自動獲得可能")
+		STR:実行条件 = 
+		RESULT = 0
+		TRYCALLFORM ADDCOND_K{NO:TARGET}("淫乱")
+		ADDCOND_RESULT = RESULT
+		SIF STR:実行条件 == "" && (COND("淫乱取得可能") || ADDCOND_RESULT)
+			CALL SETFLAG, "淫乱"
+	ENDIF
+ENDIF
+
+;同棲できるようになったか
+SIF COND("合意：同棲") == 0 && COND("同棲可能")
+	CALL SETFLAG, "合意：同棲", TARGET
+
+;その他合意チェック
+CALL SETFLAG, "合意", TARGET
+
+;助手化が可能になったか
+IF COND("助手可能") == 0 && ABL:信頼 >= 5 && ABL:技巧 >= 3
+	CALL PRINT_STR, @"%CALLNAME:TARGET%が_黄色_%TEXTS("助手の名称")%になれるように_なりました_W"
+	CFLAG:助手可能 = 1
+ENDIF
+
+
+
+;MASTERの素質変動など
+@EVENTCHECK_M
+;堕とした人数が1人以上で、謎の魅力が付く
+IF FLAG:陥落人数 && TALENT:MASTER:謎の魅力 == 0
+	PRINTFORMW 経験を積んだ%CALLNAME:MASTER%は【謎の魅力】を身につけた
+	TALENT:MASTER:謎の魅力 = 1
+ENDIF
+;Ａ経験５００以上、Ａ拡張経験３５以上で尻穴狂い化
+IF EXP:MASTER:Ａ経験 >= 500 && EXP:MASTER:Ａ拡張経験 >= 35 && TALENT:MASTER:尻穴狂い == 0
+	PRINTFORMW 体の様子がおかしい…
+	PRINTFORML お尻が熱を持ち、疼いて仕方ない。
+	PRINTFORMW どうやら度重なる刺激によって%CALLNAME:MASTER%自身も快楽に目覚めてしまったようだ…
+	PRINTFORMW %CALLNAME:MASTER%は【尻穴狂い】になってしまった
+	TALENT:MASTER:尻穴狂い = 1
+ENDIF
+;Ｖ経験５００以上で淫壷化
+IF EXP:MASTER:Ｖ経験 >= 500 && TALENT:MASTER:淫壷 == 0
+	PRINTFORMW 体の様子がおかしい…
+	PRINTFORML 子宮付近が熱を持ち、疼いて仕方ない。
+	PRINTFORMW どうやら度重なる刺激によって%CALLNAME:MASTER%自身も快楽に目覚めてしまったようだ…
+	PRINTFORMW %CALLNAME:MASTER%は【淫壷】を獲得してしまった
+	TALENT:MASTER:淫壷 = 1
+ENDIF
+;経験値によってリザレクションがレベルアップ
+IF EXP:MASTER:経験値 >= 300 && TALENT:MASTER:リザレクション < 200
+	TALENT:MASTER:リザレクション = 200
+	PRINTFORMW 身体の奥から活力が溢れ出るのを感じる……
+	CALL PRINT_STR, @"経験を積んだ%CALLNAME:MASTER%は_黄色_[%TALENT_NAME(GETNUM(TALENT, "リザレクション"), TALENT:MASTER:リザレクション)%]_を身につけた"
+	FORCEWAIT
+ENDIF
+
+CALL ABLUP_MASTER, "通常"
+
+
+;MASTERの技能獲得
+@ABLUP_MASTER, ARGS
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+#DIM CHOICE
+#DIM MAXABL_TECH
+#DIM MEMO_MASTERABL
+#DIM AVERAGE_TECH
+#DIM MEMO_FLAG
+
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+CASE "通常"
+	IF CONFIG("ＶＡ拡張の手動ＬＶＵＰ") == 0
+		ABL:MASTER:Ｖ拡張 = CALCF("Ｖ拡張の上限", MASTER)
+		ABL:MASTER:Ａ拡張 = CALCF("Ａ拡張の上限", MASTER)
+	ENDIF
+	CALL EX_ABLUP, MASTER
+CASE "週末", "能力変更"
+	REDRAW 0
+
+	;技巧の現在値記録
+	MEMO_MASTERABL = ABL:MASTER:技巧
+
+	$START
+	VARSET LOCAL, 0, 0, 100
+	SELECTCASE ARGS
+	CASE "週末"
+		PRINTFORML 来週に備えて%CALLNAME:MASTER%の能力のLV変更を行います
+		PRINTFORML 可能な範囲で自由に変更してください
+		PRINTFORML (能力の表示上昇画面から、いつでも出来ます)
+	CASEELSE
+		PRINTFORML %CALLNAME:MASTER%の能力のLV変更を行います
+		PRINTFORML 可能な範囲で自由に変更してください
+	ENDSELECT
+	CALL PRINT_STR, "イエロー_※技巧LVの上昇は指使い等、～使いのLVの合計が必要値を満たす事が条件となります※_L_"
+
+	MEMO_FLAG = FLAG:項目OFF
+	CLEARBIT FLAG:項目OFF, 12
+	CALL NEW_PRINT_ABL, MASTER
+	FLAG:項目OFF = MEMO_FLAG
+
+	DRAWLINE
+
+	;技巧ＬＶが上げられるかどうか
+	MAXABL_TECH = MIN(99, (ABL:MASTER:舌使い+ABL:MASTER:指使い+ABL:MASTER:腰使い+ABL:MASTER:魔乳)/2)
+
+	SIF ABL:MASTER:技巧 < MAX(MAXABL_TECH, MEMO_MASTERABL)
+		LOCAL:0 = 1
+	PRINTFORM  [\@ LOCAL:0 ?  {0, 2} # × \@] 技巧＋1LV
+	SIF LOCAL:0 == 0 && ABL:MASTER:技巧 < 99
+		PRINTFORM 　次のLVに必要な～使いLVの合計：あと{(ABL:MASTER:技巧 + 1)*2 - (ABL:MASTER:舌使い+ABL:MASTER:指使い+ABL:MASTER:腰使い+ABL:MASTER:魔乳)}
+	PRINTL 
+
+	SIF ABL:MASTER:技巧 > 0
+		LOCAL:1 = 1
+	PRINTFORML  [\@ LOCAL:1 ?  {1, 2} # × \@] 技巧－1LV
+	SIF ABL:MASTER:マゾっ気 < 5
+		LOCAL:2 = 1
+	PRINTFORML  [\@ LOCAL:2 ?  {2, 2} # × \@] マゾっ気＋1LV
+	SIF ABL:MASTER:マゾっ気 > 0
+		LOCAL:3 = 1
+	PRINTFORML  [\@ LOCAL:3 ?  {3, 2} # × \@] マゾっ気－1LV
+	SIF ABL:MASTER:サドっ気 < 5
+		LOCAL:4 = 1
+	PRINTFORML  [\@ LOCAL:4 ?  {4, 2} # × \@] サドっ気＋1LV
+	SIF ABL:MASTER:サドっ気 > 0
+		LOCAL:5 = 1
+	PRINTFORML  [\@ LOCAL:5 ?  {5, 2} # × \@] サドっ気－1LV
+	IF CONFIG("ＶＡ拡張の手動ＬＶＵＰ")
+		IF TALENT:MASTER:オトコ == 0
+			SIF CALCF("Ｖ拡張の上限", MASTER) > ABL:MASTER:Ｖ拡張
+				LOCAL:10 = 1
+			PRINTFORML  [\@ LOCAL:10 ?  {10, 2} # × \@] Ｖ拡張＋1LV
+		ENDIF
+		SIF CALCF("Ａ拡張の上限", MASTER) > ABL:MASTER:Ａ拡張
+			LOCAL:11 = 1
+		PRINTFORML  [\@ LOCAL:11 ?  {11, 2} # × \@] Ａ拡張＋1LV
+	ENDIF
+
+	PRINTFORML  [98] 技巧を部員全員の平均値に合わせる
+	PRINTFORML  [99] 技巧を上げられるだけ上げる
+	PRINTFORML [100] 終了
+
+	CALL INPUT_SELECT, 12, 98, 99, 100
+
+	CHOICE = RESULT
+
+	IF CHOICE == 100
+		REDRAW 1
+		RETURN 0
+	ELSEIF CHOICE == 98
+		AVERAGE_TECH = 0
+		FOR LCOUNT, 2, CHARANUM
+			AVERAGE_TECH += ABL:LCOUNT:技巧*10
+		NEXT
+		AVERAGE_TECH /= (CHARANUM - 2)
+		;小数点第一位を四捨五入する
+		IF AVERAGE_TECH%10 >= 5
+			ABL:MASTER:技巧 = MIN(MAXABL_TECH, (AVERAGE_TECH/10) + 1)
+		ELSE
+			ABL:MASTER:技巧 = MIN(MAXABL_TECH, AVERAGE_TECH/10)
+		ENDIF
+	ELSEIF CHOICE == 99
+		ABL:MASTER:技巧 = MAX(MAXABL_TECH, MEMO_MASTERABL)
+	ELSEIF LOCAL:CHOICE
+		SELECTCASE CHOICE
+		CASE 0
+			ABL:MASTER:技巧 += 1
+		CASE 1
+			ABL:MASTER:技巧 -= 1
+		CASE 2
+			ABL:MASTER:マゾっ気 += 1
+		CASE 3
+			ABL:MASTER:マゾっ気 -= 1
+		CASE 4
+			ABL:MASTER:サドっ気 += 1
+		CASE 5
+			ABL:MASTER:サドっ気 -= 1
+		CASE 10
+			ABL:MASTER:Ｖ拡張 += 1
+		CASE 11
+			ABL:MASTER:Ａ拡張 += 1
+		ENDSELECT
+	ENDIF
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	GOTO START
+ENDSELECT
+
+
+@EX_ABLUP, ARG
+#DIM LCOUNT
+#DIM MEMO_LINECOUNT
+
+VARSET LOCAL
+;ABL:舌使い, ABL:指使い, ABL:腰使い, ABL:魔乳
+FOR LCOUNT, 60, 64
+	LOCAL:LCOUNT = ABL:ARG:LCOUNT
+NEXT
+CALL GET_EXABL, ARG
+
+MEMO_LINECOUNT = LINECOUNT
+DRAWLINE
+FOR LCOUNT, 60, 64
+	IF ABL:ARG:LCOUNT > LOCAL:LCOUNT
+		PRINTFORML %NAME:ARG%の%ABLNAME:LCOUNT%のLVが上がった！
+		PRINTFORMW %ABLNAME:LCOUNT%がLV{ABL:ARG:LCOUNT}になった！
+		PRINTFORML 
+	ENDIF
+NEXT
+
+LOCAL = TALENT:ARG:吸精体質
+
+CALL GET_EXTALENT, ARG
+
+IF TALENT:ARG:吸精体質 > LOCAL
+	PRINTFORMW %CALLNAME:ARG%の吸精体質が{TALENT:ARG:吸精体質}LVに上がった！
+	PRINTFORML 
+ENDIF
+
+CLEARLINE 1
+SIF LINECOUNT > MEMO_LINECOUNT
+	DRAWLINE
+
+;経験値の増加処理。ARGには主にCOND("絶頂", PLAYER)orNOWEX:絶頂数合計、ARG:1は経験値の受け取り手が入る
+@GET_EXPERIENCE, ARG, ARG:1
+#DIM ACTOR
+IF ARG:1 == TARGET
+	ACTOR = PLAYER
+ELSE
+	ACTOR = TARGET
+ENDIF
+;技巧差による補正をかける
+LOCAL = MULTIPLY(ARG*5, 100 + LIMIT(ABL:ACTOR:技巧 - ABL:(ARG:1):技巧, -100, 100)*20)
+LOCAL = MAX(LOCAL - 3, 1)
+EXP:(ARG:1):経験値 += LOCAL

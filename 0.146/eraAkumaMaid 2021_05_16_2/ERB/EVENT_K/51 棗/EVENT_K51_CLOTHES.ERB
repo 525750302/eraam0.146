@@ -1,0 +1,93 @@
+;-------------------------------------------------
+;このキャラ独自の衣装を設定する。制服、体操服、水着は既存のものから選ぶのが楽です
+;-------------------------------------------------
+@CLOTHES_K51, ARGS
+
+SELECTCASE ARGS
+;キャラクター独自の下着の組み合わせを設定できます。設定した場合、一定の確率で着用します
+CASE "下着"
+	CALL SET_PANTIES, TEXTR("ショーツ/パンティ/フリルのパンツ")
+	IF CHECK_PANTIES("フリルのパンツ")
+		CALL SET_BRA, "フリルのブラ"
+	ELSE
+		CALL SET_BRA, TEXTR("シンプルブラ/フルカップブラ/フリルのブラ")
+	ENDIF
+;衣装に関わらず常に付けているアクセサリです。設定しなくてもかまいません
+CASE "アクセサリ"
+	;CALL SET_OTHER, ""
+
+;学園での普段着です。設定必須です。
+;セーラー服, ミニスカセーラー服, ブレザー, ミニスカブレザー, アメスクなど
+CASE "制服"
+	CALL SET_COSTUME, "ブレザー"
+;学園の体育の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+;体操服ブルマ, 体操服ハーフパンツ, 体操服スパッツ, 体操服ジャージなど
+CASE "体操服"
+	CALL SET_COSTUME, "体操服ジャージ"
+;学園の水泳の授業で着ます。この格好のまま部室に現れたりもする。設定必須です
+;スク水, 競泳水着, 白ビキニ, 黒ビキニなど
+CASE "水着"
+	CALL SET_COSTUME, "スク水"
+
+;自宅など学園外で着ます。設定必須です
+CASE "普段着"
+	CALL SET_SHIRT, "ブラウス"
+	CALL SET_SKIRT, "スカート"
+	CALL SET_SOCKS, "ソックス"
+	CALL SET_SHOES, "スニーカー"
+
+;自分の部屋(notあなたの部屋)で着ます
+CASE "部屋着"
+	CSTR:服 = パジャマ/
+	CSTR:アウター = パジャマズボン/ずれ不可/コキ不可/ズボン/
+
+;デート以外で家から外に出る際に着ます。ラブホ呼出とかね
+CASE "外出着"
+	CALL SET_SHIRT, "ブラウス"
+	CALL SET_SKIRT, "スカート"
+	CALL SET_SOCKS, "ソックス"
+	CALL SET_SHOES, "スニーカー"
+;もちろんデートの際に着ます
+CASE "デート衣装"
+	IF COND("春") 
+		CALL SET_SHIRT, "ブラウス"
+		CALL SET_SKIRT, "スカート"
+		CALL SET_SOCKS, "ソックス"
+		CALL SET_SHOES, "パンプス"
+	ELSEIF COND("夏")
+		IF COND("髪型変更可能")
+			CALL CHANGE_MAIDFACE, "ロング", TARGET
+			CALL CHANGE_MAIDFACE, "サイドシニヨン", TARGET
+		ENDIF
+		CALL SET_SHIRT, "サマードレス"
+		CALL SET_SHOES, "ミュール"
+	ELSEIF COND("秋")
+		CALL SET_SHIRT, "フリルブラウス"
+		CALL SET_SKIRT, "スカート"
+		CALL SET_SOCKS, "ソックス"
+		CALL SET_SHOES, "パンプス"
+	ELSEIF COND("冬")
+		IF COND("髪型変更可能")
+			CALL CHANGE_MAIDFACE, "ロング", TARGET
+			CALL CHANGE_MAIDFACE, "サイドシニヨン", TARGET
+		ENDIF
+		CALL SET_SHIRT, "ニットセーター"
+		CALL SET_SKIRT, "スカート"
+		CALL SET_SOCKS, "ハイソックス"
+		CALL SET_SHOES, "ローファー"
+	ENDIF
+ENDSELECT
+
+
+;-------------------------------------------------
+;時間帯や場所に応じた髪型、表情の変化を記述する。設定しなくてもかまいません
+;髪型変更のお願い中だとここでの変更は起きません
+;-------------------------------------------------
+@MAIDFACE_K51
+IF PLACE("自宅")
+	CALL CHANGE_MAIDFACE, "ロング", TARGET
+	CALL CHANGE_MAIDFACE, "ノーアレンジ", TARGET
+ELSE
+	CALL SETFLAG, "普段の髪型復元", TARGET
+ENDIF
+

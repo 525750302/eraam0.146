@@ -1,0 +1,236 @@
+﻿;-------------------------------------------------
+;部員同士での交流。自分はTARGETとして呼ばれ、話相手の部員はPARTNER()として呼ばれる
+;話相手への呼びかけはCNAME("パートナー")で出来る
+;TFLAG:台詞スキップ = 1で話している相手のセリフのスキップ、TFLAG:地の文スキップ = 1で続く地の文のスキップをする事が出来る
+;-------------------------------------------------
+@KOJO_COMM_K57, ARGS
+#DIM MEMO_LINECOUNT
+;対話相手にしたいキャラの名前を/区切りでこれに突っ込んでFIND_TaiTa(EVENT_TABLE)とするとそのうち一人が選ばれる
+#DIMS EVENT_TABLE
+
+EVENT_TABLE = 
+MEMO_LINECOUNT = LINECOUNT
+
+SELECTCASE ARGS
+;話しかける側のセリフ。COND("対話可能")を満たす相手を選んでPARTNER()にする事で、特定の相手に話しかけることもできる
+CASE "お誘いする"
+	;特定の相手に話しかける場合はEVENT_TABLEに対話相手の呼び名(CALLNAME)を / 区切りで並べて ; を消す
+	;例１）フェリシエルor濡烏の君orあんずから一人選ぶ場合
+	EVENT_TABLE = 莉/真/灯/
+	;例２）部員全てから一人選ぶ場合
+	;EVENT_TABLE = 全員
+
+	IF FIND_TaiTa(EVENT_TABLE)
+		;話し相手をパートナーにする
+		CALL SET_PARTNER, FIND_TaiTa(EVENT_TABLE)
+
+		SIF !(CEVENT("『のぞき』見") && TALENT:相思相愛 == 0 && CEVENT("先輩の意見") == 0 && CALLNAME:PARTNER() == "莉")
+			CALL EMOTION_PLUS, "交流中", TARGET, PARTNER()
+		TFLAG:地の文スキップ = 1
+		SELECTCASE CALLNAME:PARTNER()
+		CASE "真"
+			IF CEVENT("真初会話") == 0
+				PRINTFORMW 「……あ、%CNAME("パートナー")%」
+				PRINTFORMW 『えっと…………』
+				PRINTFORMW 「%NAME:TARGET%っていうんだ！　もー、入部したときに言ってるはずだぞー？」
+				PRINTFORMW 『あぁ、そうそう……はは。ごめんね』
+				PRINTFORMW 「ハハッ、そんなに気にしてるわけじゃないからいーっていーって！　……って、そうじゃなくて！　%CNAME("パートナー")%って莉ちゃんのお姉さんだろ？」
+				PRINTFORMW 『うん、そうだけど……君は？ クラスメイトだよね』
+				PRINTFORMW 「おう！　そうだぞ！　……それで、その、莉ちゃんについて、色々教えてほしいなーって……」
+				PRINTFORMW 『あぁ、莉ちゃん……あの子がどうかしたの？』
+				PRINTFORMW 「それは……その……」
+				PRINTFORMW 『え、あ、もしかしてウチの莉ちゃんが何かやっちゃったんじゃ……！』
+				PRINTFORMW 「ちょ、ちょっと！　別にそんなんじゃないから！　そんな焦った顔しなくていいから！」
+				PRINTFORMW 『ほんとに？　ほんとになにもない？』
+				PRINTFORMW 「ないってば！　……とにかく！　莉ちゃん、いつも暗い顔ばっかりしてるからさ、喜んで欲しくて……」
+				PRINTFORMW 『……！』
+				PRINTFORMW （あぁ、そっかぁ……そういうことかぁ……やっぱりモテるんだなぁ、莉ちゃんって……）
+				PRINTFORMW 「あ、あれ……%CNAME("パートナー")%……？」
+				PRINTFORMW 『うんうん、わかった！　そういうことなら任せて！』
+				PRINTFORMW 「お、おう……？」
+				PRINTFORMW 『私や兄さんだと、歳が離れすぎててどうしようも無いことも多くて……』
+				PRINTFORMW 『だから%CALLNAME:TARGET%くん、できる限り協力してあげるからね！』
+				PRINTFORMW 「え？　お、おう！　よくわからんが任せろ！」
+				CALL SET_CEVENT, "真初会話"
+			ELSEIF FIND_COND("現在存在", "莉") && RAND:2
+				PRINTFORMW 『最近莉ちゃんとはどう？』
+				IF CEVENT("『のぞき』見") && TALENT:相思相愛 == 0 && CEVENT("先輩の意見") == 0
+					PRINTFORMW 「あー……えっと……ボチボチ、です……」
+				ELSE
+					IF COND("相性◎", FIND_NO("莉") )
+						PRINTFORMW 「おう！　かなり仲良くなれたぜ！」
+						PRINTFORMW 「一緒に話するようにもなれたし、それに――」
+					ELSEIF COND("相性○", FIND_NO("莉") )
+						PRINTFORMW 「少しずつ仲良くなれてる……気はする」
+						PRINTFORMW 「昔より態度もやわらかくなった気がするし……」
+					ELSE
+						PRINTFORMW 「あー……まだまだスタートラインってところだな……」
+					ENDIF
+				ENDIF
+			ELSEIF COND("相性◎", PARTNER() )
+				PRINTFORMW 「%CNAME("パートナー")%ー！　一緒にゲームしようぜー！」
+				PRINTFORMW 『えー？　でも%CALLNAME:TARGET%くん強いじゃん』
+				PRINTFORMW 「だからいいんじゃん！　%CNAME("一人称")%がずーっと勝てるんだしー」
+				PRINTFORMW 『生意気な後輩だなぁ……よし！　いいよ！　待っていろ、絶対に分からせてやる……！』
+			ELSE
+				PRINTFORMW 「……あ、もしかして緊張させちゃってる……？」
+				PRINTFORMW 『い、いや！　大丈夫！』
+				SIF COND("相性○", PARTNER() )
+					PRINTFORMW 『ただ、ちょっと人見知りでね……』
+			ENDIF
+		CASE "灯"
+			IF CEVENT("灯初会話") == 0
+				IF FIND_COND("現在存在", "莉") && COND("相性◎", FIND_NO("莉") )
+					PRINTFORMW 「あ、%CNAME("パートナー")%」
+					PRINTFORMW 『ん？　お前は……遥だっけ？』
+					PRINTFORMW 「そうそう！　%CNAME("莉")%から話は聞いてたからな、どんな人なのかなって興味あったんだー」
+					PRINTFORMW 『ほー？　あいつが他人と会話をねえ……どんな手品使ったんだ、少年？』
+					; IF (AIZOU() == 0 && TALENT:恋慕) || TALENT:相思相愛
+					; 	PRINTFORMW 『莉も随分と大胆になったもんじゃねえか』
+					; ELSE
+					; 	PRINTFORMW で、恋する%CALLNAME:TARGET%クンはお兄ちゃんを見てどう思ったのかな？』
+					; ENDIF
+					PRINTFORMW 「そ、そんなんじゃなくて！　ただの友達！　ただの友達だから！」
+					; IF (AIZOU() == 0 && TALENT:恋慕) || TALENT:相思相愛
+					; 	PRINTFORMW 『そりゃあ失礼。……じゃ、これからも莉と仲良くしてくれ』
+					; ELSE
+					; 	PRINTFORMW 『ふむふむ、そりゃあ悪かった。……じゃ、そういうことにしておいてやるよ』
+					; ENDIF
+					PRINTFORMW 『あそぉ……』
+				ELSE
+					PRINTFORMW 「お前が%CALLNAME:TARGET%だな！」
+					PRINTFORMW 『おぉ？　どうしたチビ』
+					PRINTFORMW 「お前が莉ちゃんを悲しませてるんだろ！」
+					PRINTFORMW 『はあ？　俺が？　莉を？』
+					PRINTFORMW 『なんでそんなことしなきゃならねえんだよ？』
+					PRINTFORMW 「そ、それは……」
+					IF (AIZOU() == 0 && TALENT:恋慕) || TALENT:相思相愛
+						PRINTFORMW （あぁ～……おせっかいなチビだなぁ……めんどくさ）
+						PRINTFORMW 『別に俺、なーんもしてねえけど』
+						PRINTFORMW 「そ、そんなの信じられるか！」
+						PRINTFORMW 『うるっせぇなぁ……それなら本人にでも聞いてみたらいいじゃねえかよ……』
+						PRINTFORMW （ほんっと、どこ行っても人のハナシ聞かねえ奴ばっか……）
+					ELSE
+						PRINTFORMW （……あ、ふーん。このチビそういう手合いね）
+						PRINTFORMW 『で？　それがどうしたんだよ』
+						PRINTFORMW 「れ、莉ちゃんに謝らせる！」
+						PRINTFORMW 『あっそ。それじゃせいぜい頑張れよ、少年』
+						PRINTFORMW 「いわれなくてもやってやる！」
+					ENDIF
+					PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PARTNER()%に突っかかっているようだ……。
+					CALL SET_CEVENT, "灯敵視"
+				ENDIF
+				CALL SET_CEVENT, "灯初会話"
+			ELSEIF CEVENT("灯敵視")
+				PRINTFORMW 「……%CNAME("パートナー", "どもり")%……」
+				PRINTFORMW 『ん？ どした、少年』
+				PRINTFORMW 「その……ご、ごめんなさい！」
+				PRINTFORMW 「あの後莉ちゃんから聞いたんだ。そしたら別に仲悪くないって、むしろ良くしてもらってるって言われて……」
+				PRINTFORMW 「%CNAME("一人称")%、勘違いして色々と酷いこと言っちゃった……！」
+				IF (AIZOU() == 0 && TALENT:恋慕) || TALENT:相思相愛
+					PRINTFORMW 『あー、そんなこと。別になんも気にしてねえけどな』
+					PRINTFORMW 「そ、そうなのか？」
+					PRINTFORMW 『まぁ誠意を見せたいってんなら？　荷物持ちくらいで許してやるよ』
+					PRINTFORMW 「行く！　なんでも渡してくれ！」
+					PRINTFORMW 『よぉし、決まり。帰りに服買いに行くからよろしくー』
+					PRINTFORMW （女物だけど）
+				ELSE
+					PRINTFORMW 『え～？　いまさらそんなこと言われてもなぁ～？』
+					PRINTFORMW 『年上にいきなり突っかかっていきなり手のひら返すとか、ちょっと信じらんないよなぁ～』
+					PRINTFORMW 「うぅ……」
+					PRINTFORMW 『まぁまぁ、別に？　俺だって絶対許さないなんて頑固でもないからな』
+					PRINTFORMW 『ちょっとおハナシに付き合ってくれたらカンベンしてやらんこともない』
+					PRINTFORMW 『どうよ、%CALLNAME:TARGET%少年。ちょいとうちの末妹について語り合おうじゃないの』
+					PRINTFORMW 「う……お、お手柔らかにお願いします……」
+				ENDIF
+				CALL DEL_CEVENT, "灯敵視"
+			ELSEIF CEVENT("『のぞき』見") && TALENT:恋慕 == 0 && CEVENT("先輩の意見") == 0
+				PRINTFORMW 『んー？　どした少年。元気ないぞ』
+				PRINTFORMW 「……ああ、%CNAME("パートナー")%か」
+				PRINTFORMW 『誰かに振られたん？』
+				PRINTFORMW 「……うん。%CNAME(CALLNAME:MASTER)%と%CNAME("莉")%が一緒にエッチしてるところを見ちゃって……」
+				PRINTFORMW 『ふぅん。そいつぁ災難だったねぇ少年』
+				PRINTFORMW 「……%CNAME("一人称")%、どうしたらいいんだろうって……」
+				PRINTFORMW 『諦めたら？』
+				PRINTFORMW 「あ、諦めたらって……」
+				PRINTFORMW 『別に失恋なんざ誰だってするだろうが。いくら初恋だからってこだわり過ぎだよ、少年』
+				PRINTFORMW 「……」
+				PRINTFORMW 『そんなに後悔するくらいなら、さっさと告るなりしちまえばよかったじゃねえかよ』
+				PRINTFORMW 『俺に対していきなり突っかかってきた気概を、あいつに向ければ済んだハナシよ』
+				PRINTFORMW 「……うん」
+				PRINTFORMW 『まーどうせそれでも振られただろうけど。どっちかっつったらそうした方が建設的だったじゃん？』
+				PRINTFORMW 「…………うん」
+				PRINTFORMW 『……ふーっ』
+				PRINTFORMW 『ま、これからよ、これから。若いウチからそんな塞ぎ込むなって』
+				PRINTFORMW 『お前も別に悪い奴じゃないし。そのうち良いことあるって』
+				PRINTFORMW 「……ありがと……」
+				PRINTFORMW 『お。地味に初めて感謝されたんじゃね』
+				PRINTFORMW 「うるさい。……ヘヘッ」
+				CALL SET_CEVENT, "先輩の意見"
+			ELSEIF TALENT:男の娘
+				PRINTFORMW 「%CNAME("パートナー")%ー、オススメの服教えてくれよ」
+				PRINTFORMW 『はぁ？　めんどくせーなぁ。そんなんネットでちょちょいと調べて……』
+				PRINTFORMW 「……だめ？」
+				PRINTFORMW 『……かーっ、どこで覚えてきやがったその目！』
+			ELSE
+				PRINTFORMW 「%CNAME("パートナー")%ー、なんで女装してるんだ？」
+				PRINTFORMW 『似合ってるだろ？』
+				PRINTFORMW 「確かに似合っちゃいるけどさー……」
+			ENDIF
+		CASE "莉"
+			IF CEVENT("莉初会話") == 0
+				PRINTFORMW 「……え！？　%CNAME("パートナー")%！？」
+				PRINTFORMW 『……なに？』
+				PRINTFORMW 「%CNAME("パートナー")%もこの部活に入っていたのか……」
+				PRINTFORMW 「……なんだか、嬉しいような、悔しいような……」
+				PRINTFORMW 『あぁ、そう……（……誰だっけ……）』
+				CALL SET_CEVENT, "莉初会話"
+			;吹っ切れたとしてそれはそれとして気まずくはあるよねと初回は吹っ切ってもここを通るように
+			ELSEIF CEVENT("『のぞき』見") && TALENT:相思相愛 == 0 && (CEVENT("先輩の意見") == 0 || CEVENT("ちょっと気まずい") == 0)
+				IF COND("相性◎", PARTNER() )
+					PRINTFORMW 『……あ、遥君、久しぶり』
+					PRINTFORMW 「お、おう、久しぶり……」
+					PRINTFORMW %CALLNAME:PARTNER()%に声をかけられた%CALLNAME:TARGET%だったが、その動きはどこかぎこちない……。
+				ELSE
+					PRINTFORMW 「あっ…………」
+					PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:PARTNER()%を見かけると、気まずそうに顔を背けた。
+				ENDIF
+				CALL SET_CEVENT, "ちょっと気まずい"
+			ELSEIF RAND:2
+				PRINTFORMW 「%CNAME("パートナー")%！　お菓子持ってきたんだけど、一緒に食べないか？」
+				PRINTFORM 『ん……
+				IF COND("相性◎", PARTNER() )
+					PRINTFORM じゃあ、ひとつだけ
+				ELSE
+					PRINTFORM 別に
+				ENDIF
+				PRINTFORMW ……』
+			ELSE
+				PRINTFORMW 「%CNAME("パートナー")%～、勉強教えてくれ～」
+				PRINTFORMW 「次のテストがボロボロになりそうで怖いんだよ～」
+				PRINTFORMW 『……
+				IF COND("相性◎", PARTNER() )
+					PRINTFORMW どこ？』	
+				ELSE
+					PRINTFORMW いや、他のひとに聞けばいいじゃない……？』
+				ENDIF
+			ENDIF
+		ENDSELECT
+	ENDIF
+
+;話しかけられる側のセリフ。括弧は『』を使うのが望ましい
+CASE "誘われた"
+	IF CALLNAME:PARTNER() == "フェリシエル"
+		IF COND("相性○", PARTNER() )
+			SIF TEXTS("季節") == "初夏"
+				PRINTFORMW 『え、いいけど、%CNAME("一人称")%で大丈夫なのか？』
+		ELSE
+			IF CFLAG:加入日 >= 7
+				PRINTFORMW 『おう！　%CNAME("パートナー")%は物知りだからなー、今日も楽しみだ！』
+			ELSE
+				PRINTFORMW 『%CNAME("パートナー")%がどんな人なのか……気になるぜ……！』
+			ENDIF
+		ENDIF
+	ENDIF
+
+ENDSELECT

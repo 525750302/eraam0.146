@@ -1,0 +1,205 @@
+;-------------------------------------------------
+;260～279番,消耗品コマンド
+;-------------------------------------------------
+@COM_ABLE260
+;ローション実行判定
+SIF COMABLE_DEF(260)
+	RETURN 0
+;アイテムを持っていないとダメ
+SIF ITEM:ローション == 0
+	RETURN 0
+RETURN 1
+
+@COM_ABLE261
+;媚薬実行判定
+SIF COMABLE_DEF(261)
+	RETURN 0
+;アイテムを持ってないとダメ
+SIF ITEM:媚薬 == 0
+	RETURN 0
+;押し倒されている
+IF TEQUIP:押し倒し
+	RETURN 0
+	;PLAYERかTARGETに効く状態じゃないとダメ
+	;SIF TEQUIP:媚薬 && TEQUIP:PLAYER:媚薬
+	;	RETURN 0
+	;技巧3LVか錬金術が無いとダメ
+	;SIF ABL:技巧 < 3 && TALENT:錬金術 == 0
+	;	RETURN 0
+ELSE
+	;TARGETに効く状態じゃないとダメ
+	SIF TEQUIP:媚薬
+		RETURN 0
+ENDIF
+RETURN 1
+
+@COM_ABLE262
+RETURN 0
+;利尿剤実行判定
+SIF COMABLE_DEF(262)
+	RETURN 0
+;アイテムを持ってないとダメ
+;SIF ITEM:利尿剤 == 0
+;	RETURN 0
+;重ねての使用はダメ
+SIF TEQUIP:利尿剤
+	RETURN 0
+RETURN 1
+
+@COM_ABLE263
+;絆創膏実行判定
+SIF COMABLE_DEF(263)
+	RETURN 0
+;解除はいつでも可能
+SIF TEQUIP:絆創膏
+	RETURN 1
+;アイテムを持っていないとダメ
+SIF ITEM:絆創膏 == 0
+	RETURN 0
+;アソコ使用判定
+SIF USE_V(TARGET) == 0
+	RETURN 0
+;尿道を使用中だとダメ
+SIF TEQUIP:尿道バイブ || TEQUIP:カテーテル
+	RETURN 0
+;胎内に精液が無いとダメ
+SIF COND("胎内の精液量") == 0
+	RETURN 0
+;常時Ｖバイブ、尿道バイブ中はダメ
+SIF TALENT:常時Ｖバイブ || TALENT:常時尿道プラグ
+	RETURN 0
+SIF COND("合意：危険日生セックス") == 0 && COND("避妊不要") == 0 && CONFIG("胎内精子で妊娠")
+	RETURN 0
+RETURN 1
+
+@COM_ABLE264
+RETURN 0
+;排卵誘発剤実行判定
+SIF COMABLE_DEF(264)
+	RETURN 0
+;アイテムを持っていないとダメ
+;SIF ITEM:排卵誘発剤 == 0
+;	RETURN 0
+SIF COND("排卵誘発剤", TARGET) + COND("排卵誘発剤", PLAYER) == 0
+	RETURN 0
+RETURN 1
+
+@COM_ABLE265
+RETURN 0
+
+@COM_ABLE266
+RETURN 0
+
+@COM_ABLE267
+RETURN 0
+;筋弛緩剤実行判定
+SIF COMABLE_DEF(267)
+	RETURN 0
+;アイテムを持っていないとダメ
+;SIF ITEM:筋弛緩剤 == 0
+;	RETURN 0
+;用法用量は的確に
+SIF TEQUIP:筋弛緩剤
+	RETURN 0
+RETURN 1
+
+@COM_ABLE268
+RETURN 0
+
+@COM_ABLE269
+RETURN 0
+
+@COM_ABLE270
+RETURN 0
+
+@COM_ABLE271
+RETURN 0
+
+@COM_ABLE272
+RETURN 0
+
+
+;-------------------------------------------------
+;280～299番,特殊調教コマンド
+;-------------------------------------------------
+@COM_ABLE280
+;もがく実行判定
+SIF COMABLE_DEF(280)
+	RETURN 0
+;押し倒されていないとダメ
+SIF TEQUIP:押し倒し == 0
+	RETURN 0
+;恍惚状態だとだめ
+SIF STATE("恍惚", PLAYER)
+	RETURN 0
+RETURN 1
+
+@COM_ABLE281
+;なすがまま実行判定
+SIF COMABLE_DEF(281)
+	RETURN 0
+;押し倒されていないとダメ
+SIF TEQUIP:押し倒し == 0
+	RETURN 0
+RETURN 1
+
+@COM_ABLE282
+;自慰する実行判定
+SIF COMABLE_DEF(282)
+	RETURN 0
+;恍惚状態だとだめ…な気もするができても良い多分
+;SIF STATE("恍惚", PLAYER)
+;	RETURN 0
+;あなた以外だと自慰中毒必要
+SIF PLAYER != MASTER && ABL:PLAYER:自慰中毒 == 0
+	RETURN 0
+;縄・拘束中で手が使えない時はダメ
+SIF GETBIT(TEQUIP:PLAYER:拘束, 20) || STATE("バインド：手", PLAYER)
+	RETURN 0
+;誰かに挿入している時に始めるのは流石に失礼だな
+SIF INSERT("挿入中", PLAYER)
+	RETURN 0
+;特定コマンドの次のターン、ないし特定の状況化じゃないとダメということにしておく
+SELECTCASE PREVCOM
+;クンニ, 自慰, フェラする, アナル舐め, くぱぁさせる, Ａくぱぁさせる
+CASE 1, 3, 4, 9, 13, 14, 282
+	RETURN 1
+CASEELSE
+	SIF TEQUIP:顔面騎乗 || TEQUIP:自慰する
+		RETURN 1
+ENDSELECT
+RETURN 0
+
+@COM_ABLE283
+;甘い言葉実行判定
+SIF COMABLE_DEF(283)
+	RETURN 0
+;重ねがけは原則禁止
+IF TEQUIP:甘い言葉
+	SELECTCASE TRAINNAME_EX(PREVCOM)
+	CASE "剃毛"
+	CASEELSE
+		RETURN 0
+	ENDSELECT
+ENDIF
+;[☆甘い言葉]を持っていないとダメ
+;SIF TALENT:PLAYER:甘い言葉 == 0
+;	RETURN 0
+RETURN 1
+
+@COM_ABLE284
+RETURN 0
+
+@COM_ABLE285
+;抱きしめる実行判定
+SIF COMABLE_DEF(285)
+	RETURN 0
+;連続実行は出来ない
+SIF PREVCOM == 285
+	RETURN 0
+RETURN 1
+
+@COM_ABLE511
+SIF COND("挿入前暴発フラグ", PLAYER)
+	RETURN 1
+RETURN 0

@@ -1,0 +1,6207 @@
+;----------------------------------------------------------------
+;プロパティ
+;ARG:1 = 言語能力
+;ARGS = 検索するセリフ
+;----------------------------------------------------------------
+@EVENT_K15_LIBRARY(ARGS)
+	CALL TRANS_CHECK(ARGS)
+	RETURN 0
+;----------------------------------------------------------------
+;翻訳機の設定確認
+;ARG = 言語能力
+;ARGS = 検索するセリフ
+;----------------------------------------------------------------
+@TRANS_CHECK(ARGS)
+IF CEVENT("槞彁：機械翻訳OFF", MASTER)
+	CALL NOT_USE_TRANS(ARGS)
+ELSE
+	CALL USE_TRANS(ARGS)
+ENDIF
+RETURN 0
+;----------------------------------------------------------------
+;翻訳機使用モード
+;ARG = 言語能力
+;ARGS = 検索するセリフ
+;----------------------------------------------------------------
+@USE_TRANS(ARGS)
+#DIM LCOUNT
+#DIM DYNAMIC BASE_RESULT
+#DIM DYNAMIC BEFORE_RESULT
+#DIM DYNAMIC AFTER_RESULT
+	RESULT = 0
+	FOR LCOUNT, 0, 100
+		CALL SEARCH_LIB(0, LCOUNT, ARGS)
+			SIF RESULT == 1
+				BASE_RESULT = 1
+		CALL SEARCH_LIB(1, LCOUNT, ARGS)
+			SIF RESULT == 1
+				BEFORE_RESULT = 1
+		CALL SEARCH_LIB(100, LCOUNT, ARGS)
+			SIF RESULT == 1
+				AFTER_RESULT = 1
+		SIF (BEFORE_RESULT == 1)&&(AFTER_RESULT == 1)&&(BASE_RESULT == 1)
+			BREAK
+	NEXT
+
+;----------------------------------------------------------------
+;翻訳機不使用モード
+;ARG = 言語能力
+;ARGS = 検索するセリフ
+;----------------------------------------------------------------
+@NOT_USE_TRANS(ARGS)
+#DIM LCOUNT
+#DIM DYNAMIC BASE_RESULT
+#DIM DYNAMIC BEFORE_RESULT
+	RESULT = 0
+	FOR LCOUNT, 0, 100
+		CALL SEARCH_LIB(0, LCOUNT, ARGS)
+			SIF RESULT == 1
+				BASE_RESULT = 1
+		CALL SEARCH_LIB(1, LCOUNT, ARGS)
+			SIF RESULT == 1
+				BEFORE_RESULT = 1
+		SIF (BEFORE_RESULT == 1)&&(BASE_RESULT == 1)
+			BREAK
+	NEXT
+
+;----------------------------------------------------------------
+;ARG = 言語能力
+;ARG:1 = 表示回数
+;ARGS = 検索するセリフ
+;----------------------------------------------------------------
+@SEARCH_LIB(ARG, ARG:1, ARGS)
+;キャラの登録番号を必要とする台詞のために定義
+#DIM REG_NUM
+REG_NUM = FINDCHARA(NO, 15)
+
+;PRINTFORML 言語レベル{ARG} 表示回数 {ARG:1} 探査名 %ARGS%
+SELECTCASE ARGS
+;------------------------------------------------------------
+;↓ここから先はEVENT_K15_槞彁.ERBから呼ばれる物
+;----------------------------------------------------------------
+CASE "勧誘：没"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Аь・・・Хажимемашите! %CNAME("一人称")% нов Намэ ва %CNAME("本名")%  дещ!」
+				CASE 1
+					PRINTFORMW 「%CNAME("一人称")% но Иттэилюкото Вакалимаска?」
+				CASE 2
+					PRINTFORMW 「омэнарсаы・・・Ныхонго ва токюи цзя наыно・・・」
+				CASE 3
+					PRINTFORMW 「КыцаыХонняц во тоошыте ганбал Цала %CNAME("一人称")% ! Юлюшыте!」
+				CASE 4
+					PRINTFORML %CALLNAME:MASTER%は自らの体の特異性を伝えた
+					PRINTFORMW 「……」
+					PRINTFORMW 「…!?」
+					PRINTFORML 「%CNAME("二人称")% но чикараг арэба! …Иймава хнасэмасэн га…」
+					PRINTFORMW 「Кйттво! Цазоцво Сцвелл тво оммовно!」
+				CASE 5
+					PRINTFORMW %CALLNAME:MASTER%「…？」
+					PRINTFORMW 「Яа…」
+				CASE 6
+					PRINTFORMW %CALLNAME:MASTER%「？？」
+					PRINTFORMW 「Ая! чигав чигав! имано ва Ия денацкуте! 」
+				CASE 7
+					PRINTFORMW %CALLNAME:MASTER%「？？」
+					PRINTFORMW 「Ун!Кицаннакотво ни штие кудсай!」
+				CASE 8
+					PRINTFORML 
+					PRINTFORML %CALLNAME:MASTER%は%NAME:TARGET%の言っている事のほとんどを理解できなかった
+					PRINTFORMW しかし、どうやら%NAME:TARGET%は%CALLNAME:MASTER%に対し興味を持ったようだ
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『あぁ、良い最初の貴方との出会い。%CNAME("一人称翻訳後")%の名前は%NAME:TARGET%である。』
+				CASE 1
+					PRINTFORMW 『貴方は発言に対して理解を私で行っているか？』
+				CASE 2
+					PRINTFORMW 『言葉は難しい、謝罪』
+				CASE 3
+					PRINTFORMW 『許可を求める、%CNAME("一人称翻訳後")%は機械辞書使用を努力する』
+				CASE 4
+					PRINTFORMW 『%CNAME("二人称翻訳後")% の力は話すことが出来ない救済は今。推定の家族と共に得ることを未来に約束できるとは限らない』
+				CASE 5
+					PRINTFORMW 『拒否』
+				CASE 6
+					PRINTFORMW 『閃き、強い否定。現在の言葉は拒否とは異なる物』
+				CASE 7
+					PRINTFORMW 『その通りです、私は貴方に対しての私の言葉を忘れなければならない。をお願いする』
+				CASE 8
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "勧誘：どこ"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「цо...кокова...？」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 10;言語能力Lv10
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「こ・・・ここは・・・？」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『一人、これは？』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "勧誘：要求"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Наныйка...Тербэмоно о...」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 2;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Наника...Табэмоно...о...」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 3;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Nanyjka...Tjerbemone o...」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『不特定の食べ物は。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "勧誘：強姦"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Я...Далльца...Таш...!」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 1;言語能力Lv2
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Я...Дарэка...Тасу!」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Ya...Dalleyc...Tash...!」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 『Ераа АыДеэ18559811 Зисёни Товрокю нонаи тангодесс』
+					PRINTFORMW 『エラーID18559811、辞書に登録のない単語です。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "勧誘：自己紹介"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「нк...」
+				CASE 1
+					PRINTFORMW 「Ялйгатов гозаймаш...！」
+				CASE 2
+					PRINTFORMW 食べ終わり少し苦しそうにした後、彼女は%CALLNAME:MASTER%に感謝の意を伝えた
+				CASE 3
+					PRINTFORMW 「ТасцалйМашта。%CNAME("二人称")% нйе Цавсйте Тавйемонхо во йетадаце нацтла кйттво %CNAME("一人称翻訳後")% хав・・・」
+				CASE 4
+					PRINTFORMW 「Ах！Мовшвоцлемашта. %CNAME("一人称")% нов намайе %CNAME("本名")% товмовсймаш.・・・Аа Цотйлер нов цотбер дев Хатон сулу баяй ва %NAME:TARGET% тов оёвйкдасай！」
+				CASE 5
+					PRINTFORML 「Гйкай・・・НйнгенКай тов Йетта хов га йеедеснйе.
+					PRINTFORMW НйнгенКай нива кыйтакот га найноде Рейгй га Нате йенай вам шлемасенга, %CNAME("本名")% ва сйдайген нов Кансйер во %CNAME("二人称")% нйе штеймас!」
+				CASE 6
+					PRINTFORMW 「Хай！Совдет！%CNAME("一人称")% ва Гйка...НйнгенКай сювщен дева нацте、Сйнка...Мацкай нов Демославия цаллер кимаштер！」
+				CASE 7
+					PRINTFORMW 「・・・」
+				CASE 8
+					PRINTFORMW 彼女、%NAME:TARGET%は少し下を向いてブツブツと何かを言った後、もう一度%CALLNAME:MASTER%の方を向いた
+				CASE 9
+					PRINTFORMW 「Онегайдеш! %CNAME("一人称")% во Иеный Сумавасйете Кдасай！Ицкел вашо мов Циляй мов Нанймов Найндеш！」
+				CASE 10
+					PRINTFORMW 「Иймено %CNAME("一人称")% Нива Цовште Таскете цлетер %CNAME("二人称")% сика Таёллер Хитогер имассейн Онегайшмас！ Сумавасйете Кдасай！」
+				CASE 11
+					PRINTFORML 彼女、%NAME:TARGET%は機械から再翻訳された言葉を聞き、少し悩んだ後言葉を続けた。
+					PRINTFORMW 「%CNAME("二人称")% Нов Ийе」「%CNAME("一人称")%」「Сум」「Коллецллер」「Онегайсймаш」「Дайзёв？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「nk...」
+				CASE 1
+					PRINTFORMW 「A...Yalygatov gozaymash...!」
+				CASE 2
+					PRINTFORMW 食べ終わり少し苦しそうにした後、彼女は%CALLNAME:MASTER%に感謝の意を伝えた
+				CASE 3
+					PRINTFORMW 「TascalyMashta。%CNAME("二人称")% nye Cavsyte Tavyemonho vo yetadace nactla kyttvo %CNAME("一人称翻訳後")% hav・・・」
+				CASE 4
+					PRINTFORMW 「Ah！Movshvoclemashta. %CNAME("一人称")% nov namaye %CNAME("本名")% tovmovsymash.・・・Aa Cotyler nov cotber dev Haton sulu bayay va %NAME:TARGET% tov oyovykdasay！」
+				CASE 5
+					PRINTFORML 「Gykay・・・NyngenKay tov Yetta hov ga yeedesnye.
+					PRINTFORMW NyngenKay niva kyitakot ga naynode Reygy ga Nate yenay vam shlemasenga, %CNAME("本名")% va sydaygen nov Kansyer vo %CNAME("二人称")% nye shteymas!。」
+				CASE 6
+					PRINTFORMW 「Hay！Sovdet！%CNAME("一人称")% va Gyka...NyngenKay syuvshchen deva nacte、Synka...Mackay nov Demoslaviya caller kimashter！」
+				CASE 7
+					PRINTFORMW 「・・・」
+				CASE 8
+					PRINTFORMW 彼女、%NAME:TARGET%は少し下を向いてブツブツと何かを言った後、もう一度%CALLNAME:MASTER%の方を向いた
+				CASE 9
+					PRINTFORMW 「Onegaydesh! %CNAME("一人称")% vo Ienyi Sumavasyete Kdasay！Ickel vasho mov Ciliay mov Nanymov Nayndesh！」
+				CASE 10
+					PRINTFORMW 「Iymeno %CNAME("一人称")% Niva Covshte Taskete cleter %CNAME("二人称")% sika Tayoller Hitoger imasseyn Onegayshmas！ Sumavasyete Kdasay！」
+				CASE 11
+					PRINTFORML 彼女、%NAME:TARGET%は機械から再翻訳された言葉を聞き、少し悩んだ後言葉を続けた。
+					PRINTFORMW 「%CNAME("二人称")% Nov Iye」「%CNAME("一人称")%」「Sum」「Kollecller」「Onegaysymash」「Dayzyov？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;日本語
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「んく・・・」
+				CASE 1
+					PRINTFORMW 「あ・・・ありがとうございます！」
+				CASE 2
+					PRINTFORMW 食べ終わり少し苦しそうにした後、彼女は%CALLNAME:MASTER%に感謝の意を伝えた
+				CASE 3
+					PRINTFORMW 「助かりました。%CNAME("二人称")%にこうして食べ物を頂けなかったらきっと%CNAME("一人称")%は・・・」
+				CASE 4
+					PRINTFORMW 「あぁ！申し遅れました。私の名前は%CNAME("本名")%と申します。・・・あぁーこちらの言葉で発音する場合は%NAME:TARGET%とお呼び下さい！」
+				CASE 5
+					PRINTFORML 「偽界には・・・人間界と言った方が良いですね。
+					PRINTFORMW 人間界には来たことが無いので礼儀がなっていないかもしれませんが、私は最大の感謝を%CNAME("二人称")%にしています。」
+				CASE 6
+					PRINTFORMW 「はい！そうです！私は偽...人間界出身では無くて、真か...魔界のダエモスラビヤから来ました！」
+				CASE 7
+					PRINTFORMW 「・・・」
+				CASE 8
+					PRINTFORMW 彼女、%NAME:TARGET%は少し下を向いてブツブツと何かを言った後、もう一度%CALLNAME:MASTER%の方を向いた
+				CASE 9
+					PRINTFORMW 「お願いです！私を家に住まわせてください！行ける場所も知り合いもお金も何もないんです！」
+				CASE 10
+					PRINTFORMW 「今の%CNAME("一人称")%には、こうして助けてくれた%CNAME("二人称")%しか頼れる人が居ません。お願いします！%CNAME("一人称")%を住まわせてください！」
+				CASE 11
+					PRINTFORML %NAME:TARGET%は機械から再翻訳された言葉を聞き、少し悩んだ後言葉をつづけた。
+					PRINTFORMW 「%CNAME("二人称")%の家」「%CNAME("一人称")%」「住む」「これから」「お願いします。」「大丈夫？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 『Ераа АыДеэ18559811 Зисёни Товрокю нонаи тангодесс』
+					PRINTFORML 『エラーID18559811、辞書に登録のない単語です。』
+				CASE 1
+					PRINTFORML 『返答　ありがとう』
+				CASE 2
+					;なし
+				CASE 3
+					PRINTFORMW 『助かりました。もしくは、このような食べ物を%CNAME("一人称翻訳後")%は%CNAME("二人称翻訳後")%を承る事に対して。』
+				CASE 4
+					PRINTFORMW 『閃き、言葉は遅れただろう。私の名前は%CNAME("本名")%です。・・・閃き、私の居る方で言葉の発音は、行う場合は%NAME:TARGET%と呼ばれるだろう。』
+				CASE 5
+					PRINTFORML 『偽物の世界には・・・貴方に対しての正しい表現は人間界であるという事が出来る。
+					PRINTFORMW 私は行った事が人間界には無いのである、その結果的に行えていない礼儀が不適用。だとしても、最も大きい感謝を%CNAME("二人称翻訳後")%に行っている。』
+				CASE 6
+					PRINTFORMW 『はい、その通りでしょう。私は偽物・・・人間界を出身していない、真実な・・・魔界の[エラーID18559812、変邸結果、地名。変換先辞書に登録のない単語です。魔伝罅接続後に再度行ってください。]から来た。』
+				CASE 7
+					;PRINTFORMW 「・・・」
+				CASE 8
+					;彼女、%NAME:TARGET%は少し下を向いてブツブツと何かを言った後、もう一度%CALLNAME:MASTER%の方を向いた
+				CASE 9
+					PRINTFORMW 『要求。貴方の持つ屋根に入ることを私に許可を求める。私は行先・資金・隣人は持っていないである。』
+				CASE 10
+					PRINTFORMW 『現在の%CNAME("一人称")%は持っていない。こうして救助の%CNAME("二人称")%のみ頼れる人です。要求、%CNAME("一人称")%を屋根に下さい』
+				CASE 11
+					PRINTFORMW 『%CNAME("二人称翻訳後")%の家』『%CNAME("一人称翻訳後")%』『住む』『これから』『お願いします。』『大丈夫？』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "勧誘直後：盗まれた"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Соуда！Сэмтем но Орай дешга・・・」
+				CASE 1
+					PRINTFORMW 「Фе!?」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は自分の財布にお金が入っていない事に気が付き驚いている
+				CASE 3
+					PRINTFORMW 「Гоменнасай・・・Оссерыф цаллер Оцанер гав нуссмаллете сыматтер ыете нанымо вацелл монов га нацта дещ・・・」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Souda！Semtem no Oray deshga・・・」
+				CASE 1
+					PRINTFORMW 「Fe!?」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は自分の財布にお金が入っていない事に気が付き驚いている
+				CASE 3
+					PRINTFORMW 「Gomyennasay・・・Osseryf caller Ocaner gav nussmallete symatter yete nanymo vatsell monov ga nacta deshch・・・」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「そうだ！せめてものお礼ですが・・・」
+				CASE 1
+					PRINTFORMW 「ふぇ!?」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は自分の財布にお金が入っていない事に気が付き驚いている
+				CASE 3
+					PRINTFORMW 「ごめんなさい・・・お財布からお金が盗まれてしまっていて何も渡せるものが無かったです・・・」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 「その通りです。最小限の贈与である・・・」
+				CASE 1
+					PRINTFORML 『Ераа АыДеэ18559811 Зисёни Товрокю нонаи тангодесс』
+					PRINTFORML 『エラーID18559811、辞書に登録のない単語です。』
+				CASE 2
+					;%NAME:TARGET%は自分の財布にお金が入っていない事に気が付き驚いている
+				CASE 3
+					PRINTFORML 『謝罪・・・盗まれた財布にはお金によって渡せるものは何も入っていなかった。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "勧誘直後：貢ぐ"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Соуда！Сэмтем но Орай дешга・・・」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Souda！Semtem no Oray deshga・・・」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「そうだ！せめてものお礼ですが・・・」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 「その通りです。最小限の贈与である・・・」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "初調教：没"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Ано…Онегаый га Алнодещ га цолево…」
+				CASE 1
+					PRINTFORML %CALLNAME:TARGET%の必死な身振り手振りを暫く見て、%CALLNAME:MASTER%はようやくコンドームを使ってほしいと言っている事を理解した
+				CASE 2
+					PRINTFORMW 「Хонтовни…Вонегаый дещ…」
+				CASE 3
+					PRINTFORMW 「%CNAME("一人称")% ва доу наттемо ийнодэ…」
+				CASE 4
+					PRINTFORMW 「соно…тамшй во…ацумесасте кудасай…」
+				CASE 5
+					PRINTFORMW 「(коннатокороде %CNAME("一人称")% дакэде онацкво митасйтева ицйенаыйндеш…)」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『もしもし…私はこれを願う。』
+				CASE 1
+				CASE 2
+					PRINTFORMW 『真実を要求する』
+				CASE 3
+					PRINTFORMW 『%CNAME("一人称翻訳後")%の変化は何が起ころうとも良い』
+				CASE 4
+					PRINTFORMW 『これ、魂の収集を行う。の許可を求める。』
+				CASE 5
+					PRINTFORML 『Ераа АыДеэ1855001 Онрёв га Чисасгимас』
+					PRINTFORMW 『エラーID18559815、音声が小さすぎます。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "調教開始：恋慕"
+	SELECTCASE ARG
+		CASE 0;地の文とか、翻訳有無や言語能力に影響の受けないメッセージ
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW,"「きゃっ！_HH_HH_」"
+				CASE 2
+					PRINTFORMW 「えっ？Оцканйе？Цуллел наллер Уллесий дещ кед...」
+				CASE 3
+					CALL PRINT_STRW,@"「%CNAME("二人称")% нор цот гар сукый ный начаьтан дещ！ Оцканйе нацтйемор...нйе？_HH_HH_HH_」"
+				CASE 4
+
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW,"「きゃっ！_HH_HH_」"
+				CASE 2
+					PRINTFORMW 「Ye'？Ockanye？Cullel naller Ullesii deshch ked...」
+				CASE 3
+					CALL PRINT_STRW,@"「%CNAME("二人称")% nor cot gar sukyi nyi nacha'tan deshch！ Ockanye nactyemor...nye？_HH_HH_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW,"「きゃっ！_HH_HH_」"
+				CASE 2
+					PRINTFORMW 「えっ？お金？　くれるなら嬉しいですけど...」
+				CASE 3
+					CALL PRINT_STRW,@"「%CNAME("二人称")%の事が好きになっちゃったんです！お金無くても...ね？_HH_HH_HH_」"
+				CASEELSE
+					RETURN 1 
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORMW 『お金？貰うは嬉しい事です。』
+				CASE 3
+					PRINTFORMW 『%CNAME("二人称翻訳後")%が私は好きになるしてしまった。お金の無いでも。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "調教開始：売春交渉"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「%CNAME("二人称")%・・・Сон・・・колле цоллер ялн дещёныэ？」
+				CASE 1
+					PRINTFORMW 「・・・%CNAME("本名")%нов Карердер во цаттэ ыетдакэмассэнца？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「%CNAME("二人称")%・・・Son・・・kolle coller yaln deshchyonye？」
+				CASE 1
+					PRINTFORMW 「・・・%CNAME("本名")%nov Karerder vo catte yetdakemassenca？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「%CNAME("二人称")%・・・その・・・これからやるんですよね？」
+				CASE 1
+					PRINTFORMW 「・・・%CNAME("本名")%の体を買っていただけませんか？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『%CNAME("二人称翻訳後")%・・・アレを・・・未来に行うか？』
+				CASE 1
+					PRINTFORMW 『私は願う。%CNAME("二人称翻訳後")%による、%NAME:TARGET%の持っている体を購入を行うする事。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "調教開始：苦い顔"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW %NAME:TARGET%は微妙な顔をしたが何も言わずお金を受け取った。
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE IS >= 100
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "調教開始：普通"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Ялйгатов гозаймаш! %CNAME("一人称")% ганверы машё!」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Jaljgatov gozajmash! %CNAME("一人称")% ganvery mashyo!」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 10
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「ありがとうございます！私、頑張りますよ！」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE IS >= 100
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 『ありがとうございます。私は努力家です。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "調教開始：驚き"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Ец！Коннерны ыетадаыте ийндещкер！？」
+				CASE 2
+					CALL PRINT_STRL, "「Цынгац нив мяв цлы меанзоц сасетие агаымемашней_HH_」"
+					;PRINTFORMW %NAME:TARGET%はウインクをして%CALLNAME:MASTER%の両手を握った。
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Ec！Konnerny yetadayte iindeshchker！？」
+				CASE 2
+					CALL PRINT_STRL, "「Cyngac niv myav cly meanzoc sasetie agaymemashnej_HH_」"
+				CASE 3
+					;PRINTFORMW %NAME:TARGET%はウインクをして%CALLNAME:MASTER%の両手を握った。
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 10
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「えっ！こんなに頂いて良いんですか！？」
+				CASE 2
+					CALL PRINT_STRL, "「金額に見合う位満足させてあげますね_HH_」"
+				CASE 3
+					;PRINTFORMW %NAME:TARGET%はウインクをして%CALLNAME:MASTER%の両手を握った。
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE IS >= 100
+			SELECTCASE ARG:1
+				CASE 1
+					PRINTFORMW 『驚愕、大量の頂いて良いのか私には疑問です。』
+				CASE 2
+					PRINTFORMW 『価値に見合う物を貴方は期待する権利を得られる。』
+				CASE 3
+					PRINTFORMW %NAME:TARGET%はウインクをして%CALLNAME:MASTER%の両手を握った。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "調教開始：困惑"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Я・・・%CNAME("一人称")% нее Цоннер кач гав аллн де шовцр・・・？」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は驚いた様子で渡されたお金を見ている。
+				CASE 3
+					PRINTFORML 「Сев・・・Сеыерпары нов го хауш во састиер ыетаддцкымащ・・・」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Wa・・・%CNAME("一人称")% nee Conner kach gav alln de shovcr・・・？」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は驚いた様子で渡されたお金を見ている。
+				CASE 3
+					PRINTFORML 「Sev・・・Seyerpary nov go haush vo sastier yetaddckymashch・・・」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 10
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「わ・・・私にこんなに価値が有るんでしょうか・・・？」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は驚いた様子で渡されたお金を見ている。
+				CASE 3
+					PRINTFORML 「せ・・・精一杯のご奉仕をさせていただきます・・・」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE IS >= 100
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 『%CNAME("一人称翻訳後")%にこれ程の価値が有ると言い切る事は私にとって難しい。』
+				CASE 2
+					;PRINTFORML %NAME:TARGET%は驚いた様子で渡されたお金を見ている。
+				CASE 3
+					PRINTFORMW 『全力での奉仕活動を行う事を約束する』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "調教開始：絶句"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW ずっしりと厚みのある札束を渡された%NAME:TARGET%は手に持っている大金を目にして固まっている。
+				CASE 2
+					PRINTFORML 「Аббб・・・Ичов Кацнын дещга,Оцыне мов Кач ттер гозбонди дещыне・・・？」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW ずっしりと厚みのある札束を渡された%NAME:TARGET%は手に持っている大金を目にして固まっている。
+				CASE 1
+					PRINTFORML 「Abbb・・・Ichov Kacnyn deshchga,Ocyne mov Kach tter gozbondi deshchyne・・・？」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 10
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW ずっしりと厚みのある札束を渡された%NAME:TARGET%は手に持っている大金を目にして固まっている。
+				CASE 2
+					PRINTFORML 「あわわ・・・一応確認ですが、お金の価値ってご存知ですよね・・・？」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE IS >= 100
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					;PRINTFORMW ずっしりと厚みのある札束を渡された%NAME:TARGET%は手に持っている大金を目にして固まっている。
+				CASE 2
+					PRINTFORMW 『『エラーID18559811、辞書に登録のない単語です。』再度の確認事項、%CNAME("二人称翻訳後")%はお金の価値についての認識は持っているか？』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "自慰：初"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「...Ые! Госынпаы насслаз ни! %CNAME("一人称")% ва тацсан тацсан каннасыцотт гар аттер кед...」
+				CASE 2
+					PRINTFORMW 「Иммадем Казоц ва моссыка сыттелер таыхен нер оммоы во сытыел каммо сылленаыкед,」
+				CASE 3
+					PRINTFORMW 「Имма Цоннотоцкы ва %CNAME("二人称")% нов кот дакые бво кангарыете имасс цаллер!」
+				CASE 4
+					PRINTFORMW 「...алле?Зыйвн ни доюзёв сюлл тте Ими чигаю...?」
+				CASE 5
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+				CASE 6
+					PRINTFORMW 「атттттттттт！！！！！！！！！！！！！！」
+				CASE 7
+					PRINTFORMW みるみる内に顔が真っ赤に...
+					PRINTFORMW ﾊﾟﾁｰﾝ
+					PRINTFORMW 理不尽なビンタが%CALLNAME:MASTER%に炸裂する！
+				CASE 8
+					PRINTFORMW 「вассллеттецдасаыъъъъъъъ！！！！！！！！！！！！！！」
+				CASE 9
+					PRINTFORMW ﾄﾞﾀﾄﾞﾀと%NAME:TARGET%は顔を抑えてそのままの恰好で部屋の外へ走り出していった
+				CASE 10
+					PRINTFORML 「キャー！！！！！！！！！！！！！！」
+					PRINTFORMW 自分の恰好に気が付いた%NAME:TARGET%は耳まで真っ赤にして戻ってきた
+				CASE 11
+					PRINTFORMW 「Нандие Томете Кюлле нацкттерн дещца！！！！！！！」
+				CASE 12
+					PRINTFORMW 「ые...с...сонна...」
+				CASE 13
+					PRINTFORMW 「...Хонтов ные митаын дещца?」
+				CASE 14
+					PRINTFORMW 「Тотчер иыер дещё...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「...Ye! Gosynpay nasslaz ni! **** va tacsan tacsan kannasycott gar atter ked...」
+				CASE 2
+					PRINTFORMW 「Immadem Kazoc va mossyka sytteler tayhen ner ommoy vo sytyel kammo syllenayked,」
+				CASE 3
+					PRINTFORMW 「Imma Connotocky va ++++ nov kot dakye bvo kangaryete imass caller!」
+				CASE 4
+					PRINTFORMW 「...alle?Zyivn ni douzyov sull tte Imi chigau...?」
+				CASE 5
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+				CASE 6
+					PRINTFORMW 「atttttttttt！！！！！！！！！！！！！！」
+				CASE 7
+					PRINTFORMW みるみる内に顔が真っ赤に...
+					PRINTFORMW ﾊﾟﾁｰﾝ
+					PRINTFORMW 理不尽なビンタが%CALLNAME:MASTER%に炸裂する！
+				CASE 8
+					PRINTFORMW 「vassllettecdasayxxxxx！！！！！！！！！！！！！！」
+				CASE 9
+					PRINTFORMW ﾄﾞﾀﾄﾞﾀと%NAME:TARGET%は顔を抑えてそのままの恰好で部屋の外へ走り出していった
+				CASE 10
+					PRINTFORML 「キャー！！！！！！！！！！！！！！」
+					PRINTFORMW 自分の恰好に気が付いた%NAME:TARGET%は耳まで真っ赤にして戻ってきた
+				CASE 11
+					PRINTFORMW 「Nandie Tomete Kulle nackttern deshchca！！！！！！！」
+				CASE 12
+					PRINTFORMW 「ye...s...sonna...」
+				CASE 13
+					PRINTFORMW 「...Hontov nye mitayn deshchca?」
+				CASE 14
+					PRINTFORMW 「Totcher iyer deshchio...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;言語能力Lv10
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「...いえ！ご心配なさらずに！私は沢山沢山悲しい事があったけど...」
+				CASE 2
+					PRINTFORMW 「今でも家族はもしかしたら大変な思いをしているかもしれないけど、」
+				CASE 3
+					PRINTFORMW 「今この時は貴方の事だけを考えていますから！」
+				CASE 4
+					PRINTFORMW 「...あれ？自分に同情するって意味違う...?」
+				CASE 5
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+				CASE 6
+					PRINTFORMW 「あっっっっっっ！！！！！！！！！！！！！！！」
+				CASE 7
+					PRINTFORMW みるみる内に顔が真っ赤に...
+					PRINTFORMW ﾊﾟﾁｰﾝ
+					PRINTFORMW 理不尽なビンタが%CALLNAME:MASTER%に炸裂する！
+				CASE 8
+					PRINTFORMW 「忘れてくださーーい！！！！！！！！！！！！！！！」
+				CASE 9
+					PRINTFORMW ﾄﾞﾀﾄﾞﾀと%NAME:TARGET%は顔を抑えてそのままの恰好で部屋の外へ走り出していった
+				CASE 10
+					PRINTFORML 「キャー！！！！！！！！！！！！！！」
+					PRINTFORMW 自分の恰好に気が付いた%NAME:TARGET%は耳まで真っ赤にして戻ってきた
+				CASE 11
+					PRINTFORMW 「なんで止めてくれなかったんですか！！！！！！」
+				CASE 12
+					PRINTFORMW 「え...そ...そんな...」
+				CASE 13
+					PRINTFORMW 「...本当に見たいんですか？」
+				CASE 14
+					PRINTFORMW 「撮っちゃ嫌ですよ...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『いいえ、心配は不要です。沢山の悲しい沢山のそれは私にもたらされた』
+				CASE 2
+					PRINTFORML 『家族。今でも、もし　の可能性がある大変と感じる』
+				CASE 3
+					PRINTFORML 『している。この時間は%CNAME("二人称翻訳後")%のみの思考を私は持つ。』
+				CASE 4
+					PRINTFORML 『...何か？【慰めるを行う自分に】は慣用句のような表現...?』
+				CASE 5
+				CASE 6
+					PRINTFORML 『(驚いたとき、ハッとしたときに発する音)』
+				CASE 7
+				CASE 8
+					PRINTFORML 『忘れるを求める』
+				CASE 9
+				CASE 10
+				CASE 11
+					PRINTFORML 「私は」
+				CASE 12
+					PRINTFORML 『Ераа АыДеэ18559811 Зисёни Товрокю нонаи тангодесс』
+					PRINTFORML 『エラーID18559811、辞書に登録のない単語です。』
+				CASE 13
+					PRINTFORML 『見る要求は真実にあるのか？』
+				CASE 14
+					PRINTFORML 『撮影は不快ですが』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "自慰：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Соц...Соннер ны жытт мынаы де хосыэ дещ...」
+				CASE 2
+					CALL PRINT_STRW, @"「ん～～～！！！_HH_」"
+				CASE 3
+					PRINTFORMW 「Гёвсы сынаы де ттэ иммы дещ！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Soc...Sonner ny jytt mynay de hosye' deshch...」
+				CASE 2
+					CALL PRINT_STRW, @"「ん～～～！！！_HH_」"
+				CASE 3
+					PRINTFORMW 「Gyovsy synay de tte' immy deshch！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「そっ...そんなにじっと見ないでほしいです...」
+				CASE 2
+					CALL PRINT_STRW, @"「ん～～～!!!HH_」"
+				CASE 3
+					PRINTFORMW 「凝視しないでって意味です！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『かのように多くの静止を見るは、行わないを願う』
+				CASE 2
+				CASE 3
+					PRINTFORML 『凝視を不可。という意味です』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "自慰：２"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, "「нк...фъ..._HH_」"
+				CASE 2
+					PRINTFORMW 「Хыт ни мисел ёвнер моно деханаы нодещ га...」
+				CASE 3
+					PRINTFORMW 「Теннареттел...? Стъ,Соннер кот наыдещ!」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, "「nk...f''..._HH_」"
+				CASE 2
+					PRINTFORMW 「Hyt ni misel yovner mono dehanay nodeshch ga...」
+				CASE 3
+					PRINTFORMW 「Tennarettel...? St'',Sonner kot naydeshch!」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, "「んっ...ふっ..._HH_」"
+				CASE 2
+					PRINTFORMW 「人に見せるような物ではないですが...」
+				CASE 3
+					PRINTFORMW 「手慣れてる...?そっ、そんなこと無いです！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORMW 『これは、他人に対して紹介する物ではないが』
+				CASE 3
+					PRINTFORMW 『適応をしている？それは異なっている！』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "クンニ：初"
+	SELECTCASE ARG
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「хяаа!」
+				CASE 2
+					PRINTFORMW 「ва…%CNAME("一人称")% ва %CNAME("二人称")% нор Дораынюсы я арымасен!」
+				CASE 3
+					PRINTFORMW 「%CNAME("一人称")% ва %CNAME("二人称")% нор Хоюсыша нано дие … Соннер кот сасел ценры ва…!」
+				CASE 4
+					PRINTFORML 「Ах…」
+				CASE 5
+					PRINTFORMW 「%CNAME("一人称")% нор Бокоц дева Коллева ХоюшСюзоц Кавнею ди ни тюсаы во чицаваселл Ковюы нанодые сонно…」
+				CASE 6
+					PRINTFORMW 「%CNAME("一人称")% ва %CNAME("二人称")% нор шыхаы аллди нива наллытацнаы нер…тьие」
+				CASE 7
+					CALL PRINT_STRW, @"「%CNAME("二人称")% ва хонтов ни хенцкыен нор сюцнаы ката нано дещ нэ..._HH_」"
+				CASE 8
+					CALL PRINT_STRW, @"「%CNAME("二人称")% нор нозом товюры доюзо %CNAME("一人称")% во набры кюдасаы_HH_」"
+				CASE 9
+				CASE 10
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「hyaaa!」
+				CASE 2
+					PRINTFORMW 「va…%CNAME("一人称")% va %CNAME("二人称")% nor Doraynusy ja arymasen!」
+				CASE 3
+					PRINTFORMW 「%CNAME("一人称")% va %CNAME("二人称")% nor Housysha nano die … Sonner kot sasel cenry va…!」
+				CASE 4
+					PRINTFORML 「Ah…」
+				CASE 5
+					PRINTFORMW 「%CNAME("一人称")% nor Bokoc deva Kolleva HoushSyuzoc Kavneu di ni tyusay vo chicavasell Kovuy nanodye sonno…」
+				CASE 6
+					PRINTFORMW 「%CNAME("一人称")% va %CNAME("二人称")% nor shyhay alldi niva nallytacnay ner…t'ie」
+				CASE 7
+					CALL PRINT_STRW, @"「...%CNAME("二人称")% va hontov ni henckyen nor sucnay kata nano deshch ne'..._HH_」"
+				CASE 8
+					CALL PRINT_STRW, @"「%CNAME("二人称")% nor nozom tovury douzo %CNAME("一人称")% vo nabry kudasay_HH_」"
+				CASE 9
+				CASE 10
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ひゃぁあ！」
+				CASE 2
+					PRINTFORMW 「わっ...%CNAME("一人称")%は%CNAME("二人称")%の奴隷主じゃありません！」
+				CASE 3
+					PRINTFORMW 「%CNAME("一人称")%は%CNAME("二人称")%の奉仕者なので...そんな事させる権利は私は...!」
+				CASE 4
+					PRINTFORML 「あぁ...」
+				CASE 5
+					PRINTFORMW 「%CNAME("一人称")%の母国ではこれは奉仕種族購入時に忠誠を誓わせる行為なのでその...」
+				CASE 6
+					PRINTFORMW 「%CNAME("一人称")%は%CNAME("二人称")%の支配主にはなりたくないなぁ...って」
+				CASE 7
+					CALL PRINT_STRW, @"「...%CNAME("二人称")%は本当に偏見の少ない方なのですね..._HH_」"
+				CASE 8
+					CALL PRINT_STRW, @"「%CNAME("二人称")%の望む通りどうぞ%CNAME("一人称")%を嬲りください_HH_」"
+				CASE 9
+				CASE 10
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORML 『%CNAME("一人称翻訳後")%は%CNAME("二人称翻訳後")%の異なっている奴隷主。』
+				CASE 3
+					PRINTFORML 『%CNAME("一人称翻訳後")%は%CNAME("二人称翻訳後")%奉仕者の為。権利を私はそのような事。』
+				CASE 4
+				CASE 5
+					PRINTFORML 『の祖国%CNAME("一人称翻訳後")%では、これ、買う時の奉仕種族に忠誠が行わせるその為の行為。その為』
+				CASE 6
+					PRINTFORML 『%CNAME("一人称翻訳後")%はなりたくない。%CNAME("二人称翻訳後")%の支配主と思う。』
+				CASE 7
+					CALL PRINT_STRL, @"『%CNAME("二人称翻訳後")%は少量の偏見を持っている人物である。』"
+				CASE 8
+					CALL PRINT_STRL, @"『%CNAME("一人称翻訳後")%に許可をされている。を嬲る下さい。%CNAME("二人称翻訳後")%が望むその行為を』"
+				CASE 9
+				CASE 10
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "クンニ：通常"
+	SELECTCASE ARG
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Ннь…」
+				CASE 2
+					CALL PRINT_STRW, @"「%CNAME("二人称")%нов зыйёю дещ гар...%CNAME("一人称")% игаы но Демославия жин ни цкюнны ва шиця ия дещ ёр…_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Nn'…」
+				CASE 2
+					CALL PRINT_STRW, @"「%CNAME("二人称")%nov zyiyou deshch gar...%CNAME("一人称")% igay no Demoslaviya jin ni ckunny va shicya iya deshch yor…_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「んん...」
+				CASE 2
+					CALL PRINT_STRW, @"「%CNAME("二人称")%の自由ですが...%CNAME("一人称")%以外のダエモスラビヤ人にクンニはしちゃ嫌ですよ…_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					CALL PRINT_STRL, @"『%CNAME("二人称翻訳後")%はしかし、自由である...『エラーID18559812、変邸結果、地名。変換先辞書に登録のない単語です。魔伝罅接続後に再度行ってください。』人にクンニは嫌を行う事です。%CNAME("一人称翻訳後")%以外の』"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "キス：初：没"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「н...!」
+				CASE 2
+					PRINTFORMW 「%CNAME("一人称")% но хазымет нов кисс ва %CNAME("二人称")% нов ёвнер ков-хёвцащ де ёцк атт...」
+				CASE 3
+					PRINTFORMW 「Асцо нев итллер имма глловер... ИЙые! Нан деммо наы дещ ёв!」
+				CASE 4
+					PRINTFORMW 「%CNAME("二人称")% нев сасы агге ла релл монно ва хотндов ялл массен гер,」
+				CASE 5
+					CALL PRINT_STRW, @"「кисс де ёцкеллева %CNAME("一人称")% ва ицкллер демм..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「n...!」
+				CASE 2
+					PRINTFORMW 「%CNAME("一人称")% no hazymet nov kiss va %CNAME("二人称")% nov yovner kov-hyovcashch de yockatt...」
+				CASE 3
+					PRINTFORMW 「Asco nev itller imma gllover... Iiye! Nan demmo nay deshch yov!」
+				CASE 4
+					PRINTFORMW 「%CNAME("二人称")% nev sasy agge la rell monno va hotndov iall massen ger,」
+				CASE 5
+					CALL PRINT_STRW, @"「kiss de yockelleva %CNAME("一人称")% va ickller demm..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;言語能力Lv10
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「n...!」
+				CASE 2
+					PRINTFORMW 「%CNAME("一人称")% no hazymet nov kiss va %CNAME("二人称")% nov yovner kov-hyovcashch de yockatt...」
+				CASE 3
+					PRINTFORMW 「Asco nev itller imma gllover... Iiye! Nan demmo nay deshch yov!」
+				CASE 4
+					PRINTFORMW 「%CNAME("二人称")% nev sasy agge la rell monno va hotndov iall massen ger,」
+				CASE 5
+					CALL PRINT_STRW, @"「kiss de yockelleva %CNAME("一人称")% va ickller demm..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE IS >= 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "愛撫：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"「Мою… %CNAME("二人称")% нива %CNAME("一人称")% во ранбов ни атткав ценры гар алл ноны..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"「Mou… %CNAME("二人称")% niva %CNAME("一人称")% vo ranbov ni attkav cenry gar all nony..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"「もう...%CNAME("二人称")%には%CNAME("一人称")%を乱暴に扱う権利があるのに..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"『既に…権利を持つ%CNAME("二人称翻訳後")%は乱暴に使う%CNAME("一人称翻訳後")%を』"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "愛撫：２"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"「Ан…_HH_ %CNAME("二人称")% нор юбы ва ёглотте сыматте массыенкар...?」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"「An…_HH_ %CNAME("二人称")% nor yubi va yoglotte symatte massyenkar...?」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"「あん..._HH_%CNAME("二人称")%の指は汚れてしまってませんか...?」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"『%CNAME("二人称翻訳後")%の指の汚れは格納されいる...？』"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "愛撫：３"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Сац,Саварыкат гар Ияр расы дещ…」
+				CASE 2
+					CALL PRINT_STRW, @"「Хяаааа…_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Sac,Savarykat gar Iyar rasy deshch…」
+				CASE 2
+					CALL PRINT_STRW, @"「Hyaaaaa…_HH__HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「さっ、触り方がいやらしいです…」
+				CASE 2
+					CALL PRINT_STRW, @"「ひゃぁぁ…_HH__HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 『触る手法が卑陋です』
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "愛撫：４"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「Ях..._HH_Яме..._HH_」"
+				CASE 2
+					PRINTFORMW 「Ат..Има нова яметие ттиые имы дева нацте…」
+				CASE 3
+					CALL PRINT_STRW, @"「Мов…Изывал сынаыде цдасаы..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「Yah..._HH_Yame..._HH_」"
+				CASE 2
+					PRINTFORMW 「At..Ima nova yametie ttiye imy deva nacte…」
+				CASE 3
+					CALL PRINT_STRW, @"「Mov…Izyval synayde cdasay..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「やぁ..._HH_やめ..._HH_」"
+				CASE 2
+					PRINTFORMW 「あっ..今のはやめてって意味ではなくて...」
+				CASE 3
+					CALL PRINT_STRW, @"「もう...意地悪しないでくださぃ..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『嫌...やめて...』
+				CASE 2
+					PRINTFORML 『嗚呼...今の物は中止要求では無い意味...』
+				CASE 3
+					PRINTFORML 『意地の悪いを行わないを要求する』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "愛撫：５"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"「%CNAME("一人称")% нов кот нанка цыны сезни киммоты ёц натте мораттиые даыёб дещ ёр_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"「%CNAME("一人称")% nov kot nanka cyny sezni kimmoty yoc natte morattiye dayjob deshch yor_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"「%CNAME("一人称")%の事なんか気にせずに気持ちよくなってもらって大丈夫ですよ_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRL, @"『%CNAME("一人称翻訳後")%程度を気にする不必要で、気持ちが良くなって心配無用です』"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "ローター：初"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ぎゃあ！」
+					PRINTFORMW かわいげのない声で槞彁は貴方の取り出したローターを見て飛び跳ねた
+					PRINTFORMW ﾊﾟｰﾝ、貴方の手にしているローターは槞彁の鋭いビンタで弾き飛ばされ宙を舞う
+				CASE 2
+					PRINTFORMW 「ковмон ыер, …от, очынчын ни итамы ва арымасен кар!?」
+				CASE 3
+					PRINTFORMW 「Наандиые коннер тоцро ны Инранмюсс гар…!」
+				CASE 4
+					PRINTFORMW 「%NAME:TARGET%は%CALLNAME:MASTER%の手を強く握り、心配そうに瞳をじっと覗き込んだ」
+				CASE 5
+					PRINTFORMW 「…теалые? …цоллева … чюцрымоно…?」
+				CASE 6
+					PRINTFORMW 「Наандиые коннер тоцро ны Инранмюсс гар…!」
+				CASE 7
+					PRINTFORMW 「Инранмюсс гар нандер тиые? …ах… цотч нор сецаы нива саысоц сытеынаын дещ ниые…」
+				CASE 8
+					PRINTFORMW 「Сынкаы…атт…Макаы ни илл кысаы тюв нор иссы дещте, солле ни кисаы салле те сымавто」
+				CASE 9
+					CALL PRINT_STRW, @"「～～～～～～～_HH__HH__HH__!!!!!!!!」"
+				CASE 10
+					PRINTFORMW 「Оннерноц нир контер кот кицанаы де цдасаы!」
+				CASE 11
+					PRINTFORMW 「Тоныкац! Коно оммочя ва сыёв цкынсы дещ!」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ぎゃあ！」
+					PRINTFORMW かわいげのない声で槞彁は貴方の取り出したローターを見て飛び跳ねた
+					PRINTFORMW ﾊﾟｰﾝ、貴方の手にしているローターは槞彁の鋭いビンタで弾き飛ばされ宙を舞う
+				CASE 2
+					PRINTFORMW 「kovmon yer, …ot, ochynchyn ni itamy va arymasen kar!?」
+				CASE 3
+					PRINTFORMW 「Naandiye konner tocro ny Inranmuss gar…!」
+				CASE 4
+					PRINTFORMW 「%NAME:TARGET%は%CALLNAME:MASTER%の手を強く握り、心配そうに瞳をじっと覗き込んだ」
+				CASE 5
+					PRINTFORMW 「…tealye? …colleva … chucrymono…?」
+				CASE 6
+					PRINTFORMW 「Naandiye konner tocro ny Inranmuss gar…!」
+				CASE 7
+					PRINTFORMW 「Inranmuss gar nander tiye? …ah… cotch nor secay niva saysoc syteynayn deshch niye…」
+				CASE 8
+					PRINTFORMW 「Synkay…att...Makay ni ill kysay tyuv nor issy deshchte, solle ni kisay salle te symavto…」
+				CASE 9
+					CALL PRINT_STRW, @"「～～～～～～～_HH__HH__HH__!!!!!!!!」"
+				CASE 10
+					PRINTFORMW 「Onnernoc nir konter kot kicanay de cdasay!」
+				CASE 11
+					PRINTFORMW 「Tonykac! Kono ommochya va syyov ckynsy deshch!」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ぎゃあ！」
+					PRINTFORMW かわいげのない声で槞彁は貴方の取り出したローターを見て飛び跳ねた
+					PRINTFORMW ﾊﾟｰﾝ、貴方の手にしているローターは槞彁の鋭いビンタで弾き飛ばされ宙を舞う
+				CASE 2
+					PRINTFORMW 「肛門や、おっ...おちんちんに痛みはありませんか！？」
+				CASE 3
+					PRINTFORMW 「何でこんなところに淫乱蟲が…!」
+				CASE 4
+					PRINTFORMW 「%NAME:TARGET%は%CALLNAME:MASTER%の手を強く握り、心配そうに瞳をじっと覗き込んだ」
+				CASE 5
+					PRINTFORMW 「…ってあれ？　…これは…作り物…?」
+				CASE 6
+					PRINTFORMW 「もーっ！！遊びでもやっていい事とやっちゃダメな事が有るんですよ！」
+				CASE 7
+					PRINTFORMW 「淫乱蟲が何かって？…あー…こっちの世界には生息していないんですね,,,」
+				CASE 9
+					CALL PRINT_STRW, @"「～～～～～～～_HH__HH__HH__!!!!!!!!」"
+				CASE 10
+					PRINTFORMW 「女の子にこんな事聞かないでください！」
+				CASE 11
+					PRINTFORMW 「とにかく！このおもちゃは使用禁止です！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORMW 『肛門、男性器の痛みを持っていますか？』
+				CASE 3
+					PRINTFORMW 『[エラーID18559813、翻訳先言語に存在しない単語名です。自動命名による現地単語を生成します]』
+					PRINTFORMW 『なぜ、このような場所にいる淫乱蟲は』
+				CASE 4
+				CASE 5
+					PRINTFORMW 『これは…人工物…』
+				CASE 6
+					PRINTFORMW 『[補足メッセージ：呆れ、及び怒りを感じた際の感嘆詞]、遊戯で行うべき事と不適切な事が貴方の後ろの世界には存在している事は理解するべきだと私は思います。』
+				CASE 7
+					PRINTFORMW 『淫乱蟲とは何かとは？…嗚呼…今ここに居る世界には生息を行っていないのですね』
+				CASE 8
+					PRINTFORMW 『真実世界…あっ、魔界に居る寄生蟲の中の一つでした…それに寄生が行われると』
+				CASE 9
+				CASE 10
+					PRINTFORMW 『子供の女性には聞く行為は不適切であると思う。そして私は子供の女性です。』
+				CASE 11
+					PRINTFORMW 『とにかく、この玩具の使用を禁止するです。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "ローター：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「ぴっ！」
+					PRINTFORMW %CALLNAME:MASTER%の取り出したローターを見て%NAME:TARGET%は肩を震わせて拒絶した
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「ぴっ！」
+					PRINTFORMW %CALLNAME:MASTER%の取り出したローターを見て%NAME:TARGET%は肩を震わせて拒絶した
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「ぴっ！」
+					PRINTFORMW %CALLNAME:MASTER%の取り出したローターを見て%NAME:TARGET%は肩を震わせて拒絶した
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "ローター：２"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Яц...яметие цдасаы...」
+				CASE 2
+					PRINTFORML 「おぇ...」
+					PRINTFORMW %NAME:TARGET%はローターを吐き気を催す程嫌がっている
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Yac...yametie kdasay...」
+				CASE 2
+					PRINTFORML 「おぇ...」
+					PRINTFORMW %NAME:TARGET%はローターを吐き気を催す程嫌がっている
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「やっ...やめてください...」
+				CASE 2
+					PRINTFORML 「おぇ...」
+					PRINTFORMW %NAME:TARGET%はローターを吐き気を催す程嫌がっている
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 『直ちに中止を私は依頼する』
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "ローター：３"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML ﾊﾟﾁｰﾝ
+					PRINTFORMW %NAME:TARGET%は%CALLNAME:MASTER%の手からローターを叩き落とした
+				CASE 2
+					PRINTFORMW 「Ац...Гомыеннасаы...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML ﾊﾟﾁｰﾝ
+					PRINTFORMW %NAME:TARGET%は%CALLNAME:MASTER%の手からローターを叩き落とした
+				CASE 2
+					PRINTFORMW 「Ac...Gomyennasay...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML ﾊﾟﾁｰﾝ
+					PRINTFORMW %NAME:TARGET%は%CALLNAME:MASTER%の手からローターを叩き落とした				CASEELSE
+				CASE 2
+					PRINTFORMW 「あっ！ごめんなさい...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORMW 『嗚呼、ごめんなさい。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "ローター：強制"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「хь...ицъ...Ияь...」
+				CASE 2
+					PRINTFORMW 「Онаычан! ияъ таскет!」
+				CASE 3
+					PRINTFORMW %NAME:TARGET%は自身に近づけれられている ソレ を見て目に涙を浮かべながら此処に居ない姉に助けを求める
+					PRINTFORMW しかし、その助けはこの場に居る誰の心にも届きはしなかった
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「h'...ic''...Iya'...」
+				CASE 2
+					PRINTFORMW 「Onaychan! iya'' tasket!」
+				CASE 3
+					PRINTFORMW %NAME:TARGET%は自身に近づけれられている ソレ を見て目に涙を浮かべながら此処に居ない姉に助けを求める
+					PRINTFORMW しかし、その助けはこの場に居る誰の心にも届きはしなかった
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ひっ...いっ...嫌...」
+				CASE 2
+					PRINTFORMW 「お姉ちゃん！嫌っ助けて！」
+				CASE 3
+					PRINTFORMW %NAME:TARGET%は自身に近づけれられている ソレ を見て目に涙を浮かべながら此処に居ない姉に助けを求める
+					PRINTFORMW しかし、その助けはこの場に居る誰の心にも届きはしなかった
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORML 『姉[補足メッセージ：幼児言葉の一種] 嫌だ、助けを求める』
+				CASE 3
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "ローター：恋慕：初回"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「нг...%CNAME("一人称")% гар солле гар киллаы нано сыттэ масс ённэ...?」
+				CASE 2
+					PRINTFORMW 「...」
+				CASE 3
+					PRINTFORMW 「Соцъ... Соннер ме дее мынаы дее цдасаыь...」
+				CASE 4
+					PRINTFORMW 「Вацары машыта ёр！Мооъ！」
+				CASE 5
+					PRINTFORMW 「Зетяы Оцк ные иллетары сынаы де цдасаы ные！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ng...%CNAME("一人称")% gar solle gar killay nano sytte' mass yonne'...?」
+				CASE 2
+					PRINTFORMW 「...」
+				CASE 3
+					PRINTFORMW 「Soc''... Sonner me dee mynay dee cdasay'...」
+				CASE 4
+					PRINTFORMW 「Vacary mashyta yor！MOO！」
+				CASE 5
+					PRINTFORMW 「Zetyay Ock nye illetary synay de cdasay nye！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「んぐ...%CNAME("一人称")%がそれが嫌いなの知ってますよね...?」
+				CASE 2
+					PRINTFORMW 「...」
+				CASE 3
+					PRINTFORMW 「そっ...そんな目で見ないでくださぃ...」
+				CASE 4
+					PRINTFORMW 「分かりましたよ！もー！」
+				CASE 5
+					PRINTFORMW 「絶対に奥に入れたりしないでくださいね！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『固唾を飲む、%CNAME("一人称翻訳後")%はそれを嫌いは承知と確認している？』
+				CASE 2
+				CASE 3
+					PRINTFORMW 『そのような辞める目を見る事を願う』
+				CASE 4
+					PRINTFORMW 『承知しました。呆れ。』
+				CASE 5
+					PRINTFORMW 『確実な異なるを奥に入れる無いを求める！』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "ローター：恋慕：二回目以降"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ひっ！....」
+				CASE 2
+					PRINTFORMW 槞彁は己に近づけられるローターを見て小さな悲鳴を上げた
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ひっ！....」
+				CASE 2
+					PRINTFORMW 槞彁は己に近づけられるローターを見て小さな悲鳴を上げた
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ひっ！....」
+				CASE 2
+					PRINTFORMW 槞彁は己に近づけられるローターを見て小さな悲鳴を上げた
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "ローター交渉：素直に従う"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Саа...Солле во сыматте...」
+				CASE 2
+					PRINTFORMW 「Ялжгатов гозажмаш...」
+				CASE 3
+					CALL PRINT_STRW, @"「Аннер монно ный таёллер нацтеммо %CNAME("二人称")% вар %CNAME("一人称")% во живен кымочы ёц декымаш цаллер...ные？_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Saa...Solle vo symatte...」
+				CASE 2
+					PRINTFORMW 「Jaljgatov gozajmash...」
+				CASE 3
+					CALL PRINT_STRW, @"「Anner monno nyi tayoller nactemmo %CNAME("二人称")% var %CNAME("一人称")% vo jiven kymochy yoc dekymash caller...nye？_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「さぁ...それをしまって...」
+				CASE 2
+					PRINTFORML 「ありがとうございます...」
+				CASE 3
+					CALL PRINT_STRW, @"「あんなものに頼らなくても%CNAME("二人称")%は%CNAME("一人称")%を十分気持ちよくできますから...ね？_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『やってみましょう...ソレを閉じる...』
+				CASE 2
+					PRINTFORML 『ありがとうございます...』
+				CASE 3
+					PRINTFORML 『あのような物質に%CNAME("二人称翻訳後")%は依存らなくても、満足な気持ち良いを可能ですので...同意？』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "ローター交渉：100＄札を出す"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「...っ！」
+					PRINTFORMW %NAME:TARGET%は目の前に出された100＄札を見て葛藤している...
+				CASE 2
+					PRINTFORMW 「～～～っ！ Яппары Дамме дещ！」
+				CASE 3
+					PRINTFORMW 「Соннер Као во сытемо дамме на моно ва дамме дещ!」
+				CASE 4
+					PRINTFORMW %NAME:TARGET%は目の前にある100＄札を恨めしそうに見つめながら、駄目と断った。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「...っ！」
+					PRINTFORMW %NAME:TARGET%は目の前に出された100＄札を見て葛藤している...
+				CASE 2
+					PRINTFORMW 「～～～っ！ Yappary Damme deshch！」
+				CASE 3
+					PRINTFORMW 「Sonner Kao vo sytemo damme na mono va damme deshch!」
+				CASE 4
+					PRINTFORMW %NAME:TARGET%は目の前にある100＄札を恨めしそうに見つめながら、駄目と断った。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「...っ！」
+					PRINTFORMW %NAME:TARGET%は目の前に出された100＄札を見て葛藤している...
+				CASE 2
+					PRINTFORMW 「～～～っ！やっぱり駄目です！」
+				CASE 3
+					PRINTFORMW 「そんな顔をしても駄目な物はだめです！」
+				CASE 4
+					PRINTFORMW %NAME:TARGET%は目の前にある100＄札を恨めしそうに見つめながら、駄目と断った。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORML 『既知の通りの駄目です』
+				CASE 3
+					PRINTFORML 『そのような顔を行う事は、不可の中の不可への解決に向かわない』
+				CASE 4
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "ローター交渉：10000＄の札束を渡す"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「！！！」
+				CASE 2
+					PRINTFORMW 「Соц...Соннерны %CNAME("一人称")% ные... Соц... Соллево сассетаын дещкар！？」
+				CASE 3
+					PRINTFORMW 「Яц...т...」
+				CASE 4
+					PRINTFORMW 「Сы...Сыцта наы дещниые... %CNAME("一人称")% ные Солле во мысенаы де кдасаы ные...」
+				CASE 5
+					PRINTFORMW %NAME:TARGET%はなんだかんだ受け入れてくれるようだ
+					PRINTFORMW しかし、札束を手にするその顔は恐怖で引き攣っている...
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「！！！」
+				CASE 2
+					PRINTFORMW 「Soc...Sonnerny %CNAME("一人称")% nye... Soc... Sollevo sassetayn deshchkar！？」
+				CASE 3
+					PRINTFORMW 「Yac...t...」
+				CASE 4
+					PRINTFORMW 「Sy...Sycta nay deshchniye... %CNAME("一人称")% nye Solle vo mysenay de kdasay nye...」
+				CASE 5
+					PRINTFORMW %NAME:TARGET%はなんだかんだ受け入れてくれるようだ
+					PRINTFORMW しかし、札束を手にするその顔は恐怖で引き攣っている...
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「！！！」
+				CASE 2
+					PRINTFORMW 「そっ...そんなに%CNAME("一人称")%に...そっ...それをさせたいんですか！？」
+				CASE 3
+					PRINTFORMW 「やっ...っ...」
+				CASE 4
+					PRINTFORMW 「し...仕方ないですね...私にソレを見せないでくださいね...」
+				CASE 5
+					PRINTFORMW %NAME:TARGET%はなんだかんだ受け入れてくれるようだ
+					PRINTFORMW しかし、札束を手にするその顔は恐怖で引き攣っている...
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORML 『どれほどのアノを行わえる欲求を%CNAME("一人称翻訳後")%に、持っているのか？』
+				CASE 3
+				CASE 4
+					PRINTFORML 『呆れを行いますが、ソレを表示せずにお願いします。』
+				CASE 5
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "ローター交渉：殴る"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 2
+					PRINTFORMW 「гог！гомменнеряы！」
+				CASE 3
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 4
+					PRINTFORMW 「%CNAME("一人称")% гар... Котварелл тачибар дева арымаен дежитар...」
+				CASE 5
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 6
+					PRINTFORMW 「мов Татацнаыде цдазаыь...！！！」
+				CASE 7
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 8
+					PRINTFORMW 「гомменнеряы！гомменнеряы！гомменнеряы！гомменнеряы！...」
+				CASE 9
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 10
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 11
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 12
+					PRINTFORMW どうやら%NAME:TARGET%は気が変わり、受け入れてくれるそうだ
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 2
+					PRINTFORMW 「gog！gommennerjay！」
+				CASE 3
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 4
+					PRINTFORMW 「%CNAME("一人称")% gar... Kotvarell tachibar deva arymajen dejitar...」
+				CASE 5
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 6
+					PRINTFORMW 「mov Tatacnayde cdazay'...！！！」
+				CASE 7
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 8
+					PRINTFORMW 「gommennerjay！gommennerjay！gommennerjay！gommennerjay！...」
+				CASE 9
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 10
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 11
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 12
+					PRINTFORMW どうやら%NAME:TARGET%は気が変わり、受け入れてくれるそうだ
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 2
+					PRINTFORMW 「ごっ！ごめんなざい！」
+				CASE 3
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 4
+					PRINTFORMW 「私が...断れる立場ではありまじぇんでじた...」
+				CASE 5
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 6
+					PRINTFORMW 「もう叩かないでぐだざぃ！！！」
+				CASE 7
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 8
+					PRINTFORMW 「ごめんなざい！ごめんなざい！ごめんなざい！ごめんなざい！...」
+				CASE 9
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 10
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 11
+					PRINTFORMW %TEXTR("ﾄﾞｶｯ！/ﾊﾞｷｯ！/ﾊﾞｼｯ！/ﾊﾞﾝｯ！/ﾄﾞｽｯ！/ｶﾞﾝ！")%
+				CASE 12
+					PRINTFORMW どうやら%NAME:TARGET%は気が変わり、受け入れてくれるそうだ
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『[システムメッセージ：衝撃を検知]』
+				CASE 2
+					PRINTFORML 『ごめんなさい』
+				CASE 3
+					PRINTFORML 『[システムメッセージ：衝撃を検知]』
+				CASE 4
+					PRINTFORML 『%CNAME("一人称翻訳後")%は持って断る権利を無いでした。』
+				CASE 5
+					PRINTFORML 『[システムメッセージ：衝撃を検知]』
+				CASE 6
+					PRINTFORML 『既に叩くをしないでくださいませんか？』
+				CASE 7
+					PRINTFORML 『[システムメッセージ：衝撃を検知]』
+				CASE 8
+					PRINTFORML 『ごめんなさい、ごめんなさい、ごめんなさい、ごめんなさい』
+				CASE 9
+					PRINTFORML 『[システムメッセージ：衝撃を検知]』
+				CASE 10
+					PRINTFORML 『[システムメッセージ：衝撃を検知　警告：過度の衝撃は翻訳機の破損につながります。]』
+				CASE 11
+					PRINTFORMW 『[システムメッセージ：衝撃を検知　事故、及び暴行の可能性を推測、高位種族警備隊への通報を実施中...]』
+					PRINTFORML 『Ераа АыДеэ18559453 Тювсынные сыппаы сымаштар.』
+					PRINTFORMW 『エラーID10118942、通信に失敗しました。想伝機が破損しています。お近くの魔導店で修理を依頼して下さい。』
+				CASE 12
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "パイズリ：初"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Мюы？ Паызры？」
+				CASE 2
+					CALL PRINT_STRW, @"「...нарл ходор _HH_HH_ %CNAME("一人称")% нор моне де ярытаы ндещ ные _HH_HH_HH_ ыеые дещёрь_HH_」"
+				CASE 3
+					PRINTFORMW %NAME:TARGET%は目を細め小悪魔的に、(実際悪魔だが)微笑んだ
+				CASE 4
+					PRINTFORMW 「%CNAME("一人称")% дат делл тоцро ва детеллн дещ цаллер！」
+				CASE 5
+					PRINTFORML 「ｺﾞﾆｮｺﾞﾆｮ...(Хоцанор кат ниые Кюрабета рар чысаы камм сылле наы дещкед...)」
+				CASE 6
+					PRINTFORMW 「Рет...Ремшюе датые сымасыта сые...」
+				CASE 7
+					CALL PRINT_STRW, @"「Ацъ..._HH_ Киц нацат кот ные сыте цдасаыь...」"
+				CASE 8
+					PRINTFORMW 「хо,хор！хазмемас ёр！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Muy？ Payzry？」
+				CASE 2
+					CALL PRINT_STRW, @"「...narl hodor _HH_HH_ %CNAME("一人称")% nor mone de yarytay ndeshch nee_HH_HH_HH_ yeyedeshchyor_HH_」"
+				CASE 3
+					PRINTFORMW %NAME:TARGET%は目を細め小悪魔的に、(実際悪魔だが)微笑んだ
+				CASE 4
+					PRINTFORMW 「%CNAME("一人称")% dat dell tocro va detelln deshch caller！」
+				CASE 5
+					PRINTFORML 「ｺﾞﾆｮｺﾞﾆｮ...(Hocanor kat niye Kurabeta rar chysay kamm sylle nay deshchked...)」
+				CASE 6
+					PRINTFORMW 「Ret...Remshue datye symasyta sye...」
+				CASE 7
+					CALL PRINT_STRW, @"「Ac''..._HH_ Kic nacat kot nye syte cdasay'...」"
+				CASE 8
+					PRINTFORMW 「ho,hor！hazmemas yor！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「みゅ？パイズリ？」
+				CASE 2
+					CALL PRINT_STRW, @"「...なーるほどー_HH__HH_ %CNAME("一人称")%の胸でやりたいんですねー_HH_HH_HH_ いいですよー_HH_」"
+				CASE 3
+					PRINTFORMW %NAME:TARGET%は目を細め小悪魔的に、(実際悪魔だが)微笑んだ
+				CASE 4
+					PRINTFORMW 「%CNAME("一人称")%だって出るところは出てるんですから！」
+				CASE 5
+					PRINTFORML 「ｺﾞﾆｮｺﾞﾆｮ...(他の方に比べたら小さいかもしれないですけど...)」
+				CASE 6
+					PRINTFORMW 「れっ...練習だってしましたし...」
+				CASE 7
+					CALL PRINT_STRW, @"「あっ..._HH_ 聞かなかった事にしてくださぃ...」"
+				CASE 8
+					PRINTFORMW 「ほ、ほら！始めますよ！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『むむ、パイェデュリー？』
+				CASE 2
+					PRINTFORML 『...成る程 %CNAME("一人称翻訳後")%の胸で行うしたいと理解した。良いです』
+				CASE 3
+				CASE 4
+					PRINTFORML 『たとえ謙遜をしたとしても%CNAME("一人称翻訳後")%には出すべき出されているので！』
+				CASE 5
+					PRINTFORML 『Ераа АыДеэ18559453 Тангониншики га воцонаемасен дешта』
+					PRINTFORML 『エラーID18559453、単語認識が行えませんでした。』
+				CASE 6
+					PRINTFORML 『練習を行うした、ましたが』
+				CASE 7
+					PRINTFORML 『嗚呼、その音の記憶を落とすを願う』
+				CASE 8
+					PRINTFORML 『さぁ、開始を行う』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "パイズリ：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「Хоор, гор Сюжин саммар нан чятые_HH_」"
+				CASE 2
+					CALL PRINT_STRW, @"「Ыехехэ..._HH_HH_」" 
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「Hoor, gor Syujin sammar nan chyatye_HH_」"
+				CASE 2
+					CALL PRINT_STRW, @"「Yehehe'..._HH_HH_」" 
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「ほーら、ご主人様ーなんちゃって_HH_」"
+				CASE 2
+					CALL PRINT_STRW, @"「えへへー_HH_HH_」" 
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『こちらを見て、ご主人様　等ととぼけてみた』
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "パイズリ：１：恋慕"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「%CNAME("一人称")%, %CNAME("二人称")% ны наллер Реыраыся..._HH_」"
+				CASE 2
+					CALL PRINT_STRW, @"「Ац...ийэ, %CNAME("二人称")% вар соннер хыт дева арымасен ные_HH_」"
+				CASE 3
+					CALL PRINT_STRW, @"「Оёмыесан...вар дамме дещ ёные... Меыдое сан ные сыте цдасаы！_H_ ыеые Кангарые дешёв？」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「%CNAME("一人称")%, %CNAME("二人称")% ny naller Reyraysya..._HH_」"
+				CASE 2
+					CALL PRINT_STRW, @"「Ac...iie', %CNAME("二人称")% var sonner hyt deva arymasen nye_HH_」"
+				CASE 3
+					CALL PRINT_STRW, @"「Oyomyesan...var damme deshch yonye... Meydoe san nye syte cdasay！_H_ yeye Kangarye deshyov？」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「%CNAME("一人称")%、%CNAME("二人称")%になら隷儡者..._HH_」"
+				CASE 2
+					CALL PRINT_STRW, @"「あっ...いいえ、%CNAME("二人称")%はそんなヒトではありませんね_HH_」"
+				CASE 3
+					CALL PRINT_STRW, @"「お嫁さん...はダメですよね...メイドさんにしてください！_H_ 良い考えでしょう？」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『%CNAME("一人称翻訳後")%、%CNAME("二人称翻訳後")%になら[エラーID18569000、辞書に登録のない単語です。]に成るを良いと考えているます。』
+				CASE 2
+					PRINTFORML 『嗚呼、いいえ、%CNAME("二人称翻訳後")%のような人ではありません。』
+				CASE 3
+					PRINTFORML 『[補足メッセージ：一人の男性を占有する権利を持つ女性の意、虚偽世界の風習における妻よりも拘束力の高い状態を指す]...は不可であると推測する...メイドさんに行うして求める 良い考えと同意する？』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "パイズリ：２"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「Юфф..._HH_ Паызры Саллетел тоцы нор %CNAME("二人称")% нор као, сюцкы дещ ёр..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「Uff..._HH_ Payzry Salletel tocy nor %CNAME("二人称")% nor kao, sucky deshch yor..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「うふふ..._HH_ パイズリされてる時の貴方の顔、好きですよ..._HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『%CNAME("一人称翻訳後")%は、パイェデュリー行うされている時間の%CNAME("二人称翻訳後")%の顔が好きです。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "パイズリ：３"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「доц...довдещ? Кымочеэ дещ кар?」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「doc...dovdeshch? Kymochee' deshch kar?」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「どっ...どうです？気持ち良いですか？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 『どのような？気持ちが良い出来ているのか？』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "パイズリ：３：上手にできているよ"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「Яттерь！ Мот ганбатчаый масс ёръ_HH_ Эхехэ_HH__HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「Yatter'！ Mot ganbatchayi mass yor''_HH_ E'hehe'_HH__HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW, @"「やったぁ！もっと頑張っちゃいますよー_HH_ えへへー_HH__HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『万歳、より多くの努力をしてしまうを行っていく。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+CASE "パイズリ：３：この下手糞め！"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Хы！...гоц,Гомыеннасаыь...」
+				CASE 2
+					PRINTFORMW 「Мот Ганбары масс ноде！доюкар %CNAME("一人称")% во сюттнаы де цдасаыь...」
+				CASE 3
+					PRINTFORMW %NAME:TARGET%は涙を浮かべて%CALLNAME:MASTER%に懇願している。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Hy！...goc,Gomyennasay'...」
+				CASE 2
+					PRINTFORMW 「Mot Ganbary mass node！doukar %CNAME("一人称")% vo suttnay de cdasay'...」
+				CASE 3
+					PRINTFORMW %NAME:TARGET%は涙を浮かべて%CALLNAME:MASTER%に懇願している。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ひっ！...ごっごめんなさぃ...」
+				CASE 2
+					PRINTFORMW 「もっと頑張りますので！どうか%CNAME("一人称")%を捨てないでくださぃ...」
+				CASE 3
+					PRINTFORMW %NAME:TARGET%は涙を浮かべて%CALLNAME:MASTER%に懇願している。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『(恐怖)、ごめんなさい』
+				CASE 2
+					PRINTFORMW 『と比べて多くの努力を。%CNAME("一人称翻訳後")%の廃棄をお願いします とは異なるをお願いします。』
+				CASE 3
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+;----------------------------------------------------------------
+;↓ここから先はDAILYファイルの口上
+;----------------------------------------------------------------
+CASE "初回台詞"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML %CNAME("一人称")% но Котоба га вацаланаый токи ва енрёсед кийте цюдасаыее!
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 『不明な%CNAME("一人称翻訳後")%の発話に対して私は貴方に自由に確認をする自由。をお願いする』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;これはREG_NUMとして呼ばれる
+CASE "一番乗り"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Яттер! Ичибанноридесё！」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『万歳 最初な、である』
+				CASE 1
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;これはREG_NUMとして呼ばれる
+CASE "ただいま"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Таддима！ цаелимашюытаё！」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『現在 帰宅を行った』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;これはREG_NUMとして呼ばれる
+CASE "既に入室：夜"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Окаерынасаы отсюкалесамадес  кёва довдешытака?」
+				CASE 2
+					SIF CEVENT("槞彁：機械翻訳OFF", MASTER) == 0
+						PRINTFORML 「……?」
+				CASE 3
+					SIF CEVENT("槞彁：機械翻訳OFF", MASTER) == 0
+						PRINTFORML 「%CNAMET(REG_NUM, "一人称")%ха %CNAMET(REG_NUM, "二人称")% га Модрюкото во матеймашытаё」
+						;PRINTFORML 「Ваташ ха Аната га Модрюкото во матеймашытаё」
+						;DAILYなのでCNAME使えない...これ次の更新で修正しないとなぁ...
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『戻る、今日の疲労さんの行動は何？』
+				CASE 2
+				CASE 3
+					PRINTFORML 『%CNAMET(REG_NUM, "一人称翻訳後")%は待機した。%CNAMET(REG_NUM, "二人称翻訳後")%が戻るまでの期間』
+					;PRINTFORML 『私は待機した。貴方が戻るまでの期間』
+					;DAILYなのでCNAME使えない...これ次の更新で修正しないとなぁ...
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;これはREG_NUMとして呼ばれる
+CASE "入室挨拶"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;これはREG_NUMとして呼ばれる
+CASE "お弁当：包囲下"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 「%CNAMET(REG_NUM, "一人称")% га конэр тоцлоде гохан во табетеыте ёвиновде сёбца・・・」
+				CASE 1
+					PRINTFORML %NAME:REG_NUM%はあまり食が進んでいないようだ。
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 『%CNAMET(REG_NUM, "一人称翻訳後")%は良いか分からない。一人の食事をここで居る事が。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "褒める:戦時"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Ннь ёкуwакранай дешга яригатов гозаймаш 」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『私は完璧な把握ではない事。しかし、ありがとう』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "甘い言葉：恋慕＆停戦"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			;IF (CFLAG:CFLAG_LIB(""))
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「...」
+					PRINTFORMW ゆっくりと%CALLNAME:MASTER%の目を見つめ微笑み
+					PRINTFORMW 「ワタシモ、%CALLNAME:MASTER%ノ コト スキデスヨ！」
+					PRINTFORMW %CALLNAME:TARGET%はこの時の為に覚えてきたのであろう たどたどしい言葉で貴方の愛を返した。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW %CALLNAME:TARGET%は突然翻訳機のケーブルを引き抜いた。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "おっぱいリフトする"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 「маттэ!нанденанденандеыйеьъ!?!?
+					PRINTFORML цийо! феее???
+					PRINTFORML %CNAME("一人称")% ва!нн!!!соняцвотоВа!!!!!
+					PRINTFORML Яме…!фаааа!!
+					PRINTFORML Аъ!Иятойюкотодеханакю!!!!!!!
+					PRINTFORMW фыеееееее…」
+				CASE 1
+					PRINTFORMW %CALLNAME:MASTER%は何を言っているのかさっぱり分からなかった。
+					PRINTFORMW どうやら%NAME:TARGET%は驚いているようだ。
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 『Ераа АыДеэ18559453 Тангониншики га воцонаемасен дешта』
+					PRINTFORMW 『エラーID18559453、単語認識が行えませんでした。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "マッサージする"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Ваа! Коюсыйте хаддга хюлюеавно %CNAME("一人称")% сюки десю! 」
+				CASE 1
+					PRINTFORMW %NAME:TARGET%はどうやら喜んでくれたようだ
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 『驚嘆 このようにして%CNAME("一人称翻訳後")%は皮膚の接続を好む』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "マッサージする：欲求不満"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					CALL PRINT_STRW, "「ХЯН_H_!」"
+				CASE 1
+					PRINTFORMW %NAME:TARGET%は聞いたことが無いような声で驚いた
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 『Ераа АыДеэ18559811 Зисёни Товрокю нонаи тангодесс』
+					PRINTFORMW 『エラーID18559811、辞書に登録のない単語です。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "もてなす"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Алйгатоу коусйте ёцситэкуретэ!」
+				CASE 1
+					PRINTFORMW 「%CNAME("一人称")% нов Куни нов Чан га ёцнатра цондова %CNAME("一人称")% 」
+				CASE 2
+					PRINTFORMW 良く分からないが感謝してくれているようだ
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『感謝、多数の良いの贈与』
+				CASE 1
+					PRINTFORMW 『%CNAME("一人称翻訳後")% の所有する国家。の治安の[エラーID18569000、辞書に登録のない単語です。]良いに未来は返す』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "寝言：母"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1 TO 99;言語能力関係なし
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 「мам…Йимаицкал…」
+				CASE 1
+					PRINTFORML すやすやと眠っているようだ
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 『Ераа АыДеэ18559815 Вонсей во ниншки децймасэн』
+					PRINTFORML 『エラーID18559815、音声を認識できません。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "寝言：人形"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1 TO 99;言語能力関係なし
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 「Ямэте…wаташ ноь ныйнгёв… моясанрыде…」
+				CASE 1
+					PRINTFORML 暑くてうなされているようだったので、%CALLNAME:MASTER%はすこし服をはだけさせた
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 『Ераа АыДеэ18559815 Вонсей во ниншки децймасэн』
+					PRINTFORML 『エラーID18559815、音声を認識できません。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "寝言：父"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1 TO 99;言語能力関係なし
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 「Квамисам…отоысан во…ицккаерашете…」
+				CASE 1
+					PRINTFORML 何かをつかもうと手を動かしていたので%CALLNAME:MASTER%はそっと手を握ってあげた
+					PRINTFORML %CALLNAME:ARG%は少し笑顔になり%CALLNAME:MASTER%の手を固く握り返してきた
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 『Ераа АыДеэ18559815 Вонсей во ниншки децймасэн』
+					PRINTFORML 『エラーID18559815、音声を認識できません。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "稼ぎ無し：消費なし"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1 TO 99;言語能力関係なし
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「мь・・・Мовоэрлй дещца!?」
+				CASE 1
+					PRINTFORMW 「Моущоши даке! корея!」
+				CASE 2
+					PRINTFORMW 「・・・」
+					PRINTFORMW 「Гоменнасай・・・Нандэмов найдес」
+				CASE 3
+					PRINTFORMW %NAME:TARGET%はしょんぼりとして戻っていった
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『無い、終了ですか』
+				CASE 1
+					PRINTFORMW 『この、より小量のみ。』
+				CASE 2
+					PRINTFORMW 『謝罪、全てが無いです。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "稼ぎ有り：消費なし"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力関係なし
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Алйгатов Гозаймас! Колледе・・・!」
+				CASE 1
+					PRINTFORMW %NAME:TARGET%は貴方に何度も頭を下げて戻っていった
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『感謝、これを』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "日常トーク：母国について"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「Хаый! Тотемо ийкунидесё! Илонер сюзоц га имасу!」
+				CASE 1
+					;Гайбанийтяのモチーフ→https://ja.wikipedia.org/wiki/%E3%82%AE%E3%83%90%E3%83%8B%E3%83%83%E3%83%84%E3%82%A1
+					PRINTFORMW 「Гайбанийтя тою рёври га юумей де!・・・」
+				CASE 2
+					PRINTFORMW 良く分からないが、%NAME:TARGET%はとても楽しそうに%CALLNAME:MASTER%に母国について語っている。
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『肯定します。良い私の国です。より多様な知的な生物の種類の持つ』
+				CASE 1
+					PRINTFORML 『年老いた生地包み焼き料理は最も有名な物の一つです』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "日常トーク：家族について(父)"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 「Отовусан ва тотймо сугой хито даттандесуыйо!」
+				CASE 1
+					PRINTFORML 「Илоннер хитотач во матметэ」
+				CASE 2
+					PRINTFORML 「Валлкйлан Хантов во Нйнген цаллер мамотийе!・・・」
+				CASE 3
+					PRINTFORML 「Ун!Ия!чигаймашё! %CNAME("二人称")% тов Каррейлер това чигаймаш цалер!」
+				CASE 4
+					PRINTFORML %NAME:TARGET%はハッとして急に謝り始めた。
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 『父、はとても凄い人でした』
+				CASE 1
+					PRINTFORMW 『様々な、多様な知的な生物の種類を統合。』
+				CASE 2
+					PRINTFORML 『人間からの守るを[エラーID18559811、辞書に登録のない単語です。]半島に行った。』
+					PRINTFORMW 『Ераа АыДеэ18559811 Зисёни Товрокю нонаи тангодесс』
+				CASE 3
+					PRINTFORMW 『閃き、拒否、異なる。%CNAME("二人称翻訳後")%は異なります。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "日常トーク：亡命理由";CFLAG:母国状況 で判定追加予定
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORMW 「っ・・・・・」
+					PRINTFORMW %NAME:TARGET%は言葉に詰まっているようだ
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE IS >= 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CASE "お茶を淹れる：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Ваь! аррйгатов гозай масс!」
+				CASE 2
+					PRINTFORMW 「Кочй  нов оча ттйе миз даке де йереллн дещ ёне ... Уссц налланай ндещ？」
+				CASE 3
+					PRINTFORMW 「Ацкъ чантор азй аллъ! Сугой! Миз нанонй азй гар цуыйтелл!」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Va'! arrygatov gozay mass!」
+				CASE 2
+					PRINTFORMW 「Kochy  nov ocha ttye miz dake de yerelln deshch yone ... Ussc nallanay ndeshch？」
+				CASE 3
+					PRINTFORMW 「Ack'' chantor azy all''! Sugoy! Miz nanony azy gar tsuyitell!」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「わぁ！ありがとうございます！」
+				CASE 2
+					PRINTFORMW 「こっちのお茶って水だけで入れるんですよね...薄くないんです？」
+				CASE 3
+					PRINTFORMW 「あっ、ちゃんと味有る！すごい！水なのに味が付いてる！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『ありがとうございます。』
+				CASE 2
+					PRINTFORML 『生産されうる茶はこちらの水のみによって行われる。低密度のような？』
+				CASE 3
+					PRINTFORML 『正しい味覚を持つ。驚くべき事のように感じるは、水が持つ味である筈なのに。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "お茶を淹れる：２"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「%CNAME("二人称")%сан！коннор оча суппацк най! оча я най!」
+				CASE 2
+					CALL PRINT_STRW,@"「коллегар хуцуь кар... генйекй де номм оча ва налле тйе нацте , аттма гар конлан сймаш нэ...хух_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「%CNAME("二人称")%san！konnor ocha suppack nay! ocha ja nay!」
+				CASE 2
+					CALL PRINT_STRW,@"「kollegar hutsu' kar... genyeky de nomm ocha va nalle tye nacte , attma gar konlan symash ne'...huh_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「%CNAME("二人称")%さん！このお茶酸っぱくない！お茶じゃない！」
+				CASE 2
+					CALL PRINT_STRW,@"「これが普通かぁ...原液で飲むお茶は慣れてなくて、頭が混乱しますね...フフ_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『%CNAME("二人称翻訳後")%氏、お茶は酸味を持っていません。茶とは異なる。』
+				CASE 2
+					PRINTFORML 『これは一般的です。私は茶の原液を飲むは慣れるをもっていません。思考が混濁する。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "お茶を淹れる：３"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Аре, омиз вар...? Уссменай тор супацтэ цурацнай дещ...?」
+				CASE 2
+					PRINTFORMW 「А, коннор марма номм но гар фуцуь нан дещ нэ.., ммм ... Чот ковай...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Are, omiz var...? Ussmenay tor supacte' tsuracnay deshch...?」
+				CASE 2
+					PRINTFORMW 「A, konnor marma nomm no gar futsu' nan deshch ne'.., mmm ... Chot kovay...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「あれ、お水は...？薄めないと酸っぱくて辛くないです...？」
+				CASE 2
+					PRINTFORMW 「あ、このまま飲むのが普通なんですね...むむむ...ちょっと怖い...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『その水は？希釈を持たざる場合の酸味は私たちには厳しい物となると推測？』
+				CASE 2
+					PRINTFORML 『おお、変化の無い飲むが一般的です。ムー。僅かに恐怖を持つ』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "尻尾をなでる：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Хя!!」
+				CASE 2
+					CALL PRINT_STRW, @"「хец...хентайь...／／／」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「hya!!」
+				CASE 2
+					CALL PRINT_STRW, @"「hec...hentay'...／／／」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ひゃ！！」
+				CASE 2
+					CALL PRINT_STRW,"「へっ...変態ぃ...／／／」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORML 『変態』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "尻尾をなでる：２"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Пцъ!」
+				CASE 2
+					CALL PRINT_STRW,"「Хяц..._HH_  нк..._HH_  Соннер...Соц ныгча...」"
+				CASE 3
+					CALL PRINT_STRW,"「Ыеацъ_HH_...Яммет цдаса...Э！_HH_HH_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Pc''!」
+				CASE 2
+					CALL PRINT_STRW,"「Hyac..._HH_  nk..._HH_  Sonner...Soc nygcha...」"
+				CASE 3
+					CALL PRINT_STRW,"「Yeac''_HH_...Yammet cdasa...YE！_HH_HH_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ぴっ！！」
+				CASE 2
+					CALL PRINT_STRW,@"「ひゃ.._HH_  ん_HH_  そんな..そこ握っちゃ..._HH_」"
+				CASE 3 
+					CALL PRINT_STRW,"「やぁっ_HH_...やめてくださ...イ！_HH_HH_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORML 『[エラーID18569000、辞[エラーID185[エラーID18569000、辞書に登録のない単語です。]、を握る事は』
+				CASE 3
+					PRINTFORML 『[エラーID18569000、辞書に登録のない単語です。]。中止を要求します。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "尻尾をなでる：３"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Пяъ!」
+				CASE 2
+					PRINTFORMW 「Оц...Оннер но цо нор сыппо савалл наннтые!!」
+				CASE 3
+					PRINTFORMW 「Иъ... иыеа...%CNAME("二人称")%наллер Иый дещ кед мор...」
+				CASE 4
+					CALL PRINT_STRW, @"「Фюныйки тые алл янаы дещкар...／／／」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Pya''!」
+				CASE 2
+					PRINTFORMW 「Oc...Onner no co nor syppo savall nanntye!!」
+				CASE 3
+					PRINTFORMW 「I''... iyea...%CNAME("二人称")%naller Iyi deshch ked mor...」
+				CASE 4
+					CALL PRINT_STRW, @"「funyiki tye all janay deshchkar...／／／」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ぴゃぁ！」
+				CASE 2
+					PRINTFORMW 「おっ...女の子の尻尾触るなんて！！」
+				CASE 3
+					PRINTFORMW 「いっ...いや...%CNAME("二人称")%なら良いですけどもぉ...」
+				CASE 4
+					PRINTFORMW 「雰囲気って有るじゃないですかぁ...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORML 『女の子の触れる尾を』
+				CASE 3
+					PRINTFORML 『嫌です。%CNAME("二人称翻訳後")%のみの良いですがしかし。』
+				CASE 4
+					PRINTFORML 『心の香りを有するのではないかと提案。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "膝枕する：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「...」
+				CASE 2
+					PRINTFORMW 槞彁は貴方のおなかの方に顔を向けた。
+					PRINTFORMW ほんのりと暖かく湿った息はその小さな生き物の安堵のような物を感じさせる。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「...」
+				CASE 2
+					PRINTFORMW 槞彁は貴方のおなかの方に顔を向けた。
+					PRINTFORMW ほんのりと暖かく湿った息はその小さな生き物の安堵のような物を感じさせる。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「...」
+				CASE 2
+					PRINTFORMW 槞彁は貴方のおなかの方に顔を向けた。
+					PRINTFORMW ほんのりと暖かく湿った息はその小さな生き物の安堵のような物を感じさせる。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+				CASE 3
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+
+;
+CASE "膝枕する：２"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「н...」
+				CASE 2
+					PRINTFORMW 立とうとすると%NAME:TARGET%が%CALLNAME:MASTER%の服を掴んできた。 
+				CASE 3
+					PRINTFORMW 「мов скосы... кою сытете хосы дещ...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「n...」
+				CASE 2
+					PRINTFORMW 立とうとすると%NAME:TARGET%が%CALLNAME:MASTER%の服を掴んできた。 
+				CASE 3
+					PRINTFORMW 「mov skosy... kou sytete hosy deshch...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ん...」
+				CASE 2
+					PRINTFORMW 立とうとすると%NAME:TARGET%が%CALLNAME:MASTER%の服を掴んできた。
+				CASE 3
+					PRINTFORMW 「もう少し...こうしてて欲しいです...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+				CASE 3
+					PRINTFORMW 『瞬間の要求、この　～を続ける。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "キスをする：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「нг!?」
+				CASE 2
+					PRINTFORMW 「Тоцъ, тотсен нан дещ кар！ мов... кокор нор юнбы гар...」
+				CASE 3
+					PRINTFORMW 「фюь... Сарь, %CNAME("一人称")% mor kokor nor junbi deckymashtar！」
+				CASE 4
+					CALL PRINT_STRW,@"「mov yicay... ne'_HH_ stugy var dayjoub deshch！」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ng!?」
+				CASE 2
+					PRINTFORMW 「Toc'', totsjen nan deshch kar！ mov... kokor nor junbi gar...」
+				CASE 3
+					PRINTFORMW 「fu'... Sar', %CNAME("一人称")% mor kokor nor junbi deckymashtar！」
+				CASE 4
+					CALL PRINT_STRW,@"「mov yicay... ne'_HH_ stugy var dayjoub deshch！」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「んぐ！？」
+				CASE 2
+					PRINTFORMW 「とっ、突然何ですか！もう...心の準備が...」
+				CASE 3
+					PRINTFORMW 「ふぅ...さぁ、私も心の準備出来ました！」
+				CASE 4
+					CALL PRINT_STRW,@"「もう一回...ね_HH_次は大丈夫です！」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORML 『突然の不明です。既に、待機中の心は未完成。』
+				CASE 3
+					PRINTFORML 『[呼吸] さて、私の報告できます心の待機の完成。』
+				CASE 4
+					PRINTFORML 『再度行う、次の無事である事を保証。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "キスをする：２"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「п！！нг...！」
+				CASE 2
+					PRINTFORMW 「...Пхаъ ...Мъ Мов скосй одякар нива декйнайн дещкар！мов...」
+				CASE 3
+					PRINTFORMW 「Оцайесй дещ! эъй！」
+				CASE 4
+					PRINTFORML 槞彁はジャンプして抱きついてきた
+					PRINTFORMW ゆっくりと上下する胸が押し当てられ、%NAME:TARGET%の独特な甘い匂いが、穏やかな呼吸が耳で、
+					PRINTFORMW あなたは全身で槞彁の重さを感じた。
+					PRINTFORMW 「......」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「p！！ng...！」
+				CASE 2
+					PRINTFORMW 「...Pha'' ...M'' Mov skosy odyakar niva dekynayn deshchkar！mov...」
+				CASE 3
+					PRINTFORMW 「Ocayesy deshch! e'''y！」
+				CASE 4
+					PRINTFORML 槞彁はジャンプして抱きついてきた
+					PRINTFORMW ゆっくりと上下する胸が押し当てられ、%NAME:TARGET%の独特な甘い匂いが、穏やかな呼吸が耳で、
+					PRINTFORMW あなたは全身で槞彁の重さを感じた。
+					PRINTFORMW 「......」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ぴっ！！んぐ...!」
+				CASE 2
+					PRINTFORMW 「...ぷはっ...もっもう少し穏やかには出来ないんですか！もう...」
+				CASE 3
+					PRINTFORMW 「お返しです！えーい！」
+				CASE 4
+					PRINTFORML 槞彁は貴方にジャンプして抱きついてきた。
+					PRINTFORMW ゆっくりと上下する胸が押し当てられ、%NAME:TARGET%の独特な甘い匂いが、穏やかな呼吸が耳で、
+					PRINTFORMW あなたは全身で槞彁の重さを感じた。
+					PRINTFORMW 「......」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORML 『より少量の静的のようなは可能と質問を私は行う。既に。』
+				CASE 3
+					PRINTFORML 『返還します。[掛け声]』
+				CASE 4
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "Hのお誘い"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Эьт... %CNAME("一人称")% тор сйтемо ыйин дещ ёр？」
+				CASE 2
+					PRINTFORMW 「Цутарваллар най кар ...」
+				CASE 3
+					PRINTFORMW 「Коуви.. де ыйи канер... коуви.. сйтемор ыйиндещ ... ёр？」
+				CASE 4
+					PRINTFORM 「...
+					WAIT
+					CALL PRINT_STRW,@"гоменасай усо дещ. %CNAME("一人称")% гар штай...дещ..._HH_」" 
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「E''t... %CNAME("一人称")% tor sytemo yiin deshch yor？」
+				CASE 2
+					PRINTFORMW 「tsutarvallar nay kar ...」
+				CASE 3
+					PRINTFORMW 「Kouvi.. de yii kaner... kouvi.. sytemor yiindeshch ... yor？」
+				CASE 4
+					PRINTFORM 「...
+					WAIT
+					CALL PRINT_STRW,@"gomenasay uso deshch. %CNAME("一人称")% gar shtay...deshch..._HH_」" 
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「えっと...私と...シても良いんですよ？」
+				CASE 2
+					PRINTFORMW 「伝わらないか...」
+				CASE 3
+					PRINTFORMW 「交尾...で良いかな...交尾しても...良いんです...よ？」
+				CASE 4
+					PRINTFORM 「...
+					WAIT
+					CALL PRINT_STRW,"ごめんなさい嘘です。私がしたい...です..._HH_」" 
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 『%CNAME("一人称翻訳後")%と、を良い行うをする権利を貴方は持っています。』
+				CASE 2
+					PRINTFORMW 『理解を持っていないの推測です。』
+				CASE 3
+					PRINTFORMW 『悩む、交尾　は良いのか　交尾を行う　の権利を貴方は保有しています　です。』
+				CASE 4
+					PRINTFORML 『謝罪。虚偽の。　私が要求する　です。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "おっぱい押し付け"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さない
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「えーい！ぎゅーっ！」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%が突然%CALLNAME:MASTER%の後ろから抱き着いてきた
+					PRINTFORMW ...%NAME:TARGET%のやわらかな胸が背中で感じる
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「えーい！ぎゅーっ！」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%が突然%CALLNAME:MASTER%の後ろから抱き着いてきた
+					PRINTFORMW ...%NAME:TARGET%のやわらかな胸が背中で感じる
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「えーい！ぎゅーっ！」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%が突然%CALLNAME:MASTER%の後ろから抱き着いてきた
+					PRINTFORMW ...%NAME:TARGET%のやわらかな胸が背中で感じる
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『Ераа АыДеэ18559811 Зисёни Товрокю нонаи тангодесс』
+					PRINTFORMW 『エラーID18559811、辞書に登録のない単語です。』
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "起こす：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「мня... Охаёв гозай масс」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は、まだふわふわと揺れている
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「mnya... Ohayov gozay mass」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は、まだふわふわと揺れている
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「むにゃ...おはようございます...」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は、まだふわふわと揺れている
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『おはよう。』
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "起こす：２"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「うわっ！はぁ...はぁ...」
+				CASE 2
+					PRINTFORMW 「Оц...Охаёв гозай масс...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「うわっ！はぁ...はぁ...」
+				CASE 2
+					PRINTFORMW 「Oc...Ohayov gozay mass...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「うわっ！はぁ...はぁ...」
+				CASE 2
+					PRINTFORMW 「お...おはようございます...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORMW 『おはようです。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "起こす：３" 
+	SELECTCASE ARG
+		CASE 0;地の文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は飛び起きて、頭を守るように抑えた
+				CASE 3
+					PRINTFORMW %NAME:TARGET%は%CALLNAME:MASTER%の顔を見ると緊張が解けたのか、恥ずかしそうに笑っている。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「хяь тец..теций!?」
+				CASE 2
+					PRINTFORMW 「Аъ ... Оъ охаёв гозаймащ」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「hya' tec..teciy!?」
+				CASE 2
+					PRINTFORMW 「A'' ... O'' ohayov gozaymashch」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ひゃっ！てっ...敵！？」
+				CASE 2
+					PRINTFORMW 「あっ...おっおはようございます。」
+				CASE 3
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『敵の』
+				CASE 2
+					PRINTFORML 『偉大なる。おはようございます。』
+				CASE 3
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "寝起き：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORML 槞彁の服は汗が染みて僅かに透けている
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「фуь... Нандакар нод гар кавакй машйта...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「fu'... Nandakar nod gar kavaky mashyta...」
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「ふぅ...なんだか喉が渇きました...」
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『私は体の乾燥を自覚する』
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "寝起き：２"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Кёу...%CNAME("二人称")% тор иссёнй нетйемор ыйи дещ кар?」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Kyou...%CNAME("二人称")% tor issyony netyemor yii deshch kar?」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「今日...%CNAME("二人称")%と一緒に寝ても良いですか...？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『現在の日、%CNAME("二人称翻訳後")%と共の睡眠の権利を私に肯定するを要求するが可能か？』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "シャワー独り言"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW ,@"_ハートピンク_「Секай вар марллйэ♪ Секай вар оннержийь♪ Тада хйьторьць♪」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW ,@"_ハートピンク_「Sekay var marllye'♪ Sekay var onnerjiy'♪ Tada hy'tor'ts'♪」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					CALL PRINT_STRW ,@"_ハートピンク_「世界はまーるいー♪世界はおーなじー♪ただひーとーつー♪」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "シャワー：通常"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「нй？ %CNAME("二人称")%. Иммар каллер мизуме сулл н дещ？」
+				CASE 2
+					PRINTFORMW 「Мов сукосй маттйе иссёр нйе хайлебар ёкат нарь...」
+				CASE 3
+					PRINTFORMW 「Кондор Иссёр нй мизуме сймасёу не♪」
+				CASE 4
+					PRINTFORMW 「[мизуме]？ йэтор... Иммар %CNAME("一人称")% гар яттйе ыйтар кот нор намайе дещ...？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ny？ %CNAME("二人称")%. Immar kaller mizume sull n deshch？」
+				CASE 2
+					PRINTFORMW 「Mov sukosy mattye issyor nye haylebar yokat nar'...」
+				CASE 3
+					PRINTFORMW 「Kondor Issyor ny mizume symasyou ne♪」
+				CASE 4
+					PRINTFORMW 「[mizume]？ ye'tor... Immar %CNAME("一人称")% gar yattye yitar kot nor namaye deshch...？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「んゆ？%CNAME("二人称")%。今から水埋めするんです？」
+				CASE 2
+					PRINTFORMW 「もう少し待って一緒に入れば良かったなぁ...」
+				CASE 3
+					PRINTFORMW 「今度一緒に水埋めしましょうね♪」
+				CASE 4
+					PRINTFORMW 「水埋め？えーと...今私がやってた事の名前です？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『%CNAME("二人称翻訳後")%は現在の水の埋葬を行うするのか？』
+				CASE 2
+					PRINTFORML 『僅かな待機を行い、共用の侵入がより良いな。』
+				CASE 3
+					PRINTFORML 『次回の同時に行う提案の水埋め。』
+				CASE 4
+					PRINTFORML 『水の埋葬とは何か？　現在行っていた行動、名称のです。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "シャワー：バレ"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「йэтор...Назйе %CNAME("一人称")% нор сйтагй вор...?」
+				CASE 2
+					PRINTFORMW 「Соннор... Аммарй иллуй вор моттйе ыйнай нодэ кайесйтйе хосй дещ...」
+				CASE 3
+					PRINTFORMW 「Сяцёу сйтай...？ Нанйнй цкавн дещ кар？」
+				CASE 4
+					PRINTFORMW 「Ёц вакаранай нодещ гар, асйтар нор асар кайесйте крелл нодесй таллер...」
+				CASE 5
+					PRINTFORMW よく分からないまま%CALLNAME:TARGET%は%CALLNAME:MASTER%に下着を差し出した。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ye'tor...Nazye %CNAME("一人称")% nor sytagy vor...?」
+				CASE 2
+					PRINTFORMW 「Sonnor... Ammary illuy vor mottye yinay node' kayesytye hosy deshch...」
+				CASE 3
+					PRINTFORMW 「Syacyou sytay...？ Nanyny tskavn deshch kar？」
+				CASE 4
+					PRINTFORMW 「Yoc vakaranay nodeshch gar, asytar nor asar kayesyte krell nodesy taller...」
+				CASE 5
+					PRINTFORMW よく分からないまま%CALLNAME:TARGET%は%CALLNAME:MASTER%に下着を差し出した。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「えーと...何故私の下着を...?」
+				CASE 2
+					PRINTFORMW 「その...あんまり衣服を持ってないので返して欲しいです...」
+				CASE 3 
+					PRINTFORMW 「借用したい...？何に使うんですか？」
+				CASE 4
+					PRINTFORMW 「良く分からないですが、明日の朝 返してくれるのでしたら...」
+				CASE 5
+					PRINTFORMW よく分からないまま%CALLNAME:TARGET%は%CALLNAME:MASTER%に下着を差し出した。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『何を目的とした私の下着の？』
+				CASE 2
+					PRINTFORML 『それは、僅かな持っているの衣類である事を、返却を要求する。』
+				CASE 3
+					PRINTFORML 『借用を要求する。とは使用とは何ですか。』
+				CASE 4
+					PRINTFORML 『私は理解を貰う出来ないだった。翌日の開始に返還するを貰う出来る場合では。』
+				CASE 5
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "契約成立：１"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「%CNAME("一人称")% тор кежяц щаттйе ыйиндещ кар...？」
+				CASE 2
+					PRINTFORML 「ЫЙе! %CNAME("一人称")% вар аррй гатай н дещ кед мор...」
+				CASE 3
+					PRINTFORML 「Хоцар нор хит нор хов гар мот иллоннер кот гар децкйлл нн я най каннер ттйе...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「%CNAME("一人称")% tor kejyac shchattye yiindeshch kar...？」
+				CASE 2
+					PRINTFORML 「Yie! %CNAME("一人称")% var arry gatay n deshch ked mor...」
+				CASE 3
+					PRINTFORML 「Hocar nor hit nor hov gar mot illonner kot gar deckyll nn ja nay kanner ttye...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「%CNAME("一人称")%と契約しちゃって良いんですか...？」
+				CASE 2
+					PRINTFORML 「いえ！%CNAME("一人称")%は有難いんですけども...」
+				CASE 3
+					PRINTFORML 「他の人の方がもっと色んな事が出来るんじゃないかなって...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『%CNAME("一人称翻訳後")%との契約は貴方にとって素晴らしいではないの推測をすることが可能です。』
+				CASE 2
+					PRINTFORML 『異なる　%CNAME("一人称翻訳後")%にとって、素晴らしいを持っている。』
+				CASE 3
+					PRINTFORML 『他人にとってより一層の、出来る事を様々な持っている事は私が推測した内容であります。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "契約成立：魂の使い道"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Таммасй нор цкай мич дещ кар?」
+				CASE 2
+					PRINTFORML 「Йетт, Нйнген нор таммасй ва [21г] аллй масйтйе ...」
+				CASE 3
+					PRINTFORML 「Колле вар хоцкар нор доннор ицкймоннор ёллй мор зутт оммой нндещ」
+				CASE 4
+					PRINTFORML 「Сосйтйе, %CNAME("一人称")% тач вар таммасй гар кийелл тоцкй нор шицрё каллер Йенелгй вор торйдасс гйюц гар аллм дещ ёнйе」
+				CASE 5
+					PRINTFORML 「Нйнген нор таммасй хитотс аллевар куннй нор сёухй марёц вор нан нен мор мацанай цот гар децкйрун дещ ёр！」
+				CASE 6
+					PRINTFORML 「Йеххен！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Tammasy nor tskay mich deshch kar?」
+				CASE 2
+					PRINTFORML 「Yett, Nyngen nor tammasy va [21g] ally masytye ...」
+				CASE 3
+					PRINTFORML 「Kolle var hockar nor donnor ickymonnor yolly mor zutt ommoy nndeshch」
+				CASE 4
+					PRINTFORML 「Sosytye, %CNAME("一人称")% tach var tammasy gar kiyell tocky nor shitsryo kaller Yenelgy vor torydass gyjuts gar allm deshch yonye」
+				CASE 5
+					PRINTFORML 「Nyngen nor tammasy hitots allevar kunny nor syouhy maryoc vor nan nen mor macanay cot gar deckyrun deshch yor！」
+				CASE 6
+					PRINTFORML 「Yehhen！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「魂の使い道ですか？」
+				CASE 2
+					PRINTFORML 「えっと、人間の魂は21ｇ有りまして...」
+				CASE 3
+					PRINTFORML 「これは他のどの生き物よりもずっと重いんです。」
+				CASE 4
+					PRINTFORML 「そして、%CNAME("一人称")%たちは魂が消えるときの質量からエネルギーを取り出す技術が有るんですよね」
+				CASE 5
+					PRINTFORML 「人間の魂一つ有れば国の消費魔力を何年も賄う事が出来るんですよ！」
+				CASE 6
+					PRINTFORML 「えっへん！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『使用用途の魂とは』
+				CASE 2
+					PRINTFORML 『ええと、人間は魂の21グラムを保有している』
+				CASE 3
+					PRINTFORML 『これは最も重い生物の中の一つで有ると言うことが出来る。』
+				CASE 4
+					PRINTFORML 『そして、%CNAME("一人称翻訳後")%達は持っている。魂の消える重量からのエネルギーを』
+				CASE 5
+					PRINTFORML 『一つの人間の魂は等価たる、国の消耗される魔力の何年間分を。』
+				CASE 6
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+CASE "日常トーク：物価"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Хаьь....Цочылар нор кюны вар бюцкар гар тацасгы масс...」
+				CASE 2
+					PRINTFORMW 「%CNAME("一人称")% нор кюны наллер 300＄ аллевар 3ТовЧисеыКаыыюеСымин гар 1 кар Гет вар сеыкат декилл ноны...」
+				CASE 3
+					PRINTFORMW 「Кит, кюны гар очытввитарар конно кюны тор оннэргы кюраы Ютаца ные нары маш ённые！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Ha' '....Cochylar nor kuny var buckar gar tacasgy mass...」
+				CASE 2
+					PRINTFORMW 「%CNAME("一人称")% nor kuny naller 300＄ allevar 3TovChiseyKayqueSymin gar 1 kar Get var seykat dekill nony...」
+				CASE 3
+					PRINTFORMW 「Kit, kuny gar ochytvvitarar konno kuny tor onne'rgy kuray Yutaca nye nary mash yonnye！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「はぁー....こちらの国は物価が高すぎます...」
+				CASE 2
+					PRINTFORMW 「%CNAME("一人称")%の国なら300＄有れば三等知性階級市民が一か月は生活できるのに...」
+				CASE 3
+					PRINTFORMW 「きっと、国が落ち着いたらこの国と同じ位豊かになりますよね！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『溜息、こちら側の国は高すぎる物価』
+				CASE 2
+					PRINTFORML 『%CNAME("一人称翻訳後")%の月の一つが有れば300＄の三等知性階級市民の生活の国が可能』
+				CASE 3
+					PRINTFORML 『仮定な、落ち着いた国には、と同じ位の豊かに変化する』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "日常トーク：蒼外線"
+	;魔界の日光は弱いので、槞彁の種族(≠魔界人全員)は色覚が退化しており紫色を認識できない
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「юьюь,Кёгы Сецаы нор Хызасы ва цюёссгы масс...」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は、ぐったりと疲れた様子でソファーに横になった
+				CASE 3
+					PRINTFORMW 「%CNAME("二人称")% ва наннде соннер ные генкы нанн дещкар...」
+				CASE 4
+					PRINTFORMW 「юьюь...Совгаысен таысац маховю наннтые, %CNAME("一人称")% мадд наллатые наы ноны...」
+				CASE 5
+					PRINTFORMW 「Совгаысен？ Ыэет... %CNAME("一人称")% вар мадд цквасыц вацаланаый нодакыедм...」
+				CASE 6
+					PRINTFORMW 「Таыёв ные тацсан авилл тор хыеацкэ сытары, ёвка саллетары сюлл ярнаы дещкар」
+				CASE 7
+					PRINTFORMW 「соннор генэн гар Совгаысен тые ят ласы дещ...  нанкар,Сенсеы вар Аво нор сот ные алл Хицары гар нантокар тыье эттые масыта」
+				CASE 8
+					PRINTFORMW 「Совыевар, %CNAME("二人称")% нор сюзоц вар Совгаысен гар мыэлл тыье Сенсеы гар Ыеттэ имасыта！」
+				CASE 9
+					PRINTFORMW 「Совгаысен тыье доннер хювны миыеллн дещ кар？Яп ары、ТОГЕТОГЕ сытыеллн дещ карнеы？」
+				CASE 10
+					CALL PRINT_STRW, @"「%CNAME("一人称")% тор %CNAME("二人称")% де мыете ыйлл Сецаы гар чгав тыьэ, наннда кар Роммантицк дещ ные_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「u'u',Kyogy Secay nor Hyzasy va tsuyossgy mass...」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は、ぐったりと疲れた様子でソファーに横になった
+				CASE 3
+					PRINTFORMW 「%CNAME("二人称")% va nannde sonner nye genky nann deshchkar...」
+				CASE 4
+					PRINTFORMW 「u'u'...Sovgaysen taysac mahovu nanntye, %CNAME("一人称")% madd nallatye nay nony...」
+				CASE 5
+					PRINTFORMW 「Sovgaysen？ Ye'et... %CNAME("一人称")% var madd ckvasyc vacalanayi nodakyedm...」
+				CASE 6
+					PRINTFORMW 「Tayyov nye tacsan avill tor hyeacke' sytary, jovka salletary sull jarnay deshchkar」
+				CASE 7
+					PRINTFORMW 「sonnor gene'n gar Sovgaysen tye yat lasy deshch...  nankar,Sensey var Avo nor sot nye all Hicary gar nantokar ty'e e'ttye masyta」
+				CASE 8
+					PRINTFORMW 「Sovyevar, %CNAME("二人称")% nor syuzoc var Sovgaysen gar mye'll ty'e Sensey gar Yette' imasyta！」
+				CASE 9
+					PRINTFORMW 「Sovgaysen ty'e donner huvny miyelln deshch kar？Yap ary、TOGETOGE sytyelln deshch karney？」
+				CASE 10
+					CALL PRINT_STRW, @"「%CNAME("一人称")% tor %CNAME("二人称")% de myete yill Secay gar chgav ty'e', nannda kar Rommantick deshch nye_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「うぅ、虚偽世界の日差しは強すぎます...」
+				CASE 2
+					PRINTFORMW %NAME:TARGET%は、ぐったりと疲れた様子でソファーに横になった
+				CASE 3
+					PRINTFORMW 「%CNAME("二人称")%はなんでそんなに元気なんですか...」
+				CASE 4
+					PRINTFORMW 「うー...蒼外線対策魔法なんて、%CNAME("一人称")%まだ習ってないのに...」
+				CASE 5
+					PRINTFORMW 「蒼外線？ええと、%CNAME("一人称")%はまだ詳しく分からないんだけども...」
+				CASE 6
+					PRINTFORMW 「太陽に沢山浴びると日焼けしたり、浄化されたりするじゃないですか」
+				CASE 7
+					PRINTFORMW 「その原因が青外線って奴らしいです...なんか、先生は青の外にある光がなんとかって言ってました」
+				CASE 8
+					PRINTFORMW 「そういえば、%CNAME("二人称")%の種族は青外線が見えるって先生が言っていました！」
+				CASE 9
+					PRINTFORMW 「青外線ってどんな風に見えるんですか？やっぱり、トゲトゲしてるんですかね？」
+				CASE 10
+					CALL PRINT_STRW, @"「%CNAME("一人称")%と%CNAME("二人称")%で見えている世界が違うって、なんだかロマンチックですね_HH_」"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『うぅ、虚偽の世界の日差しは強いを過ぎる』
+				CASE 2
+				CASE 3
+					PRINTFORML 『%CNAME("二人称翻訳後")%はなんでですか？そのような元気』
+				CASE 4
+					PRINTFORML 『うう、蒼外線の対抗なる魔法、未学習な%CNAME("一人称翻訳後")%...』
+				CASE 5
+					PRINTFORML 『とは蒼外線？ 教える程の分かるを持たない%CNAME("一人称翻訳後")%は...」
+				CASE 6
+					PRINTFORML 『大量の太陽に撃たれるすると行われる日焼け、浄化すると分かるに同意しますか？』
+				CASE 7
+					PRINTFORML 『犯人はその蒼外線な...何か、教師は言っていた。青の外にある光が等々と』
+				CASE 8
+					PRINTFORML 『記憶を出しました。%CNAME("二人称翻訳後")%の種族が 言っていた先生が、蒼外線が見えると」
+				CASE 9
+					PRINTFORML 『どのように蒼外線のように見える？想定される、トゲトゲしてるのだろうと？」
+				CASE 10
+					CALL PRINT_STRL, @"『世界が異なる。%CNAME("一人称")%と%CNAME("二人称")%の見える、とは現実離れ的魅力が感じられる。そのような思いを貴方も抱いた事はありませんか？』"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "日常トーク：魔界と虚偽世界"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「КёгыйСекай вар хонтоу ный Ныйнген шикар сундийе ыйнайн дещ нейе...Таммер ный Ныйнген ыйгай нор хитор мор мйкаке масс кедор...Хотндор нор моннор вар Нйнген ёу ный цуцкраретйе ыймасс ссй...」
+				CASE 2
+					PRINTFORMW 「Йе？КёгыйСекай？」
+				CASE 3
+					PRINTFORMW 「Э...умм...Ки вор валлц шитйе сыймат наллер гомменасай...」
+				CASE 4
+					PRINTFORMW 「%CNAME("一人称")% нор сумм... %CNAME("二人称")% нор котвар дйе ию тор Макай нор... Суцкнацк томор %CNAME("一人称")%нор Цокёу деммославия девар, кочрар нор Секай нор цот вор КёгыйСекай ьтйе ёнде ыймасс.」
+				CASE 5
+					PRINTFORMW 「Гяцк ный %CNAME("一人称")% нор яттйе китар Секай ват ...Кихон тецкй ный вар［Секай］дйе цуузй масс гар ,цуветт сулл тамме ный ыйу наллер СйнжицСекай тор ёварре масс.」
+				CASE 6
+					PRINTFORMW 「КёгыйЖин... Нйнген нор цот дещ нйе, вар %CNAME("一人称")%тач вор даммашй тйе доннер Хитор дйе аттемор Долей яр Цациц нор ёв ный ацкай , Сайгор вар Кеяцк вор ябтйе нанй мор оррей вор Аттяезз ный Ойдашйтаррй ,коллорсй таррй сулл ...」
+				CASE 7
+					PRINTFORMW 「Совяттйе, %CNAME("一人称")% тач ный уссор вор цуыйтйе даммастйе Хиддой кот вор сулл ...Совыйу хитор гар тацксан сундйе ыйлл Секай даккарар [КёгыйСекай] сов ёвалле тйе ыймасс.」
+				CASE 8
+					PRINTFORMW 「Дацкарар ...КёгыйСекай вар ...КёгыйЖин вар ...%CNAME("一人称")% тач нор Секай...Макай девар Тотйемор Тотйемор киллерваретйе ыймасс...」
+				CASE 9
+					PRINTFORMW 「КёгыйСекай тор ыйу намайе вар ... ноннор Тобкю нор Хитор мор ёцк цкау тангор дещ гар ...Сугоцк савец тецкй ный цукаваррел тангор дещ...」
+				CASE 10
+					PRINTFORMW 「Дакарер...%CNAME("二人称")%ный вар КёгиСеай яр СйнжицСекай ттйе иварнай дйе, НйнгенКай・Макай ттйе ию ёв ный коколлор гаке тйе ыймасс...」
+				CASE 11
+					PRINTFORMW 「М...морчрон！%CNAME("二人称")% гар Кейяцк ыйхан суллу ёвнар хитор девар наый ттйе %CNAME("一人称")% вар сыйнзыйтйе ыймасс！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「KyogyiSekay var hontou nyi Nyingen shikar sundiye yinayn deshch neye...Tammer nyi Nyingen yigay nor hitor mor mykake mass kedor...Hotndor nor monnor var Nyngen you nyi tsuckraretye yimass ssy...」
+				CASE 2
+					PRINTFORMW 「Ye？KyogyiSekay？」
+				CASE 3
+					PRINTFORMW 「E'...umm...Ki vor vallc shitye syimat naller gommenasay...」
+				CASE 4
+					PRINTFORMW 「%CNAME("一人称")% nor summ... %CNAME("二人称")% nor kotvar dye iyu tor Makay nor... Sucknack tomor %CNAME("一人称")% nor Cokyou demmoslaviya devar, kochrar nor Sekay nor cot vor KyogyiSekay 'tye yonde yimass.」
+				CASE 5
+					PRINTFORMW 「Gyack nyi %CNAME("一人称")% nor yattye kitar Sekay vat ...Kihon tecky nyi var［Sekay］dye tsuuzy mass gar ,cuvett sull tamme nyi yiu naller SynjitsSekay tor yovarre mass.」
+				CASE 6
+					PRINTFORMW 「KyogyiJin... Nyngen nor cot deshch nye, var %CNAME("一人称")% tach vor dammashy tye donner Hitor dye attemor Doley yar Catsic nor yov nyi atskay , Saygor var Keyack vor yabtye nany mor orrey vor Attyaezz nyi Oydashytarry ,kollorsy tarry sull ...」
+				CASE 7
+					PRINTFORMW 「Sovyattye, %CNAME("一人称")% tach nyi ussor vor tsuyitye dammastye Hiddoy kot vor sull ...Sovyiu hitor gar tacksan sundye yill Sekay dakkarar [KyogyiSekay] sov yovalle tye yimass.」
+				CASE 8
+					PRINTFORMW 「Dackarar ...KyogyiSekay var ...KyogyiJin var ...%CNAME("一人称")% tach nor Sekay...Makay devar Totyemor Totyemor killervaretye yimass...」
+				CASE 9
+					PRINTFORMW 「KyogyiSekay tor yiu namaye var ... nonnor Tobkyu nor Hitor mor yock tskau tangor deshch gar ...Sugock savets tecky nyi tsukavarrel tangor deshch...」
+				CASE 10
+					PRINTFORMW 「Dakarer...%CNAME("二人称")% nyi var KyogiSeay yar SynjitsSekay ttye ivarnay dye, NyngenKay・Makay ttye iyu yov nyi kokollor gake tye yimass...」
+				CASE 11
+					PRINTFORMW 「M...morchron！%CNAME("二人称")% gar Keyyack yihan sullu yovnar hitor devar nayi ttye %CNAME("一人称")% var syinzyitye yimass！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「虚偽世界には本当に人間しか住んでいないんですねぇ...たまーに人間以外のヒトも見かけますけど...殆どの物は人間用に作られていますし...」
+				CASE 2
+					PRINTFORMW 「え？虚偽世界について？」
+				CASE 3
+					PRINTFORMW 「えー...うん...気を悪くしてしまったならごめんなさい...」
+				CASE 4
+					PRINTFORMW 「私の住む...貴方の言葉でいうと魔界の...少なくとも私の故郷ダエモスラビヤでは、こちらの世界の事を虚偽世界って呼んでます。」
+				CASE 5
+					PRINTFORMW 「逆に私のやってきた世界は...基本的には［世界］で通じますが、区別するために言うなら真実世界と呼ばれます」
+				CASE 6
+					PRINTFORMW 「虚偽人...人間の事ですね、は私たち真実人を騙してどんなヒトであっても奴隷や家畜のように扱い、最後は契約を破って何もお礼を与えずに追い出したり、殺したりする...」
+				CASE 7
+					PRINTFORMW 「そうやって、私たちを嘘をついて騙して酷いことをする...そういうヒトが沢山住んでいる世界だから虚偽世界　そう呼ばれています」
+				CASE 8
+					PRINTFORMW 「だから...虚偽世界は...虚偽人は...私たちの世界...魔界ではとてもとても嫌われています...」
+				CASE 9
+					PRINTFORMW 「虚偽世界という名前は...どの等級のヒトもよく使う単語ですが...すごく差別的に使われる単語です...」
+				CASE 10
+					PRINTFORMW 「だから...%CNAME("二人称")%には虚偽世界や真実世界って言わないで、人間界・魔界って言うように心がけてます...」
+				CASE 11
+					PRINTFORMW 「も...もちろん！%CNAME("二人称")%が契約違反するようなヒトでは無いって%CNAME("一人称")%は信じています！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳　これは長文かつ、理解して欲しいので翻訳精度を意図的に上げてます
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 『虚偽世界には真に人間だけ住むである事を私は認識しました。まれに私は見る事が有るでしょう人間とは異なる人間を...全ての内大体が作られた、人間用に...」
+				CASE 2
+					PRINTFORMW 『え、虚偽世界とは』
+				CASE 3
+					PRINTFORMW 『えー、はい、精神の不快をプレゼントするである場合、謝罪』
+				CASE 4
+					PRINTFORMW 『%CNAME("一人称翻訳後")%の住む、%CNAME("二人称翻訳後")%の言葉で言うのであれば魔界の、最低限の知識であっても私の故郷『エラーID18559812、変邸結果、地名。変換先辞書に登録のない単語です。魔伝罅接続後に再度行ってください。』では、こちらの世界の事を虚偽世界と呼ばれる。』
+				CASE 5
+					PRINTFORMW 『反対的な思考を得ようとするでは、私の世界。より、多くの場合において［世界］が流通する。しかしをもって、異なるを意識的な持たせるを行う場合においては真実世界と呼ばれる』
+				CASE 6
+					PRINTFORMW 『虚偽人...人間の事である。は%CNAME("一人称翻訳後")%達、真実人を騙すをするして、いかなる場合の人間の要素を持っていると仮定しても奴隷や家畜のような扱いを、契約を破るを最後して全てのお礼を無いをする。の後に、追い出したり、殺したりする。』
+				CASE 7
+					PRINTFORMW 『そのような、を行う事によってもたらされる。%CNAME("一人称翻訳後")%達への虚偽を渡す、を行うして非道徳的を行う。そうした結果、人間がより多くの家を持つをしている世界である故のもたらされた結果は虚偽世界　と呼ばれる。』
+				CASE 8
+					PRINTFORMW 『それ故に、虚偽世界は、虚偽人は、%CNAME("一人称翻訳後")%達の世界...嫌うを持つしている沢山の沢山の魔界...』
+				CASE 9
+					PRINTFORMW 『虚偽世界という名前は、いかなる階級の人間もより多くの認知単語です。しかし、差別を同封された、単語である事は既知の事実。』
+				CASE 10
+					PRINTFORMW 『それ故に、言わないをする虚偽世界と真実世界について%CNAME("二人称翻訳後")%へ、人間界・魔界って言うように心がけてます...』
+				CASE 11
+					PRINTFORMW 『当たり前です！%CNAME("二人称翻訳後")%が契約違反人間とは異なる。%CNAME("一人称翻訳後")%は信じています！』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "テンプレート"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "母国について告白"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 
+				CASE 1
+					PRINTFORML 
+				CASE 2
+					PRINTFORML 
+				CASE 3
+					PRINTFORML 
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 3
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 
+				CASE 1
+					PRINTFORML 
+				CASE 2
+					PRINTFORML 
+				CASE 3
+					PRINTFORML 
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 10
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 
+				CASE 1
+					PRINTFORML 
+				CASE 2
+					PRINTFORML 
+				CASE 3
+					PRINTFORML 
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 
+				CASE 1
+					PRINTFORML 
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "ラジオ放送：包囲下"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML [・・・Тудыте,Демославия хунсов нов неwсе дещ.
+					PRINTFORML Гензаы Демославия Сяцаысыг овкоц Ремпаw шут 
+					PRINTFORML Вибоград ва зынмин каыхов гун ныеы ёллы Хоуы салле・・・]
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML [Tudyte,Demoslaviya hunsov nov newse deshch.]
+					PRINTFORML [Genzay Demoslaviya Syacaysyg ovkoc Rempaw shut Vibograd va zynmin kayhov gun nyey yolly Houy salle・・・]
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 10
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML [続いてダエモスラビヤ紛争についてのニュースです。現在、ダエモニラビヤ社会主義王国連邦 首都ヴィヴォグランドは種族解放軍の手により完全に包囲され、
+					PRINTFORML 市民は物資の足りない中。日々眠れぬ夜を過ごしています。この種族解放軍による無差別砲撃に対し、世界連合は種族浄化であると強い批判を・・・]
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 
+				CASE 1
+					PRINTFORML 
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "ラジオ放送：包囲下：解説"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Довыеллер・・・Шут гав Ханллерн гун не хоуы саллетые илл митаы дещ・・・」
+				CASE 2
+					PRINTFORML 「Онаычан・・・Ицтелл ёные・・・？」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Dovyeller・・・Shut gav Hanllern gun ne houy salletye ill mitay deshch・・・」
+				CASE 2
+					PRINTFORML 「Onaychan・・・Ictell yonye・・・？」
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE 10
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「どうやら・・・首都が反乱軍に完全に包囲されているみたいです・・・」
+				CASE 2
+					PRINTFORML 「お姉ちゃん・・・生きてるよね・・・？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 
+				CASE 1
+					PRINTFORML 『仮説・・・首都が反乱の軍に包まれている。のような・・・』
+				CASE 1
+					PRINTFORML 『姉妹・・・生きている・・・？』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;----------------------------------------------------------------
+;SHOP
+;----------------------------------------------------------------
+CASE "ミニゲーム開始：初"
+	SELECTCASE ARG
+		CASE 0;地の文とか、翻訳有無や言語能力に影響の受けないメッセージ
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『ガー...Цочрар Демославия Ренпов Гун, Демославия Ренпов Гун』
+					PRINTFORMW 『This is Demoslavya Army. This is Demoslavya Army.』
+
+					PRINTFORMW 『вивогланд каикоу нор кайхов ный сейков сймасйтар.』
+					PRINTFORMW 『Сейзон кацкныйн нор таммйе тенсов вор оцкорнай масс.』
+					PRINTFORMW 突然%CALLNAME:TARGET%の翻訳機から声が聞こえてきた。
+				CASE 2
+				CASE 3
+					PRINTFORMW %CALLNAME:TARGET%の周囲の空気がパチパチと音をたてながら青白く発光し始めている。
+					PRINTFORMW 直感で分かる。あと一分もせずに%CALLNAME:TARGET%は異世界に飛ばされてしまうだろう。
+					PRINTFORML
+					PRINTFORML [100] %CALLNAME:TARGET%の手を握る
+					PRINTFORML 
+					$DAKITUKU_LOOP
+					INPUT
+						SIF RESULT != 100
+							GOTO DAKITUKU_LOOP
+				CASE 4
+				CASE 5
+					SETBGCOLOR 30,0,0
+					PRINTFORMW バシュウ----.......
+					PRINTFORMW どこかで味わった眩暈が貴方を襲う...
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW 魔界
+					PRINTFORMW 悪魔達の住む世界。
+					PRINTFORMW あなたはたった今、その世界に来たのだ。
+					PRINTFORML 
+					PRINTFORML 
+					PRINTFORMW 
+					PRINTFORMW 転送されてきたこの部屋は暗く、窓のない地下室のような部屋だ。
+					PRINTFORMW 《大気隔離被膜の展開が完了しました。急激な気圧の変化にご注意ください。》
+					PRINTFORMW 貴方の脳に槞彁の翻訳機の声と似ている声が響いた。人工的に作られた声だ。
+					PRINTFORMW ﾌﾟｼｭｳと音がすると、ゆっくりと頑丈な鉄のドアが開いた。
+					PRINTFORML 
+					PRINTFORML あなたの目の前には見知った風景とは全く異なる景色が広がっている。
+					PRINTFORMW 
+					PRINTFORMW 空に太陽は無く、空一面が夕焼けよりもずっと赤く染められている。
+					PRINTFORMW 周囲は霧ではないのにも関わらず空気全体が奇妙に白くぼんやりと明るい。
+					PRINTFORMW 頭の上をトンボのような虫が飛んで行った。その体躯は30cmは有るだろう。
+					PRINTFORMW 良く空を見ると、空には巨大なトンボが群れを成して飛んでいる。
+					PRINTFORMW トンボが休んでいる木のように見えるそれらは全て、野生なのにも関わらず均等な太さで二本の枝に...Ｙの字状に成長している。
+					PRINTFORMW 木はその二つの特徴的な枝以外枝を持たず、先端はアスパラガスのように尖っている。
+					PRINTFORMW 黒っぽいシダが、地を這うように生えている。
+					PRINTFORMW 数歩歩いたところに有るまりものような、巨大な苔の塊は周期的に膨らんだり萎んだり、動物の呼吸のような動きをしている。
+					PRINTFORMW また、その隣にある石のように見えたそれはブヨブヨと風に揺られ時折黄色い液体を垂れ流す。
+					PRINTFORMW それは巨大なキノコのようだ。
+					PRINTFORML 
+					PRINTFORMW 風景を見ていると突然耳が痛くなる。目に柑橘類の汁が入ったかのように染みる。頭が痛くなる。
+					PRINTFORMW 強烈な刺激臭が鼻を突く。肌はピリピリと電気風呂に入ったように刺激を訴える。
+					PRINTFORMW 周囲は夏のように熱く汗をかくが、それ以上に体中をしっとりと高湿度の空気がまとわりつき衣類を不快な物へと変化させていく。
+					PRINTFORML 
+					PRINTFORMW 魔界の大気の、その高い湿度に含まれるのは水だけではないのだ　酸性雨...酸性霧だ
+					PRINTFORMW 手の甲に触れるとまるで温泉に入ったかのようにぬるりと指が滑る。肌がヒリヒリと痛くなる。
+				CASE 6
+				CASE 7
+				CASE 8
+					PRINTFORMW %CALLNAME:TARGET%は軽口を叩いているが、それどころでは無い...
+					PRINTFORMW %CALLNAME:MASTER%は服を脱いで日焼け止めを塗ってもらった。
+				CASE 9
+				CASE 10
+					PRINTFORML ﾌﾞﾛﾛﾛ...
+					PRINTFORMW 後ろからエンジンの音が聞こえる。
+					PRINTFORML 振り返ると遠くから戦車と装甲車が列を作ってやってきた。
+					PRINTFORMW 二人の目の前で装甲車が止まると乱暴にドアが開いた。
+					PRINTFORML 
+					;やぁやぁ、お嬢様？お久しぶりで。
+					SETCOLOR 0,200,0
+					PRINTFORMW 「Яхр,Яхр, Оёусаммар? охйсасйврй дйе.」
+					RESETCOLOR
+					PRINTFORMW ゆっくりと現れた、その人物は
+					PRINTFORMW %CALLNAME:TARGET%と異なる真っ白なフワフワの羽を持ち
+					PRINTFORMW 頭に黄色くぼんやりと光る輪を浮かべる
+					PRINTFORMW 天使だ。
+					PRINTFORMW 身長は140cm前後...中性的な顔立ちで純粋そうな可愛らしい顔をしている。
+					PRINTFORMW その、聖属性溢れる見た目は周囲のおどろおどろしい風景や、降りてきた車からは浮いて見えてしまう。
+
+					PRINTFORMW 後ろに数人の鉄砲を持った兵隊...悪魔の兵士が付いてきている。
+				CASE 11
+					PRINTFORMW %CALLNAME:TARGET%は羽を広げて、キッと相手を睨みつけた。
+					;おいおい、そんな恐い顔しないでくれよ？ボクが居なかったら君の国は今存在していないんだからねぇ
+					SETCOLOR 0,200,0
+					PRINTFORML 「Оуй оуй, соннер ковай као сйнай дйе црйе ёр? Боцк гар ыйнацкаттрар киммй нор цкунй вар ыйммар сонзай сйтйе ыйнаиндацкарар нйе? 」
+					RESETCOLOR
+					PRINTFORMW 睨まれた天使はどこか呆れたような小馬鹿にしたような表情をしている。
+					PRINTFORMW %CALLNAME:MASTER%の存在に気が付くと、コロッと笑顔に切り替えて目の前まで近づいてきた。
+					SETCOLOR 0,200,0
+					;やぁ、初めまして って人間じゃねぇか！
+					PRINTFORMW 「яхр, хазймемассй тйе... ьтйе, Нйнген зя нйее кар!」
+					;んー困ったなぁ、人間の言葉は苦手なんだがねぇ
+					PRINTFORMW 「ннъ,Коммат нар. Нйнген нор цотбар вар нйгатйе нанда гар нйе...」
+					RESETCOLOR
+					PRINTFORMW 天使は何か驚いた表情をした後、何かブツブツとつぶやいている。
+
+					SETCOLOR 0,200,0
+					PRINTFORMW 「Hellor?」
+					PRINTFORMW 「здравствуйте？」
+					;面倒くせー！！
+					PRINTFORMW 「%UNICODE(0x4F60)%好？」
+					PRINTFORMW 「コンニチワ？
+					RESETCOLOR
+
+					CALL PRINT_NamariW("成程、これか。")
+					CALL PRINT_NamariW("初めまして。見ての通り、偉大なる天使様のイェニイェルだ。魔界で武器商人をやっているよ。今後ともよろしく。」")
+					PRINTFORMW イェニイェルはとても綺麗な営業スマイルで微笑みながら、%CALLNAME:TARGET%と握手をした。
+					PRINTFORMW 紅茶帝国語訛りともお花人民共和国語訛りとも違う独特な訛り方をしている。
+
+					CALL PRINT_NamariW("「え？なぜ僕が武器商人をやっているかだって？」")
+					CALL PRINT_NamariW("「ハハハ、分かっている癖に」")
+					CALL PRINT_NamariW("「紛争は素晴らしいネェ！僕たちが手を下さなくても悪魔同士で殺しあってくれるんだから。」")
+					CALL PRINT_NamariW("「...分かったかな？」")
+					PRINTFORMW イェニイェルは汚い物でも触ったかのように、念入りにウェットティッシュで手を拭いている。
+					
+					CALL PRINT_NamariW(@"「どうやら%CALLNAME:TARGET%お嬢様は、そのポンコツの翻訳機で人間語で言っても伝わるようだから、人間語でここから話すよ」")
+					CALL PRINT_NamariW(@"「突然召喚してしまってすまなかった。」")
+					CALL PRINT_NamariW(@"「この国で紛争が始まって暫く経った訳だけども、いい加減この国でも厭戦感情が広まっているんだ。」")
+					CALL PRINT_NamariW(@"「このままでは、ダエモスラビヤ連邦が崩壊してしまうところだったんだ。」")
+					CALL PRINT_NamariW(@"「だから、生き残ってる王族の%CALLNAME:TARGET%お嬢様にプロパガンダをお願いしたいんだ。分かってくれたかね？」")
+				CASE 12
+					PRINTFORML %CALLNAME:TARGET%は慌てた様子で話に割って入ってきた。
+					PRINTFORMW
+					CALL PRINT_NamariW(@"「...先日、敵に捕まったよ。安否わ不明だがね。」")
+				CASE 13
+					CALL PRINT_NamariW(@"「そういう事になるな」")
+				CASE 14
+					CALL PRINT_NamariW(@"「ハハハ！45歳の乳臭い悪魔風情がァ？」")
+					CALL PRINT_NamariW(@"「僕に〈お願いします。軍を指揮してください〉って頼んだ方が良いんじゃないかな？」")
+				CASE 15
+					CALL PRINT_NamariW(@"「いやいや、そんな国を乗っ取ろう等とは全く考えていませんよォ？」")
+					PRINTFORML イェニイェルは突然敬語に切り替え、ニコニコとわざとらしくとぼけた
+				CASE 16
+				CASE 17
+					CALL PRINT_NamariW(@"チッ")
+					TWAIT 100, 1
+					CLEARLINE 1
+					WAIT
+					CALL PRINT_NamariW(@"「素晴らしい！イェニイェル兵器廠わ全力で応援しましょう！」")
+					CALL PRINT_NamariW(@"「さぁ、彼女の愛する魔界を救いたまえ！偉大なる人間の騎士様よ！」")
+					CALL PRINT_NamariW(@"「...」")
+					CALL PRINT_NamariW(@"「ところで、なぜ君は魔界で呼吸が出来ているんだい？なぜ人間界の95倍の気圧に耐えられているんだい？」")
+					CALL PRINT_NamariW(@"「君は本当に人間なのかい？」")
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ц!?%CNAME("一人称")% вор Гун гар мукайенй цкймашй тар! ...ный сйтемор ренрацк гар хаяр сугймасс!」
+				CASE 2
+					PRINTFORMW 「хаць...хаярсугй масс... маттар! модтйе цкймасс! зеттай!」
+				CASE 3
+					PRINTFORMW 「Ець!?,Соннер цот сйтйе тарар %CNAME("一人称")% тор иссёр ный тенсов саллйе тйе сймай масс!」
+				CASE 4
+					PRINTFORMW 「Кицкь...Кицкен дещ гар дайёв дещ кар!」
+				CASE 5
+					PRINTFORMW 「%CNAME("二人称")% сан! Дайёв дещ кар!? Мацкай нор тайкый чу девар Нйнген вар тоцкетйе сймау ттйе кицкймашй тар!」
+				CASE 6
+					PRINTFORMW 「Сан Яцке Домме вар най нодйе ... %CNAME("一人称")% нор Хияцкйе Домме дйе гамман сйтйе цкдасай!　Холлер! хуцк нуйдйе цкдасай!」
+				CASE 7
+					CALL PRINT_STRW ,@"「Мов..._／／／_ Йеч нар ыйммй девар най дещ!」"
+				CASE 8
+					PRINTFORMW 「%CNAME("一人称")% тач гар Тайёв нор мот девар хйяцкйе домме гар хиц ёв нар ёв нйе, Нйнген мор Шокй нор нацкар девар сан яцке домме вор нуллар най тор ыйцктйе ыйкенайн дещ ьтйе」
+				CASE 9
+					PRINTFORMW 「Цкамй саммар мор мов суцорсй юъзу цйцк ёв ный цуцктйе кулле таллер ёцкат андесс кедд нйе...」
+				CASE 10
+					PRINTFORMW 「%CNAME("二人称")% варь！」
+				CASE 11
+					PRINTFORMW 「Ицкй ноцкотйел... ьтйе Онейчан вар!? Онейчан вар дов сйтан дещ кар!?」
+				CASE 12
+					PRINTFORMW 「...вацкарй маштар. %CNAME("一人称")% гар Ренпов гун нор сайцов сйцкцан тоыйу кот дещ нйе.」
+				CASE 13
+					PRINTFORMW 「%CNAME("一人称")% гар Онейчан вор суцктйе миссйе масс.」
+				CASE 14
+					PRINTFORMW 「%CNAME("二人称")%нор моцк тецкй вар солле дещ карь...！」
+				CASE 15
+					PRINTFORMW 「...%CNAME("一人称")% ный вар Сенсов сенмон шюзоцк дйе алл Нйнген нор, %CNAME("二人称")% сан гар ыймасс！」
+				CASE 16
+					PRINTFORMW 「Йенйел! %CNAME("二人称")% ный Ренпов гун вар ваташ массен!」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「ts!?%CNAME("一人称")% vor Gun gar mukayeny ckymashy tar! ...nyi sytemor renrack gar hayar sugymass!」
+				CASE 2
+					PRINTFORMW 「hac'...hayarsugy mass... mattar! modtye ckymass! zettay!」
+				CASE 3
+					PRINTFORMW 「Ec'!?,Sonner cot sytye tarar %CNAME("一人称")% tor issyor nyi tensov sallye tye symay mass!」
+				CASE 4
+					PRINTFORMW 「Kick'...Kicken deshch gar dayjov deshch kar!」
+				CASE 5
+					PRINTFORMW 「%CNAME("二人称")% san! Dayjov deshch kar!? Mackay nor taykyi chu devar Nyngen var tocketye symau ttye kickymashy tar!」
+				CASE 6
+					PRINTFORMW 「San Yacke Domme var nay nodye ... %CNAME("一人称")% nor Hiyackye Domme dye gamman sytye ckdasay!　Holler! huck nuydye ckdasay!」
+				CASE 7
+					CALL PRINT_STRW ,@"「Mov..._／／／_ Yech nar yimmy devar nay deshch!」"
+				CASE 8
+					PRINTFORMW 「%CNAME("一人称")% tach gar Tayyov nor mot devar hyyackye domme gar hits yov nar yov nye, Nyngen mor Shoky nor nackar devar san yacke domme vor nullar nay tor yicktye yikenayn deshch 'tye」
+				CASE 9
+					PRINTFORMW 「Ckamy sammar mor mov sucorsy yu''zu cyck yov nyi tsucktye kulle taller yockat andess kedd nye...」
+				CASE 10
+					PRINTFORMW 「%CNAME("二人称")% var'！」
+				CASE 11
+					PRINTFORMW 「Icky nockotyel... 'tye Oneychan var!? Oneychan var dov sytan deshch kar!?」
+				CASE 12
+					PRINTFORMW 「...vackary mashtar. %CNAME("一人称")% gar Renpov gun nor saycov syckcan toyiu kot deshch nye.」
+				CASE 13
+					PRINTFORMW 「%CNAME("一人称")% gar Oneychan vor sucktye missye mass.」
+				CASE 14
+					PRINTFORMW 「%CNAME("二人称")%nor mock tecky var solle deshch kar'...！」
+				CASE 15
+					PRINTFORMW 「...%CNAME("一人称")% nyi var Sensov senmon shyuzock dye all Nyngen nor, %CNAME("二人称")% san gar yimass！」
+				CASE 16
+					PRINTFORMW 「Yenyel! %CNAME("二人称")% nyi Renpov gun var vatash massen!」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「っ！？私を軍が迎えにきました！...にしても連絡が急過ぎます！」
+				CASE 2
+					PRINTFORMW 「はっ...早すぎます... また！戻ってきます！絶対！」
+				CASE 3
+					PRINTFORMW 「えっ！？そんなことしてたら私と一緒に転送されてしまいます！」
+				CASE 4
+					PRINTFORMW 「きっ...危険ですが大丈夫ですか！」
+				CASE 5
+					PRINTFORMW 「あなたさん！大丈夫ですか！？魔界の大気中では人間は溶けてしまうって聞きました！」
+				CASE 6
+					PRINTFORMW 「酸焼け止めは無いので...私の日焼け止めで我慢してください！　ほら！服脱いで下さい！」
+				CASE 7
+					PRINTFORMW 「もぅ...えっちな意味では無いです！」
+				CASE 8
+					PRINTFORMW 「%CNAME("一人称")%たちが太陽の元では日焼け止めが必要なように、人間も瘴気の中では酸焼け止めを塗らないと生きていけないんですって」
+				CASE 9
+					PRINTFORMW 「神様ももう少し融通効くように作ってくれたら良かったんですけどねぇ...」
+				CASE 10
+					PRINTFORMW 「%CNAME("二人称")%はっ！」
+				CASE 11
+					PRINTFORMW 「生き残ってる...ってお姉ちゃんは！？お姉ちゃんはどうしたんですか！」
+				CASE 12
+					PRINTFORMW 「...分かりました。%CNAME("一人称")%が連邦軍の最高指揮官という事ですね。」
+				CASE 13
+					PRINTFORMW 「%CNAME("一人称")%がお姉ちゃんを救って見せます。」
+				CASE 14
+					PRINTFORMW 「%CNAME("二人称")%の目的はそれですかっ...！」
+				CASE 15
+					PRINTFORMW 「...%CNAME("一人称")%には戦争特化種族である人間の、%CNAME("二人称")%さんが居ます！」
+				CASE 16
+					PRINTFORMW 「貴方に連邦軍は渡しません！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 『軍が%CNAME("一人称翻訳後")%を迎えにやってくる。これは連絡が突然です。』
+				CASE 2
+					PRINTFORMW 『私は猶予を持っていません。　再度、戻るに来ます。絶対に』
+				CASE 3
+					PRINTFORMW 『え、それをする。を行うと共に転送を行うがされるでしょう。』
+				CASE 4
+					PRINTFORMW 『%CNAME("二人称翻訳後")%は危険を得る事になります。それは%CNAME("二人称翻訳後")%の意図であるのかの確証を私が持つに至るしていません。』
+				CASE 5
+					PRINTFORMW 『%CNAME("二人称翻訳後")%さん、大丈夫ですか？私は聞いた。人間は魔界の瘴気によって融解してしまう。』
+				CASE 6
+					PRINTFORMW 『私は酸焼け止めを持っていません。私の日焼け止めでの我慢を要求します。　脱衣願い！』
+				CASE 7
+					PRINTFORMW 『性的な意味を持たない』
+				CASE 8
+					PRINTFORMW 『%CNAME("一人称翻訳後")%達は、太陽の元では日焼け止めが必要です。のように、人間は瘴気の中に滞在を行うしているまでの間。酸焼け止めを塗るをするしなければ。生きていけないと聞く。』
+				CASE 9
+					PRINTFORMW 『神はより融通を利かせるべきでした。』
+				CASE 10
+					PRINTFORMW 『%CNAME("二人称翻訳後")%は』
+				CASE 11
+					PRINTFORMW 『生き残ってる。お姉ちゃんは？どうしたんですか。お姉ちゃんは？』
+				CASE 12
+					PRINTFORMW 『理解を得るしました。%CNAME("一人称翻訳後")%は連邦軍の最高指揮官を得るしているであるですね。』
+				CASE 13
+					PRINTFORMW 『%CNAME("一人称翻訳後")%がお姉ちゃんを救って見せます。』
+				CASE 14
+					PRINTFORMW 『%CNAME("二人称翻訳後")%の目的がそれである。』
+				CASE 15
+					PRINTFORMW 『%CNAME("一人称翻訳後")%は持っている。戦争に特化した種族である人間の%CNAME("二人称翻訳後")%さん。』
+				CASE 16
+					PRINTFORMW 『%CNAME("二人称翻訳後")%に連邦軍は渡しません』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "ミニゲーム開始：通常"
+	SELECTCASE ARG
+		CASE 0;地の文とか、翻訳有無や言語能力に影響の受けないメッセージ
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORMW %CALLNAME:TARGET%は力強く胸の前で拳をグッと握った。
+				CASE 3
+				CASE 4
+					CALL PRINT_NamariW,("『ｺﾎﾝ、聞こえてるぞ～？』")
+					PRINTFORMW 翻訳機からイェニイェルの声が聞こえて来た。
+					CALL PRINT_NamariW,(@"『話わ聞いてたぜ、転送するから%CALLNAME:TARGET%に抱き着いてくれ』")
+					PRINTFORMW %CALLNAME:TARGET%の周囲の空気がパチパチと音をたてながら青白く発光し始めた。
+
+					CALL PRINT_NamariW,("『３』")
+					CALL PRINT_NamariW,("『２』")
+					CALL PRINT_NamariW,("『１』")
+					CALL PRINT_NamariW,("『それでわ、地獄え参りまァ～す』")
+				
+					SETBGCOLOR 30,0,0
+					PRINTFORMW バシュウ----.......
+					PRINTFORMW 眩暈が%CALLNAME:MASTER%を襲う...
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Матт татцкатйе куреллн дещ нйе！Исшор ный ганбарй машоу нйе！」
+				CASE 2
+					PRINTFORMW 「%CNAME("二人称")% наллер кит дайёв дещ！」
+				CASE 3
+					PRINTFORMW 「Йенйел вар зеттай синёв щар даммйе дещ ёр！」
+				CASE 4
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「Matt tatckatye kurelln deshch nye！Isshor nyi ganbary mashou nye！」
+				CASE 2
+					PRINTFORMW 「%CNAME("二人称")% naller kit dayjov deshch！」
+				CASE 3
+					PRINTFORMW 「Yenyel var zettay sinyov shchar dammye deshch yor！」
+				CASE 4
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「また戦ってくれるんですね！一緒に頑張りましょうね！」
+				CASE 2
+					PRINTFORMW 「%CNAME("二人称")%ならきっと大丈夫です！」
+				CASE 3
+					PRINTFORMW 「イェニイェルは絶対信頼しちゃ駄目ですよ！」
+				CASE 4
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『再度の戦いをするをしてくれるですね。共同の努力ましょうね。』
+				CASE 2
+					PRINTFORML 『推定、%CNAME("二人称翻訳後")%であれば無問題でしょう。』
+				CASE 3
+					PRINTFORML 『イェニイェルの信頼は確実に不可ですよ。』
+				CASE 4
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "余計なお世話"
+	SELECTCASE ARG
+		CASE 0;地の文とか、翻訳有無や言語能力に影響の受けないメッセージ
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Ёцкей нар осевара дещ！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Yockey nar osevara deshch！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「余計なお世話です！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 『余計なお世話です。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+;----------------------------------------------------------------
+;イベント用
+;----------------------------------------------------------------
+CASE "入界管理局イベント：移動中"
+	SELECTCASE ARG
+		CASE 0;地の文とか
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW %NAME:TARGET%に連れられて中央駅に来た。
+				CASE 2
+				CASE 3
+				CASE 4
+				CASE 5
+					PRINTFORMW %NAME:TARGET%は何もない壁を時々見ながら歩いている。
+				CASE 6
+				CASE 7
+				CASE 8
+				CASE 9
+				CASE 10
+					PRINTFORMW %NAME:TARGET%は時々%CALLNAME:MASTER%が来てるかを確認しながら、どんどん前を歩いていく。
+				CASE 11
+				CASE 12
+				CASE 13
+				
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Э？НюкайКанрйКёцк нор вашо дещкар？Аръ...Хонтоу ный мыййенайн дещ неэь...」
+				CASE 2
+					PRINTFORML 「Йетт...Колле вар Муков дйе венкё сйтар кот нандер кедещ кед мор...КёгыйСекай девар СйнжицСекай яр ЁцкацСекай...Нйнген-Кай девар Ма-кай яр Тен-Кай нор Сонзай вар ооякей ный вар миттомеларе тйе ыйнайн дешйтар ёней？」
+				CASE 3
+					PRINTFORML 「Солле дйе...НюкайКанрйКёцк вар Оммотйе муцкй ный вар Аннай ёр вор дасйе най нодйе , %CNAME("一人称")% тач ный шикар мыййенай можи дйе Цанван вор дасыйтйе ыйлл...рарсыйый дещ！」
+				CASE 4
+					PRINTFORML 「Деммор хонтов ный мийенайн дещ нйе... Коннанй доудо тор Кацкалле тйе ыйлл нонй ...」
+				CASE 5
+					PRINTFORML 「Э？...Аь%CNAME("一人称")% тач ный шикар мийенай можи ттйе соннер Махов токар зянай дещ！」
+				CASE 6
+					PRINTFORML 「%CNAME("一人称")% тач ...Макай-жин дещ нйе. Макай-жин вар %CNAME("二人称")% гатер , Нйнген товар Цашков нор Ханый гар Котналл рарсыйн дещ.」
+				CASE 7
+					PRINTFORML 「ЫЙзен оханасй шитар каммор сыйренай нор дещ гар ,%CNAME("一人称")% тач ный вар Совгайсен...йетт ...Аор нор цугй нор ...Мулласакй！Мулласакй илло гар мыййенайн дещ.」
+				CASE 8
+					PRINTFORML 「Соннор каварй ный , ⊥лыъвьы иллор...Ацкар нор цугй нор ыйллор дйе цувузыймасс канйе...? Аь[SEKIGAISEN] ттйе июн дещнйе. [SEKIGAISEN] гар мийеллн дещ！」
+				CASE 9
+					PRINTFORML 「Нанор дйе , соннор касыйков хава нор чгай вор рыйёв сыйтйе, Химит нор мессезй нанкар вор кайтйе ыйлл тйе кицкймаштар.」
+				CASE 10
+					PRINTFORML 「...Торыйв кот вар %CNAME("一人称")% нор Намайе дйе алл ⊥лыъвьыИллор вар %CNAME("二人称")% ный вар МИйенайн дещ нйе...」
+				CASE 11
+					PRINTFORML 「⊥лыъвьыИллор вар %CNAME("一人称")% нор вокоцк нор демославия нор цокый ныймор цукаваллетйе илл иллор дйе, Ондйерн нар Кицков тор Хитвитор нор Кёзон вор аллар васй тйе ыйлл иллор нан дещ！」
+				CASE 12
+					PRINTFORML 「Вивогланд нивар ⊥лыъвьыИллор нор Моск гар аттйе, Тотйе мор кйррай нан дещ ёр！」
+				CASE 13
+					PRINTFORML 「Киьтт...Киьтт　%CNAME("二人称")% нор мйе ный аззяр кар нар ⊥лыъвьыИллор гар мыййе нац тйемор , Хадд дйе , Куфвкый дйе Канзый тйе моллар йелл тор оммой масс ёр. холлар！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+					RETURN 1
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「E'？NyukayKanryKyock nor vasho deshchkar？Ar''...Hontou nyi myiyenayn deshch nee''...」
+				CASE 2
+					PRINTFORML 「Yett...Kolle var Mukov dye venkyo sytar kot nander kedeshch ked mor...KyogyiSekay devar SynjitsSekay yar YockatsSekay...Nyngen-Kay devar Ma-kay yar Ten-Kay nor Sonzay var ooyakey nyi var mittomelare tye yinayn deshytar yoney？」
+				CASE 3
+					PRINTFORML 「Solle dye...NyukayKanryKyock var Ommotye mucky nyi var Annay jor vor dasye nay nodye , %CNAME("一人称")% tach nyi shikar myiyenay moji dye Canvan vor dasyitye yill...rarsyiyi deshch！」
+				CASE 4
+					PRINTFORML 「Demmor hontov nyi miyenayn deshch nye... Konnany doudo tor Kackalle tye yill nony ...」
+				CASE 5
+					PRINTFORML 「E'？...A'%CNAME("一人称")% tach nyi shikar miyenay moji ttye sonner Mahov tokar zyanay deshch！」
+				CASE 6
+					PRINTFORML 「%CNAME("一人称")% tach ...Makay-jin deshch nye. Makay-jin var %CNAME("二人称")% gater , Nyngen tovar Cashkov nor Hanyi gar Kotnall rarsyin deshch.」
+				CASE 7
+					PRINTFORML 「Yizen ohanasy shitar kammor syirenay nor deshch gar ,%CNAME("一人称")% tach nyi var Sovgaysen...yett ...Aor nor tsugy nor ...Mullasaky！Mullasaky illo gar myiyenayn deshch.」
+				CASE 8
+					PRINTFORML 「Sonnor kavary nyi , ⊥лыъвьы illor...Ackar nor tsugy nor yillor dye tsuvuzyimass kanye...? A'[SEKIGAISEN] ttye iyun deshchnye. [SEKIGAISEN] gar miyelln deshch！」
+				CASE 9
+					PRINTFORML 「Nanor dye , sonnor kasyikov hava nor chgay vor ryiyov syitye, Himit nor messezy nankar vor kaytye yill tye kickymashtar.」
+				CASE 10
+					PRINTFORML 「...Toryiv kot var %CNAME("一人称")% nor Namaye dye all ⊥лыъвьыIllor var %CNAME("二人称")% nyi var MIyenayn deshch nye...」
+				CASE 11
+					PRINTFORML 「⊥лыъвьыIllor var %CNAME("一人称")% nor vokock nor demoslaviya nor cokyi nyimor tsukavalletye ill illor dye, Ondyern nar Kickov tor Hitvitor nor Kyozon vor allar vasy tye yill illor nan deshch！」
+				CASE 12
+					PRINTFORML 「Vivogland nivar ⊥лыъвьыIllor nor Mosk gar attye, Totye mor kyrray nan deshch yor！」
+				CASE 13
+					PRINTFORML 「Ki'tt...Ki'tt　%CNAME("二人称")% nor mye nyi azzyar kar nar ⊥лыъвьыIllor gar myiye nac tyemor , Hadd dye , Kufvkyi dye Kanzyi tye mollar yell tor ommoy mass yor. hollar！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「え？入界管理局の場所ですか？あー...本当に見えないんですねぇ...」
+				CASE 2
+					PRINTFORML 「えっと...これは向こうで勉強したことなんだけども...虚偽世界では真実世界や抑圧世界...人間界では魔界や天界の存在は公には認められていないんでしたよね？」
+				CASE 3
+					PRINTFORML 「それで...入界管理局は表向きには案内状を出せないので、私たちにしか見えない文字で看板を出している...らしいです！」
+				CASE 4
+					PRINTFORML 「でも本当に見えないんですね...こんなに堂々と書かれているのに...」
+				CASE 5
+					PRINTFORML 「えっ？...あっ私たちにしか見えない文字ってそんな魔法とかじゃないです！」
+				CASE 6
+					PRINTFORML 「私たち...魔界人ですね。魔界人は貴方々、人間とは可視光の範囲が異なるらしいんです。」
+				CASE 7
+					PRINTFORML 「以前お話したかもしれないですが、私たちには蒼外線...えっと...青の次の...紫！紫色が見えないんです。」
+				CASE 8
+					PRINTFORML 「その代わりに、槞色...赤の次の色で通じますかね...?あ、Sekigaisenって言うんですね。Sekigaisenが見えるんです！」
+				CASE 9
+					PRINTFORML 「なので、その可視光幅の違いを利用して、秘密のメッセージなんかを書いてるって聞きました。」
+				CASE 10
+					PRINTFORML 「...という事は私の名前である槞色は貴方には見えないんですね...」
+				CASE 11
+					PRINTFORML 「槞色は私の母国のダエモスラビヤの国旗にも使われている色で、温暖な気候と人々の共存を表している色なんです！」
+				CASE 12
+					PRINTFORML 「ヴィヴォグランドには槞色のモスクが有って、とっても綺麗なんですよ！」
+				CASE 13
+					PRINTFORML 「きっと...きっと　あなたの目に鮮やかな槞色が見えなくても、肌で、空気で感じてもらえると思いますよ。ほら！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 『なんですか？場所を問う、入界管理局の？ああ、真に不可視であるという事であると感じます。』
+				CASE 2
+					PRINTFORMW 『やや不確定な、向こうで私は学んだ事。虚偽世界では真実世界や抑圧世界。私は知っている、人間界では魔界と天界は公的で認知を貰う事はしたいない。』
+				CASE 3
+					PRINTFORMW 『しかし故に、入界管理局とは表面上の案内状出すをするが出来ない。しかし故に、私達のみの見る出来る文字による看板を出している。と学ぶをした！』
+				CASE 4
+					PRINTFORMW 『しかし、真に見るが出来ないであるですね。このような堂々と書くをしているのに...』
+				CASE 5
+					PRINTFORMW 『え？ああ、私たちにしか見えない文字とは、そのような魔法等であるとは異なるです。』
+				CASE 6
+					PRINTFORMW 『私たち、魔界人です。魔界人はあなたがた、人間と範囲が異なる可視光を幅らしいです。』
+				CASE 7
+					PRINTFORMW 『前回を聞いた得るしているが可能性を持っています、私たちは蒼外線、ええ、青の次の。紫、紫色が見るを出来るしない。」
+				CASE 8
+					PRINTFORMW 『その代替として、槞色。赤の次の色、と言うは認識を得る出来るか?ああ、Sekigaisenと言うするですか。我々は持つSekigaisenを見るが可能。』
+				CASE 9
+					PRINTFORMW 『それによって、それが可視光の幅違いを利用するして、秘密なる文書等を書くしているを私は聞くをしています。』
+				CASE 10
+					PRINTFORMW 『...という事は、%CNAME("一人称翻訳後")%の名前の一部ですある、槞色は%CNAME("二人称翻訳後")%には見る出来ないのであるですね...』
+				CASE 11
+					PRINTFORMW 『槞色とは%CNAME("一人称翻訳後")%が持っている母国『エラーID18559812、変邸結果、地名。変換先辞書に登録のない単語です。魔伝罅接続後に再度行ってください。』がの国旗、使うしている色で、気候が温暖な、と共存を表示する色しているです。』
+				CASE 12
+					PRINTFORMW 『『エラーID18559812、変邸結果、地名。変換先辞書に登録のない単語です。魔伝罅接続後に再度行ってください。』には槞色の[宗教施設]が有る、より大きな綺麗です！』
+				CASE 13
+					PRINTFORMW 『推定、推定。%CNAME("二人称翻訳後")%の目、新鮮な槞色を見る出来ないでも、肌と気体で感じる貰えると推測できるます。ほら。」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "入界管理局イベント：佐藤田中：選択まで"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+					PRINTFORMW 着いた所はプレハブの小さな宝くじ販売所だった
+				CASE 3
+					PRINTFORMW 「はい、いらっしゃいませ。」
+				CASE 4
+					PRINTFORMW %NAME:TARGET%は何もない壁の方を見ながら、まるで音読しているように言った。
+				CASE 5
+					PRINTFORML 店員は一瞬ピクりとすると
+					PRINTFORMW 「少々お待ちください。」
+					PRINTFORMW と言い、どこかに電話を掛けた。
+					PRINTFORML
+					PRINTFORML
+					PRINTFORMW 突如、眩暈が%CALLNAME:MASTER%を襲った。
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW 視界が戻ると、先ほどまで居た屋外のプレハブ小屋の前ではなく、洋風の...ホテルのロビーのような場所に座っていた。
+					PRINTFORMW 周囲には窓が無く、ここが何処であるのか　どのように連れてこられたのか全く分からない
+					PRINTFORMW %CALLNAME:TARGET%は、%CALLNAME:MASTER%の袖をぎゅっと握った
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW 奥から、スーツを着た眼鏡の男がやってきた。
+					PRINTFORML 「いやー、お待たせしました。入界管理局、魔界担当の佐藤田中です。今回はどのようなご用件でしょうか？」
+					PRINTFORMW どう考えても偽名である...
+				CASE 6
+					PRINTFORMW 「おや、就労ビザですか。魂取引限定の場合は不要なのはご存知でしょうか？」
+				CASE 7
+					PRINTFORMW 「なるほど...異界人の方は就労ビザではなく召喚ビザになるんですよ。」
+				CASE 8
+					PRINTFORMW 「その為には、召喚士の方が...いらっしゃいますね。では召喚ビザ発行の申請書に必要事項の記載をお願いします。」
+					PRINTFORML %CALLNAME:TARGET%は、ぱっと顔が明るくなった。
+					PRINTFORMW 仕方がない、書いてあげよう
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORML 「はい、ありがとうございます。」
+					PRINTFORMW 「えー、世界番号002番、ダエモスラビヤ出身の⊥лыъвьыкцлрさん...」
+					PRINTFORML
+					PRINTFORMW 「...」
+					PRINTFORML 
+					PRINTFORMW 佐藤田中から胡散臭い笑顔が消えた。
+					PRINTFORMW 「政治亡命の方が正しいのでは？%CALLNAME:TARGET%殿下？」
+					PRINTFORMW %CALLNAME:TARGET%は青ざめている。
+					PRINTFORMW ・・・
+					PRINTFORMW 「召喚士のあなた、彼女が何者か理解していますか？」
+					PRINTFORMW 「彼女は
+				CASE 9
+				CASE 10
+					PRINTFORMW 「ハハハ、母国で内戦が起きていて、その身なりの統帝の娘が観光とは。流石に苦しいですよ。」
+					PRINTFORMW %CALLNAME:TARGET%は手を強く握りしめている
+					PRINTFORMW 「残念ですがね、%CALLNAME:TARGET%さんをこの国で保護していると公にする事は出来ません。」
+					PRINTFORMW 「この国は、魔界への介入を行わない方針を取っています。政治的にセンシティヴな貴方の受け入れはお断りさせていただきます。」 
+					PRINTFORMW 「入界自体は技術的、条約的に監視できないので滞在だけしか認められません。」
+				CASE 11
+					PRINTFORMW 「しかしです！」
+					PRINTFORML 
+					PRINTFORMW 「そちらの同行のあなた、彼女を我々に引き渡していただけますか？」
+					PRINTFORMW 「私は少々、お米帝国の三文字機関に知り合いが居ましてね...お米帝国なら亡命を受け入れてくれることでしょう」
+					PRINTFORMW 「世界で最も優れた国とのパイプを得る素晴らしい提案です。%CALLNAME:TARGET%さんにとっても、悪い話ではないと思いますが？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Цоцкор...Мйтай дещ нйе...」
+				CASE 2
+				CASE 3
+					PRINTFORML 「Йетт...5Нен ,айе нор Тацрар кузй вар аррй масс кар？」
+				CASE 4
+				CASE 5
+					PRINTFORML 「Аць... Аннор！Хаззй мйемарсй тйе！Сюлов нор сйнсей ный кимарсй тар！」
+				CASE 6
+					PRINTFORML 「Хаь...Хайь!, ТамасйТорйхицйГов девар нац ЦузёвРовдоу нор таммйе дещ」
+				CASE 7
+					PRINTFORML 「с...Сор нан дещ кар...」
+				CASE 8
+					PRINTFORML 「%CNAME("一人称")% нор Намайе вар ⊥лыъвьыкцлр. Демославия Оукоц Ренпов нор Товтей нор муссмйе дещ.」
+				CASE 9 
+					PRINTFORML 「Кочрар нор Секайзёсей нор Тейсац тор рёцов нор тамйе мый ятт кймашйтар.%CNAME("一人称")% вар, %CNAME("一人称")% тач Сейфу вар хогор вор моцтецкй тор вар сйтеыймассйен.」
+				CASE 10
+					PRINTFORML 「Соннар！」
+				CASE 11
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Cockor...Mytay deshch nye...」
+				CASE 2
+				CASE 3
+					PRINTFORML 「Yett...5Nen ,aye nor Tacrar kuzy var arry mass kar？」
+				CASE 4
+				CASE 5
+					PRINTFORML 「Ac'... Annor！Hazzy myemarsy tye！Syulov nor synsey nyi kimarsy tar！」
+				CASE 6
+					PRINTFORML 「Ha'...Hay'!, TamasyToryhicyGov devar nac TsuzyovRovdou nor tammye deshch」
+				CASE 7
+					PRINTFORML 「s...Sor nan deshch kar...」
+				CASE 8
+					PRINTFORML 「%CNAME("一人称")% nor Namaye var ⊥лыъвьыкцлр. Demoslaviya Oukoc Renpov nor Tovtey nor mussmye deshch.」
+				CASE 9 
+					PRINTFORML 「Kochrar nor Sekayzyosey nor Teysats tor ryocov nor tamye myi yatt kymashytar.%CNAME("一人称")% var, %CNAME("一人称")% tach Seyfu var hogor vor moctecky tor var syteyimassyen.」
+				CASE 10
+					PRINTFORML 「Sonnar！」
+				CASE 11
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「ここ...みたいですね」
+				CASE 2
+				CASE 3
+					PRINTFORML 「えっと...五年前の宝くじは有りますか？」
+				CASE 4
+				CASE 5
+					PRINTFORML 「あっ...あの！はじめまして！就労ビザの申請に来ました！」
+				CASE 6
+					PRINTFORML 「は...はい、魂取引業ではなく通常労働の為です」
+				CASE 7
+					PRINTFORML 「そ...そうなんですか...」
+				CASE 8
+					PRINTFORML 「私の名前は⊥лыъвьыкцлр。ダエモスラビヤ王国連邦の統帝の娘です。」
+				CASE 9
+					PRINTFORML 「こちらの世界情勢の視察と旅行の為にやってきました。私は、私たち政府は保護を目的とはしていません。」
+				CASE 10
+					PRINTFORML 「そんな！」
+				CASE 11
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『ここのようですね』
+				CASE 2
+				CASE 3
+					PRINTFORML 『五年前の宝くじは有りますか？』
+				CASE 4
+				CASE 5
+					PRINTFORML 『はじめまして、私は就労ビザの申請来るした。』
+				CASE 6
+					PRINTFORML 『それは魂取引業とは異なるです。通常労働の為。』
+				CASE 7
+					PRINTFORML 『そうなんですか』
+				CASE 8
+					PRINTFORML 『私の名前は⊥лыъвьыкцлр。ダエモスラビヤ王国連邦の統帝の娘です。』
+				CASE 9
+					PRINTFORML 『こちらの旅行と視察の目的という事が私を向けた理由であります。私の持っている政府は保護を目的、していないです。』
+				CASE 10
+					PRINTFORML 『そんな』
+				CASE 11
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "入界管理局イベント：佐藤田中：選択後"
+	SELECTCASE ARG
+		CASE 0
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「...我々の手を借りない事が彼女の幸せになるとお考えですか？」
+					PRINTFORMW 「貴方は一体、何を目指しているのですか？自分が本当に彼女の願いを叶えられると本当に思っているのですか？」
+				CASE 2
+					PRINTFORMW 「おや、私はてっきり故郷ダエモスラビアの独立運動鎮静化が目的であるとばかり」
+					PRINTFORMW 「違いましたか？」
+				CASE 3
+					PRINTFORMW 「ははは、そうでしたね。では、回答は不認可です。」
+					PRINTFORMW 「後悔する事の無いよう...我々に着いて来ればすぐにでも解決するというのに」
+				CASE 4
+					PRINTFORMW 「では、これにて失礼します。くれぐれも目的と正義を見失いませんように。」
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORML 
+					PRINTFORML 来た時と同じく、眩暈があなたを襲った。
+					PRINTFORMW 
+					PRINTFORMW 気が付くと元の場所に戻っていた。宝くじ売り場は消え去って何処にも無い。
+				CASE 5
+					PRINTFORMW %CALLNAME:TARGET%は緊張が溶けたのか、鼻水を垂らしながら泣き出した
+				CASE 6
+					PRINTFORMW 鼻水を垂らしたまま%CALLNAME:TARGET%は貴方の懐に抱き着いてきた
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORML
+					PRINTFORMW %CALLNAME:MASTER%はいつの間にか疲れて寝てしまった%CALLNAME:TARGET%を抱えながら帰宅した。
+					PRINTFORMW %CALLNAME:TARGET%の体は小さく、軽く、そして重たかった。
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Вь...%CNAME("一人称")% нор Иссй вар мусыйь дещ карь！」
+				CASE 2
+					PRINTFORML 「ь...%CNAME("一人称")%вар ....%CNAME("一人称")% вар таддъ, Сюлов виза вор Сыйнсей ный китар дакйе дещ！」
+				CASE 3
+					PRINTFORML 「%CNAME("一人称")% хитторй дйе доцдан дйе Ковдов децкйлл моннор девар аллймашйен. Ковар аррйгатов гозаймаш тар.」
+				CASE 4
+					PRINTFORML 「ヴぁーっ！%CNAME("一人称")% зан゛！ овакарллйе ный налларнац тйе Ёцтар！Хонтор ныйь Ёцтарь！」
+				CASE 5
+					PRINTFORML 「Демор моллар йенагтйдарь！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「V'...%CNAME("一人称")% nor Issy var musyi' deshch kar'！」
+				CASE 2
+					PRINTFORML 「'...%CNAME("一人称")%var ....%CNAME("一人称")% var tadd'', Syulov viza vor Syinsey nyi kitar dakye deshch！」
+				CASE 3
+					PRINTFORML 「%CNAME("一人称")% hittory dye docdan dye Kovdov deckyll monnor devar allymashyen. Kovar arrygatov gozaymash tar.」
+				CASE 4
+					PRINTFORML 「ヴぁーっ！%CNAME("一人称")% zan゛！ ovakarllye nyi nallarnac tye Yoctar！Hontor nyi' Yoctar'！」
+				CASE 5
+					PRINTFORML 「Demor mollar yenagtydar'！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「わっ...%CNAME("一人称")%の意思は無視ですか！」
+				CASE 2
+					PRINTFORML 「っ...%CNAME("一人称")%は....%CNAME("一人称")%はただ、就労ビザを申請に来ただけです！」
+				CASE 3
+					PRINTFORML 「%CNAME("一人称")%一人で独断で行動出来る物ではありません。今回はありがとうございました。」
+				CASE 4
+					PRINTFORML 「ヴぁーっ！%CNAME("一人称")%ざん゛！お別れにならなくて良かった！本当に良かった！」
+				CASE 5
+					PRINTFORML 「でももらえながっだー！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『わ、%CNAME("一人称翻訳後")%は持っている意思の無視をする！』
+				CASE 2
+					PRINTFORML 『っ...%CNAME("一人称翻訳後")%は....%CNAME("一人称翻訳後")%は 容易にな、申請に就労ビザの来たのみである！』
+				CASE 3
+					PRINTFORML 『%CNAME("一人称翻訳後")%一人で一人判断の行うする権利を持っているですとは異なる。今回はありがとうございました。」
+				CASE 4
+					PRINTFORML 『[エラーID18569000、辞書に登録のない単語です。]！%CNAME("二人称翻訳後")%さん！お別れにならなくて良かった！本当に良かった！」
+				CASE 5
+					PRINTFORML 『[エラーID18569000、辞書に登録のない単語です。]』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "アルバイト探しイベント：入室"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML トントン...
+				CASE 2
+					PRINTFORMW %CALLNAME:MASTER%の部屋に、%CALLNAME:TARGET%が入ってきた
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「%CNAME("二人称")% сан...Иммер жицан дайзёб дещ кар？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「%CNAME("二人称")% san...Immer jican dayzyob deshch kar？」
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「%CNAME("二人称")%さん...今時間大丈夫ですか？」
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『%CNAME("二人称翻訳後")%さん、今の時刻は問題無いですか？』
+				CASE 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "アルバイト探しイベント：店員との会話"
+	SELECTCASE ARG
+		CASE 0
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+				PRINTFORMW 「そうだよ。就労ビザ。この国で働くには就労ビザが必要なんだ。」
+				PRINTFORMW 「その様子だと持ってなさそうだね。就労ビザを貰ってから来てね」
+				CASE 3
+					PRINTFORMW 「うーん、その熱意は良いけど。いくらこの店が秘密の店でも、労働基準監督署のチェックは来るからねぇ...」
+					PRINTFORMW 「ビザ取ってきてくれたら続きを話すよ」
+					PRINTFORML
+					CALL PRINT_STR,"_黄色_どうやら槞彁が働くには就労ビザが必要なようだ..."
+					PRINTFORMW 
+					PRINTFORMW 「さて、改めて...いらっしゃいませ、何をお求めでしょうか？」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「э...Сюлов виза?」
+				CASE 2
+					PRINTFORMW 「Соннор... Сюлов виза вар моттйе най нор дещ гар... Хатла кар сеттйе куллемар сенн кар?」
+				CASE 3
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「e'...Syulov viza?」
+				CASE 2
+					PRINTFORMW 「sonnor... Syulov viza var mottye nay nor deshch gar... Hatla kar settye kullemar senn kar?」
+				CASE 3
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「え...就労ビザ？」
+				CASE 2
+					PRINTFORMW 「その...就労ビザは持ってないですが...働かせてはくれませんか？」
+				CASE 3
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『え、就労ビザ？』
+				CASE 2
+					PRINTFORML 『該当する、就労ビザを私は持つをしていない。しかしながら、働くをする権利を認めるを願うできすか？』
+				CASE 3
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "アルバイト探しイベント：アルバイト探しお願い"
+	SELECTCASE ARG
+		CASE 0;言語能力Lv0はエラー値なので何も返さい
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+				CASE 2
+				CASE 3
+					PRINTFORMW %CALLNAME:TARGET%は自分の尻尾を両手で握ってもじもじとしている。
+					PRINTFORML
+					CALL PRINT_STRW ,"黄色_どうやら、変化術や認識阻害が使えないのでアルバイト先が見つからないようだ"
+				CASE 4
+				CASE 5
+					CALL PRINT_STRW ,@"黄色_%CALLNAME:TARGET%でも働けるお店なんて有っただろうか...?"
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「%CNAME("一人称")% мор ыйтадайте бацкарй девар нацтйе зыйвун демор хатракор тор оммоун дещ」
+				CASE 2
+					PRINTFORMW 「Деммор...%CNAME("一人称")% вар Хенге-юц яр НйншйкиСогай-Юц вар цкайенай нодйе... коннор митарме деммор хатарар келл вашо вар сирий масен кар...?」
+				CASE 3
+				CASE 4
+					PRINTFORMW 「Соудещ кар ...Моссй, Аттарар Оссйете Хосыйе дещ...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「%CNAME("一人称")% mor yitadayte backary devar nactye zyivun demor hatrakor tor ommoun deshch」
+				CASE 2
+					PRINTFORMW 「Demmor...%CNAME("一人称")% var Henge-juts yar NynshykiSogay-Juts var tskayenay nodye... konnor mitarme demmor hatarar kell vasho var siriy masen kar...?」
+				CASE 3
+				CASE 4
+					PRINTFORMW 「soudeshch kar ...mossy, Attarar Ossyete Hosyie deshch...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「私も頂いてばかりではなくて自分でも働こうと思うんです」
+				CASE 2
+					PRINTFORMW 「でも...私は変化術や認識阻害術は使えないので...この見た目でも働ける場所はしませんか...?」
+				CASE 3
+				CASE 4
+					PRINTFORMW 「そうですか...もし、有ったら教えてほしいです...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					;ちなみに、翻訳に生の「私」が入ってることあるけど下の例とかは意図的なものだよ。機械翻訳とかでありがち
+					PRINTFORML 『のみ行っている。%CNAME("一人称翻訳後")%は貰う。とは異なるを実現するために労働やるを行うしようと私は考えています。』
+				CASE 2
+					PRINTFORML 『しかし、私は変化術と認識阻害術 等のような、を使うが出来ないです。私の持っている存在を可能な。働くを出来る場所を%CNAME("二人称翻訳後")%は理解を持っているか？』
+				CASE 3
+				CASE 4
+					PRINTFORML 『そのような、仮定として、存在証明がなされれば教えるを行うを私は要求するでしょう。』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "アルバイト探しイベント：ビザ発行デートのお願い"
+	SELECTCASE ARG
+		CASE 0;地の文とか、翻訳有無や言語能力に影響の受けないメッセージ
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Соннор... Цугй нор нйчёуви иссёр ный цуыйтйе киттйе морарйе марсен кар...?」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「sonnor... tsugy nor nychyouvi issyor nyi tsuyitye kittye morarye marsen kar...?」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「その...次の日曜日一緒についてきてもらえませんか...?」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 『それら、次の日曜日を同行を願うは出来ますか。？』
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASE "アルバイト探しイベント：日曜日デート待機中"
+	SELECTCASE ARG
+		CASE 0;地の文とか、翻訳有無や言語能力に影響の受けないメッセージ
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML %CALLNAME:TARGET%は、出かける準備を整えて待機している。
+				CASE 2
+					CALL PRINT_STRL("_黄色_*[連れ出す]で行くことが出来ます*")
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Иммар наллер НюцайКанрйКёцк гар аыйтйе илл нордйе ... Иссоргасйцк нацкаттарар цуыйтйе китйе хоссй дещ...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Immar naller NyucayKanryKyock gar ayitye ill nordye ... Issorgasyck nackattarar tsuyitye kitye hossy deshch...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「今なら入界管理局が空いてるので...忙しくなかったら...付いてきて欲しいです...」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「現在、入界管理局が公開されている故に。多忙を持っていないのであれば、私に付属されるを願う。」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+;----------------------------------------------------------------
+;エンディング
+;----------------------------------------------------------------
+CASE "エンディング：世界平和END"
+	SELECTCASE ARG
+		CASE 0
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORMW 「素晴らしい選択です。我々が責任をもって保護いたしましょう。」
+				CASE 2
+				CASE 3
+					PRINTFORMW 「帰りのチケットは、私と%CALLNAME:TARGET%さんの二人分しかないんですよ。」
+				CASE 4
+					PRINTFORMW 「ハハハ、私とは初めましてではありませんか。お米帝国は貴方を受け入れます。」
+					PRINTFORMW 「では、%CALLNAME:MASTER%さん さようなら」
+				CASE 5
+					PRINTFORML 
+					PRINTFORML 来た時と同じく、眩暈があなたを襲った。
+					PRINTFORMW 
+					PRINTFORMW 気が付くと、%CALLNAME:TARGET%と一緒に来た中央駅の改札口に立っていた。
+					PRINTFORMW %CALLNAME:TARGET%...?誰の事だろうか。
+					PRINTFORMW %CALLNAME:MASTER%は、なぜ自分が中央駅に来たのか分からない。
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ・
+					PRINTFORMW ～数年後～
+					PRINTFORMW 「...えー、大統領選挙の結果 前期大統領の続投が決まりました。政治コメンテーターの○○さん、どうお考えですか？」
+					PRINTFORMW 「はい。大統領は前期で一切戦争をしていませんでしたが、過去有数の支持率での当選で『戦争をした大統領は支持率が高い』というジンクスに打ち勝ったと言えるでしょう。」
+					PRINTFORMW 「核爆弾や兵器の廃棄を積極的に行い『かの有名な平和賞を受賞するのではないか』という噂もありますね。」
+					PRINTFORMW 「素晴らしい事ですね。しかし、一部の陰謀論者は秘密裏に戦争をしたなどと根拠の無い...
+					PRINTFORML
+					PRINTFORML 
+					PRINTFORML HAPPY END 「世界平和」　　　[1/??]
+					PRINTFORMW 
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「Ic',Iyyar...」
+				CASE 2
+					PRINTFORML 「%CNAME("二人称")% san tor...%CNAME("二人称")%tor issyor nyivar ickye marsenkar！」
+				CASE 3
+					PRINTFORML 「...Doc madye %CNAME("一人称")% nor cot vor syt yetarn deshch kar...?」
+				CASE 4
+					PRINTFORML 「%CNAME("二人称")%san! Yicktac nay！Hannar sytye！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASE 1
+					PRINTFORML 「いっ、嫌...」
+				CASE 2
+					PRINTFORML 「%CNAME("二人称")%さんと...%CNAME("二人称")%と一緒には行けませんか！」
+				CASE 3
+					PRINTFORML 「...何処まで私の事を知っているんですか...?」
+				CASE 4
+					PRINTFORML 「%CNAME("二人称")%さん行きたくない！離して！」
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+;----------------------------------------------------------------
+;↓ここから先は口上書き用　実際には呼ばれないはず
+;----------------------------------------------------------------
+CASE "テスト"
+	SELECTCASE ARG
+		CASE 0
+			;0はエラー値なので何も返さい
+			PRINTFORML CASE 0番だわよ
+			
+			RETURN 1
+		CASE 1
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML ダエモスラビヤ 1
+				CASE 1
+					PRINTFORML ダエモスラビヤ 2
+				CASE 2
+					PRINTFORML ダエモスラビヤ 3
+				CASE 3
+					PRINTFORML テスト成功　問題は有りません
+				CASEELSE
+					RETURN 1
+				ENDSELECT
+		CASE IS >= 100
+			SELECTCASE ARG:1
+				CASE 0
+					PRINTFORML 日本 1
+				CASE 1
+					PRINTFORML 日本 2
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+CASE "テンプレート"
+	SELECTCASE ARG
+		CASE 0;地の文とか、翻訳有無や言語能力に影響の受けないメッセージ
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 1;言語能力Lv1
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 3;言語能力Lv3
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 10;原文
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASE 100;機械翻訳
+			SELECTCASE ARG:1
+				CASE 0
+				CASEELSE
+					RETURN 1
+			ENDSELECT
+		CASEELSE
+			RETURN 1
+	ENDSELECT
+;
+CASEELSE
+	;シーン登録が無い場合
+	SIF ARG == 1
+		;PRINTFORML !デバッグ用メッセージ! シーン登録に無いセリフ呼び出しが有ります シーン名：%ARGS%
+	RETURN 1
+ENDSELECT

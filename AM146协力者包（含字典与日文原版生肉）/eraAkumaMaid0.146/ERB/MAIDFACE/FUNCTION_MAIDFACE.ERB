@@ -1,0 +1,426 @@
+﻿;-------------------------------------------------
+;顔グラを一時的に変化させて表示する
+;-------------------------------------------------
+;ARGSにはREPRINT_MAIDFACEのARGSに指定できる文字列、顔グラシュミレーターの眉、目の形、口の形のボタンと同じ名称、吹き出しの種類を"/"区切りで代入する事で顔グラを変更させつつ出力することが出来る
+;吹き出しの種類は"ふきだし怒り", "ふきだし汗", "ふきだしハート", "ふきだしワイワイ", "ふきだし驚き", "ふきだし眠り", "ふきだし寝ぼけ", "ふきだし満開"など
+;例）CALL EMOTION_PLUS, "ムラムラ/ジト目/怒り眉/への字/ふきだし怒り"
+;萌え袖カーディガンを着ている場合には"萌え袖"指定で萌え袖を口元で見せてる状態に出来る
+;複数人同時に変化させる場合には、CALL EMOTION_PLUSをする前にARG:1～ARG:4のCSTR:顔グラ変化 を変更しておく必要があります
+;第一製作者　ブリート
+;-------------------------------------------------
+@EMOTION_PLUS, ARGS, ARG, ARG:1, ARG:2, ARG:3, ARG:4
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+
+CSTR:ARG:顔グラ変化 = %ARGS%
+
+CALL REPRINT_MAIDFACE, ARGS, ARG, ARG:1, ARG:2, ARG:3, ARG:4
+
+CVARSET CSTR, GETNUM(CSTR, "顔グラ変化")
+
+
+
+;-------------------------------------------------
+;感情を指定して顔グラを出す関数。もしも既に顔グラが表示されている場合には消して上書きします
+;ARGSに入れられる文字列は"リセット", "甘い言葉", "褒める", "不機嫌", "ムラムラ", "交流中", "睡眠", "寝起き", "怒り", "恥じらい"
+;-------------------------------------------------
+@REPRINT_MAIDFACE, ARGS, ARG:0, ARG:1, ARG:2, ARG:3, ARG:4
+#DIM LCOUNT
+#DIM MEMO_CFLAG27, 5
+#DIM MEMO_CFLAG28, 5
+#DIM MEMO_CFLAG29, 5
+#DIM MEMO_CFLAG31, 5
+#DIM MEMO_CFLAG34, 5
+#DIM MEMO_CFLAG36, 5
+#DIM MEMO_CFLAG70, 5
+#DIM MEMO_CFLAG86, 5
+#DIM MEMO_CFLAG99, 5
+#DIMS EMOTE, 5
+
+;もしも既に顔グラが表示されている場合には消す
+SIF TFLAG:顔グラ表示中 == LINECOUNT
+	CALL CLEAR_MAIDFACE
+SIF ARG == 0 && TARGET > 0
+	ARG = TARGET
+
+VARSET EMOTE
+FOR LCOUNT, 0, 5
+	SIF ARG:LCOUNT <= 0
+		BREAK
+
+	VARSET LOCALS
+	IF CSTR:(ARG:LCOUNT):顔グラ変化 != ""
+		SPLIT CSTR:(ARG:LCOUNT):顔グラ変化, "/", LOCALS
+	ELSE
+		SPLIT ARGS, "/", LOCALS
+	ENDIF
+	SELECTCASE LOCALS:0
+	CASE "リセット", "甘い言葉", "褒める", "不機嫌", "睡眠", "寝起き", "怒り", "ムラムラ", "交流中", "恥じらい"
+		EMOTE:LCOUNT = %LOCALS:0%
+	CASEELSE
+		CONTINUE
+	ENDSELECT
+
+	MEMO_CFLAG27:LCOUNT = CFLAG:(ARG:LCOUNT):甘い言葉
+	MEMO_CFLAG28:LCOUNT = CFLAG:(ARG:LCOUNT):褒める
+	MEMO_CFLAG29:LCOUNT = CFLAG:(ARG:LCOUNT):不機嫌
+	MEMO_CFLAG31:LCOUNT = CFLAG:(ARG:LCOUNT):睡眠
+	MEMO_CFLAG34:LCOUNT = CFLAG:(ARG:LCOUNT):寝起き
+	MEMO_CFLAG36:LCOUNT = CFLAG:(ARG:LCOUNT):怒り
+	MEMO_CFLAG70:LCOUNT = CFLAG:(ARG:LCOUNT):ムラムラ
+	MEMO_CFLAG86:LCOUNT = CFLAG:(ARG:LCOUNT):交流中
+	MEMO_CFLAG99:LCOUNT = CFLAG:(ARG:LCOUNT):恥じらい
+
+	CFLAG:(ARG:LCOUNT):甘い言葉 = 0
+	CFLAG:(ARG:LCOUNT):褒める = 0
+	CFLAG:(ARG:LCOUNT):不機嫌 = 0
+	CFLAG:(ARG:LCOUNT):睡眠 = 0
+	CFLAG:(ARG:LCOUNT):寝起き = 0
+	CFLAG:(ARG:LCOUNT):怒り = 0
+	CFLAG:(ARG:LCOUNT):ムラムラ = 0
+	CFLAG:(ARG:LCOUNT):交流中 = 0
+	CFLAG:(ARG:LCOUNT):恥じらい = 0
+
+	SIF EMOTE:LCOUNT == "リセット"
+		CONTINUE
+
+	CFLAG:(ARG:LCOUNT):(EMOTE:LCOUNT) = 1
+NEXT
+
+CALL PRINT_MAIDFACE, ARG:0, ARG:1, ARG:2, ARG:3, ARG:4
+
+FOR LCOUNT, 0, 5
+	SIF ARG:LCOUNT <= 0
+		BREAK
+	SIF EMOTE:LCOUNT == ""
+		CONTINUE
+	CFLAG:(ARG:LCOUNT):甘い言葉 = MEMO_CFLAG27:LCOUNT
+	CFLAG:(ARG:LCOUNT):褒める = MEMO_CFLAG28:LCOUNT
+	CFLAG:(ARG:LCOUNT):不機嫌 = MEMO_CFLAG29:LCOUNT
+	CFLAG:(ARG:LCOUNT):睡眠 = MEMO_CFLAG31:LCOUNT
+	CFLAG:(ARG:LCOUNT):寝起き = MEMO_CFLAG34:LCOUNT
+	CFLAG:(ARG:LCOUNT):怒り = MEMO_CFLAG36:LCOUNT
+	CFLAG:(ARG:LCOUNT):ムラムラ = MEMO_CFLAG70:LCOUNT
+	CFLAG:(ARG:LCOUNT):交流中 = MEMO_CFLAG86:LCOUNT
+	CFLAG:(ARG:LCOUNT):恥じらい = MEMO_CFLAG99:LCOUNT
+NEXT
+
+
+;あなたの衣装の仮設定。ARGSにはどの服を着るかが入っている。指定無しならTPOに合わせたものを着る
+@CLOTH_MAIDFACE_MASTER(ARGS)
+#FUNCTIONS
+
+SELECTCASE ARGS
+CASE ""
+	IF PLACE("自宅")
+		ARGS = 自宅着
+	ELSEIF PLACE("野外")
+		ARGS = 外出着
+	ELSEIF COND("体育")
+		ARGS = 体操服
+	ELSEIF COND("水泳") 
+		ARGS = 水着
+	ENDIF
+ENDSELECT
+
+SELECTCASE ARGS
+CASE "自宅着"
+	SIF SAVESTR:自宅着 != ""
+		RETURNF SAVESTR:自宅着
+	IF TALENT:MASTER:オトコ && COND("男の娘", MASTER) == 0
+		RETURNF "ブラウス白"
+	ELSE
+		RETURNF "ブレザー茶色"
+	ENDIF
+CASE "外出着"
+	SIF SAVESTR:外出着 != ""
+		RETURNF SAVESTR:外出着
+	IF TALENT:MASTER:オトコ && COND("男の娘", MASTER) == 0
+		RETURNF "ブラウス白"
+	ELSE
+		RETURNF "ブレザー茶色"
+	ENDIF
+CASE "体操服"
+	SIF SAVESTR:体操服 != ""
+		RETURNF SAVESTR:体操服
+	IF TALENT:MASTER:オトコ && COND("男の娘", MASTER) == 0
+		RETURNF "詰襟ジャージ赤"
+	ELSE
+		RETURNF "ジャージ赤"
+	ENDIF
+CASE "水着"
+	SIF SAVESTR:水着 != ""
+		RETURNF SAVESTR:水着
+	IF TALENT:MASTER:オトコ && COND("男の娘", MASTER) == 0
+		RETURNF "ブラウス白"
+	ELSE
+		RETURNF "競泳青"
+	ENDIF
+CASEELSE
+	SIF SAVESTR:制服 != ""
+		RETURNF SAVESTR:制服
+	IF TALENT:MASTER:オトコ && COND("男の娘", MASTER) == 0
+		RETURNF "ブラウス白"
+	ELSE
+		RETURNF "ブレザー茶色"
+	ENDIF
+ENDSELECT
+
+;文字列ARGSから種類を抜き出す
+@CHECK_TYPE(ARGS)
+#FUNCTIONS
+
+IF STRCOUNT(ARGS, "通常目")
+	RETURNF "通常目"
+ELSEIF STRCOUNT(ARGS, "ツリ目")
+	RETURNF "ツリ目"
+ELSEIF STRCOUNT(ARGS, "たれ目")
+	RETURNF "たれ目"
+ELSEIF STRCOUNT(ARGS, "ジト目")
+	RETURNF "ジト目"
+ELSEIF STRCOUNT(ARGS, "ぱっちり")
+	RETURNF "ぱっちり"
+ELSEIF STRCOUNT(ARGS, "縦長目")
+	RETURNF "縦長目"
+ELSEIF STRCOUNT(ARGS, "三白眼")
+	RETURNF "三白眼"
+ELSEIF STRCOUNT(ARGS, "糸目")
+	RETURNF "糸目"
+ELSEIF STRCOUNT(ARGS, "にっこり")
+	RETURNF "にっこり"
+ELSEIF STRCOUNT(ARGS, "瞑り")
+	RETURNF "瞑り"
+ELSEIF STRCOUNT(ARGS, "〇〇")
+	RETURNF "〇〇"
+ELSEIF STRCOUNT(ARGS, "＞＜")
+	RETURNF "＞＜"
+ENDIF
+RETURNF ""
+
+;-------------------------------------------------
+;ARGの顔グラの横にテキストSTR:1～STR:19を出す。長い文章で改行が入ると顔グラの下に行きます
+;ARGS:nに文字列が入っている場合は、STR:n を上書きします
+;-------------------------------------------------
+@DIALOGUE_FRAME, ARG, ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4, ARGS:5, ARGS:6, ARGS:7, ARGS:8, ARGS:9
+#DIM LCOUNT
+#DIM LCOUNT2
+#DIM MEMO_REDRAW
+#DIM MEMO_LINECOUNT
+#DIM USE_MAIDFACE
+#DIM VDRAW
+#DIM CHECK_USELINECOUNT
+
+USE_MAIDFACE = 1
+SIF CONFIG("顔グラＯＦＦ") || TFLAG:顔グラスキップ
+	USE_MAIDFACE = 0
+SIF CFLAG:ARG:顔グラ == 0
+	USE_MAIDFACE = 0
+
+;STRの上書き
+FOR LCOUNT, 1, 10
+	SIF ARGS:LCOUNT != ""
+		STR:LCOUNT = %ARGS:LCOUNT%
+NEXT
+
+VDRAW = 0
+;淫紋表示の自動選択
+IF USE_MAIDFACE && MARK:ARG:淫紋 && COND("キャラ紹介中")
+	LOCAL = 0
+	CHECK_USELINECOUNT = 0
+	FOR LCOUNT, 1, 20
+		LOCAL = STRLENS(STR:LCOUNT) + STRLENS(BL(100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")/25 + 2) )
+		SELECTCASE STR:LCOUNT
+		CASE ""
+			SIF STR:(LCOUNT + 1) != ""
+				CHECK_USELINECOUNT += 1
+		CASEELSE
+			CHECK_USELINECOUNT += 1
+			FOR LCOUNT2, 0, 5
+				SIF LOCAL <= NUM("折り返し文字数")
+					BREAK
+				CHECK_USELINECOUNT += 1
+				LOCAL -= NUM("折り返し文字数") - STRLENS(BL(100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")/25 + 2) )
+			NEXT
+		ENDSELECT
+	NEXT
+	SIF CHECK_USELINECOUNT >= 12
+		VDRAW = 1
+ENDIF
+
+MEMO_REDRAW = CURRENTREDRAW()
+REDRAW 0
+
+IF USE_MAIDFACE
+	CSTR:ARG:顔グラ変化 = %ARGS%
+	LOCALS = <nobr>
+	LOCALS += @"%MAIDFACE(ARG, 1)%"
+	IF MARK:ARG:淫紋 && COND("キャラ紹介中")
+		IF VDRAW
+			LOCALS += @"%CUTIN("淫紋", ARG, 1, 100*MAIDFACESIZE()/GETCONFIG("フォントサイズ") + 30)%"
+		ELSE
+			LOCALS += @"%CUTIN("淫紋", ARG, 2)%"
+		ENDIF
+	ENDIF
+	SIF LOCALS != "<nobr>"
+		HTML_PRINT LOCALS
+ENDIF
+
+MEMO_LINECOUNT = LINECOUNT
+
+FOR LCOUNT, 0, 20
+	SELECTCASE LCOUNT
+	CASE 0, 19
+		SIF STR:LCOUNT == ""
+			CONTINUE
+	;２行連続空白ならテキスト表示終了
+	CASEELSE
+		SIF STR:LCOUNT == "" && STR:(LCOUNT + 1) == ""
+			BREAK
+	ENDSELECT
+
+	;HTMLへの分岐
+	IF SUBSTRING(STR:LCOUNT, 0, 5) == "HTML:"
+		IF USE_MAIDFACE == 0
+
+		ELSEIF MARK:ARG:淫紋 && COND("キャラ紹介中") && VDRAW == 0
+			STR:LCOUNT = %BL(100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")/25 + 2)%_%SUBSTRING(STR:LCOUNT, 5, -1)%
+		ELSE
+			STR:LCOUNT = %BL(100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")/50 + 1)%_%SUBSTRING(STR:LCOUNT, 5, -1)%
+		ENDIF
+		CALL HPRINT_STRL, STR:LCOUNT
+		CONTINUE
+	ENDIF
+
+
+	IF USE_MAIDFACE == 0
+
+	ELSEIF MARK:ARG:淫紋 && COND("キャラ紹介中") && VDRAW == 0
+		STR:LCOUNT = %BL(100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")/25 + 2)%%STR:LCOUNT%
+	ELSE
+		STR:LCOUNT = %BL(100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")/50 + 1)%%STR:LCOUNT%
+	ENDIF
+
+	;画面内に収まるかのチェック
+	SELECTCASE STRLENS(STR:LCOUNT)
+	CASE IS <= NUM("折り返し文字数")
+		CALL PRINT_STRL, STR:LCOUNT
+		STR:LCOUNT = 
+	CASEELSE
+		;、を優遇
+		IF STRCOUNT(STR:LCOUNT, "、") && STRCOUNTS(STR:LCOUNT, "好きなもの:", "嫌いなもの:") == 0 && STRLENS(EXTSTR(STR:LCOUNT, "", "、") ) >= NUM("折り返し文字数")*2/3 && STRLENS(EXTSTR(STR:LCOUNT, "", "、") ) <= NUM("折り返し文字数") - 2
+			CALL PRINT_STRL, @"%EXTSTR(STR:LCOUNT, "", "、")%、"
+			STR:LCOUNT = %EXTSTR(STR:LCOUNT, "、")%
+		ELSE
+			CALL PRINT_STRL, SUBSTRING(STR:LCOUNT, 0, NUM("折り返し文字数"))
+			STR:LCOUNT = %SUBSTRING(STR:LCOUNT, NUM("折り返し文字数"), -1)%
+		ENDIF
+		SELECTCASE STR:LCOUNT
+		CASE "", "_"
+		CASEELSE
+			LCOUNT -= 1
+		ENDSELECT
+	ENDSELECT
+NEXT
+IF USE_MAIDFACE
+	;改行のつじつま合わせ
+	FOR LCOUNT, 1, (100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")/100)*(VDRAW + 1) + VDRAW - (LINECOUNT - MEMO_LINECOUNT)
+		PRINTL 
+	NEXT
+	TFLAG:顔グラ表示中 = LINECOUNT
+	CSTR:ARG:顔グラ変化 =
+ENDIF
+
+VARSET STR, "", 0, 20
+REDRAW MEMO_REDRAW
+
+;-------------------------------------------------
+;上の@DIALOGUE_FRAMEの名前表示追加版
+;-------------------------------------------------
+@DIALOGUE_FRAME_NAME, ARG, ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4, ARGS:5, ARGS:6, ARGS:7
+SIF CONFIG("顔グラＯＦＦ") || TFLAG:顔グラスキップ
+	RETURN 0
+SIF CFLAG:ARG:顔グラ == 0
+	RETURN 0
+
+STR:0 = - _%DISPLAY_NAME(ARG)%_ -
+CALL DIALOGUE_FRAME, ARG, ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4, ARGS:5, ARGS:6, ARGS:7
+
+
+;-------------------------------------------------
+;アイテム解説用。グラの横にテキストSTR:1～STR:19を出す
+;-------------------------------------------------
+@DIALOGUE_FRAME_ITEM, ARGS, ARGS:1, ARGS:2, ARGS:3, ARGS:4, ARGS:5, ARGS:6, ARGS:7, ARGS:8, ARGS:9
+#DIM LCOUNT
+#DIM LCOUNT2
+#DIM MEMO_REDRAW
+#DIM MEMO_LINECOUNT
+#DIM USE_MAIDFACE
+#DIM VDRAW
+#DIM CHECK_USELINECOUNT
+#DIM FSIZE
+
+SIF ARGS == ""
+	RETURN 0
+
+FSIZE = 100*MAIDFACESIZE()/GETCONFIG("フォントサイズ")
+
+;STRの上書き
+FOR LCOUNT, 1, 10
+	SIF ARGS:LCOUNT != ""
+		STR:LCOUNT = %ARGS:LCOUNT%
+NEXT
+
+MEMO_REDRAW = CURRENTREDRAW()
+REDRAW 0
+
+HTML_PRINT @"<nobr><img src='0e' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'><nonbutton pos='0'><img src='%ARGS%' height = '{FSIZE}' width = '{FSIZE}' ypos = '0'></nonbutton>"
+
+MEMO_LINECOUNT = LINECOUNT
+FOR LCOUNT, 0, 20
+	SELECTCASE LCOUNT
+	CASE 0, 19
+		SIF STR:LCOUNT == ""
+			CONTINUE
+	;２行連続空白ならテキスト表示終了
+	CASEELSE
+		SIF STR:LCOUNT == "" && STR:(LCOUNT + 1) == ""
+			BREAK
+	ENDSELECT
+
+	IF SUBSTRING(STR:LCOUNT, 0, 5) == "HTML:"
+		STR:LCOUNT = %BL(FSIZE/50 + 1)%%SUBSTRING(STR:LCOUNT, 5, -1)%
+		CALL HPRINT_STRL, STR:LCOUNT
+		CONTINUE
+	ENDIF
+
+	STR:LCOUNT = %BL(FSIZE/50 + 1)%%STR:LCOUNT%
+
+	;画面内に収まるかのチェック
+	SELECTCASE STRLENS(STR:LCOUNT)
+	CASE IS <= NUM("折り返し文字数")
+		CALL PRINT_STRL, STR:LCOUNT
+		STR:LCOUNT = 
+	CASEELSE
+		;、を優遇
+		IF STRCOUNT(STR:LCOUNT, "、") && STRLENS(EXTSTR(STR:LCOUNT, "", "、") ) >= NUM("折り返し文字数")*2/3 && STRLENS(EXTSTR(STR:LCOUNT, "", "、") ) <= NUM("折り返し文字数") - 2
+			CALL PRINT_STRL, @"%EXTSTR(STR:LCOUNT, "", "、")%、"
+			STR:LCOUNT = %EXTSTR(STR:LCOUNT, "、")%
+		ELSE
+			CALL PRINT_STRL, SUBSTRING(STR:LCOUNT, 0, NUM("折り返し文字数"))
+			STR:LCOUNT = %SUBSTRING(STR:LCOUNT, NUM("折り返し文字数"), -1)%
+		ENDIF
+		SELECTCASE STR:LCOUNT
+		CASE "", "_"
+		CASEELSE
+			LCOUNT -= 1
+		ENDSELECT
+	ENDSELECT
+NEXT
+;改行のつじつま合わせ
+FOR LCOUNT, 1, (FSIZE/100) - (LINECOUNT - MEMO_LINECOUNT)
+	PRINTL 
+NEXT
+
+VARSET STR, "", 0, 20
+REDRAW MEMO_REDRAW
+

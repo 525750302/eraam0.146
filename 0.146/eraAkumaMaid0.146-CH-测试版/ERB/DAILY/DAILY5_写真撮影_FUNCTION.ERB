@@ -1,0 +1,2169 @@
+;-------------------------------------------------
+;写真撮影の際に使う関数や写真閲覧用の関数など
+;製作者:hexagon
+;-------------------------------------------------
+;パンツのクローズアップ写真
+;-------------------------------------------------
+@PHOTO_PANTIES
+STR:写真 = 
+STR:補足 = 
+
+IF CHECK_CLO("パンスト露出")
+	STR:写真 += @"%OUTER(TARGET)%越しに"
+	IF PENIS(TARGET)
+		IF CHECK_PANTIES("クロッチ") == 0
+			STR:写真 += @"ペニスが透けて見えている%CALLNAME:TARGET%の%PANTIES(TARGET)%のアップ"
+		ELSEIF CHECK_PANTIES("Ａのみ露出")
+			STR:写真 += @"お尻の谷間を覗かせている%CALLNAME:TARGET%の%PANTIES(TARGET)%のアップ"
+		ELSE
+			STR:写真 += @"もっこり膨らむ%CALLNAME:TARGET%の%PANTIES(TARGET)%のアップ"
+		ENDIF
+	ELSE
+		IF CHECK_PANTIES("クロッチ") == 0
+			STR:写真 += @"アソコが透けて見えている%CALLNAME:TARGET%の%PANTIES(TARGET)%のアップ"
+		ELSEIF CHECK_PANTIES("Ａのみ露出")
+			STR:写真 += @"お尻の谷間を覗かせている%CALLNAME:TARGET%の%PANTIES(TARGET)%のアップ"
+		ELSE
+			STR:写真 += @"見える%CALLNAME:TARGET%の%PANTIES(TARGET)%のアップ"
+		ENDIF
+	ENDIF
+	STR:補足 += "_パンツ_クローズアップ"
+;サービス
+ELSEIF COND("アソコのチラ見せ撮影可能") && CHECK_PANTIES("めくり可能") && (CHOSE_DEVENT(STR:日常イベント名) || RAND:3 == 0)
+	IF COND("自撮り中")
+		STR:写真 += @"%PANTIES(TARGET)%をめくって%TEXTS("割れ目")%を見せている"
+	ELSE
+		STR:写真 += @"%PANTIES(TARGET, "パンツ")%をめくって自分からアソコを見せている"
+		STR:日常イベント名 = アソコのチラ見せ撮影
+	ENDIF
+	SIF CHECK_CLO("上下が揃ってない") == 0
+		STR:写真 += @"%PHOTO_COSTUME(TARGET)%"
+	STR:写真 += @"%CALLNAME:TARGET%"
+	STR:補足 += "_アソコ_パンツ_クローズアップ"
+ELSE
+	IF COND("自撮り中")
+		STR:写真 += @"画面いっぱいにクローズアップされた%PANTIES(TARGET)%\@ CHECK_PANTIES("食い込み") ? が食い込む # を穿いた \@%CALLNAME:TARGET%の股間"
+	ELSE
+		IF CHECK_PANTIES("クロッチ") == 0 || CHECK_PANTIES("Ａクロッチ") == 0
+			STR:写真 += @"画面いっぱいにクローズアップされた%PANTIES(TARGET)%を穿いた%CALLNAME:TARGET%の股間"
+		ELSE
+			STR:写真 += @"画面いっぱいにクローズアップされた%PANTIES(TARGET)%\@ CHECK_PANTIES("食い込み") ? が食い込む # 越しの \@%CALLNAME:TARGET%の股間"
+		ENDIF
+	ENDIF
+	STR:補足 += "_パンツ_クローズアップ"
+ENDIF
+
+;-------------------------------------------------
+;アソコのクローズアップ写真
+;-------------------------------------------------
+@PHOTO_PUSSY
+#DIMS EVENT_TABLE
+STR:写真 = 
+STR:補足 = 
+
+;睡眠姦後
+IF EXP_GAIN("睡眠姦経験")
+	IF CHOSE_DEVENT("睡眠姦Ｖ中出し")
+		STR:写真 += @"%CALLNAME:MASTER%の精液%TEXTR("でぐちょぐちょになっている/が垂れ落ちている/が付着している")%"
+	ELSE
+		STR:写真 += @"愛液%TEXTR("にまみれた/で濡れている/でぬるぬるになっている")%"
+	ENDIF
+	STR:写真 += @"%TEXTR("使用済みの/＿")%%CALLNAME:TARGET%のアソコ"
+;サービス
+ELSEIF COND("アソコの見せつけ撮影可能") && (COND("身嗜み：Ｖ拡張") || CHOSE_DEVENT(STR:日常イベント名) || STRCOUNTS(CSTR:DAILYCOM履歴, "Ｖセックス性処理", "Ｖ中出し") || RAND:3 == 0 || CFLAG:ムラムラ|| CFLAG:Ｖ中出し済)
+	EVENT_TABLE = 汎用/
+	IF COND("身嗜み：尿道拡張")
+		EVENT_TABLE += "尿道拡張プラグ/尿道拡張プラグ/"
+	ELSEIF ABL:尿道拡張 >= 1
+		EVENT_TABLE += "拡張尿道/拡張尿道/"
+		SIF EXP:尿道性交経験
+			EVENT_TABLE += "拡張尿道/"
+	ENDIF
+	SIF COND("陰核肥大")
+		EVENT_TABLE += "陰核肥大/陰核肥大/"
+	SIF TALENT:クリピアス
+		EVENT_TABLE += "クリピアス/クリピアス/"
+	SIF COND("身嗜み：Ｖ拡張")
+		EVENT_TABLE += "Ｖ拡張バイブ引き抜き/Ｖ拡張バイブ引き抜き/Ｖ拡張バイブ引き抜き/"
+	SIF ABL:Ｖ拡張 >= 5
+		EVENT_TABLE += "Ｖ拡張/Ｖ拡張/"
+
+	IF STRCOUNT(CSTR:DAILYCOM履歴, "Ｖ中出し")
+		EVENT_TABLE = Ｖ中出し直後
+	ELSEIF STRCOUNT(CSTR:DAILYCOM履歴, "Ｖセックス性処理")
+		EVENT_TABLE = Ｖ使用直後
+	ENDIF
+
+	;ルート確定
+	EVENT_TABLE = %TEXTR(EVENT_TABLE)%
+
+	;開くところ
+	SELECTCASE EVENT_TABLE
+	CASE "Ｖ拡張バイブ引き抜き"
+		STR:写真 += @"%TEXTR("陰唇/アソコ")%を指先で押し開いて"
+	CASEELSE
+		STR:写真 += @"%TEXTR("大事な部分/アソコ")%を自分から押し開いて"
+	ENDSELECT
+	;本編
+	SELECTCASE EVENT_TABLE
+	CASE "Ｖ拡張バイブ引き抜き"
+		IF COND("身嗜み：Ｖ拡張") >= 3
+			STR:写真 += @"%TEXTR("大口を開けている膣穴/大きく広がった膣口/だらしなく広がった膣口/膣内部の複雑な粘膜")%を"
+		ELSE
+			STR:写真 += @"%TEXTR("バイブを抜いた直後で閉じきってない膣穴/物欲しそうに口を開けた膣穴/準備万端な膣口")%を"
+		ENDIF
+		STR:補足 += "_膣"
+	CASE "Ｖ中出し直後"
+		STR:写真 += @"%TEXTR("中出しセックス直後の膣口/愛液混じりの精液を垂らす膣口/注がれたばかりの精液が零れる膣口")%を"
+		STR:補足 += "_膣"
+	CASE "Ｖ使用直後"
+		STR:写真 += @"%TEXTR("使用直後の膣口/一仕事終えたばかりの膣口")%を"
+		STR:補足 += "_膣"
+	CASE "Ｖ拡張"
+		STR:写真 += @"%TEXTR("大口を開けている膣穴/大きく広がった膣口")%を"
+		STR:補足 += "_膣"
+	CASE "尿道拡張プラグ"
+		STR:写真 += "拡張用のプラグが挿入されている尿道口を"
+		STR:補足 += "_尿道口"
+	CASE "拡張尿道"
+		IF EXP:尿道性交経験
+			STR:写真 += @"%TEXTR("セックス可能なまでに拡張された/だらしなく緩んだ/膣口と見紛う程に広がった")%尿道口を"
+		ELSE
+			STR:写真 += @"%TEXTR("拡張された/緩み気味の/大きめの")%尿道口を"
+		ENDIF
+		STR:補足 += "_尿道口"
+	CASE "陰核肥大"
+		STR:写真 += @"%TEXTR("肥大した陰核/勃起した陰核/自慢のデカクリ")%を"
+		STR:補足 += "_陰核"
+	CASE "クリピアス"
+		IF RAND:2
+			STR:写真 += @"%TEXTR("陰核を貫く/陰核を飾る")%%TEXTS("クリピアス")%を"
+		ELSE
+			STR:写真 += @"%TEXTS("クリピアス")%%TEXTR("で飾られた/が輝く")%陰核を"
+		ENDIF
+		STR:補足 += "_クリピ"
+	CASEELSE
+		IF CHOSE_DEVENT("睡眠姦Ｖ中出し")
+			STR:写真 += @"%TEXTR("寝ている間/知らぬ間")%に%TEXTR("注がれた/中出しされた")%精液を僅かに垂らす膣口を意図せず"
+			STR:補足 += "_膣"
+		;ELSEIF CFLAG:Ｖ中出し済
+		;	STR:写真 += @"%TEXTR("僅かに精液汚れの付いた膣口/精液の残滓が伺える膣口")%を"
+		;	STR:補足 += "_膣"
+		ELSE
+			STR:写真 += @"%TEXTR("隅々まで/細部まで余すことなく/惜しげもなく")%"
+		ENDIF
+	ENDSELECT
+	;態度（あっさりと）
+	IF TALENT:陽気 && CFLAG:褒める
+		STR:写真 += @"見せつけながら%TEXTR("ピース/ウィンク")%している"
+	ELSEIF TALENT:優しい && CFLAG:褒める
+		STR:写真 += "見せつけながら優しく微笑んでいる"
+	ELSEIF TALENT:恥薄い && TALENT:強気 + TALENT:高慢 && CFLAG:褒める
+		STR:写真 += @"見せつけながら%TEXTR("優越感を滲ませて/不敵に微笑んで/ニヤニヤして")%いる"
+	ELSEIF TALENT:強気 && CFLAG:褒める
+		STR:写真 += "見せつけながら楽しそうに微笑んでいる"
+	ELSEIF TALENT:恥じらい && CFLAG:褒める
+		STR:写真 += "見せつけながら恥ずかしそうに微笑んでいる"
+	ELSE
+		STR:写真 += "見せつけている"
+	ENDIF
+	SIF CHECK_CLO("上下が揃ってない") == 0
+		STR:写真 += @"%PHOTO_COSTUME(TARGET)%"
+	STR:写真 += @"%CALLNAME:TARGET%"
+	STR:日常イベント名 = アソコの見せつけ撮影
+	STR:補足 += "_くぱぁ"
+
+ELSEIF COND("身嗜み：Ｖ拡張") || COND("身嗜み：Ａ拡張") || COND("身嗜み：尿道拡張") 
+	;プラグはいくつ入ってる？
+	SELECTCASE (COND("身嗜み：Ｖ拡張") > 0) + (COND("身嗜み：Ａ拡張") > 0) + (COND("身嗜み：尿道拡張") > 0)
+	CASE 3
+		STR:写真 += "穴という穴に"
+	CASE 2
+		IF COND("身嗜み：Ｖ拡張")
+			STR:写真 += "膣と"
+			IF COND("身嗜み：Ａ拡張")
+				STR:写真 += "アナルに"
+			ELSE
+				STR:写真 += "尿道に"
+			ENDIF
+		ELSE
+			STR:写真 += "アナルと尿道に"
+		ENDIF
+	CASE 1
+		SIF COND("身嗜み：Ｖ拡張")
+			STR:写真 += "膣に"
+		SIF COND("身嗜み：Ａ拡張")
+			STR:写真 += "アナルに"
+		SIF COND("身嗜み：尿道拡張")
+			STR:写真 += "尿道に"
+	ENDSELECT
+	STR:写真 += @"拡張用の玩具が挿入されている%CALLNAME:TARGET%の股間"
+;それ以外
+ELSE
+	STR:写真 += "画面いっぱいにクローズアップされた"
+	;汗かピアスか陰毛のどれに焦点当てるかみたいな分岐にしてみる
+	IF CHECK_STAIN(STAIN:パンツ, "濡れ", "蒸れ") && RAND:3 == 0
+		STR:写真 += @"%CALLNAME:TARGET%の蒸れ蒸れの"
+	ELSEIF CHECK_STAIN(STAIN:Ｖ, "汗") && RAND:3 == 0
+		STR:写真 += @"%CALLNAME:TARGET%の汗ばんだ"
+	ELSEIF (TALENT:クリピアス || TALENT:ラビアピアス) && RAND:2
+		IF COND("陰毛") >= 6 && RAND:2
+			STR:写真 += "陰毛の中でピアスが光っている"
+		ELSE
+			IF TALENT:オトコ
+				STR:写真 += "ピアスが通されている"
+			ELSE
+				IF TALENT:クリピアス
+					IF TALENT:ふたなり
+						STR:写真 += "ペニス"
+					ELSE
+						STR:写真 += "陰核"
+					ENDIF
+					SIF TALENT:ラビアピアス
+						STR:写真 += "と小陰唇"
+				ELSE
+					STR:写真 += "小陰唇"
+				ENDIF
+				STR:写真 += "にピアスが通されている"
+			ENDIF
+		ENDIF
+		STR:写真 += @"%CALLNAME:TARGET%の"
+		STR:補足 += "_性器ピアス"
+	;陰毛表現　既存の箇所をだいぶ参考にしてます…
+	ELSE
+		SELECTCASE COND("陰毛")
+		CASE 1
+			STR:写真 += @"%TEXTR("毛の生えていない/僅かな産毛しか生えていない")%"
+		CASE 2
+			IF COND("グロマン")
+				STR:写真 += @"%TEXTR("一切毛の生えていない/隅々まで脱毛済みの")%"
+			ELSE
+				STR:写真 += @"%TEXTR("一切毛の生えていない/隅々まで脱毛済みの/脱毛されてスベスベの")%"
+			ENDIF
+		CASE 3
+			STR:写真 += @"%TEXTR("ツルツルに剃り上げられている/綺麗に剃り上げられた/産毛も残さず剃り上げられている")%"
+		CASE 4
+			IF CONDS("陰毛") == "無精髭"
+				STR:写真 += @"陰毛%TEXTR("が少し伸びてきている/の剃り残しが目立つ")%"
+			ELSEIF CONDS("陰毛") == "剃り跡"
+				STR:写真 += @"陰毛の剃り跡が%TEXTR("目立つ/色味がかっている")%"
+			ELSE
+				STR:写真 += @"陰毛が%TEXTR("まばらに生えた/生えそろっていない")%"
+			ENDIF
+		CASE 5
+			IF CEVENTS("陰毛の名称") != "" && RAND:2
+				STR:写真 += @"陰毛が%CEVENTS("陰毛の名称")%に剃り整えられている"
+			ELSE
+				STR:写真 += @"陰毛が%TEXTR("しっかり/きっちり")%とお手入れされている"
+			ENDIF
+		CASE IS >= 6
+			IF COND("グロマン")
+				STR:写真 += @"%TEXTR("だらしなく陰毛に覆われている/モジャモジャの陰毛に縁どられた")%"
+			ELSE
+				STR:写真 += @"陰毛が%TEXTR("ふさふさと生え揃っている/茂みを形成している")%"
+			ENDIF
+		ENDSELECT
+		STR:写真 += @"%CALLNAME:TARGET%の"
+	ENDIF
+	IF COND("グロマン")
+		IF STRCOUNT(STR:写真, "んだ") == 0
+			STR:写真 += @"%TEXTR("グロマン/黒ずんだアソコ")%"
+		ELSE
+			STR:写真 += "グロマン"
+		ENDIF
+	ELSEIF COND("美マン")
+		IF STRCOUNT(STR:補足, "性器ピアス")
+			STR:写真 += "美マン"
+		ELSE
+			STR:写真 += @"%TEXTR("美マン/縦スジ")%"
+		ENDIF
+	ELSEIF COND("子供まんこ")
+		IF STRCOUNT(STR:補足, "性器ピアス")
+			STR:写真 += @"%TEXTR("子供まんこ/幼いアソコ")%"
+		ELSE
+			STR:写真 += @"%TEXTR("子供まんこ/幼い割れ目/縦スジ")%"
+		ENDIF
+	ELSEIF TALENT:ふたなり
+		STR:写真 += "股間"
+	ELSEIF PENIS(TARGET)
+		STR:写真 += @"%TEXTS("ペニス：客観表現")%"
+	ELSE
+		STR:写真 += "アソコ"
+	ENDIF
+ENDIF
+SIF PENIS(TARGET)
+	STR:補足 += "_ペニス"
+SIF TALENT:オトコ == 0
+	STR:補足 += "_アソコ"
+STR:補足 += "_クローズアップ"
+
+
+;-------------------------------------------------
+;お尻の穴のクローズアップ写真
+;-------------------------------------------------
+@PHOTO_ANAL
+#DIMS EVENT_TABLE
+STR:写真 = 
+STR:補足 = 
+
+;サービス
+IF COND("アナルの見せつけ撮影可能") && (COND("身嗜み：Ａ拡張") || CHOSE_DEVENT(STR:日常イベント名) || STRCOUNTS(CSTR:DAILYCOM履歴, "Ａセックス性処理", "Ａ中出し") || RAND:3 == 0 || CFLAG:ムラムラ|| CFLAG:Ａ中出し済)
+	EVENT_TABLE = 汎用/
+	SIF COND("身嗜み：Ａ拡張")
+		EVENT_TABLE += "Ａ拡張バイブ引き抜き/"
+	IF STRCOUNT(CSTR:DAILYCOM履歴, "Ａ中出し")
+		EVENT_TABLE = Ａ中出し直後
+	ELSEIF STRCOUNT(CSTR:DAILYCOM履歴, "Ａセックス性処理")
+		EVENT_TABLE = Ａ使用直後
+	ENDIF
+
+	;ルート確定
+	EVENT_TABLE = %TEXTR(EVENT_TABLE)%
+
+	;開くところ
+	STR:写真 += @"お尻を自分から押し開いて"
+	;本編
+	SELECTCASE EVENT_TABLE
+	CASE "Ａ拡張バイブ引き抜き"
+		IF COND("身嗜み：Ａ拡張") >= 3
+			STR:写真 += @"%TEXTR("大口を開けているアナル/大きく広がったアナル/だらしなく広がったアナル/直腸内部の色鮮やかな粘膜")%を"
+		ELSE
+			STR:写真 += @"%TEXTR("アナルプラグを抜いた直後で閉じきってないアナル/物欲しそうに口を開けたアナル/準備万端なアナル")%を"
+		ENDIF
+		STR:補足 += "_肛門"
+	CASE "Ａ中出し直後"
+		STR:写真 += @"%TEXTR("中出しセックス直後のアナル/濁った汚液混じりの精液を垂らすアナル/注がれたばかりの精液が零れるアナル")%を"
+		STR:補足 += "_肛門"
+	CASE "Ａ使用直後"
+		STR:写真 += @"%TEXTR("使用直後の肛門/一仕事終えたばかりのアナル")%を"
+		STR:補足 += "_肛門"
+	CASEELSE
+		SIF TALENT:縦割れアナル
+			STR:写真 += "縦割れした"
+		STR:写真 += @"アナルを%TEXTR("隅々まで/細部まで余すことなく/惜しげもなく")%"
+	ENDSELECT
+	;態度（あっさりと）
+	IF TALENT:陽気 && CFLAG:褒める
+		STR:写真 += @"見せつけながら%TEXTR("ピース/ウィンク")%している"
+	ELSEIF TALENT:優しい && CFLAG:褒める
+		STR:写真 += "見せつけながら優しく微笑んでいる"
+	ELSEIF TALENT:恥薄い && TALENT:強気 + TALENT:高慢 && CFLAG:褒める
+		STR:写真 += "見せつけながら優越感を滲ませている"
+	ELSEIF TALENT:強気 && CFLAG:褒める
+		STR:写真 += "見せつけながら楽しそうに微笑んでいる"
+	ELSEIF TALENT:恥じらい && CFLAG:褒める
+		STR:写真 += "見せつけながら恥ずかしそうに微笑んでいる"
+	ELSE
+		STR:写真 += "見せつけている"
+	ENDIF
+	SIF CHECK_CLO("上下が揃ってない") == 0
+		STR:写真 += @"%PHOTO_COSTUME(TARGET)%"
+	STR:写真 += @"%CALLNAME:TARGET%"
+	STR:日常イベント名 = アナルの見せつけ撮影
+	STR:補足 += "_Ａくぱぁ"
+ELSEIF COND("身嗜み：Ａ拡張")
+	STR:写真 += @"拡張用の玩具が挿入されている%CALLNAME:TARGET%のアナル"
+;それ以外
+ELSE
+	STR:写真 += "画面いっぱいにクローズアップされた"
+	IF STRCOUNT(CSTR:DAILYCOM履歴, "Ａセックス性処理")
+		STR:写真 += "使われたばかりで緩み気味の"
+	ELSEIF CHECK_STAIN(STAIN:パンツ, "濡れ", "蒸れ")
+		STR:写真 += "蒸れ蒸れの"
+	ELSEIF CHECK_STAIN(STAIN:Ｖ, "汗")
+		STR:写真 += "汗ばんだ"
+	ELSEIF AGE(TARGET) >= 3
+		SELECTCASE COND("陰毛")
+		;もさもさ
+		CASE 7
+			IF RAND:2 && AGE(TARGET) >= 4
+				LOCALS = 濃い陰毛に覆われている
+			ELSE
+				LOCALS = 陰毛で縁取られている
+			ENDIF
+		CASE 6
+			LOCALS = 陰毛で縁取られている
+		;綺麗に剃り整えられている
+		CASE 5, 3
+			LOCALS = %TEXTR("ツルツルに剃り上げられている/ムダ毛を完璧に処理されている/綺麗に剃りあげられている")%
+		;生えかけ
+		CASE 4
+			IF RAND:2 && AGE(TARGET) >= 4
+				LOCALS = 陰毛%TEXTR("が少し伸びてきている/の剃り残しが目立つ")%
+			ELSE
+				LOCALS = 陰毛が%TEXTR("まばらに生えている/生えそろっていない")%
+			ENDIF
+		;脱毛
+		CASE 2
+			LOCALS = %TEXTR("脱毛済みの/綺麗に除毛されている/完璧にお手入れされている")%
+		ENDSELECT
+	ENDIF
+	IF TALENT:縦割れアナル
+		STR:写真 += @"%CALLNAME:TARGET%の縦割れアナル"
+	ELSE
+		STR:写真 += @"%CALLNAME:TARGET%のアナル"
+	ENDIF
+ENDIF
+STR:補足 += "_アナル"
+STR:補足 += "_クローズアップ"
+
+;-------------------------------------------------
+;ポーズ撮影。同じポーズは基本的には撮らない
+;-------------------------------------------------
+@PHOTO_POSING
+TFLAG:撮影おしまい = 0
+
+SELECTCASE CSTR:PREV_DAILYCOM
+CASE STR:日常イベント名
+	SELECTCASE CHOSE_DEVENT("ポーズ撮影")
+	CASE 4
+		IF CHARA_NUM("室内の邪魔者") == 0 && COND("ポーズ撮影中脱衣可能")
+			PRINTFORML …そろそろ%CALLNAME:TARGET%に服を脱いでもらおうか？
+			CALL PRINT_SELECT, "頼んでみる/やめておく"
+			IF RESULT == 0
+				CALL PHOTO_DATUI
+			ELSE
+				PRINTFORML そのまま写真撮影を続けることにした…
+				PRINTFORML %CALLNAME:TARGET%は、まだまだ撮影に付き合ってくれるようだ。
+			ENDIF
+		ELSE
+			PRINTFORML %CALLNAME:TARGET%は、まだまだ写真撮影に付き合ってくれるようだ。
+		ENDIF
+	CASE IS >= 2
+		PRINTFORML %CALLNAME:TARGET%は、まだまだ写真撮影に付き合ってくれるようだ。
+	CASEELSE
+		PRINTFORML 引き続き%CALLNAME:TARGET%は写真撮影に付き合ってくれるようだ。
+	ENDSELECT
+	PRINTFORM %CALLNAME:TARGET%は
+CASEELSE
+	PRINTFORML ……%CALLNAME:TARGET%は写真撮影に応じてくれるようだ。
+	PRINTFORM スマホを向けられた%CALLNAME:TARGET%は、
+ENDSELECT
+
+CALL PHOTO_POSING_MAIN
+
+IF TFLAG:撮影おしまい
+	PRINTL 
+	CLEARLINE 1
+	PRINTFORMW ……が、どうも良いポーズが思いつかないようで先程と同じ格好を恥ずかしげに取った。
+ELSE
+	PRINTW 
+ENDIF
+
+;-------------------------------------------------
+;二人きりかつ全裸化の合意があれば撮影時に服を脱いでくれる
+;状況によっては断られるますが褒めてごり押しも可能
+;-------------------------------------------------
+@PHOTO_DATUI
+#DIMS EVENT_TABLE
+
+;脱ぐ服を決める
+PRINTL 
+PRINTFORML …どの格好になってもらおうか？
+
+EVENT_TABLE = %MENU_PHOTO_DATUI(TARGET)%
+VARSET LOCALS
+SPLIT EVENT_TABLE, "/", LOCALS
+CALL PRINT_SELECT, EVENT_TABLE
+
+SELECTCASE LOCALS:RESULT
+CASE "全裸"
+	;CALL EMOTION_PLUS, "小悪魔", TARGET
+	CALL EVENT_DATUI, "ハダカ"
+	CALL SETFLAG, "全裸化", TARGET
+CASE  "下着姿"
+	CALL EVENT_DATUI, "衣服"
+CASE "スカートを脱いでもらう"
+	PRINTFORMW %CALLNAME:TARGET%は%SKIRT(TARGET)%を脱いだ。
+	CALL SET_SKIRT, ""
+	SIF COND("パンツ形状確認") == 0
+		CALL TEXT_PANTU_CHECK_SHORT
+CASE "パンツを脱いでもらう", "ブルマを脱いでもらう", "水着を脱いでもらう"
+	SIF COND("パンツ形状確認") == 0
+		CALL TEXT_PANTU_CHECK_SHORT
+	CALL EVENT_DATUI, "パンツ"
+CASEELSE
+	PRINTFORMW 今の衣装のまま撮影を続けることにした。
+ENDSELECT
+PRINTL 
+PRINTFORM スマホを向けられた
+
+@MENU_PHOTO_DATUI(ARG)
+#FUNCTIONS
+#DIMS EVENT_TABLE
+
+SIF COND("合意：Ｈな写真", ARG) == 0
+	RETURNF ""
+
+EVENT_TABLE = 
+SIF CHECK_CLO("ハダカ", ARG) == 0
+	EVENT_TABLE += "全裸/"
+SIF EQUIP:ARG:ブラ && EQUIP:ARG:パンツ && CHECK_CLO("下着姿", ARG) == 0
+	EVENT_TABLE += "下着姿/"
+SIF CHECK_CLO("スカート脱衣可能", ARG)
+	EVENT_TABLE += "スカートを脱いでもらう/"
+SIF CHECK_CLO("パンツ露出", ARG) && EQUIP:ARG:パンツ && CHECK_CLO("水着姿", ARG) == 0
+	EVENT_TABLE += @"%PANTIES(ARG, "パンツ")%を脱いでもらう/"
+
+SIF EVENT_TABLE != ""
+	EVENT_TABLE += "やっぱり今のままでいい/"
+RETURNF EVENT_TABLE
+
+;-------------------------------------------------
+;各ポーズは STR:補足 でジャンル分け
+;既にしたポーズはとらない＆新たなポーズ思い浮かばない場合には TFLAG:撮影おしまい = 1 として終わり！
+;-------------------------------------------------
+@PHOTO_POSING_MAIN
+#DIM LCOUNT
+#DIMS EVENT_TABLE
+#DIMS MEMO_EVENT_TABLE
+#DIMS EVENT_CHOICE
+;これがONだとコス描写を出さない
+#DIM IGNORE_COSTUME
+STR:写真 = 
+STR:補足 = 
+
+IGNORE_COSTUME = 0
+EVENT_TABLE = 
+;ポーズは徐々にエロくなっていくみたいな
+;特殊な衣装のポーズは起きやすくする
+IF COND("ポーズ撮影進行度") >= 3
+	;股間強調
+	IF CHECK_CLO("Ｖ露出") && ABL:露出癖 >= 5 && EQUIP:スカート == 0
+		SIF PENIS(TARGET)
+			EVENT_TABLE += "ペニス見せつけ/"
+		SIF TALENT:オトコ == 0
+			EVENT_TABLE += "立ちくぱぁ/"
+	ENDIF
+
+	;日焼け跡と水着の形状が同じ
+	SIF CHECK_CLO("水着姿") && CSTR:日焼け != "" && (TEXTS("日焼け跡") == @"%SWIM(CSTR:ボディスーツ, "種類")%" || TEXTS("日焼け跡") == @"%SWIM(CSTR:パンツ, "種類")%")
+		EVENT_TABLE += "日焼け跡上/日焼け跡下/"
+
+	SIF CHECK_CLO("ハダカ") || CHECK_CLO("水着姿") || CHECK_CLO("下着姿")
+		EVENT_TABLE += "全身見せつけ/"
+	SIF CHECK_CLO("乳首露出") == 0 && EQUIP:ボディスーツ + EQUIP:服 + EQUIP:ブラ
+		EVENT_TABLE += "おっぱい見せつけ/"
+	SIF CHECK_CLO("乳首露出")
+		EVENT_TABLE += "手ブラ/"
+	
+	;パンチラ
+	IF EQUIP:スカート && CHECK_CLO("パンツ視認可能")
+		EVENT_TABLE += "たくし上げパンチラ/"
+		;Ｔバックだと後ろを向く
+		SIF CHECK_PANTIES("Ｔバック")
+			EVENT_TABLE += "Ｔバックパンチラ/"
+		SIF COND("脚が無い") == 0
+			EVENT_TABLE += "両脚持ち上げパンチラ/"
+		SIF COND("脚が無い") == 0 && CHECK_SKIRT("ミニ")
+			EVENT_TABLE += "ハイキックパンチラ/うつ伏せパンチラ/"
+		SIF COND("脚が無い") == 0 && CHECK_SKIRT("ロング") == 0 && CHECK_SHIRT("チャイナドレス") == 0
+			EVENT_TABLE += "片膝立てパンチラ/"
+	ENDIF
+
+	SIF (TALENT:好色 || TALENT:淫乱) && BASE:欲求不満 >= 50
+		EVENT_TABLE += "まんぐり返し/"
+	SIF TALENT:淫壷
+		EVENT_TABLE += "お腹ハート/"
+	SIF ABL:舌使い >= 3 && (TALENT:淫乱 || TALENT:好色)
+		EVENT_TABLE += "指フェラ/"
+ENDIF
+;進行度２以上なら１以下の進行度のものは行わない
+IF COND("ポーズ撮影進行度") >= 2
+	EVENT_TABLE += "お尻突き出し/"
+	SIF TALENT:巨乳
+		EVENT_TABLE += "巨乳強調/"
+	SIF CHECK_CLO("腋露出")
+		EVENT_TABLE += "腋見せつけ/腋見せつけ/腋見せつけ/"
+	SIF CHECK_CLO("ローライズヒップ")
+		EVENT_TABLE += "ローライズヒップ/ローライズヒップ/ローライズヒップ/"
+	SIF CHECK_CLO("水着姿") || CHECK_CLO("下着姿") || CHECK_CLO("ハダカ") || CHECK_BODYS("谷間露出")
+		EVENT_TABLE += "おっぱい強調/"
+	SIF TALENT:オンナ && EQUIP:スカート == 0 && CHECK_OUTER("ズボン") == 0 && CHECK_CLO("Ｖ露出") == 0
+		EVENT_TABLE += "恥丘強調/"
+	SIF CHECK_SHIRT("着物")
+		EVENT_TABLE += "着物はだけ/着物はだけ/"
+	;脚主体
+	IF COND("脚が無い") == 0
+		SIF (CHECK_OUTER("パンスト") || CHECK_OUTER("ホットパンツ") || EQUIP:アウター == 0) && (CHECK_SKIRT("ミニ") || EQUIP:スカート == 0)
+			EVENT_TABLE += "脚見せつけ/"
+		SIF CHECK_SHIRT("体操服")
+			EVENT_TABLE += "開脚ストレッチ/開脚ストレッチ/開脚ストレッチ/"
+		;チャイナ　膝立ての場合ぱんつ隠れそうな予感
+		SIF CHECK_SHIRT("チャイナドレス")
+			EVENT_TABLE += "チャイナ片膝立て/チャイナスリット/チャイナスリット/チャイナカンフー/チャイナカンフー/"
+		SIF CHECK_SHIRT("着物")
+			EVENT_TABLE += "着物脚見せつけ/着物脚見せつけ/"
+		;袴　足無い人の袴はほぼロングスカートだろう、たぶん
+		SIF CHECK_SKIRT("袴")
+			EVENT_TABLE += "袴脚見せつけ/袴脚見せつけ/"
+	ENDIF
+ENDIF
+IF COND("ポーズ撮影進行度")
+	EVENT_TABLE += "寝転がる/座る/"
+	SIF CHECK_BRA("猫型ブラ") && CHECK_PANTIES("肉球プリントパンツ")
+		EVENT_TABLE += "ネコランジェリー/ネコランジェリー/ネコランジェリー/"
+	SIF CHECK_SHIRT("セーラー夏服")
+		EVENT_TABLE += "セーラー夏服/セーラー夏服/セーラー夏服/"
+	SIF CHECK_SHIRT("体操服")
+		EVENT_TABLE += "肩ストレッチ/肩ストレッチ/肩ストレッチ/"
+	IF CHECK_SHIRT("チアユニフォーム")
+		EVENT_TABLE += "チアコス/チアコス/チアコス/"
+		SIF TALENT:巨乳
+			EVENT_TABLE += "チアコスおっぱい/チアコスおっぱい/チアコスおっぱい/"
+	ENDIF
+	SIF COND("脚が無い") == 0
+		EVENT_TABLE += "女豹のポーズ/"
+;前段階のエロくないポーズ？
+ELSE
+	;マタニティヌード的な
+	IF COND("妊娠中：臨月") && (CHECK_CLO("ハダカ") || CHECK_CLO("下着姿"))
+		EVENT_TABLE += "妊婦写真"
+	ELSE
+		EVENT_TABLE += "腰を下ろす/振り返る/ピース/"
+		SIF CHECK_CLO("ハダカ")
+			EVENT_TABLE += "体を隠す/"
+		SIF CHECK_SKIRT("スカート")
+			EVENT_TABLE += "スカートつまみ/"
+		SIF TALENT:恥じらい || TALENT:恥薄い || TALENT:小悪魔 || TALENT:好色
+			EVENT_TABLE += "恥じらう/"
+	ENDIF
+ENDIF
+
+;とってくれるポーズ内容の調整
+MEMO_EVENT_TABLE = %EVENT_TABLE%
+VARSET LOCALS
+SPLIT EVENT_TABLE, "/", LOCALS
+EVENT_TABLE = 
+
+FOR LCOUNT, 0, 100
+	SIF LOCALS:LCOUNT == ""
+		BREAK
+	;同じポーズはとらない
+	SIF STRCOUNT(SAVESTR:この時間のポーズ撮影履歴, @"%CALLNAME:TARGET%_%LOCALS:LCOUNT%\/")
+		CONTINUE
+	EVENT_TABLE += @"%LOCALS:LCOUNT%\/"
+NEXT
+
+;ポーズをやりつくした場合
+IF EVENT_TABLE == ""
+	EVENT_TABLE = %MEMO_EVENT_TABLE%
+	TFLAG:撮影おしまい = 1
+ENDIF
+
+EVENT_CHOICE = %TEXTR(EVENT_TABLE)%
+
+;ポーズ描写
+SELECTCASE EVENT_CHOICE
+;ポーズ撮影進行度3
+CASE "ペニス見せつけ"
+	PRINTFORM %PHOTO_SHOWING()%腰を突きだした…
+	STR:写真 +="こちらに向かって"
+	SIF BASE:欲求不満 >= 50 && ABL:露出癖 >= 3
+		STR:写真 += "興奮で硬くなっている"
+	SELECTCASE SIZE("ペニス", TARGET)
+	CASE 0
+		STR:写真 += @"%TEXTR("小さな/小粒な/かわいい")%"
+	CASE 1
+		STR:写真 += ""
+	CASE IS >= 2
+		STR:写真 += @"%TEXTR("立派な/大きな")%"
+	CASE IS >= 4
+		STR:写真 += @"%TEXTR("巨大な/凶悪な")%"
+	ENDSELECT
+	SIF TALENT:ふたなり
+		STR:写真 += "ふたなり"
+	STR:写真 += "ペニスを見せつけている"
+	;ポーズ解説が脱衣前提なので格好次第でコス描写を省く
+	SIF CHECK_CLO("上下が揃ってない")
+		IGNORE_COSTUME = 1
+CASE "立ちくぱぁ"
+	IF RAND:2 && !TALENT:ふたなり
+		PRINTFORM %PHOTO_SHOWING()%アソコに手を伸ばした…
+		STR:写真 += "立ったまま自らのアソコを指で広げている"
+	ELSE
+		PRINTFORM 振り返ってお尻をこちらに向けた…
+		STR:写真 += "こちらに向かってお尻を突きだしながらアソコを指で広げている"
+	ENDIF
+	;ポーズ解説が脱衣前提なので格好次第でコス描写を省く
+	SIF CHECK_CLO("上下が揃ってない")
+		IGNORE_COSTUME = 1
+
+CASE "日焼け跡上"
+	IF CHECK_BODYS("競泳水着")
+		PRINTFORM 競泳水着の肩紐に手をかけた…
+		STR:写真 += "肩紐"
+	ELSEIF CHECK_CLO("ビキニ姿")
+		PRINTFORM %BRA(TARGET)%の肩紐に手をかけた…
+		STR:写真 += "ブラ紐"
+	ELSE
+		PRINTFORM 水着に手をかけずらし始めた…
+		STR:写真 += "布地"
+	ENDIF
+	STR:写真 += "をずらして胸元の日焼け跡を露わにしている"
+	;ポーズ解説が脱衣前提なので格好次第でコス描写を省く
+	SIF CHECK_CLO("上下が揃ってない")
+		IGNORE_COSTUME = 1
+CASE "日焼け跡下"
+	IF CHECK_CLO("ビキニ姿")
+		PRINTFORM %PANTIES(TARGET)%に親指をかけた…
+		STR:写真 += "パンツ"
+		SIF CHECK_PANTIES("マイクロ")
+			STR:写真 += "の紐"
+		STR:写真 += "をずらして腰回りの"
+	ELSE
+		PRINTFORM 下半身に手を伸ばし、水着をずらし始めた…
+		STR:写真 += @"布地をずらして%TEXTR("鼠径部/足の付け根")%の"
+	ENDIF
+	STR:写真 += "日焼け跡を露わにしている"
+	;ポーズ解説が脱衣前提なので格好次第でコス描写を省く
+	SIF CHECK_CLO("上下が揃ってない")
+		IGNORE_COSTUME = 1
+CASE "全身見せつけ"
+	;ハダカかつ日焼け跡あり
+	IF CHECK_CLO("ハダカ") && CSTR:日焼け != ""
+		PRINTFORM 日焼けした肢体\@ TALENT:好色 || TALENT:小悪魔 ? を見せつけるように # がよく見えるような \@ポーズをとった…
+		STR:写真 += @"体に%TEXTS("日焼け跡")%の日焼け跡がくっきりと残っている"
+	ELSEIF RAND:2
+		PRINTFORM %PHOTO_SHOWING()%両手を広げた…
+		STR:写真 += "両手を左右に大きく広げて肢体を晒している"
+	ELSE
+		PRINTFORM %PHOTO_SHOWING()%手を腰に当てるポーズになった…
+		STR:写真 += "体を見せつけるように両手を腰に当てている"
+	ENDIF
+CASE "おっぱい見せつけ"
+	IF EQUIP:ボディスーツ
+		IF CHECK_CLO("水着姿")
+			IF RAND:2 && TALENT:巨乳
+				PRINTFORM 水着の脇の部分に手をかけ、中央に向かってずらし始めた…
+				STR:写真 += "胸の部分の布地を中央に寄せ、両サイドから"
+			ELSE
+				PRINTFORM 水着の肩紐に手をかけた…
+				STR:写真 += "肩紐を外し、布地をずり降ろして"
+			ENDIF
+		;多分バニーとかはここ
+		ELSE
+			PRINTFORM %BODYS(TARGET)%の胸元に手をかけた…
+			STR:写真 += "衣装をずり降ろして"
+		ENDIF
+		STR:写真 += @"\@ TALENT:オトコ ? 胸 # おっぱい \@を露出させている"
+		;ポーズ解説が脱衣前提なので格好次第でコス描写を省く
+		SIF CHECK_CLO("上下が揃ってない")
+			IGNORE_COSTUME = 1
+	ELSEIF EQUIP:服
+		;下からまくるorボタンを外すor胸元を広げる
+		IF CHECK_SHIRT("要たくし上げ")
+			PRINTFORM %PHOTO_SHOWING()%%SHIRT(TARGET)%の裾に手をかけた…
+			;服めくってキャミソール見せるだけってのもなぁ、と考えた結果
+			SIF CHECK_BRA("キャミソール")
+				STR:写真 += @"%BRA(TARGET)%ごと"
+			STR:写真 += "服をまくり上げて"
+			IF CHECK_BRA("キャミソール") || EQUIP:ブラ == 0
+				STR:写真 += "おっぱいを露出させている"
+			ELSEIF CHECK_BRA("乳首露出")
+				STR:写真 = %SHIRT(TARGET)%をまくり上げて
+				IF CHECK_BRA("シェルフブラ")
+					STR:写真 += @"%BRA(TARGET)%を見せつけているおっぱい丸見え状態の"
+				ELSE
+					STR:写真 += @"%BRA(TARGET)%を露出させている乳首が丸見えの"
+				ENDIF
+				;ポーズ解説にコス描写が含まれるのでキャラ解説の方のコス描写は省く
+				IGNORE_COSTUME = 1
+			ELSE
+				STR:写真 += @"%BRA(TARGET)%を露出させている"
+			ENDIF
+			;ポーズ解説が脱衣前提なので格好次第でコス描写を省く
+			SIF CHECK_CLO("上下が揃ってない")
+				IGNORE_COSTUME = 1
+		ELSEIF CHECK_SHIRT("だぼだぼＴシャツ") || CHECK_SHIRT("%CALLNAME:MASTER%のＹシャツ")
+			IF CHECK_SHIRT("だぼだぼＴシャツ")
+				PRINTFORM %SHIRT(TARGET)%の裾をつかむと、一気に上に持ち上げた…
+				STR:写真 += @"%SHIRT(TARGET)%を胸までめくりあげて、"
+			ELSEIF CHECK_SHIRT("%CALLNAME:MASTER%のＹシャツ")
+				PRINTFORM %SHIRT(TARGET)%のボタンに手をかけた…
+				STR:写真 += @"%SHIRT(TARGET)%のボタンをはずして"
+				IF ABL:露出癖 >= 5
+					STR:写真 += "左右に大きく広げ、"
+				ELSE
+					STR:写真 += "前をはだけ、"
+				ENDIF
+			ENDIF
+			IF EQUIP:ブラ && EQUIP:パンツ
+				STR:写真 += "下着姿"
+			ELSEIF EQUIP:パンツ
+				STR:写真 += @"%PANTIES(TARGET, "パンツ")%一枚の姿"
+			ELSEIF CHECK_CLO("ハダカ")
+				STR:写真 += "服の下の裸体"
+			ENDIF
+			STR:写真 += "をあらわにしている%CALLNAME:TARGET%"
+			IGNORE_COSTUME = 1
+		ELSEIF CHECK_SHIRT("ブラウス")
+			PRINTFORM %PHOTO_SHOWING()%%SHIRT(TARGET)%のボタンに手をかけた…
+			STR:写真 += @"%SHIRT(TARGET)%のボタンを外し、"
+			IF TALENT:巨乳
+				STR:写真 += "胸の谷間を"
+			ELSE
+				STR:写真 += "胸元を大胆に"
+			ENDIF
+			STR:写真 += "露出させている"
+			;ポーズ解説にコス描写が含まれるのでキャラ解説の方のコス描写は省く
+			IGNORE_COSTUME = 1
+		ELSE
+			PRINTFORM %PHOTO_SHOWING()%%SHIRT(TARGET)%の胸元に手をかけた…
+			STR:写真 += @"%SHIRT(TARGET)%をはだけさせ、"
+			IF EQUIP:ブラ == 0
+				STR:写真 += "おっぱいを露出させている"
+			ELSEIF CHECK_BRA("乳首露出")
+				IF CHECK_BRA("シェルフブラ")
+					STR:写真 += @"%BRA(TARGET)%を見せつけているおっぱい丸見え状態の"
+				ELSE
+					STR:写真 += @"%BRA(TARGET)%を露出させている乳首が丸見えの"
+				ENDIF
+			ELSE
+				STR:写真 += @"%BRA(TARGET)%を露出させている"
+			ENDIF
+			;ポーズ解説にコス描写が含まれるのでキャラ解説の方のコス描写は省く
+			IGNORE_COSTUME = 1
+		ENDIF
+	;ブラあり
+	ELSEIF EQUIP:ブラ
+		PRINTFORM %PHOTO_SHOWING()%%BRA(TARGET)%を
+		IF CHECK_BRA("マイクロ") && CHECK_BRA("乳首露出") == 0 && RAND:2
+			PRINTFORM 少しずらした…
+			STR:写真 += "ブラをずらし、"
+			IF COND("陥没乳首")
+				STR:写真 += "陥没"
+			ELSE
+				SIF TALENT:ニプルピアス
+					STR:写真 += "ピアスが通された"
+				SIF COND("乳首肥大")
+					STR:写真 += "大きな"
+			ENDIF
+			STR:写真 += "乳首"
+		ELSE
+			IF CHECK_BRA("乳首露出")
+				PRINTFORM つけた胸を張った…
+				STR:写真 += @"%BRA(TARGET)%を身に着け、"
+				;ポーズ解説にコス描写が含まれるのでキャラ解説の方のコス描写は省く
+				IGNORE_COSTUME = 1
+			ELSE
+				PRINTFORM たくし上げた…
+				STR:写真 += @"ブラをたくし上げ、"
+			ENDIF
+			IF TALENT:巨乳 >= 2
+				STR:写真 += @"%TEXTR("たわわに実った/見事な大きさの")%"
+			ELSEIF TALENT:巨乳 == 1
+				STR:写真 += @"%TEXTR("大きな/柔らかそうな")%"
+			ELSEIF TALENT:貧乳
+				STR:写真 += @"%TEXTR("小ぶりな/慎ましい大きさの")%"
+			ELSE
+				STR:写真 += @"%TEXTR("形の良い/美しい曲線を描く")%"
+			ENDIF
+			STR:写真 += @"\@ TALENT:オトコ ? 胸 # おっぱい \@"
+		ENDIF
+		STR:写真 += @"を%TEXTR("露出させ/見せてくれ/露わにし")%ている"
+	ENDIF
+	STR:補足 += "_ブラ"
+CASE "手ブラ"
+	PRINTFORM 恥じらうように両手で胸を覆い隠した…
+	STR:写真 += @"手ブラで両方の%TEXTR("胸/乳首")%を隠している"
+	;ポーズ解説が脱衣前提なので格好次第でコス描写を省く
+	SIF CHECK_BRA("シェルフブラ")
+		IGNORE_COSTUME = 1
+	STR:補足 += "_ブラ"
+CASE "Ｔバックパンチラ"
+	;ロング以外なら尻尾で持ち上げる？
+	IF RAND:3 == 0 && TALENT:しっぽ && TALENT:しっぽ != 4 && CHECK_SKIRT("ロング") == 0
+		PRINTFORM 後ろを向いて尻尾をピンと立てた…
+		STR:写真 += @"尻尾で%SKIRT(TARGET, "略")%を持ち上げ、"
+	;うつ伏せ
+	ELSEIF RAND:2 && CHECK_SKIRT("ミニ")
+		PRINTFORM %NAMES("ベッド")%の上でうつ伏せになった…
+		STR:写真 += "うつ伏せになってこちらにお尻を向け、"
+	ELSE
+		PRINTFORM 後ろを向いて%SKIRT(TARGET, "略")%に手をかけた…
+		STR:写真 += @"%SKIRT(TARGET, "略")%をめくり上げ、"
+	ENDIF
+	;パンスト描写
+	IF CHECK_CLO("パンスト露出")
+		IF COND("身嗜み：Ａ拡張")
+			STR:写真 += @"%OUTER(TARGET)%と"
+		ELSE
+			STR:写真 += @"%OUTER(TARGET)%越しに見える"
+		ENDIF
+	ENDIF
+	;アナルプラグはあるか？
+	IF COND("身嗜み：Ａ拡張")
+		STR:写真 += @"%PANTIES(TARGET)%越しに見えるプラグの挿さった"
+	ELSE
+		STR:写真 += @"%PANTIES(TARGET)%の食い込んだ"
+	ENDIF
+	STR:写真 += "お尻を露わにしている"
+	STR:補足 += "_パンツ"
+CASE "たくし上げパンチラ", "ハイキックパンチラ", "うつ伏せパンチラ", "片膝立てパンチラ", "両脚持ち上げパンチラ"
+	SELECTCASE EVENT_CHOICE
+	CASE "たくし上げパンチラ"
+		PRINTFORM %PHOTO_SHOWING()%%SKIRT(TARGET, "略")%を持ち上げ始めた…
+		;ワンピースはお腹のとこまでめくる？
+		SIF CHECK_SHIRT("ワンピース") && RAND:2
+			STR:写真 += @"%TEXTR("お腹が/おへそが")%見えるくらいにまで"
+		STR:写真 += @"%SKIRT(TARGET, "略")%をたくし上げ、"
+	CASE "ハイキックパンチラ"
+		PRINTFORM 周囲を確認すると大きく片足を振り上げた…
+		STR:写真 += "ハイキックをする様に片足を大きく上げ、"
+	CASE "うつ伏せパンチラ"
+		PRINTFORM %NAMES("ベッド")%の上でうつ伏せになった…
+		STR:写真 += "うつ伏せになって"
+		IF CHECK_CLO("Ｖ露出") || CHECK_PANTIES("前貼り")
+			STR:写真 += "お尻を高く上げ、"
+		ELSE
+			STR:写真 += "こちらにお尻を向け、"
+		ENDIF
+	CASE "片膝立てパンチラ"
+		PRINTFORM %NAMES("ベッド")%に腰かけ、膝を持ち上げて%CLO("スカートめくり")%をめくれ上がらせた…
+		STR:写真 += "片膝を立てて座り、"
+	CASE "両脚持ち上げパンチラ"
+		PRINTFORM %NAMES("ベッド")%に倒れこんで両足を持ち上げた…
+		STR:写真 += "揃えた両足を持ち上げて、"
+	ENDSELECT
+	;パンスト描写
+	SIF CHECK_CLO("パンスト露出")
+		STR:写真 += @"%OUTER(TARGET)%越しに見える"
+	IF EQUIP:パンツ == 0
+		IF COND("身嗜み：Ｖ拡張")
+			STR:写真 += "拡張用のバイブが挿さった"
+		ELSEIF CHECK_CLO("Ｖ露出")
+			STR:写真 += "むき出しの"
+		ENDIF
+		IF PENIS(TARGET) && !(TALENT:ふたなり && COND("身嗜み：Ｖ拡張"))
+			;なんか見える箇所が変わるイメージで
+			IF EVENT_CHOICE == "両脚持ち上げパンチラ"
+				IF TALENT:オトコ
+					SIF SIZE("ペニス", TARGET) == 0
+						STR:写真 += "かわいらしい"
+					STR:写真 += "睾丸"
+				ELSE
+					STR:写真 += "アソコ"
+					STR:補足 += "_アソコ"
+				ENDIF	
+			ELSE
+				STR:写真 += "ペニス"
+				STR:補足 += "_ペニス"
+			ENDIF
+		ELSE
+			STR:写真 += "アソコ"
+			STR:補足 += "_アソコ"
+		ENDIF
+	ELSE
+		STR:写真 += @"%PANTIES(TARGET)%"
+		STR:補足 += "_パンツ"
+	ENDIF
+	STR:写真 += "を露わにしている"
+CASE "まんぐり返し"
+	PRINTFORM %NAMES("ベッド")%に寝転がって両足を抱え込んだ…
+	STR:写真 += @"%NAMES("ベッド")%の上でまんぐり返しの姿勢"
+	IF (EQUIP:スカート && CHECK_CLO("パンツ視認可能")) || CHECK_CLO("Ｖ露出")
+		STR:写真 += "をとり、"
+		IF EQUIP:パンツ
+			STR:写真 += @"%PANTIES(TARGET)%"
+		ELSE
+			IF PENIS(TARGET)
+				STR:写真 += "ペニス"
+			ELSE
+				SIF COND("陰毛") <= 3
+					STR:写真 += "ツルツルの"
+				STR:写真 += "アソコ"
+			ENDIF
+		ENDIF
+		STR:写真 += "を見せつけている"
+		SIF CHECK_CLO("ハダカ") == 0
+			IGNORE_COSTUME = 1
+	ELSE
+		STR:写真 += "をとっている"
+	ENDIF
+CASE "お腹ハート"
+	PRINTFORM %PHOTO_SHOWING()%ポーズをとった…
+	STR:写真 += @"手で作ったハートマークをお腹\@ CHECK_CLO("淫紋露出") ? に刻まれた淫紋 # \@に宛がっている"
+CASE "指フェラ"
+	PRINTFORM %PHOTO_SHOWING()%ポーズをとった…
+	STR:写真 += @"%TEXTR("自分の指にねっとりと舌を這わせ/指で輪っかを作り、突き出した舌の前にかざし")%ている"
+
+;ポーズ撮影進行度2
+CASE "お尻突き出し"
+	PRINTFORM %PHOTO_SHOWING()%ポーズをとった…
+	IF CHECK_SKIRT("超ミニ")
+		STR:写真 += @"こちらにお尻を突き出し、%SKIRT(TARGET,"略")%から%CLOCOLOR(CSTR:パンツ, "形容詞")%%PANTIES(TARGET, "パンツ")%を覗かせている"
+		IGNORE_COSTUME = 1
+	ELSE
+		IF TALENT:好色 || (TALENT:淫乱 && RAND:2)
+			STR:写真 += @"こちらを%TEXTR("誘惑/挑発")%するように"
+		ELSE
+			STR:写真 += "こちらに向けて"
+		ENDIF
+		IF CHECK_CLO("体操服姿") && CHECK_OUTER("ブルマ")
+			STR:写真 += "ブルマに包まれた"
+			IGNORE_COSTUME = 1
+		ELSEIF EQUIP:パンツ && CHECK_CLO("パンツが見える格好") && CHECK_PANTIES("前貼り") == 0
+			STR:写真 += @"%PANTIES(TARGET)%"
+			IF CHECK_PANTIES("Ｔバック")
+				STR:写真 += "が食い込む"
+			ELSE
+				STR:写真 += "に包まれた"
+			ENDIF
+			IGNORE_COSTUME = 1
+		ENDIF
+		IF TALENT:巨尻 && RAND:2
+			STR:写真 += @"%TEXTR("大きな/安産型の")%"
+		ELSEIF TALENT:小尻 && RAND:2
+			STR:写真 += @"%TEXTR("小さい/可愛らしい")%"
+		ENDIF
+		STR:写真 += "お尻を突きだしている"
+	ENDIF
+CASE "巨乳強調"
+	IF RAND:2
+		PRINTFORM %PHOTO_SHOWING()%ポーズをとった…
+		;のせる
+		IF PLACE("部室") && RAND:3 == 0
+			STR:写真 += "机に重そうなおっぱいを乗せるような姿勢で座っている"
+		ELSE
+			STR:写真 += @"大きな胸%TEXTR("を自分で揉みしだいて/に手を添え持ち上げて")%いる"
+		ENDIF
+	ELSE
+		IF RAND:2
+			PRINTFORM 前傾して膝に手を突くポーズになった…
+			STR:写真 += "前屈みになって"
+		ELSE
+			PRINTFORM 両腕を使って胸を寄せるようなポーズになった…
+			STR:写真 += "腕組みをして"
+		ENDIF
+		STR:写真 += @"%TEXTR("胸/おっぱい")%をギュッと寄せ、\@ CHECK_BRA("猫型ブラ") ? 猫型の穴から覗く # \@谷間を強調している"
+	ENDIF
+CASE "恥丘強調"
+	IF CHECK_CLO("体操服姿") && TALENT:力持ち
+		PRINTFORM 仰向けに寝転んだ後にグッと腰を持ち上げた…
+		STR:写真 += "ブリッジの体勢で"
+	ELSEIF RAND:2
+		PRINTFORM 椅子に座って両ひざを立てた…
+		STR:写真 += "Ｍ字開脚の姿勢で"
+	ELSE
+		PRINTFORM 後ろ手に机に体重を預けながら腰を突き出した…
+		STR:写真 += "上半身を弓なりに反らせて"
+	ENDIF
+	STR:写真 += "恥丘の盛り上がりを見せつけている"
+CASE "腋見せつけ"
+	PRINTFORM 両手を大きく上げ、頭の後ろへ持って行った…
+	STR:写真 += @"頭の後ろで手を組んで%TEXTS("腋：視覚")%を見せつけている"
+CASE "ローライズヒップ"
+	PRINTFORM 後ろを向いてその場にしゃがみこんだ…
+	STR:写真 += @"背を向けてしゃがみ、%OUTER(TARGET)%から"
+	IF EQUIP:パンツ == 0 || CHECK_PANTIES("ローレグ") || CHECK_PANTIES("Ｃストリング") || CHECK_PANTIES("前貼り")
+		SIF TALENT:巨尻
+			STR:写真 += "肉付きのよい"
+		STR:写真 += "お尻を少しだけ"
+		CALL SETFLAG_DAILY, "パンツおぼろげ確認"
+	ELSE
+		SIF CHECK_PANTIES("ローライズ")
+			STR:写真 += "わずかに"
+		STR:写真 += @"%PANTIES(TARGET)%を"
+		CALL SETFLAG_DAILY, "パンツ色確認"
+	ENDIF
+	STR:写真 += "はみ出させている"
+CASE "おっぱい強調"
+	PRINTFORM 横向き加減になり、
+	IF RAND:2
+		PRINTFORM 腰に手を当てた…
+		STR:写真 += "腕を後ろに引いて"
+	ELSE
+		PRINTFORM 上体を後ろに反らした…
+		STR:写真 += "大きく体を仰け反らせて"
+	ENDIF
+	STR:写真 += "横乳のラインを強調している"
+CASE "着物はだけ"
+	PRINTFORM %SHIRT(TARGET)%の襟に手をかけた…
+	STR:写真 += @"%SHIRT(TARGET)%の襟元を%TEXTR("際どい所/胸が見えるギリギリ")%まではだけさせている"
+	;ポーズ解説にコス描写が含まれるのでキャラ解説の方のコス描写は省く
+	IGNORE_COSTUME = 1
+CASE "脚見せつけ"
+	PRINTFORM 足を踏みかえてポーズを決めた…
+	;スカート
+	SIF EQUIP:スカート
+		STR:写真 += @"%SKIRT(TARGET, "略")%から伸びる"
+	;なんか穿いてる
+	IF CHECK_SOCKS("太ももまで")
+		STR:写真 += @"%SOCKS(TARGET)%に包まれた"
+	ELSEIF CHECK_OUTER("パンスト")
+		STR:写真 += @"%OUTER(TARGET)%に包まれた"
+	;日焼け
+	ELSEIF CSTR:日焼け != ""
+		IF CFLAG:日焼け強度 >= 20
+			STR:写真 += "こんがりと日に焼けた"
+		ELSE
+			STR:写真 += "健康的に日焼けした"
+		ENDIF
+	;ここから生足
+	ELSE
+		;脚の太さ
+		IF TALENT:小柄 || AGE(TARGET) == 1
+			;とりあえずウェストで判定？
+			IF CONDS("ウェスト") == "太め"
+				STR:写真 += @"%TEXTR("ぷにっ/ぷにぷに")%とした"
+			ELSE
+				STR:写真 += @"%TEXTR("細くて華奢な/未発達な")%"
+			ENDIF
+		ELSEIF STRCOUNTS(CONDS("体型"), "スリム", "スレンダー")
+			STR:写真 += @"%TEXTR("すらり/すらっ")%とした"
+		ELSEIF STRCOUNTS(CONDS("体型"), "グラマー", "豊満", "むちむち", "油断")
+			STR:写真 += @"%TEXTR("むっちり/むちっ")%とした"
+		ELSE
+			STR:写真 += @"%TEXTR("程よく肉の付いた/綺麗な")%"
+		ENDIF
+		;脚の色
+		SELECTCASE CONDS("肌の色")
+		CASE "褐色肌"
+			STR:写真 += "小麦色の"
+		CASE "色白"
+			STR:写真 += "真っ白い"
+		CASE "青肌"
+			STR:写真 += "青色の"
+		ENDSELECT
+	ENDIF
+	STR:写真 += "脚をクロスさせて立っている"
+CASE "開脚ストレッチ"
+	IF TALENT:力持ち && RAND:2
+		PRINTFORM 立ったまま片足を大きく上げると、手でつかんで固定した…
+		STR:写真 += "脚を大きく上げ、Ｙ字バランスを披露している"
+	ELSE
+		PRINTFORM 床に座り込んで脚を大きく開いた…
+		STR:写真 += "大股開きになり、股関節のストレッチをしている"
+	ENDIF
+CASE "チャイナ片膝立て"
+	PRINTFORM %NAMES("ベッド")%に腰かけ、片膝を持ち上げた…
+	STR:写真 += @"片膝を立て、ギリギリ下着が見えない体勢で座っている"
+CASE "チャイナスリット"
+	IF RAND:2 || CHECK_PANTIES("紐")
+		PRINTFORM 立ったまま横を向くと、手でスリットを少しずらした…
+		STR:写真 += "横を向き、スリットから"
+		IF CHECK_PANTIES("紐")
+			STR:写真 += @"%PANTIES(TARGET)%の結び目"
+		ELSE
+			STR:写真 += "綺麗な太もも"
+		ENDIF
+		STR:写真 += "を覗かせている"
+	ELSE
+		PRINTFORM 足を踏みかえてポーズを決めた…
+		STR:写真 += "軽く踏み出した片足をスリットから露出させている"
+	ENDIF
+CASE "チャイナカンフー"
+	PRINTFORM 片足立ちになり、拳法のような構えをとった…
+	STR:写真 += "大きく上げた片足をスリットから大胆に露出させている"
+CASE "着物脚見せつけ"
+	PRINTFORM 床に座ると%SHIRT(TARGET)%の裾に手をかけた…
+	STR:写真 += @"座り込んで%SHIRT(TARGET)%の裾を乱し、生足を露わにしている"
+	;ポーズ解説にコス描写が含まれるのでキャラ解説の方のコス描写は省く
+	IGNORE_COSTUME = 1
+CASE "袴脚見せつけ"
+	PRINTFORM %SKIRT(TARGET)%の裾に手をかけた…
+	STR:写真 += @"%SKIRT(TARGET)%をたくし上げて生足を露出させている"
+
+;ポーズ撮影進行度1
+CASE "寝転がる"
+	PRINTFORM %PHOTO_SHOWING()%ポーズをとった…
+	STR:写真 += @"%NAMES("ベッド")%の上で"
+	IF RAND:3 == 0
+		STR:写真 += "寝そべって頬杖をついている"
+	ELSEIF RAND:2
+		STR:写真 += "横向きに寝転がっている"
+	ELSE
+		STR:写真 += @"%TEXTR("仰向けに/無防備に")%寝転がっている"
+	ENDIF
+
+CASE "座る"
+	PRINTFORM %PHOTO_SHOWING()%ポーズをとった…
+	;現状六華ちゃん専用。脚が無い人が増えたら調整
+	IF COND("脚が無い")
+		IF COND("種族：ラミア") && RAND:2
+			STR:写真 += "優雅にとぐろを巻いている"
+		ELSE
+			STR:写真 += "下半身を横に投げ出し、人魚のようなポーズをとっている"
+		ENDIF
+	ELSE
+		STR:写真 += @"%TEXTR(@"%NAMES("ベッド")%に座って脚を組んでいる/床にぺたんとお尻を付けて座っている/体育座りになり、首を傾げてこちらを見ている")%"
+	ENDIF
+CASE "ネコランジェリー"
+	PRINTFORM 両手を軽く握って猫の手を作った…
+	STR:写真 += "手首を曲げて猫の様なポーズをとっている"
+CASE "セーラー夏服"
+	PRINTFORM 伸びをするようなポーズになった…
+	STR:写真 += @"大きく伸びをしてセーラー服の裾から%TEXTR("おへそ/お腹/脇腹")%をチラリと覗かせている"
+	;ポーズ解説にコス描写が含まれるのでキャラ解説の方のコス描写は省く
+	IGNORE_COSTUME = 1
+CASE "肩ストレッチ"
+	PRINTFORM 伸ばした片腕をもう片方の腕で抱え込んだ…
+	STR:写真 += "腕を十字に組んで肩のストレッチをしている"
+CASE "チアコス", "チアコスおっぱい"
+	IF PLACE("出先") && !PLACE("ラブホテル")
+		PRINTFORM ひそひそ声で
+	ELSEIF TALENT:恥じらい || TALENT:内気 || TALENT:感情乏しい
+		PRINTFORM 控えめな声で
+	ELSEIF TALENT:陽気
+		PRINTFORM 元気な声で
+	ELSE
+		PRINTFORM 掛け声と共に
+	ENDIF
+	PRINTFORM %CALLNAME:MASTER%を応援し始めた…
+
+	SELECTCASE EVENT_CHOICE
+	CASE "チアコス"
+		STR:写真 += @"%TEXTR(@"スカートを翻し/片手を高く上げて%TEXTS("腋：視覚")%を見せ/おへそをチラリと覗かせ")%"
+	CASE "チアコスおっぱい"
+		STR:写真 += @"%TEXTR("大きなおっぱいを弾ませ/巨乳を躍動させ")%"
+	ENDSELECT
+	STR:写真 += @"ながら%CALLNAME:MASTER%を応援している"
+CASE "女豹のポーズ"
+	PRINTFORM %PHOTO_SHOWING()%ポーズをとった…
+	STR:写真 += @"%NAMES("ベッド")%の上で四つん這いになり「女豹のポーズ」をとっている"
+
+;ポーズ撮影進行度0
+CASE "妊婦写真"
+	PRINTFORM 我が子を慈しむようにポーズをとった…
+	STR:写真 += "大きく膨らんだお腹を両手で抱えている"
+CASE "腰を下ろす"
+	PRINTFORM %NAMES("ベッド")%にゆっくりと腰を下ろした…
+	STR:写真 += @"%NAMES("ベッド")%に腰かけてこちらを見つめている"
+CASE "振り返る"
+	PRINTFORM ゆっくりとこちらに背を向けた…
+	STR:写真 += "体をよじり、こちらを振り向くようなポーズをとっている"
+CASE "ピース"
+	PRINTFORM 当たり障りのないポーズをとった…
+	STR:写真 += "カメラに向かって"
+	IF TALENT:反抗的 || TALENT:感情乏しい
+		STR:写真 += "やる気なさそうに"
+	ELSEIF TALENT:陽気 || TALENT:目立ちたがり
+		STR:写真 += "笑顔で"
+	ENDIF
+	STR:写真 += "ピースをしている"
+CASE "体を隠す"
+	PRINTFORM 手で体を隠してしまった…
+	IF TALENT:感情乏しい
+		STR:写真 += "無表情のまま"
+	ELSEIF TALENT:恥じらい || TALENT:清楚 || TALENT:内気 || TALENT:謙虚
+		STR:写真 += "真っ赤になりながら"
+	ELSEIF TALENT:恥薄い || TALENT:小悪魔 || TALENT:好色
+		STR:写真 += "ニヤニヤ笑いながら"
+	ELSE
+		STR:写真 += "恥ずかしそうに微笑みつつ"
+	ENDIF
+	STR:写真 += @"胸%TEXTR("と大事なところ/＿")%を隠している"
+CASE "スカートつまみ"
+	PRINTFORM \@ CHECK_SKIRT("ロング") ? 長い # \@スカートを見せびらかすようなポーズをとった…
+	IF COND("脚が無い") == 0
+		STR:写真 += @"片手で%SKIRT(TARGET, "略")%を摘み上げて脚の付け根を見せている"
+	ELSE
+		STR:写真 += @"片手で%SKIRT(TARGET, "略")%をつまんで持ち上げている"
+	ENDIF
+CASE "恥じらう"
+	PRINTFORM なにやらモジモジし始めた…
+	IF TALENT:恥薄い || TALENT:小悪魔 || TALENT:好色
+		STR:写真 += "はにかむような素振りを見せながら目をそらしている"
+	ELSE
+		STR:写真 += "はにかみながら目をそらしている"
+	ENDIF
+ENDSELECT
+
+;ここで服と名前
+SIF IGNORE_COSTUME == 0
+	STR:写真 += @"%PHOTO_COSTUME(TARGET)%"
+STR:写真 += @"%CALLNAME:TARGET%"
+
+STR:補足 += "_ポージング"
+SAVESTR:この時間のポーズ撮影履歴 += @"%CALLNAME:TARGET%_%EVENT_CHOICE%\/"
+
+;ポーズによって見えた下着の確認フラグを立てる
+SIF STRCOUNT(STR:補足, "_ブラ")
+	CALL SETFLAG_DAILY, "ブラ形状確認"
+SIF STRCOUNT(STR:補足, "_パンツ")
+	CALL SETFLAG_DAILY, "パンツ形状確認"
+
+;-------------------------------------------------
+;写真撮影時のARGの服装を描写する
+;全部は対応しきれてないし多分もっと追加します
+;-------------------------------------------------
+@PHOTO_COSTUME(ARG)
+#FUNCTIONS
+
+VARSET LOCALS
+
+IF CHECK_CLO("ハダカ", ARG)
+	IF EQUIP:ARG:靴下 && EQUIP:ARG:靴 + EQUIP:ARG:手袋 == 0
+		LOCALS = %TEXTR("全裸に靴下の/靴下しか身に着けていない")%
+	ELSEIF EQUIP:ARG:靴 && EQUIP:ARG:靴下 + EQUIP:ARG:手袋 == 0
+		LOCALS = %TEXTR("全裸に靴のみの/靴しか身に着けていない")%
+	ELSEIF EQUIP:ARG:手袋 && EQUIP:ARG:靴 + EQUIP:ARG:靴下 == 0
+		LOCALS = %TEXTR("全裸に手袋の/手袋しか身に着けていない")%
+	ELSEIF EQUIP:ARG:手袋 + EQUIP:ARG:靴 + EQUIP:ARG:靴下
+		LOCALS = %TEXTR("殆ど裸の/ほぼハダカの")%
+	ELSE
+		LOCALS = %TEXTR("一糸まとわぬ姿の/ハダカの")%
+	ENDIF
+;ELSEIF RAND:2
+;	LOCALS = %CLO_ABOUT(ARG, "姿")%の
+;対応してみたけど微妙　もっとスマートな書き方あるかも…
+;下半身下着
+ELSEIF COND("調教中") == 0 && EQUIP:ARG:服 && EQUIP:ARG:パンツ && CHECK_CLO("パンツが見える格好", ARG)
+	IF CHECK_PANTIES("ブルマ", ARG)
+		LOCALS = %PANTIES(ARG, "種類")%姿の
+	ELSE
+		LOCALS = パンツ丸見えの
+	ENDIF
+;上半身下着
+ELSEIF COND("調教中") == 0 && EQUIP:ARG:服 == 0 && EQUIP:ARG:ブラ && EQUIP:ARG:スカート + EQUIP:ARG:アウター
+	LOCALS = ブラが丸見えの
+;下半身裸
+ELSEIF CHECK_CLO("ボトムレス", ARG)
+	LOCALS = 下半身裸の
+;上半身裸
+ELSEIF COND("調教中") == 0 && CHECK_CLO("トップレス", ARG) && TALENT:ARG:オトコ == 0
+	LOCALS = 上半身裸の
+ELSEIF CHECK_CLO("ビキニ姿", ARG)
+	IF CHECK_PANTIES("ティアドロップ", ARG)
+		LOCALS = ティアドロップビキニ姿の
+	ELSEIF CHECK_BRA("マイクロ", ARG) && CHECK_PANTIES("マイクロ", ARG)
+		LOCALS = マイクロビキニ姿の
+	ELSE
+		LOCALS = ビキニ姿の
+	ENDIF
+ELSEIF CHECK_BODYS("スク水", ARG)
+	LOCALS = スク水姿の
+ELSEIF CHECK_BODYS("競泳水着", ARG)
+	LOCALS = 競泳水着姿の
+ELSEIF CHECK_CLO("下着姿", ARG)
+	IF CHECK_BRA("猫型ブラ", ARG) && CHECK_PANTIES("肉球プリントパンツ", ARG)
+		LOCALS = ネコランジェリー姿の
+	ELSE
+		LOCALS = 下着姿の
+	ENDIF
+ELSEIF CHECK_CLO("ランジェリー姿")
+	LOCALS = ランジェリー姿の
+ELSEIF CHECK_CLO("体操服姿", ARG) && CHECK_OUTER("ブルマ", ARG) && EQUIP:ARG:スカート == 0
+	LOCALS = ブルマ姿の
+ELSEIF CHECK_SHIRT("体操服", ARG)
+	LOCALS = 体操服姿の
+ELSEIF CHECK_SHIRT("ジャージ", ARG)
+	LOCALS = ジャージ姿の
+ELSEIF STRCOUNT(CSTR:ARG:服, "セーラー")
+	LOCALS = セーラー服姿の
+ELSEIF STRCOUNT(CSTR:ARG:服, "ブレザー")
+	LOCALS = ブレザー姿の
+ELSEIF STRCOUNT(CSTR:ARG:服, "アメスク")
+	LOCALS = アメスク姿の
+ELSEIF CHECK_CLO("学生服姿", ARG)
+	LOCALS = 制服姿の
+ELSEIF CHECK_SHIRT("女教師の服", ARG)
+	LOCALS = 女教師姿の
+ELSEIF CHECK_SHIRT("振袖", ARG)
+	LOCALS = 振袖姿の
+ELSEIF CHECK_SHIRT("着物", ARG)
+	LOCALS = 着物姿の
+ELSEIF CHECK_SHIRT("和服", ARG)
+	LOCALS = 和服姿の
+ELSEIF CHECK_SHIRT("メイド服", ARG)
+	LOCALS = メイド服姿の
+ELSEIF CHECK_SHIRT("ナース服", ARG)
+	LOCALS = ナース姿の
+ELSEIF CHECK_SHIRT("チャイナドレス", ARG)
+	LOCALS = チャイナドレス姿の
+ELSEIF CHECK_SHIRT("巫女服", ARG)
+	LOCALS = 巫女服姿の
+ELSEIF CHECK_SHIRT("ウェディングドレス", ARG)
+	LOCALS = ウェディングドレス姿の
+ELSEIF CHECK_SHIRT("チアユニフォーム", ARG)
+	LOCALS = チアリーダー姿の
+ELSEIF CHECK_BODYS("ボンデージ", ARG)
+	LOCALS = ボンデージ姿の
+ELSEIF CHECK_BODYS("バニー", ARG)
+	LOCALS = バニー姿の
+ELSEIF CHECK_SHIRT(@"%CALLNAME:MASTER%のＹシャツ", ARG)
+	LOCALS = %CALLNAME:MASTER%のＹシャツ姿の
+ELSEIF COND("部屋着に着替えた", ARG)
+	LOCALS = ラフな格好の
+ELSE
+	LOCALS = %CLO("現在の格好＆の", ARG)%
+ENDIF
+
+RETURNF LOCALS
+
+;-------------------------------------------------
+;いろいろ見せてくれる時のARGの反応を描写する
+;性格素質によっていろいろ変わる。たぶん調整必要
+;-------------------------------------------------
+@PHOTO_SHOWING(ARGS, ARG)
+#FUNCTIONS
+#DIMS ACT_TABLE
+
+SIF ARG == 0 && TARGET
+	ARG = TARGET
+
+VARSET ACT_TABLE
+VARSET LOCALS
+
+SELECTCASE ARGS
+CASE "見せつけ"
+	IF TEQUIP:ARG:甘い言葉 || CFLAG:ARG:褒める || TCVAR:ARG:やる気 > 20
+		IF TALENT:ARG:陽気
+			ACT_TABLE += @"見せつけながら%TEXTR("楽しそうに微笑んで/ウィンクして")%いる/"
+		ELSEIF TALENT:ARG:恥薄い && TALENT:ARG:強気 + TALENT:ARG:高慢
+			ACT_TABLE += @"見せつけながら%TEXTR("優越感を滲ませて/不敵に微笑んで/ニヤニヤして/自信たっぷりに微笑んで")%いる/"
+		ELSEIF TALENT:ARG:強気
+			ACT_TABLE += @"見せつけながら%TEXTR("カメラ目線で/楽しそうに")%微笑んでいる/"
+		ELSEIF TALENT:ARG:冷静
+			ACT_TABLE += @"見せつけながら%TEXTR("控えめ/涼し気")%に微笑んでいる/"
+		ENDIF
+
+		SIF TALENT:ARG:優しい + TALENT:ARG:献身
+			ACT_TABLE += @"見せつけながら%TEXTR("穏やかに/優しく/目を細めて")%微笑んでいる/"
+		SIF COND("陶酔", ARG) && PREVEX("絶頂数合計", ARG)
+			ACT_TABLE += @"見せつけながら%TEXTR("快楽に染まった顔で/絶頂の余韻を滲ませつつ")%微笑んでいる/"
+	ENDIF
+	IF TALENT:ARG:恥じらい && (TEQUIP:ARG:甘い言葉 || CFLAG:ARG:褒める || TCVAR:ARG:やる気 > 20)
+		ACT_TABLE += @"見せつけながら%TEXTR("控えめ/恥ずかしそう")%に微笑んでいる/"
+	ELSEIF TALENT:ARG:恥じらい || (PREVPLAY("排泄") && PREVCOM == TNUM("Ａくぱぁさせる") )
+		ACT_TABLE += @"%TEXTR("目を逸らし/顔を真っ赤にし/顔を背け")%ながら見せつけている/"
+	ENDIF
+
+
+
+
+	SIF ACT_TABLE == ""
+		ACT_TABLE += "見せつけている/"
+
+	LOCALS = %TEXTR(ACT_TABLE)%
+
+CASEELSE
+	;ためしにRANDIF使ったら横長になって見づらくなったのでどうするか迷い中
+	IF CFLAG:ARG:ムラムラ && ABL:ARG:欲望 >= 3 && RAND:3 == 0 
+		LOCALS = 扇情的な表情を浮かべながら
+	ELSEIF (TALENT:ARG:小悪魔 || TALENT:ARG:好色) && RAND:3 == 0
+		LOCALS = にやにやと笑いながら
+	ELSEIF TALENT:ARG:感情乏しい && RAND:3 == 0
+		LOCALS = 無表情のまま
+	ELSEIF (TALENT:ARG:陽気 || TALENT:ARG:目立ちたがり) && RAND:3 == 0
+		LOCALS = 楽しそうに微笑みながら
+	ELSEIF (TALENT:ARG:恥じらい || TALENT:ARG:清楚) && RAND:3 == 0
+		LOCALS = 少し恥ずかしそうに
+	ELSEIF (TALENT:ARG:高慢 || TALENT:ARG:強気) && RAND:3 == 0
+		LOCALS = 自信に満ち溢れた表情を浮かべながら
+	ELSEIF (TALENT:ARG:献身 || TALENT:ARG:優しい) && RAND:3 == 0
+		LOCALS = 優しく微笑みながら
+	ELSEIF (TALENT:ARG:謙虚 || TALENT:ARG:内気) && RAND:3 == 0
+		LOCALS = 少しためらいながらも
+	ELSEIF (TALENT:ARG:冷静 || TALENT:ARG:恥薄い || TALENT:ARG:粗野) && RAND:3 == 0
+		LOCALS = 恥じらう様子もなく
+	ELSE
+		LOCALS = %TEXTR("ゆっくりとした動きで/おもむろに")%
+	ENDIF
+ENDSELECT
+RETURNF LOCALS
+
+
+;-------------------------------------------------
+;写真を管理する画面
+;-------------------------------------------------
+@VIEW_PHOTO
+IF SAVESTR:待ち受け画像 != ""
+	PRINTFORML %CALLNAME:MASTER%は待ち受けに設定してある
+	PRINTFORML 『%SAVESTR:待ち受け画像%』
+	PRINTFORMW を暫し眺めた後にスマホの写真フォルダを開いた。
+ENDIF
+FLAG:写真閲覧画面 = 1
+CALL VIEW_PHOTO_MAIN
+
+@VIEW_PHOTO_MAIN
+#DIM LCOUNT
+#DIM LCOUNT2
+#DIM MEMO_LINECOUNT
+#DIM MEMO_LINECOUNT2
+#DIM CHOICE
+#DIMS PHOTOS, 301
+#DIM MAX_PAGE
+#DIMS SHOW_FILTER
+#DIMS NAME_FILTER
+#DIM NUM_PHOTOCOUNT
+#DIM IS_DELPHOTO
+#DIMS BUTTON_PHOTO
+
+VARSET PHOTOS
+VARSET LOCALS
+VARSET LOCAL
+IS_DELPHOTO = 0
+
+MAX_PAGE = 1
+NUM_PHOTOCOUNT = 0
+FOR LCOUNT, 70, 100
+	VARSET LOCALS
+	SPLIT SAVESTR:LCOUNT, "/", LOCALS
+	FOR LCOUNT2, 0, 10
+		SELECTCASE LOCALS:LCOUNT2
+		CASE ""
+			CONTINUE
+		CASEELSE
+			;フィルタで弾く
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "パートナー") && STRCOUNT(LOCALS:LCOUNT2, CALLNAME:TARGET) == 0
+				CONTINUE
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "パンツ") && STRCOUNT(LOCALS:LCOUNT2, "パンツ") == 0
+				CONTINUE
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "アソコ") && STRCOUNT(LOCALS:LCOUNT2, "アソコ") == 0
+				CONTINUE
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "ペニス") && STRCOUNT(LOCALS:LCOUNT2, "ペニス") == 0
+				CONTINUE
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "クローズアップ") && STRCOUNT(LOCALS:LCOUNT2, "クローズアップ") == 0
+				CONTINUE
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "ポージング") && STRCOUNT(LOCALS:LCOUNT2, "ポージング") == 0
+				CONTINUE
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "睡眠中") && STRCOUNT(LOCALS:LCOUNT2, "睡眠中") == 0
+				CONTINUE
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "自撮り") && STRCOUNT(LOCALS:LCOUNT2, "自撮り") == 0
+				CONTINUE
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "事後") && STRCOUNT(LOCALS:LCOUNT2, "事後") == 0
+				CONTINUE
+
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "学生服") && STRCOUNT(LOCALS:LCOUNT2, "学生服") == 0
+				CONTINUE
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "水着") && STRCOUNT(LOCALS:LCOUNT2, "水着") == 0
+				CONTINUE
+			SIF STRCOUNT(SAVESTR:写真検索絞り込み, "体操服") && STRCOUNT(LOCALS:LCOUNT2, "体操服") == 0
+				CONTINUE
+
+			PHOTOS:NUM_PHOTOCOUNT = %LOCALS:LCOUNT2%
+
+			NUM_PHOTOCOUNT += 1
+			SELECTCASE NUM_PHOTOCOUNT%30
+			CASE 0
+				MAX_PAGE += 1
+			ENDSELECT
+		ENDSELECT
+	NEXT
+NEXT
+
+MAX_PAGE = LIMIT(MAX_PAGE, 1, 10)
+
+SIF FLAG:写真閲覧画面 > MAX_PAGE
+	FLAG:写真閲覧画面 = MAX_PAGE
+
+MEMO_LINECOUNT = LINECOUNT
+
+SIF TFLAG:NEXTPHOTO
+	GOTO INPUT_END
+
+DRAWLINE
+PRINTFORML {NUM("写真")}枚の写真が保存されています。どの写真を見ますか？
+;クローズアップ写真を選別している場合には表記を短縮
+IF STRCOUNT(SAVESTR:写真検索絞り込み, "クローズアップ")
+	CALL PRINT_STRL, "黄色_（※クローズアップ写真を選別しているため、見やすいように表記を短縮します※）"
+ELSE
+	PRINTFORML 
+ENDIF
+
+FOR LCOUNT, 30*(FLAG:写真閲覧画面 - 1), 30*FLAG:写真閲覧画面
+	SELECTCASE PHOTOS:LCOUNT
+	CASE ""
+		SETCOLOR DEF_COLOR("灰色")
+		PRINTFORML [×]（写真データがありません）
+		RESETCOLOR
+	CASEELSE
+		PRINTFORM [{LCOUNT, 2}]
+
+		VARSET LOCALS
+		SPLIT PHOTOS:LCOUNT, "_", LOCALS
+		;クローズアップ写真を選別している場合には表記を短縮
+		SIF STRCOUNT(SAVESTR:写真検索絞り込み, "クローズアップ") && EXTSTR(LOCALS, "クローズアップされた") != ""
+			LOCALS = %EXTSTR(LOCALS, "クローズアップされた")%
+		;文章を省略して一部のみ表示してみる。とりあえず30文字目までRESULTS:0に入れる
+		SUBSTRINGU LOCALS, 0, 30
+		;30文字以下の場合もあるのでここで判定
+		STRLENSU RESULTS:0
+		;省略されていないとみなされた場合、末尾の...はつかない
+		PRINTFORML  『%RESULTS:0%\@ LOCALS == RESULTS:0 || RESULT:0 < 30 ? # ... \@』
+	ENDSELECT
+NEXT
+PRINTFORML 
+
+VARSET SHOW_FILTER
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "パートナー")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "パートナー_500/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "パンツ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "パンツ_501/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "アソコ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "アソコ_502/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "ペニス")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "ペニス_503/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "クローズアップ")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "クローズアップ_505/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "ポージング")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "ポージング_506/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "睡眠中")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "睡眠中_507/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "自撮り")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "自撮り_508/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "事後")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "事後_509/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "学生服")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "学生服_520/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "水着")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "水着_521/"
+
+SIF STRCOUNT(SAVESTR:写真検索絞り込み, "体操服")
+	SHOW_FILTER += "黄色/"
+SHOW_FILTER += "体操服_522/"
+
+CALL PRINT_LIST, SHOW_FILTER
+PRINTL 
+
+BUTTON_PHOTO = [999]戻る [888]重複・類似写真の整理
+
+IF MAX_PAGE > FLAG:写真閲覧画面 && FLAG:写真閲覧画面 > 1
+	BUTTON_PHOTO += " [777]前のページ [666]次のページ"
+ELSEIF MAX_PAGE > FLAG:写真閲覧画面
+	BUTTON_PHOTO += " _灰色_NOBUTTON_[777]前のページ_ [666]次のページ"
+ELSEIF FLAG:写真閲覧画面 > 1
+	BUTTON_PHOTO += " [777]前のページ _灰色_NOBUTTON_[666]次のページ_"
+ENDIF
+SIF NUM("写真")
+	BUTTON_PHOTO += " [555]古い方から30枚消去"
+
+CALL PRINT_STRL, BUTTON_PHOTO
+
+$INPUT_LOOP
+
+INPUT
+CHOICE = RESULT
+
+$INPUT_END
+
+SELECTCASE CHOICE
+CASE 999
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	RETURN 0
+
+CASE 500 TO 549
+	SELECTCASE CHOICE
+	CASE 500
+		NAME_FILTER = パートナー
+	CASE 501
+		NAME_FILTER = パンツ
+	CASE 502
+		NAME_FILTER = アソコ
+	CASE 503
+		NAME_FILTER = ペニス
+
+	CASE 505
+		NAME_FILTER = クローズアップ
+	CASE 506
+		NAME_FILTER = ポージング
+	CASE 507
+		NAME_FILTER = 睡眠中
+	CASE 508
+		NAME_FILTER = 自撮り
+	CASE 509
+		NAME_FILTER = 事後
+
+	CASE 520
+		NAME_FILTER = 学生服
+	CASE 521
+		NAME_FILTER = 水着
+	CASE 522
+		NAME_FILTER = 体操服
+
+	CASEELSE
+		NAME_FILTER = 
+	ENDSELECT
+
+	IF NAME_FILTER != ""
+		IF STRCOUNT(SAVESTR:写真検索絞り込み, NAME_FILTER)
+			VARSET LOCALS
+			SPLIT SAVESTR:写真検索絞り込み, "/", LOCALS
+			SAVESTR:写真検索絞り込み = 
+			FOR LCOUNT, 0, 10
+				SELECTCASE LOCALS:LCOUNT
+				CASE NAME_FILTER, ""
+					CONTINUE
+				CASEELSE
+					SAVESTR:写真検索絞り込み += @"%LOCALS:LCOUNT%\/"
+				ENDSELECT
+			NEXT
+		ELSE
+			SAVESTR:写真検索絞り込み += @"%NAME_FILTER%\/"
+		ENDIF
+		FLAG:写真閲覧画面 = 1
+	ENDIF
+CASE 888
+	PRINTFORML タイトルが同じ写真を最新除いて消去していいですか？
+	CALL PRINT_SELECT, "はい/いいえ"
+	IF RESULT == 0
+		LOCAL = NUM("写真")
+		CALL DEL_SAME_PHOTO
+		IF NUM("写真") == LOCAL
+			PRINTFORMW 重複した写真は一枚も無いようです。
+		ELSE
+			PRINTFORMW {LOCAL - NUM("写真")}枚の重複写真をメモリから削除しました。
+		ENDIF
+	ENDIF
+	PRINTL 
+	PRINTFORML 内容が７割以上似通っている写真も、ついでに整理しますか？
+	CALL PRINT_SELECT, "はい/いいえ"
+	IF RESULT == 0
+		REDRAW 1
+		PRINTFORML サーチ＆デストロイ中……少しお待ちください
+		REDRAW 0
+		LOCAL = NUM("写真")
+		CALL DEL_SIMILAR_PHOTO
+		IF NUM("写真") == LOCAL
+			PRINTFORMW 似た内容の写真は一枚も無いようです。
+		ELSE
+			PRINTFORMW {LOCAL - NUM("写真")}枚の類似写真をメモリから削除しました。
+		ENDIF
+	ENDIF
+CASE 555
+	SIF NUM("写真") == 0
+		GOTO INPUT_LOOP
+
+	CALL DEL_OLD_PHOTO, 30
+	PRINTFORMW 古いものから30枚分消去しました。
+
+CASE 777
+	SIF FLAG:写真閲覧画面 == 1
+		GOTO INPUT_LOOP
+	FLAG:写真閲覧画面 -= 1
+
+CASE 666
+	SIF FLAG:写真閲覧画面 == MAX_PAGE
+		GOTO INPUT_LOOP
+
+	FLAG:写真閲覧画面 += 1
+
+CASE 0 TO 299
+	SIF PHOTOS:CHOICE == ""
+		GOTO INPUT_LOOP
+
+	TFLAG:NEXTPHOTO = 0
+
+	DRAWLINE
+	MEMO_LINECOUNT = LINECOUNT
+
+	VARSET LOCALS
+	SPLIT PHOTOS:CHOICE, "_", LOCALS
+
+	PRINTFORML 『%LOCALS%』が写っている。
+	PRINTFORM NO.{CHOICE}
+	SIF STRCOUNT(PHOTOS:CHOICE, "日付")
+		PRINTFORML  撮影日：%TO_DATE(EXTSTR(PHOTOS:CHOICE, "日付", "_") )%
+
+	MEMO_LINECOUNT2 = LINECOUNT
+
+	PRINTFORML 
+	PRINTFORML [0] 待ち受け画像にする
+	PRINTFORML [1] 消去する
+	IF PHOTOS:(CHOICE + 1) != ""
+		PRINTFORML [2] 戻る
+		PRINTFORML [3] 次へ
+		CALL ONEINPUT_SELECT, 4
+	ELSE
+		PRINTFORML [2] 戻る
+		CALL ONEINPUT_SELECT, 3
+	ENDIF
+
+	SELECTCASE RESULT
+	CASE 0
+		SAVESTR:待ち受け画像 = %LOCALS%
+		CALL PRINT_STRW, @"スマホの待ち受けを_L_黄色_『%SAVESTR:待ち受け画像%』_L_にしました"
+	CASE 1
+		SIF SAVESTR:待ち受け画像 == LOCALS
+			SAVESTR:待ち受け画像 = 
+		CALL DEL_PHOTO, PHOTOS:CHOICE
+		IS_DELPHOTO = 1
+		SIF PHOTOS:(CHOICE + 1) != ""
+			TFLAG:NEXTPHOTO = 1
+	CASE 3
+		IF PHOTOS:(CHOICE + 1) != ""
+			TFLAG:NEXTPHOTO = 1
+			CHOICE += 1
+		ENDIF
+	ENDSELECT
+ENDSELECT
+
+;CLEARLINE LINECOUNT - MEMO_LINECOUNT
+IF IS_DELPHOTO
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT
+	CALL PRINT_STRL, @"青_『%LOCALS%』を消しました"
+ELSEIF TFLAG:NEXTPHOTO
+	CLEARLINE LINECOUNT - MEMO_LINECOUNT2
+ENDIF
+RESTART
+
+
+;-------------------------------------------------
+;写真ARGSを消去する
+;-------------------------------------------------
+@DEL_PHOTO, ARGS
+#DIM LCOUNT
+#DIM LCOUNT2
+#DIMS MEMO_SAVESTR, 100
+#DIM NUM_SAVESTR
+#DIM NUM_PHOTOCOUNT
+
+VARSET MEMO_SAVESTR
+
+FOR LCOUNT, 70, 100
+	MEMO_SAVESTR:LCOUNT = %SAVESTR:LCOUNT%
+NEXT
+VARSET SAVESTR, "", 70, 100
+
+NUM_PHOTOCOUNT = 0
+NUM_SAVESTR = 70
+FOR LCOUNT, 70, 100
+	VARSET LOCALS
+	SPLIT MEMO_SAVESTR:LCOUNT, "/", LOCALS
+	FOR LCOUNT2, 0, 10
+		SELECTCASE LOCALS:LCOUNT2
+		CASE "", ARGS
+			CONTINUE
+		CASEELSE
+			SAVESTR:NUM_SAVESTR += @"%LOCALS:LCOUNT2%\/"
+			NUM_PHOTOCOUNT += 1
+
+			SELECTCASE NUM_PHOTOCOUNT
+			CASE 10
+				NUM_PHOTOCOUNT = 0
+				NUM_SAVESTR += 1
+			ENDSELECT
+		ENDSELECT
+	NEXT
+NEXT
+
+;FOR LCOUNT, 70, 100
+;	SELECTCASE SAVESTR:LCOUNT
+;	CASE ""
+;	CASEELSE
+;		PRINTFORML SAVESTR:{LCOUNT} = %SAVESTR:LCOUNT%
+;	ENDSELECT
+;NEXT
+
+
+;-------------------------------------------------
+;写真ARGSを記録する。すでに撮ったものと全く同じ写真は記録しない
+;記録にはSAVESTRの70～99番を割り当てる
+;-------------------------------------------------
+@SAVE_PHOTO, ARGS
+#DIM LCOUNT
+#DIM LCOUNT2
+#DIMS MEMO_SAVESTR, 100
+#DIM NUM_SAVESTR
+#DIM NUM_PHOTOCOUNT
+
+;すでに撮ったものと全く同じ写真は記録しない
+FOR LCOUNT, 70, 100
+	SIF STRCOUNT(@"\/%SAVESTR:LCOUNT%\/", @"\/%ARGS%\/")
+		RETURN 0
+NEXT
+
+VARSET MEMO_SAVESTR
+
+;今回撮った写真
+MEMO_SAVESTR:69 = %ARGS%
+
+;SAVESTRの70～99番を記録
+FOR LCOUNT, 70, 100
+	MEMO_SAVESTR:LCOUNT = %SAVESTR:LCOUNT%
+NEXT
+VARSET SAVESTR, "", 70, 100
+
+NUM_PHOTOCOUNT = 0
+NUM_SAVESTR = 70
+
+;69から始まるのは今回撮った写真がMEMO_SAVESTR:69としてあるため
+FOR LCOUNT, 69, 100
+	VARSET LOCALS
+	SPLIT MEMO_SAVESTR:LCOUNT, "/", LOCALS
+	FOR LCOUNT2, 0, 10
+		SELECTCASE LOCALS:LCOUNT2
+		CASE ""
+			CONTINUE
+		CASEELSE
+			SAVESTR:NUM_SAVESTR += @"%LOCALS:LCOUNT2%\/"
+			NUM_PHOTOCOUNT += 1
+
+			SELECTCASE NUM_PHOTOCOUNT
+			CASE 10
+				NUM_PHOTOCOUNT = 0
+				NUM_SAVESTR += 1
+			ENDSELECT
+		ENDSELECT
+	NEXT
+NEXT
+
+
+;-------------------------------------------------
+;表題が同じ写真を最新の物を除いて消去する
+;-------------------------------------------------
+@DEL_SAME_PHOTO
+#DIM LCOUNT
+#DIM LCOUNT2
+#DIMS PHOTOS, 300
+#DIM PHOTOCOUNT
+#DIMS PHOTOTITLE
+#DIM NUM_SAVESTR
+
+VARSET PHOTOS
+PHOTOCOUNT = 0
+
+;PHOTOS:0～PHOTOS:299に写真文字列を入れる
+FOR LCOUNT, 70, 100
+	VARSET LOCALS
+	SPLIT SAVESTR:LCOUNT, "/", LOCALS
+	FOR LCOUNT2, 0, 10
+		SELECTCASE LOCALS:LCOUNT2
+		CASE ""
+			BREAK
+		CASEELSE
+			PHOTOS:PHOTOCOUNT = %LOCALS:LCOUNT2%
+			PHOTOCOUNT += 1
+		ENDSELECT
+	NEXT
+NEXT
+
+;表題が同じものを最新除き全消去
+FOR LCOUNT, 0, 300
+	;すでに消されている場合はスキップ
+	SIF PHOTOS:LCOUNT == ""
+		CONTINUE
+
+	VARSET LOCALS
+	SPLIT PHOTOS:LCOUNT, "_", LOCALS
+	;LOCALSに写真の表題が入っている
+	PHOTOTITLE = %LOCALS%
+
+	FOR LCOUNT2, LCOUNT+1, 300
+		VARSET LOCALS
+		SPLIT PHOTOS:LCOUNT2, "_", LOCALS
+
+		SELECTCASE LOCALS
+		;待ち受けと同じなら整理しない
+		CASE SAVESTR:待ち受け画像
+
+		CASE PHOTOTITLE
+			PHOTOS:LCOUNT2 = 
+		ENDSELECT
+	NEXT
+NEXT
+
+VARSET SAVESTR, "", 70, 100
+PHOTOCOUNT = 0
+NUM_SAVESTR = 70
+
+;文字列が残っているもので再構成
+FOR LCOUNT, 0, 300
+	SELECTCASE PHOTOS:LCOUNT
+	CASE ""
+		CONTINUE
+	CASEELSE
+		SAVESTR:NUM_SAVESTR += @"%PHOTOS:LCOUNT%\/"
+		PHOTOCOUNT += 1
+		IF PHOTOCOUNT == 10
+			PHOTOCOUNT = 0
+			NUM_SAVESTR += 1
+		ENDIF
+	ENDSELECT
+NEXT
+
+;-------------------------------------------------
+;似た写真を最新の物を除いて消去する
+;-------------------------------------------------
+@DEL_SIMILAR_PHOTO
+#DIM LCOUNT
+#DIM LCOUNT2
+#DIMS PHOTOS, 300
+#DIM PHOTOCOUNT
+#DIMS PHOTOTITLE
+#DIM NUM_SAVESTR
+
+VARSET PHOTOS
+PHOTOCOUNT = 0
+
+;PHOTOS:0～PHOTOS:299に写真文字列を入れる
+FOR LCOUNT, 70, 100
+	VARSET LOCALS
+	SPLIT SAVESTR:LCOUNT, "/", LOCALS
+	FOR LCOUNT2, 0, 10
+		SELECTCASE LOCALS:LCOUNT2
+		CASE ""
+			BREAK
+		CASEELSE
+			PHOTOS:PHOTOCOUNT = %LOCALS:LCOUNT2%
+			PHOTOCOUNT += 1
+		ENDSELECT
+	NEXT
+NEXT
+
+;７割同じ内容のものを最新除き全消去
+FOR LCOUNT, 0, 300
+	;すでに消されている場合はスキップ
+	SIF PHOTOS:LCOUNT == ""
+		CONTINUE
+
+	VARSET LOCALS
+	SPLIT PHOTOS:LCOUNT, "_", LOCALS
+	;LOCALSに写真の表題が入っている
+	PHOTOTITLE = %LOCALS%
+
+	FOR LCOUNT2, LCOUNT+1, 300
+		VARSET LOCALS
+		SPLIT PHOTOS:LCOUNT2, "_", LOCALS
+
+		;待ち受けと同じなら整理しない
+		SIF LOCALS == SAVESTR:待ち受け画像
+			CONTINUE
+		;同一人物のものでないなら消さない
+		SIF WHOSE_PHOTO(PHOTOTITLE) != WHOSE_PHOTO(LOCALS)
+			CONTINUE
+		;７割類似なら消す
+		SIF CHECK_HIGHMATCH(PHOTOTITLE, LOCALS) == 0
+			CONTINUE
+		PHOTOS:LCOUNT2 = 
+	NEXT
+	SIF LCOUNT%10 == 0
+		TWAIT 1, 1
+NEXT
+
+VARSET SAVESTR, "", 70, 100
+PHOTOCOUNT = 0
+NUM_SAVESTR = 70
+
+;文字列が残っているもので再構成
+FOR LCOUNT, 0, 300
+	SELECTCASE PHOTOS:LCOUNT
+	CASE ""
+		CONTINUE
+	CASEELSE
+		SAVESTR:NUM_SAVESTR += @"%PHOTOS:LCOUNT%\/"
+		PHOTOCOUNT += 1
+		IF PHOTOCOUNT == 10
+			PHOTOCOUNT = 0
+			NUM_SAVESTR += 1
+		ENDIF
+	ENDSELECT
+NEXT
+
+;-------------------------------------------------
+;誰の写真かを返す
+;-------------------------------------------------
+@WHOSE_PHOTO(ARGS)
+#FUNCTION
+#DIM LCOUNT
+
+FOR LCOUNT, 2, CHARANUM
+	;名前が最後の場合
+	SIF SUBSTRINGU(ARGS, STRLENSU(ARGS) - STRLENSU(CALLNAME:LCOUNT), STRLENSU(CALLNAME:LCOUNT) ) == CALLNAME:LCOUNT
+		RETURNF LCOUNT
+	;名前が途中の場合
+	SIF STRCOUNT(ARGS, @"%CALLNAME:LCOUNT%の")
+		RETURNF LCOUNT
+NEXT
+RETURNF 0
+;-------------------------------------------------
+;古いものからARG枚消す
+;-------------------------------------------------
+@DEL_OLD_PHOTO, ARG
+#DIM LCOUNT
+#DIM LCOUNT2
+#DIM NUM_SAVESTR
+#DIM PHOTOCOUNT
+#DIMS PHOTOS, 300
+#DIM MEMO_PHOTONUM
+
+MEMO_PHOTONUM = NUM("写真")
+
+VARSET PHOTOS
+PHOTOCOUNT = 0
+
+;PHOTOS:0～PHOTOS:299に写真文字列を入れる
+FOR LCOUNT, 70, 100
+	VARSET LOCALS
+	SPLIT SAVESTR:LCOUNT, "/", LOCALS
+	FOR LCOUNT2, 0, 10
+		SELECTCASE LOCALS:LCOUNT2
+		CASE ""
+			BREAK
+		CASEELSE
+			SIF PHOTOCOUNT >= MEMO_PHOTONUM - ARG
+				BREAK
+			PHOTOS:PHOTOCOUNT = %LOCALS:LCOUNT2%
+			PHOTOCOUNT += 1
+		ENDSELECT
+	NEXT
+NEXT
+
+VARSET SAVESTR, "", 70, 100
+PHOTOCOUNT = 0
+NUM_SAVESTR = 70
+
+;文字列が残っているもので再構成
+FOR LCOUNT, 0, 300
+	SELECTCASE PHOTOS:LCOUNT
+	CASE ""
+		CONTINUE
+	CASEELSE
+		SAVESTR:NUM_SAVESTR += @"%PHOTOS:LCOUNT%\/"
+		PHOTOCOUNT += 1
+		IF PHOTOCOUNT == 10
+			PHOTOCOUNT = 0
+			NUM_SAVESTR += 1
+		ENDIF
+	ENDSELECT
+NEXT
+
+
+;-------------------------------------------------
+;キャラARGが補足ARGSを満たす自撮り写真を用意しているかをチェックする関数
+;-------------------------------------------------
+@CHECK_SELFIE(ARG, ARGS, ARGS:1, ARGS:2, ARGS:3)
+#FUNCTION
+#DIM LCOUNT
+
+VARSET LOCALS
+SPLIT SAVESTR:自撮り写真, "/", LOCALS
+FOR LCOUNT, 0, 10
+	SIF LOCALS:LCOUNT == ""
+		BREAK
+	;ARGの自撮りを探す
+	SIF STRCOUNT(LOCALS:LCOUNT, @"_%CALLNAME:ARG%") == 0
+		CONTINUE
+	;探す写真かをチェック
+	SIF STRCOUNT(LOCALS:LCOUNT, @"_%ARGS%")
+		RETURNF 1
+	SIF ARGS:1 != "" && STRCOUNT(LOCALS:LCOUNT, @"_%ARGS:1%")
+		RETURNF 1
+	SIF ARGS:2 != "" && STRCOUNT(LOCALS:LCOUNT, @"_%ARGS:2%")
+		RETURNF 1
+	SIF ARGS:3 != "" && STRCOUNT(LOCALS:LCOUNT, @"_%ARGS:3%")
+		RETURNF 1
+NEXT

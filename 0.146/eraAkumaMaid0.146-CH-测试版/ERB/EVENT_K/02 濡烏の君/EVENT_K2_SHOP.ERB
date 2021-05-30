@@ -1,0 +1,265 @@
+;-------------------------------------------------
+;取引画面と、お買い物の際の台詞を記述します
+;-------------------------------------------------
+;取引画面での台詞。悪魔以外は大部分が不要です
+;-------------------------------------------------
+@KOJO_WISH_K2, ARGS
+
+SELECTCASE ARGS
+CASE "取引開始"
+	IF TALENT:相思相愛
+		PRINTFORMW 「かまわんが……あまり変な事をさせるなよ？」
+	ELSE
+		PRINTFORMW 「%CNAME("一人称")%に話があるだと？……ふん、下僕の願いを聞くのも主人の務めか」
+		PRINTFORMW 「いいだろう。言ってみろ」
+	ENDIF
+CASE "呼び名変更"
+	PRINTFORMW 「ほう。何と呼ばれたいんだ」
+CASE "呼び名変更完了"
+	PRINTFORMW 「%CNAME("二人称")%か……まぁいいだろう」
+CASE "呼び名変更キャンセル"
+	PRINTFORMW 「む。気が変わったか？」
+CASE "愛の告白"
+	;告白成功！
+	IF TALENT:恋慕
+		PRINTFORMW 「………………%CNAME("一人称")%は情けない。下僕の気持ちにも気づけなかったとは、主人失格だな」
+		PRINTFORMW 自嘲する%CALLNAME:TARGET%だが……その顔は意外と明るい
+		PRINTFORMW 「だが、%CNAME("二人称")%も下僕失格だぞ？」
+		PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%に抱きついて、我慢の限界といった体で唇を奪ってきた。
+		CALL PRINT_STR, "「待たせすぎだ、ばかっ……_H_」_W_"
+	ELSE
+		PRINTFORMW 「好意をぶつけられて悪い気はしないが……」
+		PRINTFORMW 「%CNAME("一人称")%は%CNAME("二人称")%の事を、まだよく知らん」
+		PRINTFORMW 「すまんな」
+	ENDIF
+;パンツのお願いした時に相手がノーパンだった
+CASE "ノーパン"
+	IF COND("合意：パンツ取引")
+		PRINTFORMW 「悪いが今は無理だ。悪いな」
+		SIF EQUIP:スカート
+			PRINTFORMW %CALLNAME:TARGET%は%SKIRT(TARGET, "略")%をめくって、何も付けていない下腹部をチラリと見せてきた。
+	ELSE
+		PRINTFORMW 「……ふん」
+		PRINTFORMW 「聞かなかったことにしてやる」
+	ENDIF
+CASE "パンツ取引"
+	IF TFLAG:取引承諾
+		IF COND("合意：パンツ取引") == 0
+			TFLAG:取引価格 = 1000
+			PRINTFORMW 「ふむ、そうだな……%MONEY_C(TFLAG:取引価格)%よこすならくれてやろう」
+			PRINTFORMW 「なに？高い？」
+			PRINTFORMW 「何を言う……下着とてタダでは買えんのだぞ」
+		;寝起きは断る
+		ELSEIF CFLAG:寝起き
+			TFLAG:取引拒否 = 1
+		ELSE
+			PRINTFORMW 「……フ」
+			PRINTFORMW 「%CNAME("一人称")%と%CNAME("二人称")%の仲だ。%MONEY_C(TFLAG:取引価格)%でいいぞ」
+		ENDIF
+	ENDIF
+CASE "パンツ"
+	;値切って相場と変わらず$500払う。ここでTFLAG:取引承諾 = 0とすることで拒否するのもよいでしょう
+	IF TFLAG:値切った
+		PRINTFORMW 「フ。どうやら話は平行線のようだな」
+		PRINTFORMW 「他のやつに頼むがいい」
+		TFLAG:取引承諾 = 0
+	;取引初成功
+	ELSEIF COND("合意：パンツ取引") == 0
+		PRINTFORMW 「こんなものがそんなに欲しいとは……%CNAME("二人称")%も物好きな奴だな」
+		PRINTFORMW 「まぁ、よかろう」
+		PRINTFORMW 「くれてやるから、%CNAME("一人称")%の優しさに感謝するがいい」
+		;パンツを脱いで渡してくる汎用地の文
+		CALL DAILY_MESSAGE, "パンツを脱いで手渡し"
+	ELSE
+		IF CHECK_PANTIES("紐") && RAND:2
+			PRINTFORMW %CALLNAME:TARGET%は一向にパンツを脱ごうとしない……
+			PRINTFORMW 「くくっ、おあずけされた犬のようだな」
+			PRINTFORMW 「……ほら、欲しければ自分でほどくんだな」
+			PRINTFORMW 「せっかくの紐付きだ……%CNAME("二人称")%の好きにするがいい」
+		ELSE
+			;パンツを脱いで渡してくる汎用地の文
+			CALL DAILY_MESSAGE, "パンツを脱いで手渡し"
+			IF RAND:2
+				PRINTFORMW 「ほら、これでいいのか？」
+			ELSE
+				PRINTFORMW 「……ほら。しかし、%CNAME("二人称")%の趣味はよく分からんな」
+				PRINTFORMW 「もっと、するべき事があるのではないか？」
+				PRINTFORMW %CALLNAME:TARGET%は横目でチラリと%NAMES("ベッド")%を見た。
+			ENDIF
+		ENDIF
+	ENDIF
+CASE "パンツ拒否"
+	;まだ取引が成功していない状態
+	IF COND("合意：パンツ取引") == 0
+		PRINTFORMW 「冗談は休み休み言え」
+	;２回目以降
+	ELSE
+		;取引自体を拒否した
+		IF TFLAG:取引拒否
+			PRINTFORMW 「……今は気分がすぐれん。あとにしろ」
+		;対価を拒否した場合
+		ELSEIF TCVAR:やる気 > 0
+			PRINTFORMW 「悪いがタダでやるつもりはない」
+		ELSEIF CHARA_NUM("室内の邪魔者")
+			PRINTFORMW 「……%CNAME("二人称")%は、もう少し場の空気を読むという事を学んだ方が良いな」
+			PRINTFORMW %CALLNAME:TARGET%は他の人達の事を気にしている……
+		;野外とか、そのほかに嫌な理由がある場合
+		ELSE
+			PRINTFORMW 「……今は駄目だ。あとにしろ」
+		ENDIF
+	ENDIF
+;TFLAG:値上げ交渉 に数字を入れておくと、断られた際もその値上乗せで服を脱ぐ展開に出来る
+;TFLAG:取引拒否 = 1 とすると本来取引できるかに関わらず、取引しなくなる
+CASE "全裸取引"
+	;ＯＫ！
+	IF TFLAG:取引承諾
+
+	;断られる
+	ELSE
+		;これを指定しておくと、実行値が足りない際にこの額上乗せで応じてくれるようになる
+		;TFLAG:値上げ交渉 = 2000
+	ENDIF
+CASE "全裸"
+	;値上げ交渉した("全裸取引"で設定した場合のみ)
+	IF TFLAG:値上げ交渉
+
+	;取引初成功
+	ELSEIF COND("合意：全裸化") == 0
+
+	ELSE
+
+	ENDIF
+	PRINTFORMW 「ふん。いいだろう」
+	CALL EVENT_DATUI, "ハダカ"
+CASE "全裸拒否"
+	;取引を拒否した際("全裸取引"で設定した場合のみ)
+	IF TFLAG:取引拒否
+
+	;二人きりなら脱いでくれるけど状況が悪い
+	ELSEIF COND("合意：全裸化") && (CHARA_NUM("室内の邪魔者") || PLACE("個室") == 0)
+
+	ELSE
+
+	ENDIF
+	PRINTFORMW 「悪いがお断りだ。もっと%CNAME("一人称")%が喜びそうなことを言ってみろ」
+CASE "同棲拒否"
+	;初回
+	IF DEVENT(ARGS) == 0
+		PRINTFORMW 「同棲だと？」
+		PRINTFORMW 「なぜそんな面倒くさい事を%CNAME("一人称")%がせねばならん」
+	ELSE
+		PRINTFORMW 「しつこいぞ。他の奴にでも頼め」
+	ENDIF
+CASE "同棲希望"
+	;初回
+	IF DEVENT(ARGS) == 0
+		PRINTFORMW 「…………ふむ。なかなか面白そうだな」
+		PRINTFORMW 「いいだろう、%CNAME("二人称")%と寝食を共にしてやろうじゃないか」
+	ELSE
+		PRINTFORMW 「ん？また%CNAME("一人称")%と共に暮らしたくなったか」
+		CALL PRINT_STR, "「……ふふ_H_」_W_"
+		PRINTFORMW 「%CNAME("一人称")%を退屈させないと約束するなら、考えてやらんでもないぞ？」
+		PRINTFORMW 勿体着けた物言いの%CALLNAME:TARGET%だが、表情は嬉しそうだ。
+	ENDIF
+CASE "同棲頻度の相談"
+	PRINTFORMW 「むむ？……まぁ、それもよかろう」
+CASE "お弁当拒否"
+	PRINTFORMW 「悪いが、%CNAME("一人称")%はそういう細かい事は苦手だ」
+	PRINTFORMW 「というか下僕の%CNAME("二人称")%こそが、%CNAME("一人称")%のために作るべきではないのか？」
+;"淫紋シール直前"or"淫紋シール"の片方を書けば十分だと思います
+CASE "淫紋シール直前"
+	;初回
+	IF DEVENT(ARGS) == 0
+
+	ELSE
+
+	ENDIF
+
+CASE "淫紋シール"
+	;初回
+	IF DEVENT(ARGS) == 0
+
+	ELSE
+
+	ENDIF
+;"淫紋直前"or"淫紋"の片方を書けば十分だと思います
+CASE "淫紋直前"
+	SELECTCASE MARK:淫紋
+	CASE 2
+
+	CASE 3
+
+	CASE 4
+
+	ENDSELECT
+CASE "淫紋"
+	SELECTCASE MARK:淫紋
+	CASE 2
+
+	CASE 3
+
+	CASE 4
+
+	ENDSELECT
+;悪魔、淫魔、妖狐専用
+CASE "尻尾を見せて"
+	PRINTFORMW 「うーん…………」
+	PRINTFORMW %CALLNAME:TARGET%は髪の先端を摘まんで眺めたのちに腕組みし、%CALLNAME:MASTER%を横目で伺いつつ低く唸った。
+	PRINTFORMW 「…………まぁ、いいだろう」
+	PRINTFORMW %CALLNAME:TARGET%がﾑﾆｬﾑﾆｬとまじないを口にすると、ドロンと狐の耳と尻尾が現れた。
+	PRINTFORMW 「%CNAME("一人称")%が尻尾を見せる人間は%CNAME("二人称")%が初めてだ。光栄に思うがいい」
+
+CASE "尻尾を見せて拒否"
+	PRINTFORMW 「断る」
+	PRINTFORMW 「なんでも思い通りになると勘違いしないようにな」
+
+CASE "髪型変更の感想"
+	;どの髪型になったかで分岐可能
+	SELECTCASE CONDS("髪型の種類")
+	CASE CONDS("普段の髪型")
+		PRINTFORMW 「なんだ、これでいいのか？私がいつもやってるのと同じじゃないか」
+	CASE "ぱっつん", "ストレート"
+		PRINTFORMW 「フ……まぁ、こういう髪型が好きなら私に頼むのが一番だろうな」
+		PRINTFORMW %CALLNAME:TARGET%はニヤリとしながら髪をかき上げ、美しく長い黒髪のサラサラ具合を見せてきた。
+	CASE "ウェーブ"
+		PRINTFORMW 「う～～ん……正直な話、私はこういう髪型は嫌いだ。%CNAME("二人称")%が望むから我慢してやってはいるが……」
+		PRINTFORMW %CALLNAME:TARGET%はあんまりお気に召していない様だ。
+	CASE "ツインテール", "ポニーテール", "三つ編み"
+		PRINTFORML 「こういうのが好みか。耳にでも執着があるのか？それとも……」
+		PRINTFORMW %CALLNAME:TARGET%はおさげを弄びつつ、どうでも良さげに%CALLNAME:MASTER%に話を振ってきた。
+	CASE "お団子", "編み上げ"
+		PRINTFORML 「ふむ。……ふ～む。こういうのも中々だな」
+		PRINTFORMW %CALLNAME:TARGET%は鏡で自分の頭を四方から眺めて出来栄えを確かめている。
+	;その他
+	CASEELSE
+		PRINTFORMW 「どうだ？……まぁ、どんな髪型をしていようと元が良いからな」
+	ENDSELECT
+;これは普段からパンストを履く人じゃないとあんまり見る機会ないと思う
+CASE "パンスト着替え"
+	;台詞を書いたら下のRETURN 1を消してください
+	RETURN 1
+	;どれに履き替えてもらったか
+	IF CHECK_OUTER("オープンパンスト")
+		PRINTFORMW 
+	ELSEIF CHECK_OUTER("網パンスト")
+		PRINTFORMW 
+	ELSEIF CHECK_OUTER("パンスト")
+		PRINTFORMW 
+	;生足
+	ELSE
+		PRINTFORMW 
+	ENDIF
+
+;その他汎用
+CASEELSE
+	;汎用拒否
+	IF STRCOUNT(ARGS, "拒否")
+		PRINTFORMW 「悪いがお断りだ。もっと%CNAME("一人称")%が喜びそうなことを言ってみろ」
+	;汎用取引（特に記述することがないならスキップ）
+	ELSEIF STRCOUNT(ARGS, "取引")
+
+	ELSE
+		PRINTFORMW 「ふん。いいだろう」
+	ENDIF
+ENDSELECT
+
