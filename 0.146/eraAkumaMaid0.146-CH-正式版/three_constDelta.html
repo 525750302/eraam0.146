@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Falling Ball on threejs</title>
+		<style>
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+		<!-- Code Written by Kohei Matsumura <matsumur@acm.org> -->
+
+		<script> //ここからJavaScriptスタート
+			//仮想世界の定義
+			//	ボールは地上20mの位置に初期配置
+			//	床面は0mの位置にある。
+			//	ボールの直径は1m
+			//	ボールは空気抵抗を無視した自由落下する。
+			// 	実世界情報実験３で開発するのは下の方で示している部分のみ！		
+
+			//ボールと環境の情報を定義する
+			const GROUND_THICKNESS = 1.0;	//床板の厚さ
+			const BALL_RADIUS = 0.5; 		//ボールの半径 0.5m
+			const BALL_INITIAL_POSITION = {x:0.0, y:20.0, z:0.0}; //ボールの初期位置。高さ方向がY
+			const GRAVITY = -9.8;			//重力
+			var delta = 0.01;				//シミュレーションの時間分割幅　0.01s
+			var count = 0;					//シミュレーションのカウンタ　
+			var ball_velocity = {x:0.0, y:0.0};　//ボールの初期速度
+			var RoE=0.8;					//床面での反射時の速度の反射係数
+
+			//ThreeJSの3D環境の設定
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 50 );	//カメラパラメータの定義
+			camera.position.y = 10;	//カメラ位置（左右方向）
+			camera.position.z = 30;	//カメラ位置（前後方向）
+
+			//ThreeJSのレンダリングの設定
+			var renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.setClearColor( 0x000000, 1 );
+			renderer.shadowMap.enabled = true; 
+			
+			//仮想世界の定義開始
+			document.body.appendChild( renderer.domElement );
+
+			//照明の定義。3種類の証明を用いる
+			var lights = [];
+			lights[0] = new THREE.PointLight( 0xffffff, 1, 0 );
+			lights[1] = new THREE.PointLight( 0xffffff, 1, 0 );
+			lights[2] = new THREE.PointLight( 0xffffff, 1, 0 );
+
+			lights[0].position.set( 0, 200, 0 );
+			lights[1].position.set( 100, 200, 100 );
+			lights[2].position.set( - 100, - 200, - 100 );
+
+				//影を設定する。
+			lights[1].castShadow = true; 
+			lights[1].shadow.mapSize.width = 2048;
+			lights[1].shadow.mapSize.height = 2048;
+
+				//照明を仮想世界に追加する
+			scene.add(lights[0]);
+			scene.add(lights[1]);
+			scene.add(lights[2]);
+
+
+			// 落下するボールの定義
+				//半径　BALL_RADIUS mの球のモデルを定義。後の引数は自分で調べよ
+			var ballGeometry = new THREE.SphereGeometry( BALL_RADIUS, 64, 64 );
+				//ボールの表面の素材を定義
+			var ballMaterial = new THREE.MeshPhongMaterial( { color: 0x156289, emissive: 0x072534, side: THREE.DoubleSide, flatShading: true } );
+				//ボールオブジェクトを生成
+			var ball = new THREE.Mesh( ballGeometry, ballMaterial );
+				//ボールの初期位置を定義
+			ball.position.y = BALL_INITIAL_POSITION.y;
+				//影の定義
+			ball.castShadow = true;
+				//ボールを仮想空間に定義
+			scene.add(ball);
+			
+			// 床板の定義
+				//左右20m、厚さGROUND_THICKNESS m, 奥行き25mの板を定義
+			var cubeGeometry = new THREE.CubeGeometry(70, GROUND_THICKNESS, 50);
+				//床板の素材を定義
+			var cubeMaterial = new THREE.MeshLambertMaterial( { color: 0x666666 } )
+				//床板オブジェクトを生成
+			var ground = new THREE.Mesh( cubeGeometry, cubeMaterial );
+				//床板の初期位置を定義.床面がY座標で0mの面となる。
+			ground.position.y = -1*GROUND_THICKNESS/2;
+			//ground.rotation.z = Math.PI/4;
+				//影の定義
+			ground.receiveShadow = true;
+				//床板を仮想空間に定義
+			scene.add(ground);
+			
+
+/******************************************************
+	落下シミュレーションの開発はここから開始する！
+	ここから編集して、リアルなアニメーションにする！
+	シミュレーションでは、このanimate関数が連続して呼ばれ、
+	呼ばれる度にカウンタをひとつづつ進める。
+	シミュレーションは時間分割を　定数　delta　秒　で制御。初期値は 0.01秒
+	シミュレーション開始時からの時間は　delta x count 秒で得られる。 
+********************************************************/
+
+			let animate = () =>  {
+				//運動継続のためのボール速度の積分処理（1回目）
+				ball_velocity.x = 0.0;
+				if(ball.position.y > 0.5)
+					ball_velocity.y += GRAVITY * delta;
+				
+				//運動継続のためのボール位置の積分処理（2回目）
+				ball.position.x = ball.position.x + ball_velocity.x* delta;
+				ball.position.y += ball_velocity.y * delta;
+
+				//ボールの状況を確認する
+				//床面への接触を評価
+				//床面とボールの衝突は、ボールの中心が床の高さから半径分(0.5m)の付近で判定する。
+				if(ball.position.y < 0.5 ) {
+					//本来は反射の時には速度方向が逆転し、速度自体もRoE倍となるべき！
+					ball_velocity.y = -(ball_velocity.y*RoE);
+					//床位置でまで来たら停止(ダミー処理)
+					ball.position.y=0.5;
+					//ボールの速度が小さい場合は、ボールの動きを止めさせる
+					if(ball_velocity.y<0.001 && ball_velocity.y>-0.001)
+					{
+						ball_velocity.y=0;
+					}
+				}
+				//コンソールへの状態出力の制御。床付近で止まったら出力やめる。	
+				//コンソールへの出力は各ブラウザで異なる。調査せよ。
+				if(ball_velocity.y**2 > 0.01 && ball.position.y > 0.55){
+					console.log((delta*count).toFixed(3) + ", " + ball.position.y.toFixed(4));
+				}
+				//シミュレーションのカウンタを進める
+				++count;
+				
+				//アニメーションの繰り返し
+				var requestid=requestAnimationFrame(animate);
+			};
+
+/******************************************************
+	落下シミュレーションの開発はここまで！
+	この下はThree.jsが理解できるまで触らないこと！！
+******************************************************/
+
+			const render = () => {
+				requestAnimationFrame( render );
+				renderer.render( scene, camera );
+			};
+
+			window.addEventListener( 'resize',  () => {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}, false );
+
+			requestAnimationFrame(animate);
+			render();
+						
+		</script>
+	</body>
+</html

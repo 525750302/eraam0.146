@@ -173,7 +173,7 @@ CASE "勧誘直後"
 	PRINTL 
 	PRINTL 
 	PRINTFORML - システムメッセージ -
-	CALL KOJO_MODE_SELECT_K10, ARG
+	CALL KOJO_MODE_SELECT_K10
 
 ENDSELECT
 
@@ -182,9 +182,9 @@ ENDSELECT
 ;パートナーは勿論、アドバイザーの時でも読み込む
 ;TARGETではなく、ARGとして呼ばれることに注意
 ;-------------------------------------------------
-@SETFLAG_BEFORE_TRAIN_K10, ARG
+@SETFLAG_BEFORE_TRAIN_K10
 ;他のキャラがTARGETのときは発生しない
-SIF ARG != TARGET || NO:ARG != 10
+SIF TARGET == ASSI
 	RETURN 1
 
 ;システム側での合意禁止
@@ -263,38 +263,38 @@ IF CFLAG:好感度 >= 1000 && COND("合意：本番") == 0
 	CALL SET_GOUI, "本番"
  	RESETCOLOR
 ENDIF
-CALL KOJO_ENDCOM_K10, ARG
+CALL KOJO_ENDCOM_K10
 
 ;-------------------------------------------------
 ;独自処理　口上のモード選択
 ;ARG = 対象キャラ
 ;-------------------------------------------------
-@KOJO_MODE_SELECT_K10, ARG
+@KOJO_MODE_SELECT_K10
 ;元はモードセレクト用の処理だったが実母固定になったため一部をオミット
 IF FINDCHARA(NO, 6) > 0
-	PRINTFORMW %CALLNAME:ARG% %CALLNAME:(FINDCHARA(NO, 6))%作为%CALLNAME:MASTER%  "亲生母亲"的同时，状态变为"同居中"。
+	PRINTFORMW %CALLNAME:TARGET% %CALLNAME:(FINDCHARA(NO, 6))%作为%CALLNAME:MASTER%  "亲生母亲"的同时，状态变为"同居中"。
 ELSE
-	PRINTFORMW %CALLNAME:ARG%作为%CALLNAME:MASTER% "亲生母亲"的同时，状态变为"同居中"。
+	PRINTFORMW %CALLNAME:TARGET%作为%CALLNAME:MASTER% "亲生母亲"的同时，状态变为"同居中"。
 ENDIF
 
-CALL SETFLAG, "同居：一直", ARG
+CALL SETFLAG, "同居：一直", TARGET
 
 PRINTL 
-PRINTFORML  设定%CALLNAME:ARG%对%CALLNAME:MASTER%的第二人称。
-PRINTFORML  現在的第二人称是『%CNAMET(ARG, "二人称")%』。要进行变更吗？
+PRINTFORML  设定%CALLNAME:TARGET%对%CALLNAME:MASTER%的第二人称。
+PRINTFORML  現在的第二人称是『%CNAME("二人称")%』。要进行变更吗？
 PRINTFORML （之后请求交易时可以变更）
 PRINTFORML   [0]变更
 PRINTFORML   [1]不变更
 $INPUT_LOOP_B
 INPUT
 IF RESULT == 0
-	CALL NAME_CONVERT_SP, ARG
+	CALL NAME_CONVERT_SP, TARGET
 ELSEIF RESULT == 1
 	PRINTFORMW  不变更二人称。
 ELSE
 	GOTO INPUT_LOOP_B
 ENDIF
-CALL SET_CEVENT, "モードセレクト完了", ARG
+CALL SET_CEVENT, "モードセレクト完了", TARGET
 PRINTL 
 
 ;-------------------------------------------------
@@ -383,7 +383,7 @@ IF CEVENT("モードセレクト完了") == 0
 	PRINTFORML  因为%CALLNAME:TARGET%是已经被劝诱的存档数据。
 	PRINTFORMW  呼出口上的初期设定画面。
 	PRINTL 
-	CALL KOJO_MODE_SELECT_K10, TARGET
+	CALL KOJO_MODE_SELECT_K10
 ENDIF
 
 ;一部フラグをオフにする
@@ -6180,11 +6180,10 @@ ENDSELECT
 ;-------------------------------------------------
 ;調教コマンド終了時に行う共通処理
 ;-------------------------------------------------
-@KOJO_ENDCOM_K10, ARG
-SIF ARG == 0
-	ARG = TARGET
+@KOJO_ENDCOM_K10
+
 ;初調教前
-IF CEVENT("調教開始：初調教", ARG) == 0
+IF CEVENT("調教開始：初調教") == 0
 	;朝フェラ防止
 	DITEMTYPE:ARG:91 = 1
 	;朝パイズリ防止
@@ -6199,7 +6198,7 @@ ELSE
 	DITEMTYPE:ARG:98 = 0
 	DITEMTYPE:ARG:120 = 0
 ENDIF
-IF COND("合意：本番", ARG) == 0
+IF COND("合意：本番") == 0
 	;Ｖ本番禁止
 	DITEMTYPE:ARG:60 = 1
 	DITEMTYPE:ARG:61 = 1
@@ -6232,7 +6231,7 @@ ELSE
 	DITEMTYPE:ARG:121 = 0
 	DITEMTYPE:ARG:122 = 0
 ENDIF
-IF COND("合意：肛門性交", ARG) == 0
+IF COND("合意：肛門性交") == 0
 	;Ａ本番禁止
 	DITEMTYPE:ARG:70 = 1
 	DITEMTYPE:ARG:71 = 1
@@ -6257,7 +6256,7 @@ ELSE
 	DITEMTYPE:ARG:126 = 0
 	DITEMTYPE:ARG:127 = 0
 ENDIF
-IF CEVENT("素股イベント発生中", ARG) && COND("合意：本番", ARG) == 0
+IF CEVENT("素股イベント発生中") && COND("合意：本番") == 0
 	;挿入に夢中でペニスを抜く行為を選べない
 	DITEMTYPE:ARG:8 = 1
 	DITEMTYPE:ARG:9 = 1
@@ -6397,7 +6396,7 @@ ELSE
 	DITEMTYPE:ARG:282 = 0
 
 	;正常位を再封印する
-	SIF COND("合意：本番", ARG) == 0
+	SIF COND("合意：本番") == 0
 		DITEMTYPE:ARG:60 = 1
 ENDIF
 RETURN 1

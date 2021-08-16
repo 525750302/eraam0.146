@@ -1,0 +1,1 @@
+copy /b era启动器.png+eraAkumaMaid0.146-CH-正式版_V2.7z eraAkumaMaid0.146-CH-正式版_V2.7z的图片外壳，请将后缀改为7Z或zip进行解压.png
